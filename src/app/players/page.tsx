@@ -15,7 +15,7 @@ export default function PlayersPage() {
 
   useEffect(() => {
     if (players.length === 0) initLoad()
-  }, [players, initLoad])
+  }, [])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
