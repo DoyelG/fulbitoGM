@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-type Params = { params: { id: string } }
-
-export async function DELETE(_req: Request, { params }: Params) {
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   try {
     await prisma.match.delete({ where: { id: params.id } })
     return NextResponse.json({ ok: true })
@@ -12,7 +10,7 @@ export async function DELETE(_req: Request, { params }: Params) {
   }
 }
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
     const m = await prisma.match.findUnique({
       where: { id: params.id },
@@ -45,7 +43,7 @@ export async function GET(_req: Request, { params }: Params) {
   }
 }
 
-export async function PUT(req: Request, { params }: Params) {
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
     const b = await req.json()
 
