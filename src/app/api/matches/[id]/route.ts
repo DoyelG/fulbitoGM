@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, context: unknown) {
   try {
-    await prisma.match.delete({ where: { id: params.id } })
+    const { id } = (context as { params: { id: string } }).params
+    await prisma.match.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: `Failed to delete match: ${err}` }, { status: 500 })
   }
 }
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, context: unknown) {
   try {
+    const { id } = (context as { params: { id: string } }).params
     const m = await prisma.match.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { players: true }
     })
     if (!m) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -43,9 +45,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, context: unknown) {
   try {
     const b = await req.json()
+    const { id } = (context as { params: { id: string } }).params
 
     // Update basic fields
     const data: { date?: Date, type?: string, name?: string | null, teamAScore?: number, teamBScore?: number } = {}
@@ -58,17 +61,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     // If teams provided, replace participants atomically
     if (Array.isArray(b.teamA) || Array.isArray(b.teamB)) {
       await prisma.$transaction([
-        prisma.match.update({ where: { id: params.id }, data }),
-        prisma.matchPlayer.deleteMany({ where: { matchId: params.id } }),
+        prisma.match.update({ where: { id }, data }),
+        prisma.matchPlayer.deleteMany({ where: { matchId: id } }),
         prisma.matchPlayer.createMany({
           data: [
-            ...((b.teamA || []).map((p: { id: string, goals: number, performance: number }) => ({ matchId: params.id, playerId: p.id, team: 'A', goals: p.goals ?? 0, performance: p.performance ?? 5 }))),
-            ...((b.teamB || []).map((p: { id: string, goals: number, performance: number }) => ({ matchId: params.id, playerId: p.id, team: 'B', goals: p.goals ?? 0, performance: p.performance ?? 5 })))
+            ...((b.teamA || []).map((p: { id: string, goals: number, performance: number }) => ({ matchId: id, playerId: p.id, team: 'A', goals: p.goals ?? 0, performance: p.performance ?? 5 }))),
+            ...((b.teamB || []).map((p: { id: string, goals: number, performance: number }) => ({ matchId: id, playerId: p.id, team: 'B', goals: p.goals ?? 0, performance: p.performance ?? 5 })))
           ]
         })
       ])
     } else {
-      await prisma.match.update({ where: { id: params.id }, data })
+      await prisma.match.update({ where: { id }, data })
     }
 
     return NextResponse.json({ ok: true })
