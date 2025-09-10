@@ -26,9 +26,8 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     await get().initLoad()
     return id
   },
-  deleteMatch: async (_id) => {
-    // Optional: implement DELETE /api/matches/[id] on server, then call it and refresh.
-    // For now just refresh list from server:
+  deleteMatch: async (id) => {
+    await fetch(`/api/matches/${id}`, { method: 'DELETE' })
     await get().initLoad()
   },
   clearMatches: () => set({ matches: [] })

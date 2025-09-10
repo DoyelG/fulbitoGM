@@ -115,8 +115,6 @@ export default function PlayerDetailPage() {
     () => calculateCurrentStreakForPlayer(matches, id as string),
     [matches, id]
   );
-  const winGoalProgress =
-    currentStreak.kind === "win" ? currentStreak.count : 0;
 
   if (!player) {
     return (

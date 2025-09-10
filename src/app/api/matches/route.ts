@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { MatchPlayer } from '@/store/useMatchStore'
+
+type IncomingMatchPlayer = { id: string; goals: number; performance: number }
+type IncomingMatchBody = {
+  date: string
+  type: string
+  name?: string | null
+  teamAScore: number
+  teamBScore: number
+  teamA?: IncomingMatchPlayer[]
+  teamB?: IncomingMatchPlayer[]
+}
 
 export async function GET() {
   const matches = await prisma.match.findMany({ orderBy: { date: 'desc' }, include: { players: true } })
@@ -21,7 +31,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const b = await req.json()
+  const b = (await req.json()) as IncomingMatchBody
   const created = await prisma.match.create({
     data: {
       date: new Date(b.date),
@@ -31,8 +41,8 @@ export async function POST(req: Request) {
       teamBScore: b.teamBScore,
       players: {
         create: [
-          ...(b.teamA || []).map((p: MatchPlayer) => ({ playerId: p.id, team: 'A', goals: p.goals, performance: p.performance })),
-          ...(b.teamB || []).map((p: MatchPlayer) => ({ playerId: p.id, team: 'B', goals: p.goals, performance: p.performance }))
+          ...(b.teamA || []).map((p: IncomingMatchPlayer) => ({ playerId: p.id, team: 'A' as const, goals: p.goals, performance: p.performance })),
+          ...(b.teamB || []).map((p: IncomingMatchPlayer) => ({ playerId: p.id, team: 'B' as const, goals: p.goals, performance: p.performance }))
         ]
       }
     }
