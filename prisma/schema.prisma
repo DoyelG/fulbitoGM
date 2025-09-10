@@ -1,0 +1,47 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Player {
+  id           String        @id @default(cuid())
+  name         String
+  position     String
+  skill        Int?
+  skills       Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  matchPlayers MatchPlayer[]
+}
+
+model Match {
+  id           String        @id @default(cuid())
+  date         DateTime
+  type         String
+  name         String?
+  teamAScore   Int
+  teamBScore   Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  players      MatchPlayer[]
+}
+
+model MatchPlayer {
+  id          String   @id @default(cuid())
+  matchId     String
+  playerId    String
+  team        String   // 'A' | 'B'
+  goals       Int
+  performance Float
+
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player  Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@index([matchId])
+}
