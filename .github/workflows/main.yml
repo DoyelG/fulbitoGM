@@ -1,6 +1,5 @@
 name: fulbito-yml
 on:
-  push:
   pull_request:
 jobs:
   lint-test-build:
