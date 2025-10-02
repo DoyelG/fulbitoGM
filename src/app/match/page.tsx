@@ -22,6 +22,9 @@ export default function MatchPage() {
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
+  // search in player selection
+  const [playerQuery, setPlayerQuery] = useState('')
+
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
     return players
@@ -130,6 +133,12 @@ export default function MatchPage() {
     </div>
   )
 
+  const totalSkillA = autoTeams?.teamA.totalSkill ?? 0
+  const totalSkillB = autoTeams?.teamB.totalSkill ?? 0
+  const combinedSkill = totalSkillA + totalSkillB
+  const probA = combinedSkill > 0 ? Math.round((totalSkillA / combinedSkill) * 100) : 50
+  const probB = combinedSkill > 0 ? 100 - probA : 50
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Prepare Match</h1>
@@ -156,8 +165,23 @@ export default function MatchPage() {
       {selectionOpen && (
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <h3 className="text-xl font-semibold mb-4">Select Players</h3>
+          <div className="mb-3">
+            <input
+              type="text"
+              value={playerQuery}
+              onChange={e => setPlayerQuery(e.target.value)}
+              className="border rounded px-3 py-2 w-full"
+              placeholder="Search players by name..."
+            />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {players.map(p => (
+            {players
+              .filter(p => {
+                const q = playerQuery.trim().toLowerCase()
+                if (!q) return true
+                return p.name.toLowerCase().includes(q)
+              })
+              .map(p => (
               <label key={p.id} className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -238,8 +262,8 @@ export default function MatchPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <TeamCard title="Team A" team={autoTeams.teamA} color="blue" />
-            <TeamCard title="Team B" team={autoTeams.teamB} color="red" />
+            <TeamCard title="Team A" team={autoTeams.teamA} color="blue" winProbability={probA} />
+            <TeamCard title="Team B" team={autoTeams.teamB} color="red" winProbability={probB} />
           </div>
         </div>
       )}
@@ -247,7 +271,7 @@ export default function MatchPage() {
   )
 }
 
-function TeamCard({ title, team, color }: { title: string, team: TeamResult, color: 'blue' | 'red' }) {
+function TeamCard({ title, team, color, winProbability }: { title: string, team: TeamResult, color: 'blue' | 'red', winProbability?: number }) {
   return (
     <div className="border rounded-lg p-4">
       <h3 className={`text-center font-semibold mb-3 ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>{title}</h3>
@@ -259,7 +283,11 @@ function TeamCard({ title, team, color }: { title: string, team: TeamResult, col
         ))}
       </div>
       <div className="bg-gray-100 rounded px-3 py-2 text-center font-semibold">
-        Total Skill: {team.totalSkill}
+        <span className="mr-2">Total Skill:</span>
+        {team.totalSkill}
+        <span className="mx-2">|</span>
+        <span className="mr-2">Win Probability:</span>
+        {winProbability != null ? `${winProbability}%` : '—'}
       </div>
     </div>
   )
