@@ -47,7 +47,7 @@ export default function PlayersClient({ players, matches }: { players: Player[];
                   </td>
                 </tr>
               ) : (
-                players.sort((a, b) => a.skill > b.skill ? -1 : 1).map((player) => {
+                players.sort((a, b) => (a.skill ?? 0) > (b.skill ?? 0) ? -1 : 1).map((player) => {
                   const st = streaks[player.id] ?? { kind: null, count: 0 }
                   const winGoalProgress = st.kind === 'win' ? st.count : 0
                   return (
@@ -55,7 +55,7 @@ export default function PlayersClient({ players, matches }: { players: Player[];
                       <td className="px-4 py-3">
                         <Link href={`/players/${player.id}`} className="text-brand hover:underline font-medium">{player.name}</Link>
                       </td>
-                      <td className="px-4 py-3"><SkillBadge skill={player.skill} /></td>
+                      <td className="px-4 py-3"><SkillBadge skill={player.skill ?? 'unknown'} /></td>
                       <td className="px-4 py-3 text-gray-800">{player.position}</td>
                       <td className="px-4 py-3">
                         {st.kind ? <StreakBadge kind={st.kind} count={st.count} /> : <span className="text-sm text-gray-800">—</span>}
