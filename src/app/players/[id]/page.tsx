@@ -29,12 +29,7 @@ export default function PlayerDetailPage() {
 
   useEffect(() => {
     if (player) {
-      const base =
-        player.skill === null
-          ? 5
-          : typeof player.skill === "number"
-          ? player.skill
-          : 5;
+      const base = player.skill ?? 5;
       setForm({
         name: player.name,
         position: player.position,
