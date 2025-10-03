@@ -1,9 +1,6 @@
-import Link from "next/link";
-import SkillBadge from "@/components/SkillBadge";
-import StreakBadge from "@/components/StreakBadge";
-import { calculateAllCurrentStreaks } from "@/lib/playerStats";
 import { prisma } from "@/lib/prisma";
 import PlayersClient from "./playersClient";
+import type { Player as StorePlayer } from "@/store/usePlayerStore";
 
 export default async function PlayersPage() {
   const [players, matches] = await Promise.all([
@@ -12,6 +9,14 @@ export default async function PlayersPage() {
   ]);
 
   const nameMap = new Map(players.map((p) => [p.id, p.name] as const));
+  const shapedPlayers: StorePlayer[] = players.map((p) => ({
+    id: p.id,
+    name: p.name,
+    position: p.position,
+    skill: p.skill ?? null,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  }))
   const shapedMatches = matches.map((m) => ({
     id: m.id,
     date: m.date.toISOString().slice(0, 10),
@@ -27,5 +32,5 @@ export default async function PlayersPage() {
       .map((p) => ({ id: p.playerId, name: nameMap.get(p.playerId) || "", goals: p.goals, performance: p.performance })),
   }));
 
-  return <PlayersClient players={players} matches={shapedMatches} />;
+  return <PlayersClient players={shapedPlayers} matches={shapedMatches} />;
 }

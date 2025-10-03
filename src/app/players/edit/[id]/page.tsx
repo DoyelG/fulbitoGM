@@ -20,10 +20,10 @@ export default function EditPlayerPage() {
   useEffect(() => {
     const p = getPlayer(id as string)
     if (p) {
-      const physical = String(p.skills?.physical ?? (p.skill === 'unknown' ? 5 : p.skill))
-      const technical = String(p.skills?.technical ?? (p.skill === 'unknown' ? 5 : p.skill))
-      const tactical = String(p.skills?.tactical ?? (p.skill === 'unknown' ? 5 : p.skill))
-      const psychological = String(p.skills?.psychological ?? (p.skill === 'unknown' ? 5 : p.skill))
+      const physical = String(p.skills?.physical ?? (p.skill === null ? 5 : p.skill))
+      const technical = String(p.skills?.technical ?? (p.skill === null ? 5 : p.skill))
+      const tactical = String(p.skills?.tactical ?? (p.skill === null ? 5 : p.skill))
+      const psychological = String(p.skills?.psychological ?? (p.skill === null ? 5 : p.skill))
       setFormData({
         name: p.name,
         position: p.position,

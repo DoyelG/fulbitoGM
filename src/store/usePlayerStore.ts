@@ -2,14 +2,14 @@ import { create } from 'zustand'
 
 type SkillValue = number | 'unknown'
 type Skills = { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
-export type Player = { id: string; name: string; skill: number | 'unknown'; position: string; skills?: Skills }
+export type Player = { id: string; name: string; skill: number | null; position: string; skills?: Skills, createdAt: Date; updatedAt: Date }
 
 type PlayerStore = {
   players: Player[]
   playersInit: 'idle' | 'loading' | 'loaded' | 'error'
   initLoad: () => Promise<void>
   hydratePlayers: (players: Player[]) => void
-  addPlayer: (player: Omit<Player, 'id'>) => Promise<void>
+  addPlayer: (player: Omit<Player, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   updatePlayer: (id: string, player: Partial<Player>) => Promise<void>
   deletePlayer: (id: string) => Promise<void>
   getPlayer: (id: string) => Player | undefined
