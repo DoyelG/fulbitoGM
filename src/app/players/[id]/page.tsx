@@ -30,7 +30,7 @@ export default function PlayerDetailPage() {
   useEffect(() => {
     if (player) {
       const base =
-        player.skill === "unknown"
+        player.skill === null
           ? 5
           : typeof player.skill === "number"
           ? player.skill
@@ -157,7 +157,7 @@ export default function PlayerDetailPage() {
     ? ((stats.wins / stats.matches) * 100).toFixed(1)
     : "0.0";
   const baseSkill =
-    player.skill === "unknown"
+    player.skill === null
       ? 5
       : typeof player.skill === "number"
       ? player.skill
