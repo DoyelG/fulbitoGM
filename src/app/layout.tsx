@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Link from 'next/link'
+import AppBootstrap from './shared/AppBootstrap'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             </div>
           </header>
           <main>{children}</main>
+          <AppBootstrap />
         </div>
       </body>
     </html>

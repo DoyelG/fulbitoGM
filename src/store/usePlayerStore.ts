@@ -2,11 +2,13 @@ import { create } from 'zustand'
 
 type SkillValue = number | 'unknown'
 type Skills = { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
-type Player = { id: string; name: string; skill: number | 'unknown'; position: string; skills?: Skills }
+export type Player = { id: string; name: string; skill: number | 'unknown'; position: string; skills?: Skills }
 
 type PlayerStore = {
   players: Player[]
+  playersInit: 'idle' | 'loading' | 'loaded' | 'error'
   initLoad: () => Promise<void>
+  hydratePlayers: (players: Player[]) => void
   addPlayer: (player: Omit<Player, 'id'>) => Promise<void>
   updatePlayer: (id: string, player: Partial<Player>) => Promise<void>
   deletePlayer: (id: string) => Promise<void>
@@ -15,10 +17,21 @@ type PlayerStore = {
 
 export const usePlayerStore = create<PlayerStore>()((set, get) => ({
   players: [],
+  playersInit: 'idle',
   initLoad: async () => {
-    const res = await fetch('/api/players', { cache: 'no-store' })
-    const data: Player[] = await res.json()
-    set({ players: data })
+    const state = get().playersInit
+    if (state === 'loading' || state === 'loaded') return
+    set({ playersInit: 'loading' })
+    try {
+      const res = await fetch('/api/players', { cache: 'no-store' })
+      const data: Player[] = await res.json()
+      set({ players: data, playersInit: 'loaded' })
+    } catch (e) {
+      set({ playersInit: 'error' })
+    }
+  },
+  hydratePlayers: (players) => {
+    set({ players, playersInit: 'loaded' })
   },
   addPlayer: async (player) => {
     const res = await fetch('/api/players', {
