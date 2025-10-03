@@ -9,7 +9,7 @@ type PlayerStore = {
   playersInit: 'idle' | 'loading' | 'loaded' | 'error'
   initLoad: () => Promise<void>
   hydratePlayers: (players: Player[]) => void
-  addPlayer: (player: Omit<Player, 'id'>) => Promise<void>
+  addPlayer: (player: Omit<Player, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   updatePlayer: (id: string, player: Partial<Player>) => Promise<void>
   deletePlayer: (id: string) => Promise<void>
   getPlayer: (id: string) => Player | undefined
