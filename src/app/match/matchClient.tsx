@@ -34,7 +34,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
     const ids = new Set(selected)
     return players
       .filter(p => ids.has(p.id))
-      .map(p => ({ id: p.id, name: p.name, skill: p.skill, position: p.position }))
+      .map(p => ({ id: p.id, name: p.name, skill: (p.skill ?? 'unknown') as number | 'unknown', position: p.position }))
   }, [players, selected])
 
   const unassignedManual = useMemo(() => {
