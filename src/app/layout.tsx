@@ -7,8 +7,8 @@ import AppBootstrap from './shared/AppBootstrap'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Fulbito Manager',
-  description: 'Manage your football team and matches',
+  title: 'Fulbito',
+  description: 'Gestiona el futbol de tu organización',
 }
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={inter.className}>
         <div className="min-h-screen bg-gray-50">
           <header className="bg-gradient-to-r from-brand to-accent text-white shadow-md">
