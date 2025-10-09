@@ -116,9 +116,9 @@ export default function PlayerDetailPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="mb-4">Player not found.</p>
+          <p className="mb-4">Jugador no encontrado.</p>
           <Link href="/players" className="text-brand hover:underline">
-            Back to Players
+            Volver a jugadores
           </Link>
         </div>
       </div>
@@ -181,10 +181,10 @@ export default function PlayerDetailPage() {
           <div className="flex flex-col gap-3 text-gray-800">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">Overall:</span>
+                <span className="text-sm text-gray-700">General:</span>
                 <SkillBadge skill={overallAvg} />
               </div>
-              <span className="text-sm">Position: {player.position}</span>
+              <span className="text-sm">Posición: {player.position}</span>
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function PlayerDetailPage() {
               }
             }}
           >
-            Back
+            Volver
           </button>
           {!editMode ? (
             <>
@@ -208,13 +208,13 @@ export default function PlayerDetailPage() {
                 href={`/players/edit/${player.id}`}
                 className="px-3 py-2 rounded border hover:bg-gray-50"
               >
-                Open Edit
+                Abrir edición
               </Link>
               <button
                 className="px-3 py-2 rounded bg-brand text-white hover:bg-brand/90"
                 onClick={() => setEditMode(true)}
               >
-                Quick Edit
+                Edición rápida
               </button>
             </>
           ) : (
@@ -222,7 +222,7 @@ export default function PlayerDetailPage() {
               className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
               onClick={() => setEditMode(false)}
             >
-              Cancel
+              Cancelar
             </button>
           )}
         </div>
@@ -230,15 +230,15 @@ export default function PlayerDetailPage() {
 
       <div className="bg-white rounded-xl shadow p-4 md:p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Skills</h2>
+          <h2 className="text-lg font-semibold">Habilidades</h2>
           <div className="hidden sm:flex items-center gap-4 text-xs text-gray-700">
             <span className="inline-flex items-center gap-2">
               <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'hsl(270deg 78% 42%)' }} />
-              Player
+              Jugador
             </span>
             <span className="inline-flex items-center gap-2">
               <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'hsl(24deg 85% 48%)' }} />
-              Baseline
+              Base
             </span>
           </div>
         </div>
@@ -246,15 +246,15 @@ export default function PlayerDetailPage() {
         <div className="grid md:grid-cols-2 gap-6 items-center">
           <ul className="space-y-3">
             <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Physical</span>
+              <span className="text-sm text-gray-700">Físico</span>
               <SkillBadge skill={catSkills.physical} />
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Technical</span>
+              <span className="text-sm text-gray-700">Técnico</span>
               <SkillBadge skill={catSkills.technical} />
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Tactical</span>
+              <span className="text-sm text-gray-700">Táctico</span>
               <SkillBadge skill={catSkills.tactical} />
             </li>
             <li className="flex items-center justify-between">
@@ -265,7 +265,7 @@ export default function PlayerDetailPage() {
 
           <div className="flex justify-center">
             <RadarChart
-              labels={['Physical','Technical','Tactical','Mental']}
+              labels={['Físico','Técnico','Táctico','Mental']}
               values={[Number(catSkills.physical), Number(catSkills.technical), Number(catSkills.tactical), Number(catSkills.psychological)]}
               baseline={5}
               width={250}
@@ -283,7 +283,7 @@ export default function PlayerDetailPage() {
           className="bg-white rounded-lg shadow p-4 mb-6 grid sm:grid-cols-3 gap-4 items-end"
         >
           <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
+            <label className="block text-sm font-medium mb-1">Nombre</label>
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -292,7 +292,7 @@ export default function PlayerDetailPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Physical</label>
+            <label className="block text-sm font-medium mb-1">Físico</label>
             <select
               value={form.physical}
               onChange={(e) => setForm({ ...form, physical: e.target.value })}
@@ -306,7 +306,7 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Technical</label>
+            <label className="block text-sm font-medium mb-1">Técnico</label>
             <select
               value={form.technical}
               onChange={(e) => setForm({ ...form, technical: e.target.value })}
@@ -320,7 +320,7 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Tactical</label>
+            <label className="block text-sm font-medium mb-1">Táctico</label>
             <select
               value={form.tactical}
               onChange={(e) => setForm({ ...form, tactical: e.target.value })}
@@ -352,21 +352,21 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div className="sm:col-span-3 text-sm text-gray-800">
-            Overall (avg):{" "}
+            General (promedio):{" "}
             <span className="font-semibold">Lv {avgPreview}</span>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Position</label>
+            <label className="block text-sm font-medium mb-1">Posición</label>
             <select
               value={form.position}
               onChange={(e) => setForm({ ...form, position: e.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
-              <option value="GK">Goalkeeper</option>
-              <option value="DEF">Defender</option>
-              <option value="MID">Midfielder</option>
-              <option value="FWD">Forward</option>
-              <option value="PLAYER">Player (Any)</option>
+              <option value="GK">Arquero</option>
+              <option value="DEF">Defensor</option>
+              <option value="MID">Mediocampista</option>
+              <option value="FWD">Delantero</option>
+              <option value="PLAYER">Cualquier posición</option>
             </select>
           </div>
           <div className="sm:col-span-3 flex justify-end gap-2">
@@ -375,13 +375,13 @@ export default function PlayerDetailPage() {
               onClick={() => setEditMode(false)}
               className="px-4 py-2 rounded border hover:bg-gray-50"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="submit"
               className="px-4 py-2 rounded bg-brand text-white hover:bg-brand/90"
             >
-              Save
+              Guardar
             </button>
           </div>
         </form>
@@ -389,29 +389,29 @@ export default function PlayerDetailPage() {
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Matches</div>
+          <div className="text-sm text-gray-700">Partidos</div>
           <div className="text-2xl font-semibold">{stats.matches}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Total Goals</div>
+          <div className="text-sm text-gray-700">Goles totales</div>
           <div className="text-2xl font-semibold">{stats.goals}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Goals/Match</div>
+          <div className="text-sm text-gray-700">Goles/Partido</div>
           <div className="text-2xl font-semibold">{gpm}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Avg Performance</div>
+          <div className="text-sm text-gray-700">Rendimiento promedio</div>
           <div className="text-2xl font-semibold">
             {(stats.totalPerformance / (stats.matches || 1)).toFixed(1)}★
           </div>
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Win Rate</div>
+          <div className="text-sm text-gray-700">Tasa de victorias</div>
           <div className="text-2xl font-semibold">{winRate}%</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Streaks</div>
+          <div className="text-sm text-gray-700">Rachas</div>
           <div className="flex items-center justify-center gap-2">
             <StreakBadge
               kind={currentStreak.kind}
@@ -424,11 +424,11 @@ export default function PlayerDetailPage() {
       {/* Recent matches card remains the same */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-4 py-3 border-b">
-          <h2 className="text-lg font-semibold">Recent Matches</h2>
+          <h2 className="text-lg font-semibold">Partidos recientes</h2>
         </div>
         <div className="p-4">
           {stats.recent.length === 0 ? (
-            <div className="text-gray-800">No matches for this player yet.</div>
+            <div className="text-gray-800">No hay partidos para este jugador aún.</div>
           ) : (
             <div className="grid gap-2">
               {stats.recent.slice(0, 10).map((rm, i) => (
@@ -456,7 +456,7 @@ export default function PlayerDetailPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm">Team {rm.team}</span>
+                    <span className="text-sm">Equipo {rm.team}</span>
                     <span className="font-semibold">{rm.score}</span>
                     <span className="text-sm">
                       {rm.goals}⚽ {rm.performance}★

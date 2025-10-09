@@ -53,7 +53,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
 
   const openSelection = () => {
     if (players.length < requiredPlayers) {
-      alert(`You need at least ${requiredPlayers} players for ${matchType}. You currently have ${players.length}.`)
+      alert(`Necesitas al menos ${requiredPlayers} jugadores para ${matchType}. Actualmente tienes ${players.length}.`)
       return
     }
     setSelected(new Set())
@@ -64,7 +64,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
 
   const doAuto = () => {
     if (selected.size !== requiredPlayers) {
-      alert(`Please select exactly ${requiredPlayers} players for ${matchType}.`)
+      alert(`Por favor, selecciona exactamente ${requiredPlayers} jugadores para ${matchType}.`)
       return
     }
     const teams = balanceTeams(selectedPlayers, playersPerTeam)
@@ -134,11 +134,11 @@ export default function MatchClient({ players }: { players: Player[] }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Prepare Match</h1>
+      <h1 className="text-3xl font-bold mb-6">Preparar partido</h1>
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <label className="font-medium">Match Type</label>
+          <label className="font-medium">Tipo de partido</label>
           <select
             value={matchType}
             onChange={e => setMatchType(e.target.value as MatchType)}
@@ -150,21 +150,21 @@ export default function MatchClient({ players }: { players: Player[] }) {
             className="ml-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             onClick={openSelection}
           >
-            Select Players
+            Seleccionar jugadores
           </button>
         </div>
       </div>
 
       {selectionOpen && (
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="text-xl font-semibold mb-4">Select Players</h3>
+          <h3 className="text-xl font-semibold mb-4">Seleccionar jugadores</h3>
           <div className="mb-3">
             <input
               type="text"
               value={playerQuery}
               onChange={e => setPlayerQuery(e.target.value)}
               className="border rounded px-3 py-2 w-full"
-              placeholder="Search players by name..."
+              placeholder="Buscar jugadores por nombre..."
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -187,7 +187,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
           </div>
           <div className="flex gap-3 justify-center mt-4">
             <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={doAuto}>
-              🎲 Auto-Generate Balanced Teams
+              🎲 Auto-Generar equipos balanceados
             </button>
             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => setManualOpen(true)}>
               ⚽ Manual Team Setup
@@ -198,15 +198,15 @@ export default function MatchClient({ players }: { players: Player[] }) {
 
       {manualOpen && (
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="text-xl font-semibold mb-2">Manual Team Setup</h3>
-          <p className="text-black mb-4">Drag players to assign them to teams, then generate remaining players.</p>
+          <h3 className="text-xl font-semibold mb-2">Configuración manual de equipos</h3>
+          <p className="text-black mb-4">Arrastre jugadores para asignarlos a equipos, luego generar jugadores restantes.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div
               className="border-2 border-dashed rounded p-3 min-h-48"
               onDragOver={e => e.preventDefault()}
               onDrop={e => onDrop(e, 'unassigned')}
             >
-              <h4 className="text-center font-semibold mb-2">Available Players</h4>
+              <h4 className="text-center font-semibold mb-2">Jugadores disponibles</h4>
               <div className="grid gap-2">
                 {unassignedManual.map(p => <Draggable key={p.id} p={p} />)}
               </div>
@@ -216,7 +216,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
               onDragOver={e => e.preventDefault()}
               onDrop={e => onDrop(e, 'a')}
             >
-              <h4 className="text-center font-semibold mb-2">Team A ({manualA.length}/{playersPerTeam})</h4>
+              <h4 className="text-center font-semibold mb-2">Equipo A ({manualA.length}/{playersPerTeam})</h4>
               <div className="grid gap-2">
                 {manualA.map(p => <Draggable key={p.id} p={p} />)}
               </div>
@@ -226,7 +226,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
               onDragOver={e => e.preventDefault()}
               onDrop={e => onDrop(e, 'b')}
             >
-              <h4 className="text-center font-semibold mb-2">Team B ({manualB.length}/{playersPerTeam})</h4>
+              <h4 className="text-center font-semibold mb-2">Equipo B ({manualB.length}/{playersPerTeam})</h4>
               <div className="grid gap-2">
                 {manualB.map(p => <Draggable key={p.id} p={p} />)}
               </div>
@@ -234,10 +234,10 @@ export default function MatchClient({ players }: { players: Player[] }) {
           </div>
           <div className="flex gap-3 justify-center mt-4">
             <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" onClick={() => { setManualA([]); setManualB([]) }}>
-              Reset
+              Reiniciar
             </button>
             <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={finishManual}>
-              Generate Remaining Players
+              Generar jugadores restantes
             </button>
           </div>
         </div>
@@ -247,10 +247,10 @@ export default function MatchClient({ players }: { players: Player[] }) {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex gap-3 justify-center mb-4">
             <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" onClick={() => setManualOpen(true)}>
-              Manual Team Setup
+              Configuración manual de equipos
             </button>
             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={regenerate}>
-              🔄 Re-generate Teams
+              🔄 Re-generar equipos
             </button>
           </div>
 
@@ -276,10 +276,10 @@ function TeamCard({ title, team, color, winProbability }: { title: string, team:
         ))}
       </div>
       <div className="bg-gray-100 rounded px-3 py-2 text-center font-semibold">
-        <span className="mr-2">Total Skill:</span>
+        <span className="mr-2">Total habilidad:</span>
         {team.totalSkill}
         <span className="mx-2">|</span>
-        <span className="mr-2">Win Probability:</span>
+        <span className="mr-2">Probabilidad de victoria:</span>
         {winProbability != null ? `${winProbability}%` : '—'}
       </div>
     </div>

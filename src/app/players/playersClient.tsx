@@ -67,8 +67,8 @@ export default function PlayersClient({ players, matches }: { players: Player[];
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Players</h1>
-        <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">Add Player</Link>
+        <h1 className="text-3xl font-bold">Jugadores</h1>
+        <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">Agregar jugador</Link>
       </div>
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -76,19 +76,19 @@ export default function PlayersClient({ players, matches }: { players: Player[];
           <table className="min-w-full table-auto">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('skill')}>Skill{sortKey==='skill' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Position</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('streak')}>Streak{sortKey==='streak' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goal7')}>Goal (7W){sortKey==='goal7' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('skill')}>Habilidad{sortKey==='skill' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Posición</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('streak')}>Racha{sortKey==='streak' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goal7')}>Objetivo (7W){sortKey==='goal7' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {players.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-800">
-                    No players added yet. <Link href="/players/new" className="text-brand hover:underline">Add your first player</Link>
+                    No hay jugadores agregados aún. <Link href="/players/new" className="text-brand hover:underline">Agrega tu primer jugador</Link>
                   </td>
                 </tr>
               ) : (
@@ -107,7 +107,7 @@ export default function PlayersClient({ players, matches }: { players: Player[];
                       </td>
                       <td className="px-4 py-3">
                         {winGoalProgress >= 7 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs text-white" style={{ backgroundColor: 'hsl(270deg 80% 36%)' }}>Goal ✓</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs text-white" style={{ backgroundColor: 'hsl(270deg 80% 36%)' }}>Objetivo ✓</span>
                         ) : (
                           <div className="w-28">
                             <div className="flex justify-between text-[10px] text-gray-700 mb-0.5">
@@ -122,9 +122,9 @@ export default function PlayersClient({ players, matches }: { players: Player[];
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end items-center gap-3">
-                          <Link href={`/players/${player.id}`} className="text-brand hover:text-brand/80">View</Link>
-                          <Link href={`/players/edit/${player.id}`} className="text-brand hover:text-brand/80">Edit</Link>
-                          <button onClick={() => deletePlayer(player.id)} className="text-red-600 hover:text-red-800">Delete</button>
+                          <Link href={`/players/${player.id}`} className="text-brand hover:text-brand/80">Ver</Link>
+                          <Link href={`/players/edit/${player.id}`} className="text-brand hover:text-brand/80">Editar</Link>
+                          <button onClick={() => deletePlayer(player.id)} className="text-red-600 hover:text-red-800">Eliminar</button>
                         </div>
                       </td>
                     </tr>

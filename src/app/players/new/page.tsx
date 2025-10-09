@@ -19,7 +19,7 @@ export default function NewPlayerPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name.trim()) {
-      alert('Please enter a player name')
+      alert('Por favor, ingrese un nombre para el jugador')
       return
     }
 
@@ -44,11 +44,11 @@ export default function NewPlayerPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Add New Player</h1>
-      
+      <h1 className="text-2xl font-bold mb-6">Agregar nuevo jugador</h1>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-black">Player Name</label>
+          <label htmlFor="name" className="block text-sm font-medium text-black">Nombre del jugador</label>
           <input
             type="text"
             id="name"
@@ -61,9 +61,9 @@ export default function NewPlayerPage() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           {[
-            { key: 'physical', label: 'Physical' },
-            { key: 'technical', label: 'Technical' },
-            { key: 'tactical', label: 'Tactical' },
+            { key: 'physical', label: 'Físico' },
+            { key: 'technical', label: 'Técnico' },
+            { key: 'tactical', label: 'Táctico' },
             { key: 'psychological', label: 'Mental' },
           ].map(cat => (
             <div key={cat.key}>
@@ -79,30 +79,30 @@ export default function NewPlayerPage() {
           ))}
         </div>
 
-        <div className="text-sm text-gray-800">Overall (avg): <span className="font-semibold">Lv {avgPreview}</span></div>
+        <div className="text-sm text-gray-800">General (promedio): <span className="font-semibold">Lv {avgPreview}</span></div>
 
         <div>
-          <label htmlFor="position" className="block text-sm font-medium text-black">Position</label>
+          <label htmlFor="position" className="block text-sm font-medium text-black">Posición</label>
           <select
             id="position"
             value={formData.position}
             onChange={(e) => setFormData({...formData, position: e.target.value})}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
           >
-            <option value="GK">Goalkeeper</option>
-            <option value="DEF">Defender</option>
-            <option value="MID">Midfielder</option>
-            <option value="FWD">Forward</option>
-            <option value="PLAYER">Player (Any position)</option>
+            <option value="GK">Arquero</option>
+            <option value="DEF">Defensor</option>
+            <option value="MID">Mediocampista</option>
+            <option value="FWD">Delantero</option>
+            <option value="PLAYER">Cualquier posición</option>
           </select>
         </div>
 
         <div className="flex justify-end space-x-3 pt-4">
           <button type="button" onClick={() => router.push('/players')} className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-black shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2">
-            Cancel
+            Cancelar
           </button>
           <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2">
-            Save Player
+            Guardar jugador
           </button>
         </div>
       </form>

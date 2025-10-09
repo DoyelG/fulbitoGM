@@ -79,7 +79,7 @@ export default function StatisticsClient({ players, matches }: { players: Player
     return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Statistics</h1>
+        <h1 className="text-3xl font-bold">Estadísticas</h1>
       </div>
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -87,13 +87,13 @@ export default function StatisticsClient({ players, matches }: { players: Player
           <table className="min-w-full table-auto">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('name')}>Name{sortKey==='name' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('matches')}>Matches{sortKey==='matches' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goals')}>Goals{sortKey==='goals' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goalsPerMatch')}>Goals/Match{sortKey==='goalsPerMatch' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('totalPerformance')}>Performance{sortKey==='totalPerformance' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('wins')}>Wins{sortKey==='wins' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('winRate')}>Win Rate{sortKey==='winRate' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('name')}>Nombre{sortKey==='name' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('matches')}>Partidos{sortKey==='matches' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goals')}>Goles{sortKey==='goals' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goalsPerMatch')}>Goles/Partido{sortKey==='goalsPerMatch' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('totalPerformance')}>Rendimiento{sortKey==='totalPerformance' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('wins')}>Victorias{sortKey==='wins' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('winRate')}>Tasa de victorias{sortKey==='winRate' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Record</th>
               </tr>
             </thead>
@@ -101,7 +101,7 @@ export default function StatisticsClient({ players, matches }: { players: Player
               {matches.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-gray-800">
-                    No statistics available.
+                    No hay estadísticas disponibles.
                   </td>
                 </tr>
               ) : (
