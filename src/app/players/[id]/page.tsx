@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
 import SkillBadge from "@/components/SkillBadge";
@@ -12,6 +12,7 @@ import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 
 export default function PlayerDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const { getPlayer, updatePlayer } = usePlayerStore();
   const { matches } = useMatchStore();
 
@@ -188,12 +189,19 @@ export default function PlayerDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href="/players"
+          <button
+            type="button"
             className="px-3 py-2 rounded border hover:bg-gray-50"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back()
+              } else {
+                router.push('/players')
+              }
+            }}
           >
             Back
-          </Link>
+          </button>
           {!editMode ? (
             <>
               <Link

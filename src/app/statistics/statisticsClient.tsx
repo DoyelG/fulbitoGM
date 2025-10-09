@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import Link from "next/link";
 import { Player, usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore, Match } from "@/store/useMatchStore";
 
@@ -13,13 +14,13 @@ export default function StatisticsClient({ players, matches }: { players: Player
     if (players.length > 0) hydratePlayers(players);
   }, [matches, hydrateMatches, players, hydratePlayers]);
 
-  type StatRow = { name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number }
+  type StatRow = { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number }
 
   const stats = useMemo<StatRow[]>(() => {
-    const map: Record<string, { name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number }> = {}
+    const map: Record<string, { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number }> = {}
     for (const m of matches) {
       const process = (team: 'A' | 'B') => (p: { id: string; name: string; goals: number; performance: number }) => {
-        if (!map[p.id]) map[p.id] = { name: p.name, matches: 0, goals: 0, totalPerformance: 0, wins: 0, losses: 0, draws: 0 }
+        if (!map[p.id]) map[p.id] = { id: p.id, name: p.name, matches: 0, goals: 0, totalPerformance: 0, wins: 0, losses: 0, draws: 0 }
         map[p.id].matches++
         map[p.id].goals += p.goals
         map[p.id].totalPerformance += p.performance
@@ -106,8 +107,8 @@ export default function StatisticsClient({ players, matches }: { players: Player
               ) : (
                 sorted.map((stat) => {
                   return (
-                    <tr key={stat.name} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">{stat.name}</td>
+                    <tr key={stat.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-blue-600 hover:underline"><Link href={`/players/${stat.id}`}>{stat.name}</Link></td>
                       <td className="px-4 py-3">{stat.matches}</td>
                       <td className="px-4 py-3">{stat.goals}</td>
                       <td className="px-4 py-3">{(stat.goals / stat.matches).toFixed(2)}</td>
