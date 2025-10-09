@@ -33,7 +33,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           onClick={() => setOpen(true)}
         >
-          + Registrar partido
+          Cargar partido
         </button>
       </div>
       <div className="space-y-4 mb-10">

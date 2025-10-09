@@ -142,7 +142,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
           <select
             value={matchType}
             onChange={e => setMatchType(e.target.value as MatchType)}
-            className="border rounded px-3 py-2 w-40"
+            className="border rounded px-4 py-1 text-center appearance-none cursor-pointer"
           >
             {MATCH_TYPES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
