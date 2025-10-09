@@ -26,6 +26,7 @@ export default function RootLayout({
                 <h1 className="text-2xl font-bold">⚽ Fulbito</h1>
                 <nav className="flex space-x-4">
                   <Link href="/" className="hover:bg-white/20 px-3 py-2 rounded">Home</Link>
+                  <Link href="/statistics" className="hover:bg-white/20 px-3 py-2 rounded">Statistics</Link>
                   <Link href="/players" className="hover:bg-white/20 px-3 py-2 rounded">Players</Link>
                   <Link href="/match" className="hover:bg-white/20 px-3 py-2 rounded">New Match</Link>
                   <Link href="/history" className="hover:bg-white/20 px-3 py-2 rounded">History</Link>
