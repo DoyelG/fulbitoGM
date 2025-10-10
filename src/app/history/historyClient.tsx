@@ -14,6 +14,9 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
   const { hydratePlayers } = usePlayerStore()
   const [open, setOpen] = useState(false)
 
+  const [fromDate, setFromDate] = useState<string>('')
+  const [toDate, setToDate] = useState<string>('')
+
   useEffect(() => {
     hydrateMatches(matches)
     hydratePlayers(players)
@@ -36,11 +39,49 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
           Cargar partido
         </button>
       </div>
+      <div className="mb-3 flex gap-3">
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Desde</label>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={e => setFromDate(e.target.value)}
+            className="border rounded px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Hasta</label>
+          <input
+            type="date"
+            value={toDate}
+            onChange={e => setToDate(e.target.value)}
+            className="border rounded px-3 py-2"
+          />
+        </div>
+        <div className="flex items-end">
+          <button
+            className="border rounded px-3 py-2 hover:bg-gray-50"
+            onClick={() => { setFromDate(''); setToDate('') }}
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
       <div className="space-y-4 mb-10">
-        {matches.length === 0 ? (
-          <div className="text-black">No se encontraron partidos.</div>
+        {matches.filter(m => {
+          const d = m.date.slice(0, 10) // yyyy-mm-dd
+          if (fromDate && d < fromDate) return false
+          if (toDate && d > toDate) return false
+          return true
+        }).length === 0 ? (
+          <div className="text-black">No se encontraron partidos que coincidan con la búsqueda.</div>
         ) : (
-          matches.slice(0, 10).map((m) => (
+          matches.filter(m => {
+            const d = m.date.slice(0, 10)
+            if (fromDate && d < fromDate) return false
+            if (toDate && d > toDate) return false
+            return true
+          }).slice(0, 10).map((m) => (
             <div
               key={m.id}
               className="bg-white rounded-lg shadow p-4 border-l-4 border-indigo-500"
