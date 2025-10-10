@@ -91,7 +91,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                   {m.name && (
                     <div className="text-lg mb-1 font-bold">{m.name}</div>
                   )}
-                  <strong>{new Date(m.date).toLocaleDateString()}</strong>
+                  <strong>{new Date(m.date).toLocaleDateString( 'es-ES' )}</strong>
                   <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
                     {m.type}
                   </span>
