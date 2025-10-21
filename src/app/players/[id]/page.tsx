@@ -13,10 +13,17 @@ import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 export default function PlayerDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { getPlayer, updatePlayer } = usePlayerStore();
-  const { matches } = useMatchStore();
+  const updatePlayer = usePlayerStore((s) => s.updatePlayer);
+  const initPlayersLoad = usePlayerStore((s) => s.initLoad);
+  const playersInit = usePlayerStore((s) => s.playersInit);
+  const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
 
-  const player = getPlayer(id as string);
+  const player = usePlayerStore((s) => s.players.find((p) => p.id === (id as string)));
+
+  useEffect(() => {
+    if (playersInit !== 'loaded') initPlayersLoad();
+    if (matchesInit !== 'loaded') initMatchesLoad();
+  }, [playersInit, matchesInit, initPlayersLoad, initMatchesLoad]);
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({

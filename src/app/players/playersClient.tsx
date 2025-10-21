@@ -8,16 +8,16 @@ import { useMatchStore, Match } from '@/store/useMatchStore'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback } from 'react'
 
-export default function PlayersClient({ players, matches }: { players: Player[]; matches: Match[] }) {
-  const { deletePlayer, hydratePlayers } = usePlayerStore()
-  const { hydrateMatches } = useMatchStore()
+export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
+  const { deletePlayer, hydratePlayers, players: storePlayers, playersInit } = usePlayerStore()
+  const { hydrateMatches, matches: storeMatches, matchesInit } = useMatchStore()
 
   useEffect(() => {
-    hydratePlayers(players)
-    hydrateMatches(matches)
-  }, [players, matches, hydratePlayers, hydrateMatches])
+    if (playersInit !== 'loaded') hydratePlayers(initialPlayers)
+    if (matchesInit !== 'loaded') hydrateMatches(initialMatches)
+  }, [initialPlayers, initialMatches, hydratePlayers, hydrateMatches, playersInit, matchesInit])
 
-  const streaks = calculateAllCurrentStreaks(matches)
+  const streaks = calculateAllCurrentStreaks(storeMatches)
 
   type SortKey = 'skill' | 'streak' | 'goal7'
   const [sortKey, setSortKey] = useState<SortKey>('skill')
@@ -34,7 +34,7 @@ export default function PlayersClient({ players, matches }: { players: Player[];
 
   const sortedPlayers = useMemo(() => {
     const dir = sortDir === 'asc' ? 1 : -1
-    return [...players].sort((a, b) => {
+    return [...storePlayers].sort((a, b) => {
       const sa = a.skill ?? -Infinity
       const sb = b.skill ?? -Infinity
       const stA = streaks[a.id] ?? { kind: null as 'win' | 'loss' | null, count: 0 }
@@ -62,7 +62,7 @@ export default function PlayersClient({ players, matches }: { players: Player[];
       if (av === bv) return 0
       return av > bv ? dir : -dir
     })
-  }, [players, streaks, sortKey, sortDir])
+  }, [storePlayers, streaks, sortKey, sortDir])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -85,7 +85,7 @@ export default function PlayersClient({ players, matches }: { players: Player[];
               </tr>
             </thead>
             <tbody className="divide-y">
-              {players.length === 0 ? (
+              {storePlayers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-800">
                     No hay jugadores agregados aún. <Link href="/players/new" className="text-brand hover:underline">Agrega tu primer jugador</Link>

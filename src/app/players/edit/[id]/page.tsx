@@ -7,7 +7,7 @@ import { usePlayerStore } from '@/store/usePlayerStore'
 export default function EditPlayerPage() {
   const router = useRouter()
   const { id } = useParams()
-  const { getPlayer, updatePlayer } = usePlayerStore()
+  const { getPlayer, updatePlayer, initLoad: initPlayersLoad, playersInit } = usePlayerStore()
   const [formData, setFormData] = useState({
     name: '',
     position: 'PLAYER',
@@ -16,6 +16,10 @@ export default function EditPlayerPage() {
     tactical: '5',
     psychological: '5'
   })
+
+  useEffect(() => {
+    if (playersInit !== 'loaded') initPlayersLoad()
+  }, [playersInit, initPlayersLoad])
 
   useEffect(() => {
     const p = getPlayer(id as string)
