@@ -8,6 +8,7 @@ import { useMatchStore } from "@/store/useMatchStore";
 import SkillBadge from "@/components/SkillBadge";
 import StreakBadge from "@/components/StreakBadge";
 import RadarChart from '@/components/RadarChart'
+import PlayerCard from '@/components/PlayerCard'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 
 export default function PlayerDetailPage() {
@@ -235,53 +236,19 @@ export default function PlayerDetailPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow p-4 md:p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Habilidades</h2>
-          <div className="hidden sm:flex items-center gap-4 text-xs text-gray-700">
-            <span className="inline-flex items-center gap-2">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'hsl(270deg 78% 42%)' }} />
-              Jugador
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'hsl(24deg 85% 48%)' }} />
-              Base
-            </span>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 items-center">
-          <ul className="space-y-3">
-            <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Físico</span>
-              <SkillBadge skill={catSkills.physical} />
-            </li>
-            <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Técnico</span>
-              <SkillBadge skill={catSkills.technical} />
-            </li>
-            <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Táctico</span>
-              <SkillBadge skill={catSkills.tactical} />
-            </li>
-            <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Mental</span>
-              <SkillBadge skill={catSkills.psychological} />
-            </li>
-          </ul>
-
-          <div className="flex justify-center">
-            <RadarChart
-              labels={['Físico','Técnico','Táctico','Mental']}
-              values={[Number(catSkills.physical), Number(catSkills.technical), Number(catSkills.tactical), Number(catSkills.psychological)]}
-              baseline={5}
-              width={250}
-              height={180}
-              labelSize={11}
-              className="mx-auto"
-            />
-          </div>
-        </div>
+      <div className="flex items-center justify-around my-8">
+          <PlayerCard
+            overall={overallAvg}
+            skills={catSkills}
+          />
+          <RadarChart
+            labels={['Físico','Técnico','Táctico','Mental']}
+            values={[Number(catSkills.physical), Number(catSkills.technical), Number(catSkills.tactical), Number(catSkills.psychological)]}
+            baseline={5}
+            width={250}
+            height={180}
+            labelSize={11}
+          />
       </div>
 
       {editMode && (
