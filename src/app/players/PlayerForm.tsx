@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePlayerStore } from '@/store/usePlayerStore'
-import Image from 'next/image'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -21,8 +20,6 @@ export default function PlayerForm({ mode, playerId }: Props) {
     tactical: '5',
     psychological: '5'
   })
-  const [photoDataUrl, setPhotoDataUrl] = useState<string | undefined>(undefined)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     if (mode === 'edit' && playerId) {
@@ -37,7 +34,6 @@ export default function PlayerForm({ mode, playerId }: Props) {
           tactical: String(p.skills?.tactical ?? base),
           psychological: String(p.skills?.psychological ?? base)
         })
-        if (p.photoUrl) setPhotoDataUrl(p.photoUrl)
       }
     }
   }, [mode, playerId, getPlayer])
@@ -57,45 +53,15 @@ export default function PlayerForm({ mode, playerId }: Props) {
     const avg = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
 
     if (mode === 'create') {
-      addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg, photoUrl: photoDataUrl ?? null })
+      addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg })
     } else if (playerId) {
-      updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg, photoUrl: photoDataUrl ?? null })
+      updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg })
     }
     router.push('/players')
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-black mb-2">Foto del jugador</label>
-        <div className="mt-1 flex items-center gap-4">
-          <button
-            type="button"
-            aria-label="Subir foto del jugador"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 border grid place-items-center hover:ring-2 hover:ring-brand/60 transition"
-          >
-            {photoDataUrl ? (
-              <Image src={photoDataUrl} alt="preview" width={80} height={80} className="w-full h-full object-cover"/>
-            ) : (
-              <span className="text-2xl">👤</span>
-            )}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (!file) { setPhotoDataUrl(undefined); return }
-              const reader = new FileReader()
-              reader.onload = () => setPhotoDataUrl(String(reader.result))
-              reader.readAsDataURL(file)
-            }}
-          />
-        </div>
-      </div>
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-black">Nombre del jugador</label>
         <input

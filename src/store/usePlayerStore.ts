@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 type SkillValue = number | 'unknown'
 type Skills = { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
-export type Player = { id: string; name: string; skill: number | null; position: string; photoUrl?: string | null; skills?: Skills, createdAt: Date; updatedAt: Date }
+export type Player = { id: string; name: string; skill: number | null; position: string; skills?: Skills, createdAt: Date; updatedAt: Date }
 
 type PlayerStore = {
   players: Player[]

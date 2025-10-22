@@ -15,7 +15,6 @@ export default async function PlayersPage() {
     position: p.position,
     skill: p.skill ?? null,
     skills: p.skills as unknown as StorePlayer['skills'],
-    photoUrl: (p as unknown as { photoUrl: string | null }).photoUrl ?? null,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
   }))
