@@ -13,6 +13,7 @@ model Player {
   position     String
   skill        Float?
   skills       Json?
+  photoUrl     String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   matchPlayers MatchPlayer[]

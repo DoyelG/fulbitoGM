@@ -8,7 +8,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { name, position, skill, skills } = await req.json()
-  const player = await prisma.player.create({ data: { name, position, skill, skills } })
+  const { name, position, skill, skills, photoUrl } = await req.json()
+  const player = await prisma.player.create({ data: { name, position, skill, skills, photoUrl } })
   return NextResponse.json(player, { status: 201 })
 }

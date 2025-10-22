@@ -1,6 +1,7 @@
 "use client"
 
 import Image from 'next/image'
+import { useRef } from 'react'
 
 type SkillValue = number | 'unknown'
 
@@ -10,10 +11,12 @@ export type PlayerCardProps = {
   // category skills 1-10; we map them into -like six stats
   skills: { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
   className?: string
+  onUploadPhoto?: (dataUrl: string) => void
 }
 
-export default function PlayerCard({ overall, photoUrl, skills, className }: PlayerCardProps) {
+export default function PlayerCard({ overall, photoUrl, skills, className, onUploadPhoto }: PlayerCardProps) {
   const pathD = "M120 6 C160 6 188 12 207 26 C224 38 232 56 236 75 L236 255 C236 292 205 321 120 354 C35 321 4 292 4 255 L4 75 C8 56 16 38 33 26 C52 12 80 6 120 6 Z";
+  const fileRef = useRef<HTMLInputElement | null>(null)
 
   return (
     <div className={`relative mb-8 ${className ?? ''}`}>
@@ -57,8 +60,25 @@ export default function PlayerCard({ overall, photoUrl, skills, className }: Pla
         <div className="mt-3 w-24 h-24 rounded-full overflow-hidden ring-2 ring-yellow-300 bg-white shadow">
           {photoUrl ? (
             <Image src={photoUrl} alt="player photo" width={96} height={96} className="object-cover w-full h-full" />
-          ) : (
-            <div className="w-full h-full grid place-items-center text-4xl">⚽</div>
+          ) :  (
+            <>
+            <button type="button" aria-label="Subir foto" onClick={() => fileRef.current?.click()} className="w-full h-full grid place-items-center text-4xl">
+              👤
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                if (!f) return
+                const reader = new FileReader()
+                reader.onload = () => onUploadPhoto?.(String(reader.result))
+                reader.readAsDataURL(f)
+              }}
+            />
+            </>
           )}
         </div>
 

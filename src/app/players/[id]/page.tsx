@@ -240,6 +240,10 @@ export default function PlayerDetailPage() {
           <PlayerCard
             overall={overallAvg}
             skills={catSkills}
+            photoUrl={player.photoUrl ?? undefined}
+            onUploadPhoto={(dataUrl) => {
+              updatePlayer(player.id, { photoUrl: dataUrl })
+            }}
           />
           <RadarChart
             labels={['Físico','Técnico','Táctico','Mental']}
