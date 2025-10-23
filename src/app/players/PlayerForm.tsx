@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePlayerStore } from '@/store/usePlayerStore'
 
@@ -22,6 +22,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     if (mode === 'edit' && playerId) {
@@ -109,28 +110,33 @@ export default function PlayerForm({ mode, playerId }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-black">Foto</label>
-        <div className="mt-2 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden ring-1 ring-gray-300 bg-white">
-            {photoPreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoPreview} alt="preview" className="object-cover w-full h-full" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src="/silhouette.svg" alt="placeholder" className="object-cover w-full h-full" />
-            )}
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const f = e.target.files?.[0] || null
-              setPhotoFile(f)
-              setPhotoPreview(f ? URL.createObjectURL(f) : photoPreview)
-            }}
-            className="text-sm"
-          />
+        <div
+          className="mt-2 w-16 h-16 rounded-full overflow-hidden ring-1 ring-gray-300 bg-white cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Subir foto"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
+        >
+          {photoPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoPreview} alt="preview" className="object-cover w-full h-full" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/silhouette.svg" alt="placeholder" className="object-cover w-full h-full" />
+          )}
         </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const f = e.target.files?.[0] || null
+            setPhotoFile(f)
+            setPhotoPreview(f ? URL.createObjectURL(f) : photoPreview)
+          }}
+          className="hidden"
+        />
       </div>
 
       <div className="text-sm text-gray-800">General (promedio): <span className="font-semibold">Lv {avgPreview}</span></div>

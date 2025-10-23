@@ -9,6 +9,7 @@ import SkillBadge from "@/components/SkillBadge";
 import StreakBadge from "@/components/StreakBadge";
 import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
+import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 
 export default function PlayerDetailPage() {
@@ -18,6 +19,20 @@ export default function PlayerDetailPage() {
   const initPlayersLoad = usePlayerStore((s) => s.initLoad);
   const playersInit = usePlayerStore((s) => s.playersInit);
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
+  const fileRef = useRef<HTMLInputElement | null>(null)
+  const onAvatarClick = () => {
+    if (!player?.photoUrl) fileRef.current?.click()
+  }
+  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    const fd = new FormData()
+    fd.append('file', f)
+    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    if (!res.ok) return
+    const data = await res.json()
+    await updatePlayer(player!.id, { photoUrl: data.url })
+  }
 
   const player = usePlayerStore((s) => s.players.find((p) => p.id === (id as string)));
 
@@ -237,11 +252,15 @@ export default function PlayerDetailPage() {
       </div>
 
       <div className="flex items-center justify-around my-8">
-          <PlayerCard
-            overall={overallAvg}
-            photoUrl={player.photoUrl}
-            skills={catSkills}
-          />
+          <div className="relative">
+            <PlayerCard
+              overall={overallAvg}
+              photoUrl={player.photoUrl}
+              skills={catSkills}
+              onAvatarClick={onAvatarClick}
+            />
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+          </div>
           <RadarChart
             labels={['Físico','Técnico','Táctico','Mental']}
             values={[Number(catSkills.physical), Number(catSkills.technical), Number(catSkills.tactical), Number(catSkills.psychological)]}

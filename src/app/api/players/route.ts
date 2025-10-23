@@ -1,6 +1,7 @@
 export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export async function GET() {
   const players = await prisma.player.findMany({ orderBy: { skill: 'desc' } })
@@ -10,10 +11,16 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const { name, position, skill, skills, photoUrl } = await req.json()
-    const player = await prisma.player.create({ data: { name, position, skill, skills, photoUrl } })
+    const data: { name?: string, position?: string, skill?: number, skills?: { physical?: number, technical?: number, tactical?: number, psychological?: number }, photoUrl?: string } = {}
+    if (typeof name === 'string') data.name = name
+    if (typeof position === 'string') data.position = position
+    if (typeof skill === 'number') data.skill = skill
+    if (typeof skills === 'object') data.skills = skills
+    if (typeof photoUrl === 'string') data.photoUrl = photoUrl
+    const player = await prisma.player.create({ data: data as Prisma.PlayerCreateInput })
     return NextResponse.json(player, { status: 201 })
   } catch (err) {
-    console.error('POST /api/players failed', err)
-    return NextResponse.json({ error: 'Failed to create player' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: 'Failed to create player', message }, { status: 500 })
   }
 }
