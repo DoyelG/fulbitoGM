@@ -10,9 +10,9 @@ const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9"];
 type RecordingPlayer = { id: string; name: string };
 
 export default function HistoryClient({ matches, players }: { matches: Match[], players: Player [] }) {
-  const { hydrateMatches, addMatch, deleteMatch } = useMatchStore()
+  const { hydrateMatches, addMatch, updateMatch, deleteMatch, matches: storeMatches } = useMatchStore()
   const { hydratePlayers } = usePlayerStore()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState<false | { mode: 'create' } | { mode: 'edit', match: Match }>(false)
 
   const [fromDate, setFromDate] = useState<string>('')
   const [toDate, setToDate] = useState<string>('')
@@ -23,10 +23,19 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
   }, [matches, hydrateMatches, hydratePlayers, players])
 
   if (open) {
-    return <RecordModal onClose={() => setOpen(false)} onSave={(m) => {
-      addMatch(m)
-      setOpen(false)
-    }} />
+    return <RecordModal
+      mode={open.mode}
+      initial={open.mode === 'edit' ? open.match : undefined}
+      onClose={() => setOpen(false)}
+      onSave={async (m) => {
+        if (open.mode === 'edit' && open.match) {
+          await updateMatch(open.match.id, m)
+        } else {
+          await addMatch(m)
+        }
+        setOpen(false)
+      }}
+    />
   }
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -34,7 +43,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
         <h1 className="text-3xl font-bold">Historial de partidos</h1>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={() => setOpen(true)}
+          onClick={() => setOpen({ mode: 'create' })}
         >
           Cargar partido
         </button>
@@ -68,15 +77,15 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
         </div>
       </div>
       <div className="space-y-4 mb-10">
-        {matches.filter(m => {
-          const d = m.date.slice(0, 10) // yyyy-mm-dd
+        {storeMatches.filter(m => {
+          const d = m.date.slice(0, 10)
           if (fromDate && d < fromDate) return false
           if (toDate && d > toDate) return false
           return true
         }).length === 0 ? (
           <div className="text-black">No se encontraron partidos que coincidan con la búsqueda.</div>
         ) : (
-          matches.filter(m => {
+          storeMatches.filter(m => {
             const d = m.date.slice(0, 10)
             if (fromDate && d < fromDate) return false
             if (toDate && d > toDate) return false
@@ -91,7 +100,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                   {m.name && (
                     <div className="text-lg mb-1 font-bold">{m.name}</div>
                   )}
-                  <strong>{new Date(m.date).toLocaleDateString( 'es-ES' )}</strong>
+                  <strong>{(() => { const [yy, mm, dd] = m.date.slice(0,10).split('-'); return `${dd}/${mm}/${yy}` })()}</strong>
                   <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
                     {m.type}
                   </span>
@@ -131,7 +140,13 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                   ))}
                 </div>
               </div>
-              <div className="text-right mt-3">
+              <div className="text-right mt-3 flex justify-end gap-3">
+                <button
+                  className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                  onClick={() => setOpen({ mode: 'edit', match: m })}
+                >
+                  Editar
+                </button>
                 <button
                   className="text-red-600 hover:text-red-800 text-sm"
                   onClick={() => deleteMatch(m.id)}
@@ -148,21 +163,26 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
 }
 
 function RecordModal({
+  mode = 'create',
+  initial,
   onClose,
   onSave,
 }: {
+  mode?: 'create' | 'edit'
+  initial?: Match
   onClose: () => void;
   onSave: (m: Omit<Match, "id">) => void;
 }) {
   const { players } = usePlayerStore();
-  const [matchType, setMatchType] = useState<MatchType>("5v5");
+  const [matchDate, setMatchDate] = useState<string>(initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10));
+  const [matchType, setMatchType] = useState<MatchType>(initial?.type as MatchType || "5v5");
   const playersPerTeam = useMemo(
     () => parseInt(matchType.split("v")[0], 10),
     [matchType]
   );
 
-  const [teamA, setTeamA] = useState<RecordingPlayer[]>([]);
-  const [teamB, setTeamB] = useState<RecordingPlayer[]>([]);
+  const [teamA, setTeamA] = useState<RecordingPlayer[]>(initial?.teamA?.map(p => ({ id: p.id, name: p.name })) || []);
+  const [teamB, setTeamB] = useState<RecordingPlayer[]>(initial?.teamB?.map(p => ({ id: p.id, name: p.name })) || []);
 
   const unassigned = useMemo(() => {
     const ids = new Set([...teamA, ...teamB].map((p) => p.id));
@@ -171,14 +191,14 @@ function RecordModal({
       .map((p) => ({ id: p.id, name: p.name }));
   }, [players, teamA, teamB]);
 
-  const [teamAScore, setTeamAScore] = useState<number | "">("");
-  const [teamBScore, setTeamBScore] = useState<number | "">("");
-  const [matchName, setMatchName] = useState<string>("");
+  const [teamAScore, setTeamAScore] = useState<number | "">(typeof initial?.teamAScore === 'number' ? initial.teamAScore : "");
+  const [teamBScore, setTeamBScore] = useState<number | "">(typeof initial?.teamBScore === 'number' ? initial.teamBScore : "");
+  const [matchName, setMatchName] = useState<string>(initial?.name || "");
 
-  const [goalsA, setGoalsA] = useState<Record<string, number>>({});
-  const [perfA, setPerfA] = useState<Record<string, number>>({});
-  const [goalsB, setGoalsB] = useState<Record<string, number>>({});
-  const [perfB, setPerfB] = useState<Record<string, number>>({});
+  const [goalsA, setGoalsA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.goals])));
+  const [perfA, setPerfA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.performance])));
+  const [goalsB, setGoalsB] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamB || []).map(p => [p.id, p.goals])));
+  const [perfB, setPerfB] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamB || []).map(p => [p.id, p.performance])));
 
   const totalGoalsA = useMemo(
     () => Object.values(goalsA).reduce((s, n) => s + (n || 0), 0),
@@ -230,11 +250,11 @@ function RecordModal({
 
   const proceedToScoring = () => {
     if (teamA.length !== playersPerTeam) {
-      alert(`Team A needs exactly ${playersPerTeam} players.`);
+      alert(`El Equipo A necesita exactamente ${playersPerTeam} jugadores.`);
       return;
     }
     if (teamB.length !== playersPerTeam) {
-      alert(`Team B needs exactly ${playersPerTeam} players.`);
+      alert(`El Equipo B necesita exactamente ${playersPerTeam} jugadores.`);
       return;
     }
   };
@@ -253,7 +273,7 @@ function RecordModal({
   const handleSave = () => {
     if (!canSave) return;
     const m: Omit<Match, "id"> = {
-      date: new Date().toISOString().slice(0, 10),
+      date: matchDate,
       type: matchType,
       teamAScore: teamAScore as number,
       teamBScore: teamBScore as number,
@@ -272,14 +292,14 @@ function RecordModal({
       name: matchName.trim() || undefined,
     };
     onSave(m);
-    alert("Match recorded successfully!");
+    alert("Partido guardado correctamente!");
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
-          <h2 className="text-xl font-semibold">Record Match Result</h2>
+          <h2 className="text-xl font-semibold">Registrar Resultado del Partido</h2>
           <button className="text-black hover:text-black" onClick={onClose}>
             ✕
           </button>
@@ -287,16 +307,16 @@ function RecordModal({
 
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
+            <label className="block text-sm font-medium mb-1">Fecha</label>
             <input
               type="date"
-              defaultValue={new Date().toISOString().slice(0, 10)}
+              value={matchDate}
+              onChange={(e) => setMatchDate(e.target.value)}
               className="border rounded px-3 py-2 w-full"
-              onChange={() => {}}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Match Type</label>
+            <label className="block text-sm font-medium mb-1">Tipo de Partido</label>
             <select
               value={matchType}
               onChange={(e) => {
@@ -314,7 +334,7 @@ function RecordModal({
             </select>
           </div>
           <div>
-            <label className="block text-lg font-medium mb-1">Match Name</label>
+            <label className="block text-lg font-medium mb-1">Nombre del Partido</label>
             <input
               type="text"
               value={matchName}
@@ -326,7 +346,7 @@ function RecordModal({
 
         <div className="grid md:grid-cols-3 gap-3 mb-4">
           <DropCol
-            title="Available Players"
+            title="Jugadores Disponibles"
             onDrop={(e) => onDrop(e, "unassigned")}
           >
             {unassigned.map((p) => (
@@ -334,7 +354,7 @@ function RecordModal({
             ))}
           </DropCol>
           <DropCol
-            title={`Team A (${teamA.length}/${playersPerTeam})`}
+            title={`Equipo A (${teamA.length}/${playersPerTeam})`}
             onDrop={(e) => onDrop(e, "a")}
           >
             {teamA.map((p) => (
@@ -342,7 +362,7 @@ function RecordModal({
             ))}
           </DropCol>
           <DropCol
-            title={`Team B (${teamB.length}/${playersPerTeam})`}
+            title={`Equipo B (${teamB.length}/${playersPerTeam})`}
             onDrop={(e) => onDrop(e, "b")}
           >
             {teamB.map((p) => (
@@ -359,23 +379,23 @@ function RecordModal({
               setTeamB([]);
             }}
           >
-            Reset Teams
+            Resetear Equipos
           </button>
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             onClick={proceedToScoring}
           >
-            Proceed to Scoring
+            Continuar a resultado
           </button>
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
           <div className="bg-gray-50 rounded p-3">
-            <h4 className="text-center font-semibold mb-2">Team A</h4>
+            <h4 className="text-center font-semibold mb-2">Equipo A</h4>
             <input
               type="number"
               min={0}
-              placeholder="Team Goals"
+              placeholder="Goles del Equipo A"
               value={teamAScore}
               onChange={(e) =>
                 setTeamAScore(
@@ -430,18 +450,18 @@ function RecordModal({
                   : "bg-red-100 text-red-800"
               }`}
             >
-              Total: {totalGoalsA} goals
+              Total: {totalGoalsA} goles
             </div>
           </div>
 
           <div className="text-center font-bold text-black">VS</div>
 
           <div className="bg-gray-50 rounded p-3">
-            <h4 className="text-center font-semibold mb-2">Team B</h4>
+            <h4 className="text-center font-semibold mb-2">Equipo B</h4>
             <input
               type="number"
               min={0}
-              placeholder="Team Goals"
+              placeholder="Goles del Equipo B"
               value={teamBScore}
               onChange={(e) =>
                 setTeamBScore(
@@ -496,7 +516,7 @@ function RecordModal({
                   : "bg-red-100 text-red-800"
               }`}
             >
-              Total: {totalGoalsB} goals
+              Total: {totalGoalsB} goles
             </div>
           </div>
         </div>
@@ -506,7 +526,7 @@ function RecordModal({
             className="border px-4 py-2 rounded hover:bg-gray-50"
             onClick={onClose}
           >
-            Cancel
+            Cancelar
           </button>
           <button
             className={`px-4 py-2 rounded text-white ${
@@ -517,7 +537,7 @@ function RecordModal({
             disabled={!canSave}
             onClick={handleSave}
           >
-            Save Match
+            {mode === 'edit' ? 'Actualizar Partido' : 'Guardar Partido'}
           </button>
         </div>
       </div>

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const b = (await req.json()) as IncomingMatchBody
   const created = await prisma.match.create({
     data: {
-      date: new Date(b.date),
+      date: new Date(`${b.date}T00:00:00.000Z`),
       type: b.type,
       name: b.name ?? null,
       teamAScore: b.teamAScore,

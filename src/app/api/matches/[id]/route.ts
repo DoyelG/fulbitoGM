@@ -53,7 +53,7 @@ export async function PUT(req: Request, context: unknown) {
 
     // Update basic fields
     const data: { date?: Date, type?: string, name?: string | null, teamAScore?: number, teamBScore?: number } = {}
-    if (b.date) data.date = new Date(b.date)
+    if (b.date) data.date = new Date(`${b.date}T00:00:00.000Z`)
     if (typeof b.type === 'string') data.type = b.type
     if (typeof b.name === 'string' || b.name === null) data.name = b.name ?? null
     if (typeof b.teamAScore === 'number') data.teamAScore = b.teamAScore
