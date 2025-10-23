@@ -239,6 +239,7 @@ export default function PlayerDetailPage() {
       <div className="flex items-center justify-around my-8">
           <PlayerCard
             overall={overallAvg}
+            photoUrl={player.photoUrl}
             skills={catSkills}
           />
           <RadarChart

@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 type SkillValue = number | 'unknown'
 type Skills = { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
-export type Player = { id: string; name: string; skill: number | null; position: string; skills?: Skills, createdAt: Date; updatedAt: Date }
+export type Player = { id: string; name: string; skill: number | null; position: string; skills?: Skills, photoUrl?: string, createdAt: Date; updatedAt: Date }
 
 type PlayerStore = {
   players: Player[]
@@ -26,7 +26,7 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
       const res = await fetch('/api/players', { cache: 'no-store' })
       const data: Player[] = await res.json()
       set({ players: data, playersInit: 'loaded' })
-    } catch (e) {
+    } catch {
       set({ playersInit: 'error' })
     }
   },
@@ -37,6 +37,12 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     const res = await fetch('/api/players', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(player)
     })
+    if (!res.ok) {
+      const msg = await res.text().catch(() => '')
+      throw new Error(msg || 'Failed to create player')
+    }
+    const ct = res.headers.get('content-type') || ''
+    if (!ct.includes('application/json')) throw new Error('Unexpected response creating player')
     const created: Player = await res.json()
     set(s => ({ players: [...s.players, created].sort((a, b) => a.name.localeCompare(b.name)) }))
   },
@@ -44,6 +50,12 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     const res = await fetch(`/api/players/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updates)
     })
+    if (!res.ok) {
+      const msg = await res.text().catch(() => '')
+      throw new Error(msg || 'Failed to update player')
+    }
+    const ct = res.headers.get('content-type') || ''
+    if (!ct.includes('application/json')) throw new Error('Unexpected response updating player')
     const updated: Player = await res.json()
     set(s => ({ players: s.players.map(p => p.id === id ? updated : p) }))
   },

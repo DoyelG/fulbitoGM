@@ -58,7 +58,7 @@ export default function PlayerCard({ overall, photoUrl, skills, className }: Pla
           {photoUrl ? (
             <Image src={photoUrl} alt="player photo" width={96} height={96} className="object-cover w-full h-full" />
           ) : (
-            <div className="w-full h-full grid place-items-center text-4xl">⚽</div>
+            <Image src="/silhouette.svg" alt="player placeholder" width={96} height={96} className="object-cover w-full h-full" />
           )}
         </div>
 

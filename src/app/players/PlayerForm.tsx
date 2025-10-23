@@ -20,6 +20,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
     tactical: '5',
     psychological: '5'
   })
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (mode === 'edit' && playerId) {
@@ -34,6 +36,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
           tactical: String(p.skills?.tactical ?? base),
           psychological: String(p.skills?.psychological ?? base)
         })
+        setPhotoPreview(p.photoUrl ?? null)
       }
     }
   }, [mode, playerId, getPlayer])
@@ -42,7 +45,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
     (+formData.physical + +formData.technical + +formData.tactical + +formData.psychological) / 4
   ), [formData])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const skills = {
       physical: parseInt(formData.physical, 10),
@@ -52,10 +55,21 @@ export default function PlayerForm({ mode, playerId }: Props) {
     }
     const avg = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
 
+    let uploadedUrl: string | undefined
+    if (photoFile) {
+      const fd = new FormData()
+      fd.append('file', photoFile)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      if (res.ok) {
+        const data = await res.json()
+        uploadedUrl = data.url
+      }
+    }
+
     if (mode === 'create') {
-      addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg })
+      await addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
     } else if (playerId) {
-      updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg })
+      await updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
     }
     router.push('/players')
   }
@@ -92,6 +106,31 @@ export default function PlayerForm({ mode, playerId }: Props) {
             </select>
           </div>
         ))}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-black">Foto</label>
+        <div className="mt-2 flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full overflow-hidden ring-1 ring-gray-300 bg-white">
+            {photoPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photoPreview} alt="preview" className="object-cover w-full h-full" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src="/silhouette.svg" alt="placeholder" className="object-cover w-full h-full" />
+            )}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0] || null
+              setPhotoFile(f)
+              setPhotoPreview(f ? URL.createObjectURL(f) : photoPreview)
+            }}
+            className="text-sm"
+          />
+        </div>
       </div>
 
       <div className="text-sm text-gray-800">General (promedio): <span className="font-semibold">Lv {avgPreview}</span></div>
