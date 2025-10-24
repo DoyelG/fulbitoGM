@@ -248,17 +248,6 @@ function RecordModal({
     </div>
   );
 
-  const proceedToScoring = () => {
-    if (teamA.length !== playersPerTeam) {
-      alert(`El Equipo A necesita exactamente ${playersPerTeam} jugadores.`);
-      return;
-    }
-    if (teamB.length !== playersPerTeam) {
-      alert(`El Equipo B necesita exactamente ${playersPerTeam} jugadores.`);
-      return;
-    }
-  };
-
   const canSave = (() => {
     const a = typeof teamAScore === "number" ? teamAScore : 0;
     const b = typeof teamBScore === "number" ? teamBScore : 0;
@@ -369,24 +358,6 @@ function RecordModal({
               <Draggable key={p.id} p={p} />
             ))}
           </DropCol>
-        </div>
-
-        <div className="flex gap-3 justify-center mb-6">
-          <button
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-            onClick={() => {
-              setTeamA([]);
-              setTeamB([]);
-            }}
-          >
-            Resetear Equipos
-          </button>
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={proceedToScoring}
-          >
-            Continuar a resultado
-          </button>
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">

@@ -9,7 +9,7 @@ import AppBootstrap from "./shared/AppBootstrap";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Fulbito",
+  title: "FulbitoApp",
   description: "Gestiona el futbol de tu organización",
 };
 
@@ -26,7 +26,7 @@ export default function RootLayout({
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex justify-between items-center">
                 <Link href="/" className="px-3 py-2 rounded">
-                  <h1 className="text-2xl font-bold">⚽ Fulbito</h1>
+                  <h1 className="text-2xl font-bold">FulbitoApp</h1>
                 </Link>
                 <nav className="flex space-x-4">
                   <Link
