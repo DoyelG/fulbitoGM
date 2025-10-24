@@ -17,7 +17,7 @@ export default function PlayerCard({ overall, photoUrl, skills, className, onAva
   const pathD = "M120 6 C160 6 188 12 207 26 C224 38 232 56 236 75 L236 255 C236 292 205 321 120 354 C35 321 4 292 4 255 L4 75 C8 56 16 38 33 26 C52 12 80 6 120 6 Z";
 
   return (
-    <div className={`relative mb-8 ${className ?? ''}`}>
+    <div className={`relative ${className ?? ''}`}>
       {/* Decorative SVG background with shield-like FIFA shape */}
       <svg className="absolute inset-0" viewBox="0 0 240 360" preserveAspectRatio="none" aria-hidden>
         <defs>
@@ -50,7 +50,7 @@ export default function PlayerCard({ overall, photoUrl, skills, className, onAva
       </svg>
 
       {/* Content */}
-      <div className="relative h-full flex flex-col items-center pt-6 px-6 mb-8">
+      <div className="relative min-h-[320px] h-full flex flex-col items-center pt-6 px-6">
         <div className="flex items-baseline gap-2">
           <div className="text-5xl font-extrabold leading-none drop-shadow-sm">{overall}</div>
         </div>
