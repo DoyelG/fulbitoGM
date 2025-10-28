@@ -1,6 +1,7 @@
 export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 
 type IncomingMatchPlayer = { id: string; goals: number; performance: number }
 type IncomingMatchBody = {
@@ -32,6 +33,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const gate = await requireAdmin()
+  if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   const b = (await req.json()) as IncomingMatchBody
   const created = await prisma.match.create({
     data: {

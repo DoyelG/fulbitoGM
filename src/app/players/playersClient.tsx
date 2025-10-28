@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import SkillBadge from '@/components/SkillBadge'
 import StreakBadge from '@/components/StreakBadge'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
@@ -9,6 +10,8 @@ import { usePlayerStore, Player } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback } from 'react'
 
 export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
+  const { data } = useSession()
+  const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
   const { deletePlayer, hydratePlayers, players: storePlayers, playersInit } = usePlayerStore()
   const { hydrateMatches, matches: storeMatches, matchesInit } = useMatchStore()
 
@@ -68,7 +71,9 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Jugadores</h1>
-        <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">Agregar jugador</Link>
+        {isAdmin && (
+          <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">Agregar jugador</Link>
+        )}
       </div>
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -88,7 +93,10 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
               {storePlayers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-800">
-                    No hay jugadores agregados aún. <Link href="/players/new" className="text-brand hover:underline">Agrega tu primer jugador</Link>
+                    No hay jugadores agregados aún.
+                    {isAdmin && (
+                      <> <Link href="/players/new" className="text-brand hover:underline">Agrega tu primer jugador</Link></>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -123,8 +131,8 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                       <td className="px-4 py-3">
                         <div className="flex justify-end items-center gap-3">
                           <Link href={`/players/${player.id}`} className="text-brand hover:text-brand/80">Ver</Link>
-                          <Link href={`/players/edit/${player.id}`} className="text-brand hover:text-brand/80">Editar</Link>
-                          <button onClick={() => deletePlayer(player.id)} className="text-red-600 hover:text-red-800">Eliminar</button>
+                          {isAdmin && <Link href={`/players/edit/${player.id}`} className="text-brand hover:text-brand/80">Editar</Link>}
+                          {isAdmin && <button onClick={() => deletePlayer(player.id)} className="text-red-600 hover:text-red-800">Eliminar</button>}
                         </div>
                       </td>
                     </tr>

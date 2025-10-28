@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { useSession } from 'next-auth/react'
 import { useMatchStore, Match } from '@/store/useMatchStore'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
 
@@ -10,6 +11,8 @@ const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9"];
 type RecordingPlayer = { id: string; name: string };
 
 export default function HistoryClient({ matches, players }: { matches: Match[], players: Player [] }) {
+  const { data } = useSession()
+  const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
   const { hydrateMatches, addMatch, updateMatch, deleteMatch, matches: storeMatches } = useMatchStore()
   const { hydratePlayers } = usePlayerStore()
   const [open, setOpen] = useState<false | { mode: 'create' } | { mode: 'edit', match: Match }>(false)
@@ -41,12 +44,14 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Historial de partidos</h1>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={() => setOpen({ mode: 'create' })}
-        >
-          Cargar partido
-        </button>
+        {isAdmin && (
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            onClick={() => setOpen({ mode: 'create' })}
+          >
+            Cargar partido
+          </button>
+        )}
       </div>
       <div className="mb-3 flex gap-3">
         <div>
@@ -141,18 +146,22 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                 </div>
               </div>
               <div className="text-right mt-3 flex justify-end gap-3">
-                <button
-                  className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                  onClick={() => setOpen({ mode: 'edit', match: m })}
-                >
-                  Editar
-                </button>
-                <button
-                  className="text-red-600 hover:text-red-800 text-sm"
-                  onClick={() => deleteMatch(m.id)}
-                >
-                  Eliminar
-                </button>
+                {isAdmin && (
+                  <>
+                    <button
+                      className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                      onClick={() => setOpen({ mode: 'edit', match: m })}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-800 text-sm"
+                      onClick={() => deleteMatch(m.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))

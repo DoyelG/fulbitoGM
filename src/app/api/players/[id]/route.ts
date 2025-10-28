@@ -1,6 +1,7 @@
 export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 
 export async function GET(_req: Request, context: unknown) {
   const { id } = (context as { params: { id: string } }).params
@@ -10,6 +11,8 @@ export async function GET(_req: Request, context: unknown) {
 }
 
 export async function PUT(req: Request, context: unknown) {
+  const gate = await requireAdmin()
+  if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   try {
     const { id } = (context as { params: { id: string } }).params
     const body = await req.json()
@@ -28,6 +31,8 @@ export async function PUT(req: Request, context: unknown) {
 }
 
 export async function DELETE(_req: Request, context: unknown) {
+  const gate = await requireAdmin()
+  if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   const { id } = (context as { params: { id: string } }).params
   // cascades via schema
   await prisma.player.delete({ where: { id } })

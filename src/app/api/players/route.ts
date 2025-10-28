@@ -2,6 +2,7 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { requireAdmin } from '@/lib/auth'
 
 export async function GET() {
   const players = await prisma.player.findMany({ orderBy: { skill: 'desc' } })
@@ -9,6 +10,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const gate = await requireAdmin()
+  if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   try {
     const { name, position, skill, skills, photoUrl } = await req.json()
     const data: { name?: string, position?: string, skill?: number, skills?: { physical?: number, technical?: number, tactical?: number, psychological?: number }, photoUrl?: string } = {}

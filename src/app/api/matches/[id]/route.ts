@@ -1,8 +1,11 @@
 export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 
 export async function DELETE(_req: Request, context: unknown) {
+  const gate = await requireAdmin()
+  if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   try {
     const { id } = (context as { params: { id: string } }).params
     await prisma.match.delete({ where: { id } })
@@ -47,6 +50,8 @@ export async function GET(_req: Request, context: unknown) {
 }
 
 export async function PUT(req: Request, context: unknown) {
+  const gate = await requireAdmin()
+  if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   try {
     const b = await req.json()
     const { id } = (context as { params: { id: string } }).params

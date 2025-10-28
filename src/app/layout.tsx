@@ -5,6 +5,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import AppBootstrap from "./shared/AppBootstrap";
+import AuthProvider from "./shared/AuthProvider";
+import NavAuth from "./shared/NavAuth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,14 +23,15 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <div className="min-h-screen bg-gray-50">
-          <header className="bg-gradient-to-r from-brand to-accent text-white shadow-md">
+        <AuthProvider>
+          <div className="min-h-screen bg-gray-50">
+            <header className="bg-gradient-to-r from-brand to-accent text-white shadow-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex justify-between items-center">
                 <Link href="/" className="px-3 py-2 rounded">
                   <h1 className="text-2xl font-bold">FulbitoApp</h1>
                 </Link>
-                <nav className="flex space-x-4">
+                <nav className="flex items-center space-x-4">
                   <Link
                     href="/statistics"
                     className="hover:bg-white/20 px-3 py-2 rounded"
@@ -53,13 +56,15 @@ export default function RootLayout({
                   >
                     Historial
                   </Link>
+                  <NavAuth />
                 </nav>
               </div>
             </div>
-          </header>
-          <main>{children}</main>
-          <AppBootstrap />
-        </div>
+            </header>
+            <main>{children}</main>
+            <AppBootstrap />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );
