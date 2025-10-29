@@ -10,11 +10,14 @@ export default function NavAuth() {
     <div className="flex items-center gap-3">
       {data?.user ? (
         <>
-          <span className="text-sm bg-white/20 px-2 py-1 rounded">{role === 'ADMIN' ? 'Admin' : 'Usuario'}</span>
-          <button className="hover:bg-white/20 px-3 py-2 rounded" onClick={() => signOut({ callbackUrl: '/' })}>Salir</button>
+          <div className="flex items-center gap-2 text-xs text-white/80 select-none">
+            <span className={`inline-block w-1.5 h-1.5 rounded-full ${role === 'ADMIN' ? 'bg-yellow-300' : 'bg-white/50'}`} />
+            <span className="uppercase tracking-wide">{role === 'ADMIN' ? 'Administrador' : 'Usuario'}</span>
+          </div>
+          <button className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded transition-colors" onClick={() => signOut({ callbackUrl: '/' })}>Salir</button>
         </>
       ) : (
-        <Link href="/login" className="hover:bg-white/20 px-3 py-2 rounded">Entrar</Link>
+        <Link href="/login" className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded transition-colors">Entrar</Link>
       )}
     </div>
   )

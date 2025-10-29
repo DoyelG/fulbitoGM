@@ -31,31 +31,34 @@ export default function RootLayout({
                 <Link href="/" className="px-3 py-2 rounded">
                   <h1 className="text-2xl font-bold">FulbitoApp</h1>
                 </Link>
-                <nav className="flex items-center space-x-4">
-                  <Link
-                    href="/statistics"
-                    className="hover:bg-white/20 px-3 py-2 rounded"
-                  >
-                    Estadísticas
-                  </Link>
-                  <Link
-                    href="/players"
-                    className="hover:bg-white/20 px-3 py-2 rounded"
-                  >
-                    Jugadores
-                  </Link>
-                  <Link
-                    href="/match"
-                    className="hover:bg-white/20 px-3 py-2 rounded"
-                  >
-                    Nuevo partido
-                  </Link>
-                  <Link
-                    href="/history"
-                    className="hover:bg-white/20 px-3 py-2 rounded"
-                  >
-                    Historial
-                  </Link>
+                <nav className="flex items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <Link
+                      href="/statistics"
+                      className="hover:bg-white/20 px-3 py-2 rounded"
+                    >
+                      Estadísticas
+                    </Link>
+                    <Link
+                      href="/players"
+                      className="hover:bg-white/20 px-3 py-2 rounded"
+                    >
+                      Jugadores
+                    </Link>
+                    <Link
+                      href="/match"
+                      className="hover:bg-white/20 px-3 py-2 rounded"
+                    >
+                      Nuevo partido
+                    </Link>
+                    <Link
+                      href="/history"
+                      className="hover:bg-white/20 px-3 py-2 rounded"
+                    >
+                      Historial
+                    </Link>
+                  </div>
+                  <div className="w-px h-6 bg-white/30" />
                   <NavAuth />
                 </nav>
               </div>

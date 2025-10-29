@@ -11,8 +11,11 @@ import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
 import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
+import { useSession } from 'next-auth/react'
 
 export default function PlayerDetailPage() {
+  const { data } = useSession()
+  const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
   const { id } = useParams();
   const router = useRouter();
   const updatePlayer = usePlayerStore((s) => s.updatePlayer);
@@ -21,9 +24,11 @@ export default function PlayerDetailPage() {
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
   const fileRef = useRef<HTMLInputElement | null>(null)
   const onAvatarClick = () => {
+    if (!isAdmin) return
     if (!player?.photoUrl) fileRef.current?.click()
   }
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+    if (!isAdmin) return
     const f = e.target.files?.[0]
     if (!f) return
     const fd = new FormData()
@@ -227,26 +232,32 @@ export default function PlayerDetailPage() {
           </button>
           {!editMode ? (
             <>
-              <Link
-                href={`/players/edit/${player.id}`}
-                className="px-3 py-2 rounded border hover:bg-gray-50"
-              >
-                Abrir edición
-              </Link>
-              <button
-                className="px-3 py-2 rounded bg-brand text-white hover:bg-brand/90"
-                onClick={() => setEditMode(true)}
-              >
-                Edición rápida
-              </button>
+              {isAdmin && (
+                <>
+                  <Link
+                    href={`/players/edit/${player.id}`}
+                    className="px-3 py-2 rounded border hover:bg-gray-50"
+                  >
+                    Abrir edición
+                  </Link>
+                  <button
+                    className="px-3 py-2 rounded bg-brand text-white hover:bg-brand/90"
+                    onClick={() => setEditMode(true)}
+                  >
+                    Edición rápida
+                  </button>
+                </>
+              )}
             </>
           ) : (
-            <button
-              className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
-              onClick={() => setEditMode(false)}
-            >
-              Cancelar
-            </button>
+            isAdmin ? (
+              <button
+                className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
+                onClick={() => setEditMode(false)}
+              >
+                Cancelar
+              </button>
+            ) : null
           )}
         </div>
       </div>
@@ -259,7 +270,9 @@ export default function PlayerDetailPage() {
               skills={catSkills}
               onAvatarClick={onAvatarClick}
             />
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+            {isAdmin && (
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+            )}
           </div>
           <RadarChart
             labels={['Físico','Técnico','Táctico','Mental']}
@@ -271,7 +284,7 @@ export default function PlayerDetailPage() {
           />
       </div>
 
-      {editMode && (
+      {editMode && isAdmin && (
         <form
           onSubmit={handleSave}
           className="bg-white rounded-lg shadow p-4 mb-6 grid sm:grid-cols-3 gap-4 items-end"
