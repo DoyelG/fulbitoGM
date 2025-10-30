@@ -5,14 +5,14 @@ import Link from "next/link";
 import { Player, usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore, Match } from "@/store/useMatchStore";
 
-export default function StatisticsClient({ players, matches }: { players: Player[], matches: Match[] }) {
-  const { hydrateMatches } = useMatchStore()
-  const { hydratePlayers } = usePlayerStore();
+export default function StatisticsClient({ players: propsPlayers, matches: propsMatches }: { players: Player[], matches: Match[] }) {
+  const { hydrateMatches, matches } = useMatchStore()
+  const { hydratePlayers, players } = usePlayerStore();
 
   useEffect(() => {
-    if (matches.length > 0) hydrateMatches(matches);
-    if (players.length > 0) hydratePlayers(players);
-  }, [matches, hydrateMatches, players, hydratePlayers]);
+    if (matches.length === 0 && propsMatches.length > 0) hydrateMatches(propsMatches);
+    if (players.length === 0 && propsPlayers.length > 0) hydratePlayers(propsPlayers);
+  }, [propsMatches, hydrateMatches, propsPlayers, hydratePlayers, matches.length, players.length]);
 
   type StatRow = { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number }
 

@@ -15,16 +15,16 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
   const { data } = useSession()
   const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
   const { hydrateMatches, addMatch, updateMatch, deleteMatch, matches: storeMatches } = useMatchStore()
-  const { hydratePlayers } = usePlayerStore()
+  const { hydratePlayers, players: storePlayers } = usePlayerStore()
   const [open, setOpen] = useState<false | { mode: 'create' } | { mode: 'edit', match: Match }>(false)
 
   const [fromDate, setFromDate] = useState<string>('')
   const [toDate, setToDate] = useState<string>('')
 
   useEffect(() => {
-    hydrateMatches(matches)
-    hydratePlayers(players)
-  }, [matches, hydrateMatches, hydratePlayers, players])
+    if (storeMatches.length === 0) hydrateMatches(matches)
+    if (storePlayers.length === 0) hydratePlayers(players)
+  }, [matches, hydrateMatches, hydratePlayers, players, storeMatches.length, storePlayers.length])
 
   if (open) {
     return <RecordModal

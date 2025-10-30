@@ -12,13 +12,13 @@ import { useEffect, useMemo, useState, useCallback } from 'react'
 export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
   const { data } = useSession()
   const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
-  const { deletePlayer, hydratePlayers, players: storePlayers } = usePlayerStore()
-  const { hydrateMatches, matches: storeMatches } = useMatchStore()
+  const { deletePlayer, hydratePlayers, players: storePlayers, playersInit } = usePlayerStore()
+  const { hydrateMatches, matches: storeMatches, matchesInit } = useMatchStore()
 
   useEffect(() => {
-    hydratePlayers(initialPlayers)
-    hydrateMatches(initialMatches)
-  }, [initialPlayers, initialMatches, hydratePlayers, hydrateMatches])
+    if (playersInit !== 'loaded') hydratePlayers(initialPlayers)
+    if (matchesInit !== 'loaded') hydrateMatches(initialMatches)
+  }, [initialPlayers, initialMatches, hydratePlayers, hydrateMatches, playersInit, matchesInit])
 
   const streaks = calculateAllCurrentStreaks(storeMatches)
 
