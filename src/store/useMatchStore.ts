@@ -11,7 +11,6 @@ type MatchStore = {
   updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
-  clearMatches: () => void
 }
 
 export const useMatchStore = create<MatchStore>()((set, get) => ({
@@ -56,6 +55,5 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
   deleteMatch: async (id) => {
     await fetch(`/api/matches/${id}`, { method: 'DELETE' })
     await get().initLoad()
-  },
-  clearMatches: () => set({ matches: [] })
+  }
 }))

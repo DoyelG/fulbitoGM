@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
+import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9']
@@ -117,13 +118,7 @@ export default function MatchClient({ players }: { players: Player[] }) {
   }
 
   const Draggable = ({ p }: { p: PlayerInfo }) => (
-    <div
-      draggable
-      onDragStart={e => e.dataTransfer.setData('application/json', JSON.stringify(p))}
-      className="bg-white border rounded px-3 py-2 text-center hover:shadow"
-    >
-      <strong>{p.name}</strong>
-    </div>
+    <DraggableItem data={p} label={p.name} />
   )
 
   const totalSkillA = autoTeams?.teamA.totalSkill ?? 0
@@ -201,36 +196,15 @@ export default function MatchClient({ players }: { players: Player[] }) {
           <h3 className="text-xl font-semibold mb-2">Configuración manual de equipos</h3>
           <p className="text-black mb-4">Arrastre jugadores para asignarlos a equipos, luego generar jugadores restantes.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div
-              className="border-2 border-dashed rounded p-3 min-h-48"
-              onDragOver={e => e.preventDefault()}
-              onDrop={e => onDrop(e, 'unassigned')}
-            >
-              <h4 className="text-center font-semibold mb-2">Jugadores disponibles</h4>
-              <div className="grid gap-2">
-                {unassignedManual.map(p => <Draggable key={p.id} p={p} />)}
-              </div>
-            </div>
-            <div
-              className="border-2 border-dashed rounded p-3 min-h-48"
-              onDragOver={e => e.preventDefault()}
-              onDrop={e => onDrop(e, 'a')}
-            >
-              <h4 className="text-center font-semibold mb-2">Equipo A ({manualA.length}/{playersPerTeam})</h4>
-              <div className="grid gap-2">
-                {manualA.map(p => <Draggable key={p.id} p={p} />)}
-              </div>
-            </div>
-            <div
-              className="border-2 border-dashed rounded p-3 min-h-48"
-              onDragOver={e => e.preventDefault()}
-              onDrop={e => onDrop(e, 'b')}
-            >
-              <h4 className="text-center font-semibold mb-2">Equipo B ({manualB.length}/{playersPerTeam})</h4>
-              <div className="grid gap-2">
-                {manualB.map(p => <Draggable key={p.id} p={p} />)}
-              </div>
-            </div>
+            <DropColumn title="Jugadores disponibles" onDrop={e => onDrop(e, 'unassigned')}>
+              {unassignedManual.map(p => <Draggable key={p.id} p={p} />)}
+            </DropColumn>
+            <DropColumn title={`Equipo A (${manualA.length}/${playersPerTeam})`} onDrop={e => onDrop(e, 'a')}>
+              {manualA.map(p => <Draggable key={p.id} p={p} />)}
+            </DropColumn>
+            <DropColumn title={`Equipo B (${manualB.length}/${playersPerTeam})`} onDrop={e => onDrop(e, 'b')}>
+              {manualB.map(p => <Draggable key={p.id} p={p} />)}
+            </DropColumn>
           </div>
           <div className="flex gap-3 justify-center mt-4">
             <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" onClick={() => { setManualA([]); setManualB([]) }}>

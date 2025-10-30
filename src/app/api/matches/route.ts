@@ -2,6 +2,7 @@ export const runtime = 'nodejs'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { shapeStoreMatches } from '@/lib/shape'
 
 type IncomingMatchPlayer = { id: string; goals: number; performance: number }
 type IncomingMatchBody = {
@@ -18,17 +19,8 @@ export async function GET() {
   const matches = await prisma.match.findMany({ orderBy: { date: 'desc' }, include: { players: true } })
   const playerIds = Array.from(new Set(matches.flatMap(m => m.players.map(mp => mp.playerId))))
   const players = await prisma.player.findMany({ where: { id: { in: playerIds } } })
-  const nameMap = Object.fromEntries(players.map(p => [p.id, p.name]))
-  const shaped = matches.map(m => ({
-    id: m.id,
-    date: m.date.toISOString().slice(0, 10),
-    type: m.type,
-    name: m.name ?? undefined,
-    teamAScore: m.teamAScore,
-    teamBScore: m.teamBScore,
-    teamA: m.players.filter(p => p.team === 'A').map(p => ({ id: p.playerId, name: nameMap[p.playerId], goals: p.goals, performance: p.performance })),
-    teamB: m.players.filter(p => p.team === 'B').map(p => ({ id: p.playerId, name: nameMap[p.playerId], goals: p.goals, performance: p.performance }))
-  }))
+  const nameMap = new Map(players.map(p => [p.id, p.name] as const))
+  const shaped = shapeStoreMatches(matches, nameMap)
   return NextResponse.json(shaped)
 }
 

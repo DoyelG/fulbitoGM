@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useMatchStore, Match } from '@/store/useMatchStore'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
+import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9"];
@@ -238,12 +239,9 @@ function RecordModal({
   };
 
   const Draggable = ({ p }: { p: RecordingPlayer }) => (
-    <div
-      draggable
-      onDragStart={(e) =>
-        e.dataTransfer.setData("application/json", JSON.stringify(p))
-      }
-      className="bg-white border rounded px-3 py-2 text-center hover:shadow"
+    <DraggableItem
+      data={p}
+      label={p.name}
       onClick={() => {
         const choice = prompt(
           `Move ${p.name} to:\n1. Unassigned\n2. Team A\n3. Team B\n\nEnter 1, 2, or 3:`
@@ -252,9 +250,7 @@ function RecordModal({
         if (choice === "2") move(p, "a");
         if (choice === "3") move(p, "b");
       }}
-    >
-      {p.name}
-    </div>
+    />
   );
 
   const canSave = (() => {
@@ -343,30 +339,21 @@ function RecordModal({
         </div>
 
         <div className="grid md:grid-cols-3 gap-3 mb-4">
-          <DropCol
-            title="Jugadores Disponibles"
-            onDrop={(e) => onDrop(e, "unassigned")}
-          >
+          <DropColumn title="Jugadores Disponibles" onDrop={(e) => onDrop(e, "unassigned")}>
             {unassigned.map((p) => (
               <Draggable key={p.id} p={p} />
             ))}
-          </DropCol>
-          <DropCol
-            title={`Equipo A (${teamA.length}/${playersPerTeam})`}
-            onDrop={(e) => onDrop(e, "a")}
-          >
+          </DropColumn>
+          <DropColumn title={`Equipo A (${teamA.length}/${playersPerTeam})`} onDrop={(e) => onDrop(e, "a")}>
             {teamA.map((p) => (
               <Draggable key={p.id} p={p} />
             ))}
-          </DropCol>
-          <DropCol
-            title={`Equipo B (${teamB.length}/${playersPerTeam})`}
-            onDrop={(e) => onDrop(e, "b")}
-          >
+          </DropColumn>
+          <DropColumn title={`Equipo B (${teamB.length}/${playersPerTeam})`} onDrop={(e) => onDrop(e, "b")}>
             {teamB.map((p) => (
               <Draggable key={p.id} p={p} />
             ))}
-          </DropCol>
+          </DropColumn>
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
@@ -521,27 +508,6 @@ function RecordModal({
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function DropCol({
-  title,
-  onDrop,
-  children,
-}: {
-  title: string;
-  onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="border-2 border-dashed rounded p-3 min-h-48"
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={onDrop}
-    >
-      <h4 className="text-center font-semibold mb-2">{title}</h4>
-      <div className="grid gap-2 max-h-60 overflow-y-auto">{children}</div>
     </div>
   );
 }
