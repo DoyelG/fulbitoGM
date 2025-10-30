@@ -39,8 +39,6 @@ export async function loadPlayersAndMatches(): Promise<{ players: StorePlayer[];
   ])
   const nameMap = new Map(players.map((p) => [p.id, p.name] as const))
   const shapedPlayers = shapeStorePlayers(players)
-  const shapedMatches = shapeStoreMatches(matches, nameMap)
+  const shapedMatches = shapeStoreMatches(matches.map(m => ({ ...m, players: m.players.map(mp => ({ playerId: mp.playerId, team: mp.team as 'A' | 'B', goals: mp.goals, performance: mp.performance })) })), nameMap)
   return { players: shapedPlayers, matches: shapedMatches }
 }
-
-

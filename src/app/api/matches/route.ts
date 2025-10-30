@@ -20,7 +20,7 @@ export async function GET() {
   const playerIds = Array.from(new Set(matches.flatMap(m => m.players.map(mp => mp.playerId))))
   const players = await prisma.player.findMany({ where: { id: { in: playerIds } } })
   const nameMap = new Map(players.map(p => [p.id, p.name] as const))
-  const shaped = shapeStoreMatches(matches, nameMap)
+  const shaped = shapeStoreMatches(matches.map(m => ({ ...m, players: m.players.map(mp => ({ playerId: mp.playerId, team: mp.team as 'A' | 'B', goals: mp.goals, performance: mp.performance })) })), nameMap)
   return NextResponse.json(shaped)
 }
 
