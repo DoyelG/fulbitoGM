@@ -14,6 +14,7 @@ export default async function HistoryPage() {
     name: p.name,
     position: p.position,
     skill: p.skill ?? null,
+    photoUrl: p.photoUrl ?? undefined,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
   }))
