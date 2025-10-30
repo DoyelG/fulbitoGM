@@ -73,14 +73,16 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
             className="border rounded px-3 py-2"
           />
         </div>
-        <div className="flex items-end">
-          <button
-            className="border rounded px-3 py-2 hover:bg-gray-50"
-            onClick={() => { setFromDate(''); setToDate('') }}
-          >
-            Limpiar filtros
-          </button>
-        </div>
+        {(fromDate || toDate) && (
+          <div className="flex items-end">
+            <button
+              className="border rounded px-3 py-2 hover:bg-gray-50"
+              onClick={() => { setFromDate(''); setToDate('') }}
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
       </div>
       <div className="space-y-4 mb-10">
         {storeMatches.filter(m => {
@@ -116,7 +118,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                 </div>
               </div>
               <div className="grid md:grid-cols-3 gap-4 items-start">
-                <div className="bg-gray-50 rounded p-3">
+                <div className={`${m.teamAScore > m.teamBScore ? 'bg-green-50' : m.teamAScore < m.teamBScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
                   <h4 className="text-center font-semibold mb-2">Equipo A</h4>
                   {m.teamA.map((p) => (
                     <div
@@ -131,7 +133,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                   ))}
                 </div>
                 <div className="text-center font-bold text-black">VS</div>
-                <div className="bg-gray-50 rounded p-3">
+                <div className={`${m.teamBScore > m.teamAScore ? 'bg-green-50' : m.teamBScore < m.teamAScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
                   <h4 className="text-center font-semibold mb-2">Equipo B</h4>
                   {m.teamB.map((p) => (
                     <div
