@@ -14,13 +14,14 @@ export default function StatisticsClient({ players: propsPlayers, matches: props
     if (players.length === 0 && propsPlayers.length > 0) hydratePlayers(propsPlayers);
   }, [propsMatches, hydrateMatches, propsPlayers, hydratePlayers, matches.length, players.length]);
 
-  type StatRow = { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number }
+  type StatRow = { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number; shirts: number }
 
   const stats = useMemo<StatRow[]>(() => {
-    const map: Record<string, { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number }> = {}
+    const map: Record<string, { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number; shirts: number }> = {}
+    const shirtCountById = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
     for (const m of matches) {
       const process = (team: 'A' | 'B') => (p: { id: string; name: string; goals: number; performance: number }) => {
-        if (!map[p.id]) map[p.id] = { id: p.id, name: p.name, matches: 0, goals: 0, totalPerformance: 0, wins: 0, losses: 0, draws: 0 }
+        if (!map[p.id]) map[p.id] = { id: p.id, name: p.name, matches: 0, goals: 0, totalPerformance: 0, wins: 0, losses: 0, draws: 0, shirts: shirtCountById.get(p.id) ?? 0 }
         map[p.id].matches++
         map[p.id].goals += p.goals
         map[p.id].totalPerformance += p.performance
@@ -42,7 +43,7 @@ export default function StatisticsClient({ players: propsPlayers, matches: props
       stat.totalPerformance = stat.totalPerformance / stat.matches
     })
     return Object.values(map)
-  }, [matches])
+  }, [matches, players])
 
   type SortKey = keyof StatRow | 'goalsPerMatch' | 'winRate'
   const [sortKey, setSortKey] = useState<SortKey>('goals')
@@ -94,7 +95,8 @@ export default function StatisticsClient({ players: propsPlayers, matches: props
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('totalPerformance')}>Rendimiento{sortKey==='totalPerformance' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('wins')}>Victorias{sortKey==='wins' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('winRate')}>Tasa de victorias{sortKey==='winRate' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Record</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Historial</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('shirts')}>Camisetas{sortKey==='shirts' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -116,6 +118,7 @@ export default function StatisticsClient({ players: propsPlayers, matches: props
                       <td className="px-4 py-3">{stat.wins}</td>
                       <td className="px-4 py-3">{((stat.wins / stat.matches) * 100).toFixed(1)}%</td>
                       <td className="px-4 py-3">{stat.wins}W-{stat.losses}L-{stat.draws}D</td>
+                      <td className="px-4 py-3">{stat.shirts}</td>
                     </tr>
                   )
                 })

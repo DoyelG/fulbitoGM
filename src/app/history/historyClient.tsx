@@ -148,6 +148,11 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                   ))}
                 </div>
               </div>
+              {m.shirtsResponsibleId && (
+                <div className="text-sm text-gray-700 mt-2">
+                  Camisetas: <span className="font-medium">{storePlayers.find(p => p.id === m.shirtsResponsibleId)?.name ?? '—'}</span>
+                </div>
+              )}
               <div className="text-right mt-3 flex justify-end gap-3">
                 {isAdmin && (
                   <>
@@ -206,6 +211,19 @@ function RecordModal({
   const [teamAScore, setTeamAScore] = useState<number | "">(typeof initial?.teamAScore === 'number' ? initial.teamAScore : "");
   const [teamBScore, setTeamBScore] = useState<number | "">(typeof initial?.teamBScore === 'number' ? initial.teamBScore : "");
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const selectedPlayersForDuty = useMemo(() => {
+    const all = [...teamA, ...teamB]
+    const counts = new Map<string, number>()
+    for (const p of players) counts.set(p.id, p.shirtDutiesCount ?? 0)
+    let min = Infinity
+    for (const p of all) {
+      const c = counts.get(p.id) ?? 0
+      if (c < min) min = c
+    }
+    const pool = all.filter(p => (counts.get(p.id) ?? 0) === min)
+    return { pool, min }
+  }, [teamA, teamB, players])
+  const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(initial?.shirtsResponsibleId ?? null)
 
   const [goalsA, setGoalsA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.goals])));
   const [perfA, setPerfA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.performance])));
@@ -268,6 +286,8 @@ function RecordModal({
 
   const handleSave = () => {
     if (!canSave) return;
+    const pool = selectedPlayersForDuty.pool
+    const chosen = shirtsResponsibleId || (pool.length ? pool[Math.floor(Math.random() * pool.length)].id : undefined)
     const m: Omit<Match, "id"> = {
       date: matchDate,
       type: matchType,
@@ -287,7 +307,7 @@ function RecordModal({
       })),
       name: matchName.trim() || undefined,
     };
-    onSave(m);
+    onSave({ ...m, shirtsResponsibleId: chosen });
     alert("Partido guardado correctamente!");
   };
 
@@ -486,6 +506,34 @@ function RecordModal({
               }`}
             >
               Total: {totalGoalsB} goles
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 bg-gray-50 rounded p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm">
+              <div className="font-semibold">Encargado de camisetas</div>
+              <div className="text-gray-800">
+                {(() => {
+                  const name = shirtsResponsibleId ? (players.find(p => p.id === shirtsResponsibleId)?.name ?? '—') : 'Seleccione un jugador'
+                  return name
+                })()}
+              </div>
+            </div>
+            <div className="flex-1">
+              <select
+                className="border rounded px-3 py-2 w-full"
+                value={shirtsResponsibleId ?? ''}
+                onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
+              >
+                <option disabled={!!shirtsResponsibleId} value="">Seleccione un Jugador</option>
+                {[...teamA, ...teamB].map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)})
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

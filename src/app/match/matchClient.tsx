@@ -22,6 +22,8 @@ export default function MatchClient({ players }: { players: Player[] }) {
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [autoTeams, setAutoTeams] = useState<{ teamA: TeamResult, teamB: TeamResult } | null>(null)
+  const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
+  const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
 
   // manual builder
   const [manualOpen, setManualOpen] = useState(false)
@@ -70,6 +72,16 @@ export default function MatchClient({ players }: { players: Player[] }) {
     }
     const teams = balanceTeams(selectedPlayers, playersPerTeam)
     setAutoTeams(teams)
+    const all = [...teams.teamA.players, ...teams.teamB.players]
+    const counts = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
+    let min = Infinity
+    for (const p of all) {
+      const c = counts.get(p.id) ?? 0
+      if (c < min) min = c
+    }
+    const pool = all.filter(p => (counts.get(p.id) ?? 0) === min)
+    setDutyPool(pool)
+    setShirtsResponsibleId(pool.length ? pool[Math.floor(Math.random() * pool.length)].id : null)
     setManualOpen(false)
   }
 
@@ -78,6 +90,16 @@ export default function MatchClient({ players }: { players: Player[] }) {
     const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5)
     const teams = balanceTeams(shuffled, playersPerTeam)
     setAutoTeams(teams)
+    const all = [...teams.teamA.players, ...teams.teamB.players]
+    const counts = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
+    let min = Infinity
+    for (const p of all) {
+      const c = counts.get(p.id) ?? 0
+      if (c < min) min = c
+    }
+    const pool = all.filter(p => (counts.get(p.id) ?? 0) === min)
+    setDutyPool(pool)
+    setShirtsResponsibleId(pool.length ? pool[Math.floor(Math.random() * pool.length)].id : null)
   }
 
   const finishManual = () => {
@@ -89,13 +111,34 @@ export default function MatchClient({ players }: { players: Player[] }) {
         return
       }
       const sum = (t: PlayerInfo[]) => t.reduce((s, p) => s + (p.skill === 'unknown' ? 5 : p.skill), 0)
-      setAutoTeams({
+      const teams = {
         teamA: { players: manualA, totalSkill: sum(manualA) },
         teamB: { players: manualB, totalSkill: sum(manualB) }
-      })
+      }
+      setAutoTeams(teams)
+      const allA = [...teams.teamA.players, ...teams.teamB.players]
+      const countsA = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
+      let minA = Infinity
+      for (const p of allA) {
+        const c = countsA.get(p.id) ?? 0
+        if (c < minA) minA = c
+      }
+      const poolA = allA.filter(p => (countsA.get(p.id) ?? 0) === minA)
+      setDutyPool(poolA)
+      setShirtsResponsibleId(poolA.length ? poolA[Math.floor(Math.random() * poolA.length)].id : null)
     } else {
       const teams = balanceRemainingPlayers(unassigned, manualA, manualB, playersPerTeam)
       setAutoTeams(teams)
+      const allB = [...teams.teamA.players, ...teams.teamB.players]
+      const countsB = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
+      let minB = Infinity
+      for (const p of allB) {
+        const c = countsB.get(p.id) ?? 0
+        if (c < minB) minB = c
+      }
+      const poolB = allB.filter(p => (countsB.get(p.id) ?? 0) === minB)
+      setDutyPool(poolB)
+      setShirtsResponsibleId(poolB.length ? poolB[Math.floor(Math.random() * poolB.length)].id : null)
     }
     setManualOpen(false)
   }
@@ -231,6 +274,46 @@ export default function MatchClient({ players }: { players: Player[] }) {
           <div className="grid md:grid-cols-2 gap-4">
             <TeamCard title="Team A" team={autoTeams.teamA} color="blue" winProbability={probA} />
             <TeamCard title="Team B" team={autoTeams.teamB} color="red" winProbability={probB} />
+          </div>
+
+          <div className="mt-6 border-t pt-4">
+            <div className="flex flex-col md:flex-row gap-3 md:items-center">
+              <div className="text-sm">
+                <div className="font-semibold">Encargado de camisetas</div>
+                <div className="text-black">
+                  {shirtsResponsibleId
+                    ? (players.find(p => p.id === shirtsResponsibleId)?.name ?? '—')
+                    : (dutyPool.length
+                      ? `${players.find(p => p.id === dutyPool[0].id)?.name ?? '—'} (entre ${dutyPool.length} con menos asignaciones)`
+                      : 'Seleccione jugadores y genere equipos')}
+                </div>
+              </div>
+              <div className="flex-1">
+                <select
+                  className="border rounded px-3 py-2 w-full"
+                  value={shirtsResponsibleId ?? ''}
+                  onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
+                >
+                  <option value="">(aleatorio entre los que menos las llevaron)</option>
+                  {[...(autoTeams.teamA.players), ...(autoTeams.teamB.players)].map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <button
+                  className="border rounded px-3 py-2 hover:bg-gray-50"
+                  onClick={() => {
+                    if (!dutyPool.length) return
+                    setShirtsResponsibleId(dutyPool[Math.floor(Math.random() * dutyPool.length)].id)
+                  }}
+                >
+                  🎲 Elegir aleatorio
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

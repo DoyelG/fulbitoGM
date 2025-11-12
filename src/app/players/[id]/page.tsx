@@ -426,6 +426,10 @@ export default function PlayerDetailPage() {
             />
           </div>
         </div>
+        <div className="bg-white rounded-lg shadow p-4 text-center">
+          <div className="text-sm text-gray-700">Llevo las Camisetas</div>
+          <div className="text-2xl font-semibold">{player.shirtDutiesCount ?? 0} Veces</div>
+        </div>
       </div>
 
       {/* Recent matches card remains the same */}

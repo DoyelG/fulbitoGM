@@ -33,6 +33,7 @@ export async function GET(_req: Request, context: unknown) {
       date: m.date.toISOString().slice(0, 10),
       type: m.type,
       name: m.name ?? undefined,
+      shirtsResponsibleId: (m as unknown as { shirtsResponsibleId?: string | null }).shirtsResponsibleId ?? undefined,
       teamAScore: m.teamAScore,
       teamBScore: m.teamBScore,
       teamA: m.players
@@ -57,12 +58,17 @@ export async function PUT(req: Request, context: unknown) {
     const { id } = (context as { params: { id: string } }).params
 
     // Update basic fields
-    const data: { date?: Date, type?: string, name?: string | null, teamAScore?: number, teamBScore?: number } = {}
+    const data: { date?: Date, type?: string, name?: string | null, teamAScore?: number, teamBScore?: number, shirtsResponsibleId?: string | null } = {}
     if (b.date) data.date = new Date(`${b.date}T00:00:00.000Z`)
     if (typeof b.type === 'string') data.type = b.type
     if (typeof b.name === 'string' || b.name === null) data.name = b.name ?? null
     if (typeof b.teamAScore === 'number') data.teamAScore = b.teamAScore
     if (typeof b.teamBScore === 'number') data.teamBScore = b.teamBScore
+    if ('shirtsResponsibleId' in b) data.shirtsResponsibleId = b.shirtsResponsibleId ?? null
+
+    const current = await prisma.match.findUnique({ where: { id }, select: { shirtsResponsibleId: true } })
+    const oldId = current?.shirtsResponsibleId ?? null
+    const newId = ('shirtsResponsibleId' in b) ? (b.shirtsResponsibleId ?? null) : oldId
 
     // If teams provided, replace participants atomically
     if (Array.isArray(b.teamA) || Array.isArray(b.teamB)) {
@@ -74,10 +80,20 @@ export async function PUT(req: Request, context: unknown) {
             ...((b.teamA || []).map((p: { id: string, goals: number, performance: number }) => ({ matchId: id, playerId: p.id, team: 'A', goals: p.goals ?? 0, performance: p.performance ?? 5 }))),
             ...((b.teamB || []).map((p: { id: string, goals: number, performance: number }) => ({ matchId: id, playerId: p.id, team: 'B', goals: p.goals ?? 0, performance: p.performance ?? 5 })))
           ]
-        })
+        }),
+        ...(newId !== oldId ? [
+          ...(oldId ? [prisma.player.update({ where: { id: oldId }, data: { shirtDutiesCount: { decrement: 1 } } })] : []),
+          ...(newId ? [prisma.player.update({ where: { id: newId }, data: { shirtDutiesCount: { increment: 1 } } })] : [])
+        ] : [])
       ])
     } else {
-      await prisma.match.update({ where: { id }, data })
+      await prisma.$transaction([
+        prisma.match.update({ where: { id }, data }),
+        ...(newId !== oldId ? [
+          ...(oldId ? [prisma.player.update({ where: { id: oldId }, data: { shirtDutiesCount: { decrement: 1 } } })] : []),
+          ...(newId ? [prisma.player.update({ where: { id: newId }, data: { shirtDutiesCount: { increment: 1 } } })] : [])
+        ] : [])
+      ])
     }
 
     return NextResponse.json({ ok: true })

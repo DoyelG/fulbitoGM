@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 export type MatchPlayer = { id: string; name: string; goals: number; performance: number }
-export type Match = { id: string; date: string; type: string; teamAScore: number; teamBScore: number; teamA: MatchPlayer[]; teamB: MatchPlayer[]; name?: string }
+export type Match = { id: string; date: string; type: string; teamAScore: number; teamBScore: number; teamA: MatchPlayer[]; teamB: MatchPlayer[]; name?: string; shirtsResponsibleId?: string | null }
 
 type MatchStore = {
   matches: Match[]

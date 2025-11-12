@@ -14,9 +14,11 @@ model Player {
   skill        Float?
   skills       Json?
   photoUrl     String?
+  shirtDutiesCount Int       @default(0)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   matchPlayers MatchPlayer[]
+  shirtMatches Match[]       @relation("ShirtDutyMatches")
 }
 
 model Match {
@@ -29,6 +31,8 @@ model Match {
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
   players    MatchPlayer[]
+  shirtsResponsibleId String?
+  shirtsResponsible   Player? @relation("ShirtDutyMatches", fields: [shirtsResponsibleId], references: [id])
 }
 
 model MatchPlayer {
