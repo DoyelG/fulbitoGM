@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useMatchStore, Match } from '@/store/useMatchStore'
+import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
@@ -191,6 +192,8 @@ function RecordModal({
   onSave: (m: Omit<Match, "id">) => void;
 }) {
   const { players } = usePlayerStore();
+  const { matches: allMatches } = useMatchStore();
+  const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
   const [matchDate, setMatchDate] = useState<string>(initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10));
   const [matchType, setMatchType] = useState<MatchType>(initial?.type as MatchType || "5v5");
   const playersPerTeam = useMemo(
@@ -213,16 +216,12 @@ function RecordModal({
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB]
-    const counts = new Map<string, number>()
-    for (const p of players) counts.set(p.id, p.shirtDutiesCount ?? 0)
-    let min = Infinity
-    for (const p of all) {
-      const c = counts.get(p.id) ?? 0
-      if (c < min) min = c
-    }
-    const pool = all.filter(p => (counts.get(p.id) ?? 0) === min)
+    const teamIds = all.map(p => p.id)
+    const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
+    const { poolIds, min } = computeLeastAssignedPoolIds(consideredIds, players)
+    const pool = all.filter(p => poolIds.includes(p.id))
     return { pool, min }
-  }, [teamA, teamB, players])
+  }, [teamA, teamB, players, playedBefore])
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(initial?.shirtsResponsibleId ?? null)
 
   const [goalsA, setGoalsA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.goals])));
@@ -528,11 +527,15 @@ function RecordModal({
                 onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
               >
                 <option disabled={!!shirtsResponsibleId} value="">Seleccione un Jugador</option>
-                {[...teamA, ...teamB].map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)})
-                  </option>
-                ))}
+                {(() => {
+                  const current = [...teamA, ...teamB]
+                  const eligibleExists = current.some(pp => playedBefore.has(pp.id))
+                  return current.map(p => (
+                    <option key={p.id} value={p.id} disabled={eligibleExists && !playedBefore.has(p.id)}>
+                      {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)}){eligibleExists && !playedBefore.has(p.id) ? ' — nuevo' : ''}
+                    </option>
+                  ))
+                })()}
               </select>
             </div>
           </div>

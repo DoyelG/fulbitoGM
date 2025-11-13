@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePlayerStore , Player} from '@/store/usePlayerStore'
+import { useMatchStore } from '@/store/useMatchStore'
+import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
 import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
@@ -10,6 +12,7 @@ const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9']
 
 export default function MatchClient({ players }: { players: Player[] }) {
   const { hydratePlayers } = usePlayerStore()
+  const { matches: allMatches, initLoad: initMatchesLoad } = useMatchStore()
   const [matchType, setMatchType] = useState<MatchType>('5v5')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
   const requiredPlayers = playersPerTeam * 2
@@ -17,7 +20,8 @@ export default function MatchClient({ players }: { players: Player[] }) {
   // hydrate on mount after commit to avoid setState during render
   useEffect(() => {
     hydratePlayers(players)
-  }, [players, hydratePlayers])
+    initMatchesLoad()
+  }, [players, hydratePlayers, initMatchesLoad])
 
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -32,6 +36,8 @@ export default function MatchClient({ players }: { players: Player[] }) {
 
   // search in player selection
   const [playerQuery, setPlayerQuery] = useState('')
+
+  const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
 
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
@@ -65,44 +71,39 @@ export default function MatchClient({ players }: { players: Player[] }) {
     setSelectionOpen(true)
   }
 
-  const doAuto = () => {
+  const doAuto = async () => {
+    await initMatchesLoad()
     if (selected.size !== requiredPlayers) {
       alert(`Por favor, selecciona exactamente ${requiredPlayers} jugadores para ${matchType}.`)
       return
     }
     const teams = balanceTeams(selectedPlayers, playersPerTeam)
     setAutoTeams(teams)
-    const all = [...teams.teamA.players, ...teams.teamB.players]
-    const counts = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
-    let min = Infinity
-    for (const p of all) {
-      const c = counts.get(p.id) ?? 0
-      if (c < min) min = c
-    }
-    const pool = all.filter(p => (counts.get(p.id) ?? 0) === min)
-    setDutyPool(pool)
-    setShirtsResponsibleId(pool.length ? pool[Math.floor(Math.random() * pool.length)].id : null)
+    const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
+    const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
+    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+    const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
+    setDutyPool(poolObjs)
+    setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     setManualOpen(false)
   }
 
-  const regenerate = () => {
+  const regenerate = async () => {
+    await initMatchesLoad()
     if (!selectedPlayers.length) return
     const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5)
     const teams = balanceTeams(shuffled, playersPerTeam)
     setAutoTeams(teams)
-    const all = [...teams.teamA.players, ...teams.teamB.players]
-    const counts = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
-    let min = Infinity
-    for (const p of all) {
-      const c = counts.get(p.id) ?? 0
-      if (c < min) min = c
-    }
-    const pool = all.filter(p => (counts.get(p.id) ?? 0) === min)
-    setDutyPool(pool)
-    setShirtsResponsibleId(pool.length ? pool[Math.floor(Math.random() * pool.length)].id : null)
+    const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
+    const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
+    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+    const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
+    setDutyPool(poolObjs)
+    setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
   }
 
-  const finishManual = () => {
+  const finishManual = async () => {
+    await initMatchesLoad()
     const assigned = [...manualA, ...manualB]
     const unassigned = selectedPlayers.filter(p => !assigned.some(a => a.id === p.id))
     if (unassigned.length === 0) {
@@ -116,29 +117,21 @@ export default function MatchClient({ players }: { players: Player[] }) {
         teamB: { players: manualB, totalSkill: sum(manualB) }
       }
       setAutoTeams(teams)
-      const allA = [...teams.teamA.players, ...teams.teamB.players]
-      const countsA = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
-      let minA = Infinity
-      for (const p of allA) {
-        const c = countsA.get(p.id) ?? 0
-        if (c < minA) minA = c
-      }
-      const poolA = allA.filter(p => (countsA.get(p.id) ?? 0) === minA)
-      setDutyPool(poolA)
-      setShirtsResponsibleId(poolA.length ? poolA[Math.floor(Math.random() * poolA.length)].id : null)
+      const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
+      const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
+      const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+      const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
+      setDutyPool(poolObjs)
+      setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     } else {
       const teams = balanceRemainingPlayers(unassigned, manualA, manualB, playersPerTeam)
       setAutoTeams(teams)
-      const allB = [...teams.teamA.players, ...teams.teamB.players]
-      const countsB = new Map(players.map(p => [p.id, p.shirtDutiesCount ?? 0]))
-      let minB = Infinity
-      for (const p of allB) {
-        const c = countsB.get(p.id) ?? 0
-        if (c < minB) minB = c
-      }
-      const poolB = allB.filter(p => (countsB.get(p.id) ?? 0) === minB)
-      setDutyPool(poolB)
-      setShirtsResponsibleId(poolB.length ? poolB[Math.floor(Math.random() * poolB.length)].id : null)
+      const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
+      const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
+      const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+      const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
+      setDutyPool(poolObjs)
+      setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     }
     setManualOpen(false)
   }
@@ -191,11 +184,39 @@ export default function MatchClient({ players }: { players: Player[] }) {
             Seleccionar jugadores
           </button>
         </div>
+        <div className="mt-3 text-sm text-gray-800">
+          {(() => {
+            const selectedCount = selected.size
+            const missing = Math.max(0, requiredPlayers - selectedCount)
+            return (
+              <span>
+                Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
+                <span className={`ml-3 px-2 py-0.5 rounded ${missing === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  Faltan: {missing}
+                </span>
+              </span>
+            )
+          })()}
+        </div>
       </div>
 
       {selectionOpen && (
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <h3 className="text-xl font-semibold mb-4">Seleccionar jugadores</h3>
+          <div className="mb-2 text-sm text-gray-800">
+            {(() => {
+              const selectedCount = selected.size
+              const missing = Math.max(0, requiredPlayers - selectedCount)
+              return (
+                <span>
+                  Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
+                  <span className={`ml-3 px-2 py-0.5 rounded ${missing === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    Faltan: {missing}
+                  </span>
+                </span>
+              )
+            })()}
+          </div>
           <div className="mb-3">
             <input
               type="text"
@@ -294,12 +315,21 @@ export default function MatchClient({ players }: { players: Player[] }) {
                   value={shirtsResponsibleId ?? ''}
                   onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
                 >
-                  <option value="">(aleatorio entre los que menos las llevaron)</option>
-                  {[...(autoTeams.teamA.players), ...(autoTeams.teamB.players)].map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)})
-                    </option>
-                  ))}
+                  <option value="">(aleatorio entre elegibles con menos asignaciones)</option>
+                  {(() => {
+                    const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
+                    const played = new Set<string>()
+                    for (const m of allMatches) {
+                      for (const p of m.teamA) played.add(p.id)
+                      for (const p of m.teamB) played.add(p.id)
+                    }
+                    const eligibleExists = current.some(p => played.has(p.id))
+                    return current.map(p => (
+                      <option key={p.id} value={p.id} disabled={eligibleExists && !played.has(p.id)}>
+                        {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
+                      </option>
+                    ))
+                  })()}
                 </select>
               </div>
               <div>
