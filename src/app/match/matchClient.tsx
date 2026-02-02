@@ -43,7 +43,13 @@ export default function MatchClient({ players }: { players: Player[] }) {
     const ids = new Set(selected)
     return players
       .filter(p => ids.has(p.id))
-      .map(p => ({ id: p.id, name: p.name, skill: (p.skill ?? 'unknown') as number | 'unknown', position: p.position }))
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        skill: (p.skill ?? 'unknown') as number | 'unknown',
+        position: p.position,
+        physical: (p.skills?.physical ?? 'unknown') as number | 'unknown'
+      }))
   }, [players, selected])
 
   const unassignedManual = useMemo(() => {
@@ -111,10 +117,11 @@ export default function MatchClient({ players }: { players: Player[] }) {
         alert(`Each team needs exactly ${playersPerTeam} players.`)
         return
       }
-      const sum = (t: PlayerInfo[]) => t.reduce((s, p) => s + (p.skill === 'unknown' ? 5 : p.skill), 0)
+      const sumSkill = (t: PlayerInfo[]) => t.reduce((s, p) => s + (p.skill === 'unknown' ? 5 : p.skill), 0)
+      const sumPhysical = (t: PlayerInfo[]) => t.reduce((s, p) => s + (p.physical === undefined || p.physical === 'unknown' ? 5 : p.physical), 0)
       const teams = {
-        teamA: { players: manualA, totalSkill: sum(manualA) },
-        teamB: { players: manualB, totalSkill: sum(manualB) }
+        teamA: { players: manualA, totalSkill: sumSkill(manualA), totalPhysical: sumPhysical(manualA) },
+        teamB: { players: manualB, totalSkill: sumSkill(manualB), totalPhysical: sumPhysical(manualB) }
       }
       setAutoTeams(teams)
       const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
@@ -365,6 +372,9 @@ function TeamCard({ title, team, color, winProbability }: { title: string, team:
       <div className="bg-gray-100 rounded px-3 py-2 text-center font-semibold">
         <span className="mr-2">Total habilidad:</span>
         {team.totalSkill}
+        <span className="mx-2">|</span>
+        <span className="mr-2">Total físico:</span>
+        {team.totalPhysical}
         <span className="mx-2">|</span>
         <span className="mr-2">Probabilidad de victoria:</span>
         {winProbability != null ? `${winProbability}%` : '—'}
