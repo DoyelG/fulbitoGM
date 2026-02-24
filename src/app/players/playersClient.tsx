@@ -8,6 +8,8 @@ import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { useMatchStore, Match } from '@/store/useMatchStore'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback } from 'react'
+import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi'
+import ActionRow, { type RowAction } from '@/components/ActionRow'
 
 export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
   const { data } = useSession()
@@ -86,13 +88,12 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Posición</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('streak')}>Racha{sortKey==='streak' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goal7')}>Objetivo (7W){sortKey==='goal7' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {storePlayers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-gray-800">
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-800">
                     No hay jugadores agregados aún.
                     {isAdmin && (
                       <> <Link href="/players/new" className="text-brand hover:underline">Agrega tu primer jugador</Link></>
@@ -103,8 +104,15 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                 sortedPlayers.map((player) => {
                   const st = streaks[player.id] ?? { kind: null as 'win' | 'loss' | null, count: 0 }
                   const winGoalProgress = st.kind === 'win' ? st.count : 0
+                  const actions: RowAction[] = [
+                    { icon: <FiEye size={16} />, variant: 'primary', href: `/players/${player.id}`, tooltip: 'Ver' },
+                    ...(isAdmin ? [
+                      { icon: <FiEdit2 size={16} />, variant: 'primary' as const, href: `/players/edit/${player.id}`, tooltip: 'Editar' },
+                      { icon: <FiTrash2 size={16} />, variant: 'danger' as const, onClick: () => deletePlayer(player.id), tooltip: 'Eliminar' },
+                    ] : []),
+                  ]
                   return (
-                    <tr key={player.id} className="hover:bg-gray-50">
+                    <ActionRow key={player.id} actions={actions}>
                       <td className="px-4 py-3">
                         <Link href={`/players/${player.id}`} className="text-brand hover:underline font-medium">{player.name}</Link>
                       </td>
@@ -128,14 +136,7 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end items-center gap-3">
-                          <Link href={`/players/${player.id}`} className="text-brand hover:text-brand/80">Ver</Link>
-                          {isAdmin && <Link href={`/players/edit/${player.id}`} className="text-brand hover:text-brand/80">Editar</Link>}
-                          {isAdmin && <button onClick={() => deletePlayer(player.id)} className="text-red-600 hover:text-red-800">Eliminar</button>}
-                        </div>
-                      </td>
-                    </tr>
+                    </ActionRow>
                   )
                 })
               )}
