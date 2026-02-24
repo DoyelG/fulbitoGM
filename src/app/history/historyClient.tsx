@@ -18,6 +18,8 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
   const { hydrateMatches, addMatch, updateMatch, deleteMatch, matches: storeMatches } = useMatchStore()
   const { hydratePlayers, players: storePlayers } = usePlayerStore()
   const [open, setOpen] = useState<false | { mode: 'create' } | { mode: 'edit', match: Match }>(false)
+  const [showModal, setShowModal] = useState(false)
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
 
   const [fromDate, setFromDate] = useState<string>('')
   const [toDate, setToDate] = useState<string>('')
@@ -41,6 +43,14 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
         setOpen(false)
       }}
     />
+  }
+  const handleDelete = (matchId: string)=>{
+    setShowModal(true)
+    setSelectedMatchId(matchId)
+  }
+  const handleConfirmDelete = ()=>{
+    deleteMatch(selectedMatchId as string)
+    setShowModal(false)
   }
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -165,7 +175,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                     </button>
                     <button
                       className="text-red-600 hover:text-red-800 text-sm"
-                      onClick={() => deleteMatch(m.id)}
+                      onClick={() => handleDelete(m.id)}
                     >
                       Eliminar
                     </button>
@@ -176,6 +186,36 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
           ))
         )}
       </div>
+      <dialog
+          open={showModal}
+          className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
+        >
+          <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirmar eliminación
+            </h2>
+
+            <p className="text-gray-600 mb-6">
+              ¿Estás seguro de que querés eliminar este partido?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => handleConfirmDelete()}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </dialog>
     </div>
   )
 }
