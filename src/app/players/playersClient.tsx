@@ -11,6 +11,8 @@ import { useEffect, useMemo, useState, useCallback } from 'react'
 
 export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
   const { data } = useSession()
+  const [showModal, setShowModal] = useState(false)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
   const { deletePlayer, hydratePlayers, players: storePlayers, playersInit } = usePlayerStore()
   const { hydrateMatches, matches: storeMatches, matchesInit } = useMatchStore()
@@ -66,6 +68,20 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
       return av > bv ? dir : -dir
     })
   }, [storePlayers, streaks, sortKey, sortDir])
+
+  const selectedPlayer = useMemo(
+    () => storePlayers.find((p) => p.id === selectedPlayerId) ?? null,
+    [storePlayers, selectedPlayerId],
+  );
+  const handleDelete = (playerId: string)=>{
+    setShowModal(true)
+    setSelectedPlayerId(playerId)
+  }
+
+  const handleConfirmDelete = ()=>{
+    deletePlayer(selectedPlayerId as string)
+    setShowModal(false)
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -132,7 +148,7 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                         <div className="flex justify-end items-center gap-3">
                           <Link href={`/players/${player.id}`} className="text-brand hover:text-brand/80">Ver</Link>
                           {isAdmin && <Link href={`/players/edit/${player.id}`} className="text-brand hover:text-brand/80">Editar</Link>}
-                          {isAdmin && <button onClick={() => deletePlayer(player.id)} className="text-red-600 hover:text-red-800">Eliminar</button>}
+                          {isAdmin && <button onClick={() => handleDelete(player.id)} className="text-red-600 hover:text-red-800">Eliminar</button>}
                         </div>
                       </td>
                     </tr>
@@ -143,6 +159,36 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
           </table>
         </div>
       </div>
+      <dialog
+          open={showModal}
+          className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
+        >
+          <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirmar eliminación
+            </h2>
+
+            <p className="text-gray-600 mb-6">
+              ¿Estás seguro de que querés eliminar a {selectedPlayer?.name}?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => handleConfirmDelete()}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </dialog>
     </div>
   )
 }
