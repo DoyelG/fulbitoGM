@@ -8,6 +8,7 @@ import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { useMatchStore, Match } from '@/store/useMatchStore'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback } from 'react'
+import Image from 'next/image'
 
 export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
   const { data } = useSession()
@@ -81,6 +82,7 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
           <table className="min-w-full table-auto">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Imagen</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('skill')}>Habilidad{sortKey==='skill' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Posición</th>
@@ -105,6 +107,9 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                   const winGoalProgress = st.kind === 'win' ? st.count : 0
                   return (
                     <tr key={player.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <Image src={player.photoUrl ?? '/silhouette.svg'} alt={player.name} width={32} height={32} className="object-cover w-full h-full max-w-8 max-h-8 rounded-full" />
+                      </td>
                       <td className="px-4 py-3">
                         <Link href={`/players/${player.id}`} className="text-brand hover:underline font-medium">{player.name}</Link>
                       </td>
