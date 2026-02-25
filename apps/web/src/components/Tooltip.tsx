@@ -8,11 +8,12 @@ type Props = {
   children: ReactNode
   position?: 'top' | 'bottom'
   delay?: number
+  variant?: "primary" | "danger"
 }
 
 const GAP = 8
 
-export default function Tooltip({ label, children, position = 'top', delay = 300 }: Props) {
+export default function Tooltip({ label, children, position = 'top', delay = 300, variant = 'primary' }: Props) {
   const [active, setActive] = useState(false)
   const [coords, setCoords] = useState<{ x: number; y: number } | null>(null)
   const triggerRef = useRef<HTMLSpanElement>(null)
@@ -52,7 +53,7 @@ export default function Tooltip({ label, children, position = 'top', delay = 300
       className={[
         'fixed z-[9999] pointer-events-none',
         'px-2.5 py-1 text-[11px] font-semibold tracking-wide',
-        'text-brand-contrast bg-brand rounded-md',
+        variant === 'primary' ? 'text-brand-contrast bg-brand rounded-md' : 'text-red-600 bg-red-50 rounded-md',
         'shadow-[0_4px_12px_rgba(124,58,237,0.35)]',
         'whitespace-nowrap select-none',
         'transition-all duration-200 ease-out',
@@ -67,7 +68,8 @@ export default function Tooltip({ label, children, position = 'top', delay = 300
       {label}
       <span
         className={[
-          'absolute left-1/2 -translate-x-1/2 size-2 rotate-45 bg-brand',
+          'absolute left-1/2 -translate-x-1/2 size-2 rotate-45',
+          variant === 'primary' ? 'bg-brand' : 'bg-red-50',
           isTop ? '-bottom-1' : '-top-1',
         ].join(' ')}
       />
