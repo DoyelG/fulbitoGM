@@ -61,7 +61,7 @@ export default function ActionRow({ actions, children, className = '', tooltipPo
           <button key={i} onClick={action.onClick} className={cls}>{action.icon}</button>
         )
         return action.tooltip ? (
-          <Tooltip key={i} label={action.tooltip} position={tooltipPosition}>{element}</Tooltip>
+          <Tooltip key={i} label={action.tooltip} position={tooltipPosition} variant={action.variant}>{element}</Tooltip>
         ) : element
       })}
     </div>
