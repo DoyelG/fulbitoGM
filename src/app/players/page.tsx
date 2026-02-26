@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { loadPlayersAndMatches } from "@/lib/shape";
 import PlayersClient from "./playersClient";
 
