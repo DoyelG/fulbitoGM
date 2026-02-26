@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { prisma } from '@/lib/prisma'
 import { shapeStorePlayers } from '@/lib/shape'
 import MatchClient from './matchClient'
