@@ -10,18 +10,18 @@ import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9']
 
-export default function MatchClient({ players }: { players: Player[] }) {
-  const { hydratePlayers } = usePlayerStore()
-  const { matches: allMatches, initLoad: initMatchesLoad } = useMatchStore()
+export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
+  const { players, hydratePlayers, resetAndReload } = usePlayerStore()
+  const { matches: allMatches, initLoad: initMatchesLoad, resetAndReload: resetMatches } = useMatchStore()
   const [matchType, setMatchType] = useState<MatchType>('5v5')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
   const requiredPlayers = playersPerTeam * 2
 
-  // hydrate on mount after commit to avoid setState during render
   useEffect(() => {
-    hydratePlayers(players)
-    initMatchesLoad()
-  }, [players, hydratePlayers, initMatchesLoad])
+    hydratePlayers(initialPlayers)
+    resetAndReload()
+    resetMatches()
+  }, [])
 
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())

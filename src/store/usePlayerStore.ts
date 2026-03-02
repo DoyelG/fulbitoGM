@@ -13,6 +13,7 @@ type PlayerStore = {
   updatePlayer: (id: string, player: Partial<Player>) => Promise<void>
   deletePlayer: (id: string) => Promise<void>
   getPlayer: (id: string) => Player | undefined
+  resetAndReload: () => Promise<void> 
 }
 
 export const usePlayerStore = create<PlayerStore>()((set, get) => ({
@@ -45,6 +46,7 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     if (!ct.includes('application/json')) throw new Error('Unexpected response creating player')
     const created: Player = await res.json()
     set(s => ({ players: [...s.players, created].sort((a, b) => a.name.localeCompare(b.name)) }))
+    await get().resetAndReload()
   },
   updatePlayer: async (id, updates) => {
     const res = await fetch(`/api/players/${id}`, {
@@ -58,10 +60,21 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     if (!ct.includes('application/json')) throw new Error('Unexpected response updating player')
     const updated: Player = await res.json()
     set(s => ({ players: s.players.map(p => p.id === id ? updated : p) }))
+    await get().resetAndReload()
   },
   deletePlayer: async (id) => {
-    await fetch(`/api/players/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/players/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const msg = await res.text().catch(() => '')
+      throw new Error(msg || 'Failed to delete player')
+    }
     set(s => ({ players: s.players.filter(p => p.id !== id) }))
+    await get().resetAndReload()
   },
-  getPlayer: (id) => get().players.find(p => p.id === id)
+  getPlayer: (id) => get().players.find(p => p.id === id),
+  resetAndReload: async () => {
+    const res = await fetch('/api/players', { cache: 'no-store' })
+    const data: Player[] = await res.json()
+    set({ players: data, playersInit: 'loaded' })
+  },
 }))

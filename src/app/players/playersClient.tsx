@@ -15,13 +15,15 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
   const [showModal, setShowModal] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
-  const { deletePlayer, hydratePlayers, players: storePlayers, playersInit } = usePlayerStore()
-  const { hydrateMatches, matches: storeMatches, matchesInit } = useMatchStore()
+  const { deletePlayer, hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
+  const { hydrateMatches, matches: storeMatches, resetAndReload: resetMatches } = useMatchStore()
 
   useEffect(() => {
-    if (playersInit !== 'loaded') hydratePlayers(initialPlayers)
-    if (matchesInit !== 'loaded') hydrateMatches(initialMatches)
-  }, [initialPlayers, initialMatches, hydratePlayers, hydrateMatches, playersInit, matchesInit])
+    hydratePlayers(initialPlayers)
+    hydrateMatches(initialMatches)
+    resetPlayers()
+    resetMatches()
+  }, [])
 
   const streaks = calculateAllCurrentStreaks(storeMatches)
 

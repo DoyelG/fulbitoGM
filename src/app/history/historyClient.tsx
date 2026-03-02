@@ -36,11 +36,10 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
       onClose={() => setOpen(false)}
       onSave={async (m) => {
         if (open.mode === 'edit' && open.match) {
-          await updateMatch(open.match.id, m)
+          await updateMatch(open.match.id, m);
         } else {
-          await addMatch(m)
+          await addMatch(m);
         }
-        setOpen(false)
       }}
     />
   }
@@ -241,6 +240,8 @@ function RecordModal({
     [matchType]
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [teamA, setTeamA] = useState<RecordingPlayer[]>(initial?.teamA?.map(p => ({ id: p.id, name: p.name })) || []);
   const [teamB, setTeamB] = useState<RecordingPlayer[]>(initial?.teamB?.map(p => ({ id: p.id, name: p.name })) || []);
 
@@ -312,21 +313,21 @@ function RecordModal({
     />
   );
 
-  const canSave = (() => {
-    const a = typeof teamAScore === "number" ? teamAScore : 0;
-    const b = typeof teamBScore === "number" ? teamBScore : 0;
-    return (
-      a === totalGoalsA &&
-      b === totalGoalsB &&
-      teamA.length === playersPerTeam &&
-      teamB.length === playersPerTeam
-    );
-  })();
+  const canSave =
+    (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
+    (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
+    teamA.length === playersPerTeam &&
+    teamB.length === playersPerTeam;
 
-  const handleSave = () => {
-    if (!canSave) return;
-    const pool = selectedPlayersForDuty.pool
-    const chosen = shirtsResponsibleId || (pool.length ? pool[Math.floor(Math.random() * pool.length)].id : undefined)
+  const handleSave = async () => {
+  if (!canSave) return;
+
+  setIsLoading(true);
+
+  try {
+    const pool = selectedPlayersForDuty.pool;
+    const chosen = shirtsResponsibleId || (pool.length ? pool[Math.floor(Math.random() * pool.length)].id : undefined);
+
     const m: Omit<Match, "id"> = {
       date: matchDate,
       type: matchType,
@@ -346,9 +347,18 @@ function RecordModal({
       })),
       name: matchName.trim() || undefined,
     };
-    onSave({ ...m, shirtsResponsibleId: chosen });
+
+    await onSave({ ...m, shirtsResponsibleId: chosen });
+
     alert("Partido guardado correctamente!");
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert("Error al guardar el partido");
+  } finally {
+    setIsLoading(false);
   };
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
@@ -594,10 +604,16 @@ function RecordModal({
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
-            disabled={!canSave}
+            disabled={!canSave || isLoading}
             onClick={handleSave}
           >
-            {mode === 'edit' ? 'Actualizar Partido' : 'Guardar Partido'}
+              {isLoading
+              ? mode === "edit"
+                ? "Actualizando..."
+                : "Guardando..."
+              : mode === "edit"
+              ? "Actualizar Partido"
+              : "Guardar Partido"}
           </button>
         </div>
       </div>
