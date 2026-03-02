@@ -11,6 +11,7 @@ type MatchStore = {
   updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
+  resetAndReload: () => Promise<void>
 }
 
 export const useMatchStore = create<MatchStore>()((set, get) => ({
@@ -42,7 +43,7 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     const ct = res.headers.get('content-type') || ''
     if (!ct.includes('application/json')) throw new Error('Unexpected response creating match')
     const { id } = await res.json()
-    await get().initLoad()
+    await get().resetAndReload()
     return id
   },
   updateMatch: async (id, m) => {
@@ -50,10 +51,16 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m)
     })
     if (!res.ok) throw new Error('Failed to update match')
-    await get().initLoad()
+    await get().resetAndReload()
   },
   deleteMatch: async (id) => {
     await fetch(`/api/matches/${id}`, { method: 'DELETE' })
-    await get().initLoad()
-  }
+    await get().resetAndReload()
+  },
+  resetAndReload: async () => {
+    const res = await fetch('/api/matches', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to load matches')
+    const data: Match[] = await res.json()
+    set({ matches: data, matchesInit: 'loaded' })
+  },
 }))
