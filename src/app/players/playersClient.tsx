@@ -7,7 +7,7 @@ import StreakBadge from '@/components/StreakBadge'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { useMatchStore, Match } from '@/store/useMatchStore'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 
 export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
@@ -18,12 +18,17 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
   const { deletePlayer, hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
   const { hydrateMatches, matches: storeMatches, resetAndReload: resetMatches } = useMatchStore()
 
+  const initialized = useRef(false)
+
   useEffect(() => {
+    if (initialized.current) return
+    initialized.current = true
+
     hydratePlayers(initialPlayers)
     hydrateMatches(initialMatches)
     resetPlayers()
     resetMatches()
-  }, [])
+  }, [hydratePlayers, initialPlayers, hydrateMatches, initialMatches, resetPlayers, resetMatches])
 
   const streaks = calculateAllCurrentStreaks(storeMatches)
 
