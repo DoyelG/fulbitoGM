@@ -1,8 +1,7 @@
 "use client"
 
 import Image from 'next/image'
-
-type SkillValue = number | 'unknown'
+import type { SkillValue } from '@fulbito/types'
 
 export type PlayerCardProps = {
   overall: number

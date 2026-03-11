@@ -1,8 +1,7 @@
 import { create } from 'zustand'
+import type { Player } from '@fulbito/types'
 
-type SkillValue = number | 'unknown'
-type Skills = { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
-export type Player = { id: string; name: string; skill: number | null; position: string; skills?: Skills, photoUrl?: string, shirtDutiesCount?: number, createdAt: Date; updatedAt: Date }
+export type { Player }
 
 type PlayerStore = {
   players: Player[]
