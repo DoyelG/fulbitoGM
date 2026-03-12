@@ -6,5 +6,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "echo 'No linting configured'"
   }
 }
