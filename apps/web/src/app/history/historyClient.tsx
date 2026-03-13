@@ -130,7 +130,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
               <div className="grid md:grid-cols-3 gap-4 items-start">
                 <div className={`${m.teamAScore > m.teamBScore ? 'bg-green-50' : m.teamAScore < m.teamBScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
                   <h4 className="text-center font-semibold mb-2">Equipo A</h4>
-                  {m.teamA.map((p) => (
+                  {m.teamA.map((p: Match['teamA'][number]) => (
                     <div
                       key={p.id}
                       className="flex justify-between border-b last:border-b-0 py-1"
@@ -145,7 +145,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                 <div className="text-center font-bold text-black">VS</div>
                 <div className={`${m.teamBScore > m.teamAScore ? 'bg-green-50' : m.teamBScore < m.teamAScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
                   <h4 className="text-center font-semibold mb-2">Equipo B</h4>
-                  {m.teamB.map((p) => (
+                  {m.teamB.map((p: Match['teamB'][number]) => (
                     <div
                       key={p.id}
                       className="flex justify-between border-b last:border-b-0 py-1"
@@ -242,8 +242,8 @@ function RecordModal({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [teamA, setTeamA] = useState<RecordingPlayer[]>(initial?.teamA?.map(p => ({ id: p.id, name: p.name })) || []);
-  const [teamB, setTeamB] = useState<RecordingPlayer[]>(initial?.teamB?.map(p => ({ id: p.id, name: p.name })) || []);
+  const [teamA, setTeamA] = useState<RecordingPlayer[]>(initial?.teamA?.map((p: Match['teamA'][number]) => ({ id: p.id, name: p.name })) || []);
+  const [teamB, setTeamB] = useState<RecordingPlayer[]>(initial?.teamB?.map((p: Match['teamB'][number]) => ({ id: p.id, name: p.name })) || []);
 
   const unassigned = useMemo(() => {
     const ids = new Set([...teamA, ...teamB].map((p) => p.id));
@@ -265,10 +265,30 @@ function RecordModal({
   }, [teamA, teamB, players, playedBefore])
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(initial?.shirtsResponsibleId ?? null)
 
-  const [goalsA, setGoalsA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.goals])));
-  const [perfA, setPerfA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.performance])));
-  const [goalsB, setGoalsB] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamB || []).map(p => [p.id, p.goals])));
-  const [perfB, setPerfB] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamB || []).map(p => [p.id, p.performance])));
+  const [goalsA, setGoalsA] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamA || []).map((p: Match['teamA'][number]) => [p.id, p.goals])
+      )
+  );
+  const [perfA, setPerfA] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamA || []).map((p: Match['teamA'][number]) => [p.id, p.performance])
+      )
+  );
+  const [goalsB, setGoalsB] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamB || []).map((p: Match['teamB'][number]) => [p.id, p.goals])
+      )
+  );
+  const [perfB, setPerfB] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamB || []).map((p: Match['teamB'][number]) => [p.id, p.performance])
+      )
+  );
 
   const totalGoalsA = useMemo(
     () => Object.values(goalsA).reduce((s, n) => s + (n || 0), 0),

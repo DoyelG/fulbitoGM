@@ -1,7 +1,6 @@
+import { Match } from '@fulbito/types'
 import { create } from 'zustand'
-import type { Match, MatchPlayer } from '@fulbito/types'
 
-export type { Match, MatchPlayer }
 
 type MatchStore = {
   matches: Match[]

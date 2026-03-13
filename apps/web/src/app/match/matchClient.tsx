@@ -368,7 +368,7 @@ function TeamCard({ title, team, color, winProbability }: { title: string, team:
     <div className="border rounded-lg p-4">
       <h3 className={`text-center font-semibold mb-3 ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>{title}</h3>
       <div className="grid gap-2 mb-3">
-        {team.players.map(p => (
+        {team.players.map((p: PlayerInfo) => (
           <div key={p.id} className="bg-gray-50 rounded px-3 py-2 text-center">
             <strong>{p.name}</strong>
           </div>
