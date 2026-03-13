@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
@@ -10,18 +10,23 @@ import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9']
 
-export default function MatchClient({ players }: { players: Player[] }) {
-  const { hydratePlayers } = usePlayerStore()
-  const { matches: allMatches, initLoad: initMatchesLoad } = useMatchStore()
+export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
+  const { players, hydratePlayers, resetAndReload } = usePlayerStore()
+  const { matches: allMatches, initLoad: initMatchesLoad, resetAndReload: resetMatches } = useMatchStore()
   const [matchType, setMatchType] = useState<MatchType>('5v5')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
   const requiredPlayers = playersPerTeam * 2
 
-  // hydrate on mount after commit to avoid setState during render
+  const initialized = useRef(false)
+
   useEffect(() => {
-    hydratePlayers(players)
-    initMatchesLoad()
-  }, [players, hydratePlayers, initMatchesLoad])
+    if (initialized.current) return
+    initialized.current = true
+
+    hydratePlayers(initialPlayers)
+    resetAndReload()
+    resetMatches()
+  }, [hydratePlayers, initialPlayers, resetAndReload, resetMatches])
 
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -363,7 +368,7 @@ function TeamCard({ title, team, color, winProbability }: { title: string, team:
     <div className="border rounded-lg p-4">
       <h3 className={`text-center font-semibold mb-3 ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>{title}</h3>
       <div className="grid gap-2 mb-3">
-        {team.players.map(p => (
+        {team.players.map((p: PlayerInfo) => (
           <div key={p.id} className="bg-gray-50 rounded px-3 py-2 text-center">
             <strong>{p.name}</strong>
           </div>

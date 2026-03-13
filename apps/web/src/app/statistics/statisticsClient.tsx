@@ -1,18 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Player, usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore, Match } from "@/store/useMatchStore";
 
 export default function StatisticsClient({ players: propsPlayers, matches: propsMatches }: { players: Player[], matches: Match[] }) {
-  const { hydrateMatches, matches } = useMatchStore()
-  const { hydratePlayers, players } = usePlayerStore();
+  const { hydrateMatches, matches, resetAndReload: resetMatches } = useMatchStore()
+  const { hydratePlayers, players, resetAndReload: resetPlayers } = usePlayerStore()
+
+  const initialized = useRef(false)
 
   useEffect(() => {
-    if (matches.length === 0 && propsMatches.length > 0) hydrateMatches(propsMatches);
-    if (players.length === 0 && propsPlayers.length > 0) hydratePlayers(propsPlayers);
-  }, [propsMatches, hydrateMatches, propsPlayers, hydratePlayers, matches.length, players.length]);
+    if (initialized.current) return
+    initialized.current = true
+
+    hydrateMatches(propsMatches)
+    hydratePlayers(propsPlayers)
+    resetMatches()
+    resetPlayers()
+  }, [hydrateMatches, propsMatches, hydratePlayers, propsPlayers, resetMatches, resetPlayers])
 
   type StatRow = { id: string; name: string; matches: number; goals: number; totalPerformance: number; wins: number; losses: number; draws: number; shirts: number }
 
