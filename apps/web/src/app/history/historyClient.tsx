@@ -36,11 +36,10 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
       onClose={() => setOpen(false)}
       onSave={async (m) => {
         if (open.mode === 'edit' && open.match) {
-          await updateMatch(open.match.id, m)
+          await updateMatch(open.match.id, m);
         } else {
-          await addMatch(m)
+          await addMatch(m);
         }
-        setOpen(false)
       }}
     />
   }
@@ -131,7 +130,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
               <div className="grid md:grid-cols-3 gap-4 items-start">
                 <div className={`${m.teamAScore > m.teamBScore ? 'bg-green-50' : m.teamAScore < m.teamBScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
                   <h4 className="text-center font-semibold mb-2">Equipo A</h4>
-                  {m.teamA.map((p) => (
+                  {m.teamA.map((p: Match['teamA'][number]) => (
                     <div
                       key={p.id}
                       className="flex justify-between border-b last:border-b-0 py-1"
@@ -146,7 +145,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
                 <div className="text-center font-bold text-black">VS</div>
                 <div className={`${m.teamBScore > m.teamAScore ? 'bg-green-50' : m.teamBScore < m.teamAScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
                   <h4 className="text-center font-semibold mb-2">Equipo B</h4>
-                  {m.teamB.map((p) => (
+                  {m.teamB.map((p: Match['teamB'][number]) => (
                     <div
                       key={p.id}
                       className="flex justify-between border-b last:border-b-0 py-1"
@@ -241,8 +240,10 @@ function RecordModal({
     [matchType]
   );
 
-  const [teamA, setTeamA] = useState<RecordingPlayer[]>(initial?.teamA?.map(p => ({ id: p.id, name: p.name })) || []);
-  const [teamB, setTeamB] = useState<RecordingPlayer[]>(initial?.teamB?.map(p => ({ id: p.id, name: p.name })) || []);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [teamA, setTeamA] = useState<RecordingPlayer[]>(initial?.teamA?.map((p: Match['teamA'][number]) => ({ id: p.id, name: p.name })) || []);
+  const [teamB, setTeamB] = useState<RecordingPlayer[]>(initial?.teamB?.map((p: Match['teamB'][number]) => ({ id: p.id, name: p.name })) || []);
 
   const unassigned = useMemo(() => {
     const ids = new Set([...teamA, ...teamB].map((p) => p.id));
@@ -264,10 +265,30 @@ function RecordModal({
   }, [teamA, teamB, players, playedBefore])
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(initial?.shirtsResponsibleId ?? null)
 
-  const [goalsA, setGoalsA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.goals])));
-  const [perfA, setPerfA] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamA || []).map(p => [p.id, p.performance])));
-  const [goalsB, setGoalsB] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamB || []).map(p => [p.id, p.goals])));
-  const [perfB, setPerfB] = useState<Record<string, number>>(() => Object.fromEntries((initial?.teamB || []).map(p => [p.id, p.performance])));
+  const [goalsA, setGoalsA] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamA || []).map((p: Match['teamA'][number]) => [p.id, p.goals])
+      )
+  );
+  const [perfA, setPerfA] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamA || []).map((p: Match['teamA'][number]) => [p.id, p.performance])
+      )
+  );
+  const [goalsB, setGoalsB] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamB || []).map((p: Match['teamB'][number]) => [p.id, p.goals])
+      )
+  );
+  const [perfB, setPerfB] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamB || []).map((p: Match['teamB'][number]) => [p.id, p.performance])
+      )
+  );
 
   const totalGoalsA = useMemo(
     () => Object.values(goalsA).reduce((s, n) => s + (n || 0), 0),
@@ -312,21 +333,21 @@ function RecordModal({
     />
   );
 
-  const canSave = (() => {
-    const a = typeof teamAScore === "number" ? teamAScore : 0;
-    const b = typeof teamBScore === "number" ? teamBScore : 0;
-    return (
-      a === totalGoalsA &&
-      b === totalGoalsB &&
-      teamA.length === playersPerTeam &&
-      teamB.length === playersPerTeam
-    );
-  })();
+  const canSave =
+    (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
+    (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
+    teamA.length === playersPerTeam &&
+    teamB.length === playersPerTeam;
 
-  const handleSave = () => {
-    if (!canSave) return;
-    const pool = selectedPlayersForDuty.pool
-    const chosen = shirtsResponsibleId || (pool.length ? pool[Math.floor(Math.random() * pool.length)].id : undefined)
+  const handleSave = async () => {
+  if (!canSave) return;
+
+  setIsLoading(true);
+
+  try {
+    const pool = selectedPlayersForDuty.pool;
+    const chosen = shirtsResponsibleId || (pool.length ? pool[Math.floor(Math.random() * pool.length)].id : undefined);
+
     const m: Omit<Match, "id"> = {
       date: matchDate,
       type: matchType,
@@ -346,9 +367,18 @@ function RecordModal({
       })),
       name: matchName.trim() || undefined,
     };
-    onSave({ ...m, shirtsResponsibleId: chosen });
+
+    await onSave({ ...m, shirtsResponsibleId: chosen });
+
     alert("Partido guardado correctamente!");
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert("Error al guardar el partido");
+  } finally {
+    setIsLoading(false);
   };
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
@@ -594,10 +624,16 @@ function RecordModal({
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
-            disabled={!canSave}
+            disabled={!canSave || isLoading}
             onClick={handleSave}
           >
-            {mode === 'edit' ? 'Actualizar Partido' : 'Guardar Partido'}
+              {isLoading
+              ? mode === "edit"
+                ? "Actualizando..."
+                : "Guardando..."
+              : mode === "edit"
+              ? "Actualizar Partido"
+              : "Guardar Partido"}
           </button>
         </div>
       </div>

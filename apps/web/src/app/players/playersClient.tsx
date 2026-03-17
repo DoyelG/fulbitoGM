@@ -7,7 +7,7 @@ import StreakBadge from '@/components/StreakBadge'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { useMatchStore, Match } from '@/store/useMatchStore'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 
 export default function PlayersClient({ players: initialPlayers, matches: initialMatches }: { players: Player[]; matches: Match[] }) {
@@ -15,13 +15,20 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
   const [showModal, setShowModal] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
-  const { deletePlayer, hydratePlayers, players: storePlayers, playersInit } = usePlayerStore()
-  const { hydrateMatches, matches: storeMatches, matchesInit } = useMatchStore()
+  const { deletePlayer, hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
+  const { hydrateMatches, matches: storeMatches, resetAndReload: resetMatches } = useMatchStore()
+
+  const initialized = useRef(false)
 
   useEffect(() => {
-    if (playersInit !== 'loaded') hydratePlayers(initialPlayers)
-    if (matchesInit !== 'loaded') hydrateMatches(initialMatches)
-  }, [initialPlayers, initialMatches, hydratePlayers, hydrateMatches, playersInit, matchesInit])
+    if (initialized.current) return
+    initialized.current = true
+
+    hydratePlayers(initialPlayers)
+    hydrateMatches(initialMatches)
+    resetPlayers()
+    resetMatches()
+  }, [hydratePlayers, initialPlayers, hydrateMatches, initialMatches, resetPlayers, resetMatches])
 
   const streaks = calculateAllCurrentStreaks(storeMatches)
 
