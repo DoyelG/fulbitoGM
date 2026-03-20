@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
-import { useMatchStore, Match } from '@/store/useMatchStore'
+import type { Match, Player } from '@fulbito/types'
+import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
-import { usePlayerStore, Player } from '@/store/usePlayerStore'
+import { usePlayerStore } from '@/store/usePlayerStore'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9";

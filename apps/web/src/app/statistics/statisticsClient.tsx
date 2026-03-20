@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Player, usePlayerStore } from "@/store/usePlayerStore";
-import { useMatchStore, Match } from "@/store/useMatchStore";
+import type { Match, Player } from "@fulbito/types";
+import { usePlayerStore } from "@/store/usePlayerStore";
+import { useMatchStore } from "@/store/useMatchStore";
 
 export default function StatisticsClient({ players: propsPlayers, matches: propsMatches }: { players: Player[], matches: Match[] }) {
   const { hydrateMatches, matches, resetAndReload: resetMatches } = useMatchStore()

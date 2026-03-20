@@ -1,0 +1,30 @@
+{
+  "name": "@fulbito/backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "next dev -p 3001",
+    "build": "prisma generate && next build",
+    "build:production": "prisma migrate deploy && prisma generate && next build",
+    "start": "next start -p 3001",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@fulbito/types": "workspace:*",
+    "@fulbito/utils": "workspace:*",
+    "@prisma/client": "^6.15.0",
+    "bcryptjs": "^3.0.2",
+    "next": "15.5.9",
+    "next-auth": "^4.24.12",
+    "prisma": "^6.15.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "20.19.24",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "typescript": "^5"
+  }
+}
+
