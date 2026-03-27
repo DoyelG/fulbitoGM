@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useMatchStore } from '@/store/useMatchStore'
-import type { Match } from '@fulbito/types'
+import { Match } from '@fulbito/types'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
 import { usePlayerStore, Player } from '@/store/usePlayerStore'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
