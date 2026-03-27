@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import type { Player as StorePlayer } from '@/store/usePlayerStore'
-import type { Match as StoreMatch } from '@/store/useMatchStore'
+import type { Match } from '@fulbito/types'
 
 export function shapeStorePlayers(players: Array<{ id: string; name: string; position: string; skill: number | null; skills?: unknown; photoUrl?: string | null; createdAt: Date; updatedAt: Date }>): StorePlayer[] {
   return players.map((p) => ({
@@ -16,7 +16,7 @@ export function shapeStorePlayers(players: Array<{ id: string; name: string; pos
   }))
 }
 
-export function shapeStoreMatches(matches: Array<{ id: string; date: Date; type: string; name: string | null; teamAScore: number; teamBScore: number; shirtsResponsibleId?: string | null; players: Array<{ playerId: string; team: 'A' | 'B'; goals: number; performance: number }> }>, nameMap: Map<string, string>): StoreMatch[] {
+export function shapeStoreMatches(matches: Array<{ id: string; date: Date; type: string; name: string | null; teamAScore: number; teamBScore: number; shirtsResponsibleId?: string | null; players: Array<{ playerId: string; team: 'A' | 'B'; goals: number; performance: number }> }>, nameMap: Map<string, string>): Match[] {
   return matches.map((m) => ({
     id: m.id,
     date: m.date.toISOString().slice(0, 10),
@@ -34,7 +34,7 @@ export function shapeStoreMatches(matches: Array<{ id: string; date: Date; type:
   }))
 }
 
-export async function loadPlayersAndMatches(): Promise<{ players: StorePlayer[]; matches: StoreMatch[] }> {
+export async function loadPlayersAndMatches(): Promise<{ players: StorePlayer[]; matches: Match[] }> {
   const [players, matches] = await Promise.all([
     prisma.player.findMany({ orderBy: { name: 'asc' } }),
     prisma.match.findMany({ orderBy: { date: 'desc' }, include: { players: true } }),
