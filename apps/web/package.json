@@ -11,6 +11,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fulbito/ui": "workspace:*",
     "@fulbito/types": "workspace:*",
     "@fulbito/utils": "workspace:*",
     "@heroicons/react": "^2.2.0",

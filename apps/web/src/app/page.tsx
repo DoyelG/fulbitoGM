@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ChartBarIcon, UserGroupIcon, PlayIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { SharedBadge } from '@fulbito/ui'
 
 const cards = [
   {
@@ -43,6 +44,14 @@ export default function Home() {
             <span className="bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500 bg-clip-text text-transparent">FulbitoApp</span>
           </h1>
           <p className="mt-3 text-gray-800 max-w-2xl mx-auto">Organiza tus partidos, evalúa rendimientos y mantén el historial de tus equipos en un solo lugar.</p>
+        </div>
+
+        <div className="max-w-md mx-auto mb-8">
+          <SharedBadge
+            title="POC Monorepo: componente compartido"
+            description="Este badge sale desde @fulbito/ui y se consume igual en Web y Mobile."
+            tone="success"
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

@@ -6,6 +6,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
+import { SharedBadge } from '@fulbito/ui';
 
 export default function HomeScreen() {
   return (
@@ -21,6 +22,11 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+      <SharedBadge
+        title="POC Monorepo: componente compartido"
+        description="Este badge se renderiza desde @fulbito/ui usando el mismo import que web."
+        tone="success"
+      />
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>

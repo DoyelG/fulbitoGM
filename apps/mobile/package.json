@@ -11,6 +11,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@fulbito/ui": "workspace:*",
     "@fulbito/types": "workspace:*",
     "@fulbito/utils": "workspace:*",
     "@expo/vector-icons": "^15.0.3",
