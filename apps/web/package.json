@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "packageManager": "pnpm@10.6.5",
   "dependencies": {
     "@fulbito/types": "workspace:*",
     "@fulbito/utils": "workspace:*",
