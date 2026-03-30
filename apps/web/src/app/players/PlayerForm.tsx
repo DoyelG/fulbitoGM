@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiFetch } from '@fulbito/state'
 import { usePlayerStore } from '@/store/usePlayerStore'
 
 type Props = {
@@ -60,7 +61,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
     if (photoFile) {
       const fd = new FormData()
       fd.append('file', photoFile)
-      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const res = await apiFetch('/api/upload', { method: 'POST', body: fd })
       if (res.ok) {
         const data = await res.json()
         uploadedUrl = data.url

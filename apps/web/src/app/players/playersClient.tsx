@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import SkillBadge from '@/components/SkillBadge'
-import StreakBadge from '@/components/StreakBadge'
+import { SkillBadge, StreakBadge } from '@fulbito/ui'
+import { Paragraph } from 'tamagui'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { useMatchStore } from '@/store/useMatchStore'
 import { Match } from '@fulbito/types'
@@ -93,7 +93,7 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="app-viewport">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Jugadores</h1>
         {isAdmin && (
@@ -103,22 +103,22 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full table-auto">
+          <table className="min-w-full table-auto text-sm lg:text-[15px]">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Imagen</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('skill')}>Habilidad{sortKey==='skill' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Posición</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('streak')}>Racha{sortKey==='streak' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goal7')}>Objetivo (7W){sortKey==='goal7' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 text-left font-semibold text-gray-700">Imagen</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 text-left font-semibold text-gray-700">Nombre</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 text-left font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('skill')}>Habilidad{sortKey==='skill' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 text-left font-semibold text-gray-700">Posición</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 text-left font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('streak')}>Racha{sortKey==='streak' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 text-left font-semibold text-gray-700 cursor-pointer select-none min-w-[10rem]" onClick={() => toggleSort('goal7')}>Objetivo (7W){sortKey==='goal7' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 text-right font-semibold text-gray-700">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {storePlayers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-gray-800">
+                  <td colSpan={7} className="px-4 py-8 lg:px-6 text-center text-gray-800">
                     No hay jugadores agregados aún.
                     {isAdmin && (
                       <> <Link href="/players/new" className="text-brand hover:underline">Agrega tu primer jugador</Link></>
@@ -131,33 +131,33 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                   const winGoalProgress = st.kind === 'win' ? st.count : 0
                   return (
                     <tr key={player.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <Image src={player.photoUrl ?? '/silhouette.svg'} alt={player.name} width={32} height={32} className="object-cover w-full h-full max-w-8 max-h-8 rounded-full" />
+                      <td className="px-4 py-3 lg:px-6 lg:py-4">
+                        <Image src={player.photoUrl ?? '/silhouette.svg'} alt={player.name} width={32} height={32} className="object-cover w-full h-full max-w-8 max-h-8 rounded-full lg:w-10 lg:h-10" />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 lg:px-6 lg:py-4">
                         <Link href={`/players/${player.id}`} className="text-brand hover:underline font-medium">{player.name}</Link>
                       </td>
-                      <td className="px-4 py-3"><SkillBadge skill={player.skill ?? 'unknown'} /></td>
-                      <td className="px-4 py-3 text-gray-800">{player.position}</td>
-                      <td className="px-4 py-3">
-                        {st.kind ? <StreakBadge kind={st.kind} count={st.count} /> : <span className="text-sm text-gray-800">—</span>}
+                      <td className="px-4 py-3 lg:px-6 lg:py-4"><SkillBadge skill={player.skill ?? 'unknown'} /></td>
+                      <td className="px-4 py-3 lg:px-6 lg:py-4 text-gray-800">{player.position}</td>
+                      <td className="px-4 py-3 lg:px-6 lg:py-4">
+                        {st.kind ? <StreakBadge kind={st.kind} count={st.count} /> : <Paragraph fontSize={14} color="#1f2937">—</Paragraph>}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 lg:px-6 lg:py-4">
                         {winGoalProgress >= 7 ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs text-white" style={{ backgroundColor: 'hsl(270deg 80% 36%)' }}>Objetivo ✓</span>
                         ) : (
-                          <div className="w-28">
-                            <div className="flex justify-between text-[10px] text-gray-700 mb-0.5">
+                          <div className="w-full max-w-[11rem] min-w-[7rem]">
+                            <div className="flex justify-between text-xs text-gray-700 mb-1">
                               <span>W{Math.min(7, winGoalProgress)}</span>
                               <span>7</span>
                             </div>
-                            <div className="h-1.5 bg-gray-200 rounded">
-                              <div className="h-1.5 rounded" style={{ width: `${(Math.min(7, winGoalProgress) / 7) * 100}%`, backgroundColor: 'hsl(270deg 75% 45%)' }} />
+                            <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div className="h-2.5 rounded-full" style={{ width: `${(Math.min(7, winGoalProgress) / 7) * 100}%`, backgroundColor: 'hsl(270deg 75% 45%)' }} />
                             </div>
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 lg:px-6 lg:py-4">
                         <div className="flex justify-end items-center gap-3">
                           <Link href={`/players/${player.id}`} className="text-brand hover:text-brand/80">Ver</Link>
                           {isAdmin && <Link href={`/players/edit/${player.id}`} className="text-brand hover:text-brand/80">Editar</Link>}

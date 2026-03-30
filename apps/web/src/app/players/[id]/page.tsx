@@ -3,10 +3,10 @@
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { apiFetch } from '@fulbito/state'
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
-import SkillBadge from "@/components/SkillBadge";
-import StreakBadge from "@/components/StreakBadge";
+import { SkillBadge, StreakBadge } from '@fulbito/ui'
 import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
 import { useRef } from 'react'
@@ -33,7 +33,7 @@ export default function PlayerDetailPage() {
     if (!f) return
     const fd = new FormData()
     fd.append('file', f)
-    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    const res = await apiFetch('/api/upload', { method: 'POST', body: fd })
     if (!res.ok) return
     const data = await res.json()
     await updatePlayer(player!.id, { photoUrl: data.url })
@@ -142,7 +142,7 @@ export default function PlayerDetailPage() {
 
   if (!player) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="app-viewport">
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="mb-4">Jugador no encontrado.</p>
           <Link href="/players" className="text-brand hover:underline">
@@ -202,7 +202,7 @@ export default function PlayerDetailPage() {
     (+form.physical + +form.technical + +form.tactical + +form.psychological) /
     4;
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="app-viewport">
       <div className="mb-6 flex gap-5 items-center justify-between">
         <div className="space-y-2 grow">
           <h1 className="text-3xl font-bold">{player.name}</h1>

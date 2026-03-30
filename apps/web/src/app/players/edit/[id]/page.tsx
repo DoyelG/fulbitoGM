@@ -15,9 +15,11 @@ export default function EditPlayerPage() {
   }, [data, status, router])
   const { id } = useParams()
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Editar jugador</h1>
-      <PlayerForm mode="edit" playerId={id as string} />
+    <div className="app-viewport">
+      <div className="mx-auto w-full max-w-2xl">
+        <h1 className="text-2xl font-bold mb-6">Editar jugador</h1>
+        <PlayerForm mode="edit" playerId={id as string} />
+      </div>
     </div>
   )
 }

@@ -1,24 +1,28 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { initFulbitoApi } from '../lib/apiInit'
+initFulbitoApi()
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Stack } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
+import 'react-native-reanimated'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { TamaguiProvider } from 'tamagui'
+import tamaguiConfig from '../tamagui.config'
 
 export const unstable_settings = {
   anchor: '(tabs)',
-};
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ title: 'Entrar', presentation: 'modal' }} />
+          <Stack.Screen name="players/[id]" options={{ title: 'Jugador' }} />
+        </Stack>
+        <StatusBar style="auto" />
+      </TamaguiProvider>
+    </GestureHandlerRootView>
+  )
 }

@@ -26,3 +26,32 @@ body {
 button {
   cursor: pointer;
 }
+
+/* Full-width shell: uses almost the entire viewport on desktop (cap at ultra-wide). */
+.app-viewport {
+  width: 100%;
+  max-width: min(100vw - 2rem, 1920px);
+  margin-inline: auto;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+@media (min-width: 640px) {
+  .app-viewport {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .app-viewport {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+}
+@media (min-width: 1536px) {
+  .app-viewport {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}

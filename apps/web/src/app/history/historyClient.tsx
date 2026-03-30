@@ -53,7 +53,7 @@ export default function HistoryClient({ matches, players }: { matches: Match[], 
     setShowModal(false)
   }
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="app-viewport">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Historial de partidos</h1>
         {isAdmin && (
@@ -383,7 +383,7 @@ function RecordModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-[min(100vw-2rem,1920px)] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h2 className="text-xl font-semibold">Registrar Resultado del Partido</h2>
           <button className="text-black hover:text-black" onClick={onClose}>

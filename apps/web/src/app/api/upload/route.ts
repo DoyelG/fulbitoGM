@@ -3,11 +3,11 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth'
 
 export async function POST(req: Request) {
-  const gate = await requireAdmin()
+  const gate = await requireAdmin(req)
   if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   try {
     const form = await req.formData()
-    const file = form.get('file') as File | null
+    const file = (form as unknown as { get: (key: string) => File | null }).get('file')
     if (!file) return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
 
     const arrayBuffer = await file.arrayBuffer()

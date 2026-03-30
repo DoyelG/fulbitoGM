@@ -26,7 +26,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const gate = await requireAdmin()
+  const gate = await requireAdmin(req)
   if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   const b = (await req.json()) as IncomingMatchBody
   const [created] = await prisma.$transaction([

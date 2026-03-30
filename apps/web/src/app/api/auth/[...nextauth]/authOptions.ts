@@ -1,12 +1,13 @@
-import type { NextAuthOptions } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
+import type { Session } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt' as const },
   providers: [
     Credentials({
       name: 'Credentials',
@@ -25,16 +26,18 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user?: unknown }) {
       if (user) {
-        token.role = ((user as unknown as { role?: string }).role === 'ADMIN' ? 'ADMIN' : 'USER');
+        ;(token as JWT & { role?: string }).role =
+          (user as { role?: string }).role === 'ADMIN' ? 'ADMIN' : 'USER'
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
+      const t = token as JWT & { sub?: string; role?: string }
       if (session.user) {
-        ;(session.user as unknown as { role?: string }).role = (token as unknown as { role?: string }).role || 'USER'
-        if (token.sub) session.user.id = token.sub
+        ;(session.user as unknown as { role?: string }).role = t.role || 'USER'
+        if (t.sub) session.user.id = t.sub
       }
       return session
     }

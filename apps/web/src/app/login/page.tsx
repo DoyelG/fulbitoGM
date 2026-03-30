@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { Button, Input, Paragraph, Separator, XStack, YStack } from 'tamagui'
 
 export default function LoginPage() {
   const [mode, setMode] = useState<'signin' | 'register'>('signin')
@@ -19,7 +20,9 @@ export default function LoginPage() {
     try {
       if (mode === 'register') {
         const res = await fetch('/api/auth/register', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
         })
         if (!res.ok) {
           const data = await res.json().catch(() => ({ error: 'Registration failed' }))
@@ -38,63 +41,80 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md bg-white rounded-lg shadow p-6">
-        <div className="flex mb-6">
-          <button
-            className={`flex-1 py-2 rounded-l ${mode === 'signin' ? 'bg-brand text-white' : 'bg-gray-100'}`}
-            onClick={() => setMode('signin')}
+    <YStack minHeight="60vh" justifyContent="center" alignItems="center" padding={24}>
+      <YStack width="100%" maxWidth={440} backgroundColor="white" borderRadius={12} padding={24} gap={16} boxShadow="0 4px 24px rgba(0,0,0,0.08)">
+        <XStack borderRadius={8} overflow="hidden">
+          <Button
+            flex={1}
+            size="$4"
+            borderRadius={0}
+            backgroundColor={mode === 'signin' ? '#7c3aed' : '#f3f4f6'}
+            style={{ color: mode === 'signin' ? '#fff' : '#374151' }}
+            onPress={() => setMode('signin')}
           >
             Iniciar sesión
-          </button>
-          <button
-            className={`flex-1 py-2 rounded-r ${mode === 'register' ? 'bg-brand text-white' : 'bg-gray-100'}`}
-            onClick={() => setMode('register')}
+          </Button>
+          <Button
+            flex={1}
+            size="$4"
+            borderRadius={0}
+            backgroundColor={mode === 'register' ? '#7c3aed' : '#f3f4f6'}
+            style={{ color: mode === 'register' ? '#fff' : '#374151' }}
+            onPress={() => setMode('register')}
           >
             Registrarse
-          </button>
-        </div>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Usuario</label>
-            <input
-              type="text"
+          </Button>
+        </XStack>
+        <Separator />
+        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <YStack gap={8}>
+            <Paragraph fontSize={14} color="#374151">
+              Usuario
+            </Paragraph>
+            <Input
               value={username}
-              onChange={e => setUsername(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              onChangeText={setUsername}
               autoComplete="username"
-              required
+              borderWidth={1}
+              borderColor="#e5e7eb"
+              backgroundColor="white"
             />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Contraseña</label>
-            <input
-              type="password"
+          </YStack>
+          <YStack gap={8}>
+            <Paragraph fontSize={14} color="#374151">
+              Contraseña
+            </Paragraph>
+            <Input
               value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              onChangeText={setPassword}
+              secureTextEntry
               autoComplete="current-password"
-              required
-              minLength={6}
+              borderWidth={1}
+              borderColor="#e5e7eb"
+              backgroundColor="white"
             />
-          </div>
-          {error && <div className="text-red-600 text-sm">{error}</div>}
-          <button
+          </YStack>
+          {error ? (
+            <Paragraph color="#dc2626" fontSize={14}>
+              {error}
+            </Paragraph>
+          ) : null}
+          <Button
             type="submit"
-            className="w-full bg-brand text-white py-2 rounded hover:bg-brand/90 disabled:opacity-70"
+            backgroundColor="#7c3aed"
             disabled={loading}
+            opacity={loading ? 0.7 : 1}
+            style={{ color: '#fff' }}
           >
             {loading ? 'Procesando…' : mode === 'signin' ? 'Entrar' : 'Crear cuenta'}
-          </button>
-          {mode === 'register' && (
-            <p className="text-xs text-gray-700">
+          </Button>
+          {mode === 'register' ? (
+            <Paragraph fontSize={12} color="#374151">
               Rol por defecto: Usuario (lectura). Un administrador puede otorgar permisos de edición.
-            </p>
-          )}
+            </Paragraph>
+          ) : null}
         </form>
-      </div>
-    </div>
+      </YStack>
+    </YStack>
   )
 }
-
-

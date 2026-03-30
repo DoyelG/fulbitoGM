@@ -1,0 +1,36 @@
+{
+  "name": "@fulbito/ui",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tamagui.config": "./tamagui.config.ts",
+    "./createConfig": "./src/createConfig.ts"
+  },
+  "scripts": {
+    "lint": "echo noop"
+  },
+  "dependencies": {
+    "@fulbito/types": "workspace:*",
+    "@tamagui/config-default": "2.0.0-rc.33",
+    "@tamagui/core": "2.0.0-rc.33",
+    "tamagui": "2.0.0-rc.33"
+  },
+  "peerDependencies": {
+    "@fulbito/types": "workspace:*",
+    "react": ">=18",
+    "react-native": "*",
+    "@tamagui/config-default": "2.0.0-rc.33",
+    "@tamagui/core": "2.0.0-rc.33",
+    "tamagui": "2.0.0-rc.33"
+  },
+  "devDependencies": {
+    "@fulbito/types": "workspace:*",
+    "@types/react": "^19.1.17",
+    "@types/react-native": "~0.73",
+    "react-native": "0.81.5",
+    "typescript": "^5"
+  }
+}

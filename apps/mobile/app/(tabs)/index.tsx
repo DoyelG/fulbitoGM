@@ -1,98 +1,49 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
-
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+import { HomeFeatureCard, HomeScreen, HOME_NAV_CARDS, type HomeNavCard } from '@fulbito/ui'
+import { Ionicons } from '@expo/vector-icons'
+import { Link, type Href } from 'expo-router'
+import { Pressable } from 'react-native'
+import { Paragraph, YStack } from 'tamagui'
+const iconFor = (path: string) => {
+  const size = 24
+  const color = '#4f46e5'
+  switch (path) {
+    case '/statistics':
+      return <Ionicons name="bar-chart" size={size} color={color} />
+    case '/players':
+      return <Ionicons name="people" size={size} color={color} />
+    case '/match':
+      return <Ionicons name="football" size={size} color={color} />
+    case '/history':
+      return <Ionicons name="time" size={size} color={color} />
+    default:
+      return null
+  }
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+export default function Home() {
+  return (
+    <YStack flex={1}>
+    <HomeScreen
+      subtitle="Organiza tus partidos, evalúa rendimientos y mantén el historial de tus equipos en un solo lugar."
+      cards={HOME_NAV_CARDS}
+      renderIcon={(card: HomeNavCard) => iconFor(card.path)}
+      renderCard={(card: HomeNavCard, iconSlot) => (
+        <Link href={card.path as Href} asChild>
+          <Pressable>
+            <HomeFeatureCard title={card.title} description={card.description} iconSlot={iconSlot} />
+          </Pressable>
+        </Link>
+      )}
+    />
+    <YStack padding={20} alignItems="center">
+      <Link href="/login" asChild>
+        <Pressable>
+          <Paragraph color="#7c3aed" fontWeight="600">
+            Iniciar sesión (misma cuenta que la web)
+          </Paragraph>
+        </Pressable>
+      </Link>
+    </YStack>
+    </YStack>
+  )
+}

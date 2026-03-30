@@ -11,7 +11,7 @@ export async function GET(_req: Request, context: unknown) {
 }
 
 export async function PUT(req: Request, context: unknown) {
-  const gate = await requireAdmin()
+  const gate = await requireAdmin(req)
   if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   try {
     const { id } = (context as { params: { id: string } }).params
@@ -30,8 +30,8 @@ export async function PUT(req: Request, context: unknown) {
   }
 }
 
-export async function DELETE(_req: Request, context: unknown) {
-  const gate = await requireAdmin()
+export async function DELETE(req: Request, context: unknown) {
+  const gate = await requireAdmin(req)
   if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   const { id } = (context as { params: { id: string } }).params
   // cascades via schema

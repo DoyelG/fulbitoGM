@@ -10,7 +10,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const gate = await requireAdmin()
+  const gate = await requireAdmin(req)
   if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   try {
     const { name, position, skill, skills, photoUrl } = await req.json()

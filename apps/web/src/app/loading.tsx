@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="app-viewport">
       <div className="flex justify-between items-center mb-8">
         <div className="h-8 w-40 bg-gray-200 rounded animate-pulse" />
         <div className="h-9 w-28 bg-gray-200 rounded animate-pulse" />
