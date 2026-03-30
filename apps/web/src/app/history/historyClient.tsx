@@ -1,0 +1,643 @@
+'use client'
+
+import { useEffect, useState, useMemo } from 'react'
+import { useSession } from 'next-auth/react'
+import { useMatchStore } from '@/store/useMatchStore'
+import { Match } from '@fulbito/types'
+import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
+import { usePlayerStore, Player } from '@/store/usePlayerStore'
+import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
+
+type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9";
+const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9"];
+
+type RecordingPlayer = { id: string; name: string };
+
+export default function HistoryClient({ matches, players }: { matches: Match[], players: Player [] }) {
+  const { data } = useSession()
+  const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
+  const { hydrateMatches, addMatch, updateMatch, deleteMatch, matches: storeMatches } = useMatchStore()
+  const { hydratePlayers, players: storePlayers } = usePlayerStore()
+  const [open, setOpen] = useState<false | { mode: 'create' } | { mode: 'edit', match: Match }>(false)
+  const [showModal, setShowModal] = useState(false)
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
+
+  const [fromDate, setFromDate] = useState<string>('')
+  const [toDate, setToDate] = useState<string>('')
+
+  useEffect(() => {
+    if (storeMatches.length === 0) hydrateMatches(matches)
+    if (storePlayers.length === 0) hydratePlayers(players)
+  }, [matches, hydrateMatches, hydratePlayers, players, storeMatches.length, storePlayers.length])
+
+  if (open) {
+    return <RecordModal
+      mode={open.mode}
+      initial={open.mode === 'edit' ? open.match : undefined}
+      onClose={() => setOpen(false)}
+      onSave={async (m) => {
+        if (open.mode === 'edit' && open.match) {
+          await updateMatch(open.match.id, m);
+        } else {
+          await addMatch(m);
+        }
+      }}
+    />
+  }
+  const handleDelete = (matchId: string)=>{
+    setShowModal(true)
+    setSelectedMatchId(matchId)
+  }
+  const handleConfirmDelete = ()=>{
+    deleteMatch(selectedMatchId as string)
+    setShowModal(false)
+  }
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Historial de partidos</h1>
+        {isAdmin && (
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            onClick={() => setOpen({ mode: 'create' })}
+          >
+            Cargar partido
+          </button>
+        )}
+      </div>
+      <div className="mb-3 flex gap-3">
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Desde</label>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={e => setFromDate(e.target.value)}
+            className="border rounded px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Hasta</label>
+          <input
+            type="date"
+            value={toDate}
+            onChange={e => setToDate(e.target.value)}
+            className="border rounded px-3 py-2"
+          />
+        </div>
+        {(fromDate || toDate) && (
+          <div className="flex items-end">
+            <button
+              className="border rounded px-3 py-2 hover:bg-gray-50"
+              onClick={() => { setFromDate(''); setToDate('') }}
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="space-y-4 mb-10">
+        {storeMatches.filter(m => {
+          const d = m.date.slice(0, 10)
+          if (fromDate && d < fromDate) return false
+          if (toDate && d > toDate) return false
+          return true
+        }).length === 0 ? (
+          <div className="text-black">No se encontraron partidos que coincidan con la búsqueda.</div>
+        ) : (
+          storeMatches.filter(m => {
+            const d = m.date.slice(0, 10)
+            if (fromDate && d < fromDate) return false
+            if (toDate && d > toDate) return false
+            return true
+          }).slice(0, 10).map((m) => (
+            <div
+              key={m.id}
+              className="bg-white rounded-lg shadow p-4 border-l-4 border-indigo-500"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <div>
+                  {m.name && (
+                    <div className="text-lg mb-1 font-bold">{m.name}</div>
+                  )}
+                  <strong>{(() => { const [yy, mm, dd] = m.date.slice(0,10).split('-'); return `${dd}/${mm}/${yy}` })()}</strong>
+                  <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
+                    {m.type}
+                  </span>
+                </div>
+                <div className="text-indigo-600 font-bold text-xl">
+                  {m.teamAScore} - {m.teamBScore}
+                </div>
+              </div>
+              <div className="grid md:grid-cols-3 gap-4 items-start">
+                <div className={`${m.teamAScore > m.teamBScore ? 'bg-green-50' : m.teamAScore < m.teamBScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
+                  <h4 className="text-center font-semibold mb-2">Equipo A</h4>
+                  {m.teamA.map((p: Match['teamA'][number]) => (
+                    <div
+                      key={p.id}
+                      className="flex justify-between border-b last:border-b-0 py-1"
+                    >
+                      <span>{p.name}</span>
+                      <span>
+                        {p.goals}⚽ {p.performance}★
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center font-bold text-black">VS</div>
+                <div className={`${m.teamBScore > m.teamAScore ? 'bg-green-50' : m.teamBScore < m.teamAScore ? 'bg-red-50' : 'bg-gray-50'} rounded p-3`}>
+                  <h4 className="text-center font-semibold mb-2">Equipo B</h4>
+                  {m.teamB.map((p: Match['teamB'][number]) => (
+                    <div
+                      key={p.id}
+                      className="flex justify-between border-b last:border-b-0 py-1"
+                    >
+                      <span>{p.name}</span>
+                      <span>
+                        {p.goals}⚽ {p.performance}★
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {m.shirtsResponsibleId && (
+                <div className="text-sm text-gray-700 mt-2">
+                  Camisetas: <span className="font-medium">{storePlayers.find(p => p.id === m.shirtsResponsibleId)?.name ?? '—'}</span>
+                </div>
+              )}
+              <div className="text-right mt-3 flex justify-end gap-3">
+                {isAdmin && (
+                  <>
+                    <button
+                      className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                      onClick={() => setOpen({ mode: 'edit', match: m })}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-800 text-sm"
+                      onClick={() => handleDelete(m.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <dialog
+          open={showModal}
+          className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
+        >
+          <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirmar eliminación
+            </h2>
+
+            <p className="text-gray-600 mb-6">
+              ¿Estás seguro de que querés eliminar este partido?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => handleConfirmDelete()}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </dialog>
+    </div>
+  )
+}
+
+function RecordModal({
+  mode = 'create',
+  initial,
+  onClose,
+  onSave,
+}: {
+  mode?: 'create' | 'edit'
+  initial?: Match
+  onClose: () => void;
+  onSave: (m: Omit<Match, "id">) => void;
+}) {
+  const { players } = usePlayerStore();
+  const { matches: allMatches } = useMatchStore();
+  const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
+  const [matchDate, setMatchDate] = useState<string>(initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10));
+  const [matchType, setMatchType] = useState<MatchType>(initial?.type as MatchType || "5v5");
+  const playersPerTeam = useMemo(
+    () => parseInt(matchType.split("v")[0], 10),
+    [matchType]
+  );
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [teamA, setTeamA] = useState<RecordingPlayer[]>(initial?.teamA?.map((p: Match['teamA'][number]) => ({ id: p.id, name: p.name })) || []);
+  const [teamB, setTeamB] = useState<RecordingPlayer[]>(initial?.teamB?.map((p: Match['teamB'][number]) => ({ id: p.id, name: p.name })) || []);
+
+  const unassigned = useMemo(() => {
+    const ids = new Set([...teamA, ...teamB].map((p) => p.id));
+    return players
+      .filter((p) => !ids.has(p.id))
+      .map((p) => ({ id: p.id, name: p.name }));
+  }, [players, teamA, teamB]);
+
+  const [teamAScore, setTeamAScore] = useState<number | "">(typeof initial?.teamAScore === 'number' ? initial.teamAScore : "");
+  const [teamBScore, setTeamBScore] = useState<number | "">(typeof initial?.teamBScore === 'number' ? initial.teamBScore : "");
+  const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const selectedPlayersForDuty = useMemo(() => {
+    const all = [...teamA, ...teamB]
+    const teamIds = all.map(p => p.id)
+    const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
+    const { poolIds, min } = computeLeastAssignedPoolIds(consideredIds, players)
+    const pool = all.filter(p => poolIds.includes(p.id))
+    return { pool, min }
+  }, [teamA, teamB, players, playedBefore])
+  const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(initial?.shirtsResponsibleId ?? null)
+
+  const [goalsA, setGoalsA] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamA || []).map((p: Match['teamA'][number]) => [p.id, p.goals])
+      )
+  );
+  const [perfA, setPerfA] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamA || []).map((p: Match['teamA'][number]) => [p.id, p.performance])
+      )
+  );
+  const [goalsB, setGoalsB] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamB || []).map((p: Match['teamB'][number]) => [p.id, p.goals])
+      )
+  );
+  const [perfB, setPerfB] = useState<Record<string, number>>(
+    () =>
+      Object.fromEntries(
+        (initial?.teamB || []).map((p: Match['teamB'][number]) => [p.id, p.performance])
+      )
+  );
+
+  const totalGoalsA = useMemo(
+    () => Object.values(goalsA).reduce((s, n) => s + (n || 0), 0),
+    [goalsA]
+  );
+  const totalGoalsB = useMemo(
+    () => Object.values(goalsB).reduce((s, n) => s + (n || 0), 0),
+    [goalsB]
+  );
+
+  const move = (p: RecordingPlayer, target: "unassigned" | "a" | "b") => {
+    setTeamA((prev) => prev.filter((x) => x.id !== p.id));
+    setTeamB((prev) => prev.filter((x) => x.id !== p.id));
+    if (target === "a")
+      setTeamA((prev) => (prev.length >= playersPerTeam ? prev : [...prev, p]));
+    if (target === "b")
+      setTeamB((prev) => (prev.length >= playersPerTeam ? prev : [...prev, p]));
+  };
+
+  const onDrop = (
+    e: React.DragEvent<HTMLDivElement>,
+    target: "unassigned" | "a" | "b"
+  ) => {
+    const json = e.dataTransfer.getData("application/json");
+    if (!json) return;
+    const p: RecordingPlayer = JSON.parse(json);
+    move(p, target);
+  };
+
+  const Draggable = ({ p }: { p: RecordingPlayer }) => (
+    <DraggableItem
+      data={p}
+      label={p.name}
+      onClick={() => {
+        const choice = prompt(
+          `Move ${p.name} to:\n1. Unassigned\n2. Team A\n3. Team B\n\nEnter 1, 2, or 3:`
+        );
+        if (choice === "1") move(p, "unassigned");
+        if (choice === "2") move(p, "a");
+        if (choice === "3") move(p, "b");
+      }}
+    />
+  );
+
+  const canSave =
+    (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
+    (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
+    teamA.length === playersPerTeam &&
+    teamB.length === playersPerTeam;
+
+  const handleSave = async () => {
+  if (!canSave) return;
+
+  setIsLoading(true);
+
+  try {
+    const pool = selectedPlayersForDuty.pool;
+    const chosen = shirtsResponsibleId || (pool.length ? pool[Math.floor(Math.random() * pool.length)].id : undefined);
+
+    const m: Omit<Match, "id"> = {
+      date: matchDate,
+      type: matchType,
+      teamAScore: teamAScore as number,
+      teamBScore: teamBScore as number,
+      teamA: teamA.map((p) => ({
+        id: p.id,
+        name: p.name,
+        goals: goalsA[p.id] || 0,
+        performance: perfA[p.id] || 5,
+      })),
+      teamB: teamB.map((p) => ({
+        id: p.id,
+        name: p.name,
+        goals: goalsB[p.id] || 0,
+        performance: perfB[p.id] || 5,
+      })),
+      name: matchName.trim() || undefined,
+    };
+
+    await onSave({ ...m, shirtsResponsibleId: chosen });
+
+    alert("Partido guardado correctamente!");
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert("Error al guardar el partido");
+  } finally {
+    setIsLoading(false);
+  };
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
+        <div className="flex justify-between items-center border-b pb-2 mb-4">
+          <h2 className="text-xl font-semibold">Registrar Resultado del Partido</h2>
+          <button className="text-black hover:text-black" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Fecha</label>
+            <input
+              type="date"
+              value={matchDate}
+              onChange={(e) => setMatchDate(e.target.value)}
+              className="border rounded px-3 py-2 w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Tipo de Partido</label>
+            <select
+              value={matchType}
+              onChange={(e) => {
+                setTeamA([]);
+                setTeamB([]);
+                setMatchType(e.target.value as MatchType);
+              }}
+              className="border rounded px-3 py-2 w-full"
+            >
+              {MATCH_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-lg font-medium mb-1">Nombre del Partido</label>
+            <input
+              type="text"
+              value={matchName}
+              onChange={(e) => setMatchName(e.target.value)}
+              className="border rounded px-3 py-2 w-full"
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-3 mb-4">
+          <DropColumn title="Jugadores Disponibles" onDrop={(e) => onDrop(e, "unassigned")}>
+            {unassigned.map((p) => (
+              <Draggable key={p.id} p={p} />
+            ))}
+          </DropColumn>
+          <DropColumn title={`Equipo A (${teamA.length}/${playersPerTeam})`} onDrop={(e) => onDrop(e, "a")}>
+            {teamA.map((p) => (
+              <Draggable key={p.id} p={p} />
+            ))}
+          </DropColumn>
+          <DropColumn title={`Equipo B (${teamB.length}/${playersPerTeam})`} onDrop={(e) => onDrop(e, "b")}>
+            {teamB.map((p) => (
+              <Draggable key={p.id} p={p} />
+            ))}
+          </DropColumn>
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
+          <div className="bg-gray-50 rounded p-3">
+            <h4 className="text-center font-semibold mb-2">Equipo A</h4>
+            <input
+              type="number"
+              min={0}
+              placeholder="Goles del Equipo A"
+              value={teamAScore}
+              onChange={(e) =>
+                setTeamAScore(
+                  e.target.value === "" ? "" : Number(e.target.value)
+                )
+              }
+              className="w-24 text-center border rounded px-2 py-1 mb-2"
+            />
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {teamA.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between bg-white border rounded px-3 py-2"
+                >
+                  <span className="font-medium">{p.name}</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={20}
+                      value={goalsA[p.id] ?? 0}
+                      onChange={(e) =>
+                        setGoalsA((s) => ({
+                          ...s,
+                          [p.id]: Number(e.target.value || 0),
+                        }))
+                      }
+                      className="w-16 text-center border rounded px-2 py-1"
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      step={0.1}
+                      value={perfA[p.id] ?? 5}
+                      onChange={(e) =>
+                        setPerfA((s) => ({
+                          ...s,
+                          [p.id]: Number(e.target.value || 5),
+                        }))
+                      }
+                      className="w-16 text-center border rounded px-2 py-1"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div
+              className={`mt-2 text-center font-semibold rounded px-2 py-1 ${
+                teamAScore === totalGoalsA
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              Total: {totalGoalsA} goles
+            </div>
+          </div>
+
+          <div className="text-center font-bold text-black">VS</div>
+
+          <div className="bg-gray-50 rounded p-3">
+            <h4 className="text-center font-semibold mb-2">Equipo B</h4>
+            <input
+              type="number"
+              min={0}
+              placeholder="Goles del Equipo B"
+              value={teamBScore}
+              onChange={(e) =>
+                setTeamBScore(
+                  e.target.value === "" ? "" : Number(e.target.value)
+                )
+              }
+              className="w-24 text-center border rounded px-2 py-1 mb-2"
+            />
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {teamB.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between bg-white border rounded px-3 py-2"
+                >
+                  <span className="font-medium">{p.name}</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={20}
+                      value={goalsB[p.id] ?? 0}
+                      onChange={(e) =>
+                        setGoalsB((s) => ({
+                          ...s,
+                          [p.id]: Number(e.target.value || 0),
+                        }))
+                      }
+                      className="w-16 text-center border rounded px-2 py-1"
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      step={0.1}
+                      value={perfB[p.id] ?? 5}
+                      onChange={(e) =>
+                        setPerfB((s) => ({
+                          ...s,
+                          [p.id]: Number(e.target.value || 5),
+                        }))
+                      }
+                      className="w-16 text-center border rounded px-2 py-1"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div
+              className={`mt-2 text-center font-semibold rounded px-2 py-1 ${
+                teamBScore === totalGoalsB
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              Total: {totalGoalsB} goles
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 bg-gray-50 rounded p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm">
+              <div className="font-semibold">Encargado de camisetas</div>
+              <div className="text-gray-800">
+                {(() => {
+                  const name = shirtsResponsibleId ? (players.find(p => p.id === shirtsResponsibleId)?.name ?? '—') : 'Seleccione un jugador'
+                  return name
+                })()}
+              </div>
+            </div>
+            <div className="flex-1">
+              <select
+                className="border rounded px-3 py-2 w-full"
+                value={shirtsResponsibleId ?? ''}
+                onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
+              >
+                <option disabled={!!shirtsResponsibleId} value="">Seleccione un Jugador</option>
+                {(() => {
+                  const current = [...teamA, ...teamB]
+                  const eligibleExists = current.some(pp => playedBefore.has(pp.id))
+                  return current.map(p => (
+                    <option key={p.id} value={p.id} disabled={eligibleExists && !playedBefore.has(p.id)}>
+                      {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)}){eligibleExists && !playedBefore.has(p.id) ? ' — nuevo' : ''}
+                    </option>
+                  ))
+                })()}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            className="border px-4 py-2 rounded hover:bg-gray-50"
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+          <button
+            className={`px-4 py-2 rounded text-white ${
+              canSave
+                ? "bg-blue-600 hover:bg-blue-700"
+                : "bg-gray-400 cursor-not-allowed"
+            }`}
+            disabled={!canSave || isLoading}
+            onClick={handleSave}
+          >
+              {isLoading
+              ? mode === "edit"
+                ? "Actualizando..."
+                : "Guardando..."
+              : mode === "edit"
+              ? "Actualizar Partido"
+              : "Guardar Partido"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
