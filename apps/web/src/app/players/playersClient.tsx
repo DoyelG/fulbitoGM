@@ -114,6 +114,7 @@ export default function PlayersClient({ players: initialPlayers, matches: initia
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Posición</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('streak')}>Racha{sortKey==='streak' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none" onClick={() => toggleSort('goal7')}>Objetivo (7W){sortKey==='goal7' ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''}</th>
+                {isAdmin && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y">
