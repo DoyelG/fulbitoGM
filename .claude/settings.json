@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | xargs -I {} sh -c 'if [ -f \"{}\" ] && echo \"{}\" | grep -qE \"\\.(ts|tsx|js|jsx|json|css|md)$\"; then npx prettier --write \"{}\" 2>/dev/null; fi'"
+          }
+        ]
+      }
+    ]
+  }
+}
