@@ -8,6 +8,7 @@
     "lint": "turbo run lint"
   },
   "devDependencies": {
+    "prettier": "^3.8.1",
     "turbo": "latest"
   },
   "packageManager": "pnpm@10.6.5",

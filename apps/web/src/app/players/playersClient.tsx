@@ -1,15 +1,18 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { useSession } from "next-auth/react"
-import SkillBadge from "@/components/SkillBadge"
-import StreakBadge from "@/components/StreakBadge"
-import { calculateAllCurrentStreaks } from "@/lib/playerStats"
-import type { Match, Player } from "@fulbito/types"
-import { useMatchStore } from "@/store/useMatchStore"
-import { usePlayerStore } from "@/store/usePlayerStore"
-import { useEffect, useMemo, useState, useCallback, useRef } from "react"
-import Image from "next/image"
+import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import SkillBadge from '@/components/SkillBadge'
+import StreakBadge from '@/components/StreakBadge'
+import { calculateAllCurrentStreaks } from '@/lib/playerStats'
+import type { Match, Player } from '@fulbito/types'
+import { useMatchStore } from '@/store/useMatchStore'
+import { usePlayerStore } from '@/store/usePlayerStore'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import Image from 'next/image'
+import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi'
+import ActionRow, { type RowAction } from '@/components/ActionRow'
+
 
 export default function PlayersClient({
   players: initialPlayers,
@@ -62,10 +65,10 @@ export default function PlayersClient({
   const toggleSort = useCallback(
     (key: SortKey) => {
       if (sortKey === key) {
-        setSortDir((prevDir) => (prevDir === "asc" ? "desc" : "asc"))
+        setSortDir((prevDir) => (prevDir === 'asc' ? 'desc' : 'asc'))
       } else {
         setSortKey(key)
-        setSortDir("desc")
+        setSortDir('desc')
       }
     },
     [sortKey],
@@ -76,20 +79,12 @@ export default function PlayersClient({
     return [...storePlayers].sort((a, b) => {
       const sa = a.skill ?? -Infinity
       const sb = b.skill ?? -Infinity
-      const stA = streaks[a.id] ?? {
-        kind: null as "win" | "loss" | null,
-        count: 0,
-      }
-      const stB = streaks[b.id] ?? {
-        kind: null as "win" | "loss" | null,
-        count: 0,
-      }
-      const streakValue = (st: {
-        kind: "win" | "loss" | null
-        count: number
-      }) => (st.kind === "win" ? st.count : st.kind === "loss" ? -st.count : 0)
-      const goalA = stA.kind === "win" ? stA.count : 0
-      const goalB = stB.kind === "win" ? stB.count : 0
+      const stA = streaks[a.id] ?? { kind: null as 'win' | 'loss' | null, count: 0 }
+      const stB = streaks[b.id] ?? { kind: null as 'win' | 'loss' | null, count: 0 }
+      const streakValue = (st: { kind: 'win' | 'loss' | null; count: number }) =>
+        st.kind === 'win' ? st.count : st.kind === 'loss' ? -st.count : 0
+      const goalA = stA.kind === 'win' ? stA.count : 0
+      const goalB = stB.kind === 'win' ? stB.count : 0
 
       let av: number
       let bv: number
@@ -145,43 +140,28 @@ export default function PlayersClient({
           <table className="min-w-full table-auto">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Imagen
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Imagen</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
+                <th
+                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none"
+                  onClick={() => toggleSort('skill')}
+                >
+                  Habilidad{sortKey === 'skill' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Nombre
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Posición</th>
+                <th
+                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none"
+                  onClick={() => toggleSort('streak')}
+                >
+                  Racha{sortKey === 'streak' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                 </th>
                 <th
                   className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none"
-                  onClick={() => toggleSort("skill")}
+                  onClick={() => toggleSort('goal7')}
                 >
-                  Habilidad
-                  {sortKey === "skill" ? (sortDir === "asc" ? " ▲" : " ▼") : ""}
+                  Objetivo (7W){sortKey === 'goal7' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Posición
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none"
-                  onClick={() => toggleSort("streak")}
-                >
-                  Racha
-                  {sortKey === "streak"
-                    ? sortDir === "asc"
-                      ? " ▲"
-                      : " ▼"
-                    : ""}
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none"
-                  onClick={() => toggleSort("goal7")}
-                >
-                  Objetivo (7W)
-                  {sortKey === "goal7" ? (sortDir === "asc" ? " ▲" : " ▼") : ""}
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                  Acciones
-                </th>
+                {isAdmin && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -207,16 +187,32 @@ export default function PlayersClient({
                 </tr>
               ) : (
                 sortedPlayers.map((player) => {
-                  const st = streaks[player.id] ?? {
-                    kind: null as "win" | "loss" | null,
-                    count: 0,
-                  }
-                  const winGoalProgress = st.kind === "win" ? st.count : 0
+                  const st = streaks[player.id] ?? { kind: null as 'win' | 'loss' | null, count: 0 }
+                  const winGoalProgress = st.kind === 'win' ? st.count : 0
+                  const actions: RowAction[] = [
+                    { icon: <FiEye size={16} />, variant: 'primary', href: `/players/${player.id}`, tooltip: 'Ver' },
+                    ...(isAdmin
+                      ? [
+                          {
+                            icon: <FiEdit2 size={16} />,
+                            variant: 'primary' as const,
+                            href: `/players/edit/${player.id}`,
+                            tooltip: 'Editar',
+                          },
+                          {
+                            icon: <FiTrash2 size={16} />,
+                            variant: 'danger' as const,
+                            onClick: () => deletePlayer(player.id),
+                            tooltip: 'Eliminar',
+                          },
+                        ]
+                      : []),
+                  ]
                   return (
-                    <tr key={player.id} className="hover:bg-gray-50">
+                    <ActionRow key={player.id} actions={actions}>
                       <td className="px-4 py-3">
                         <Image
-                          src={player.photoUrl ?? "/silhouette.svg"}
+                          src={player.photoUrl ?? '/silhouette.svg'}
                           alt={player.name}
                           width={32}
                           height={32}
@@ -224,15 +220,12 @@ export default function PlayersClient({
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <Link
-                          href={`/players/${player.id}`}
-                          className="text-brand hover:underline font-medium"
-                        >
+                        <Link href={`/players/${player.id}`} className="text-brand hover:underline font-medium">
                           {player.name}
                         </Link>
                       </td>
                       <td className="px-4 py-3">
-                        <SkillBadge skill={player.skill ?? "unknown"} />
+                        <SkillBadge skill={player.skill ?? 'unknown'} />
                       </td>
                       <td className="px-4 py-3 text-gray-800">
                         {player.position}
@@ -248,7 +241,7 @@ export default function PlayersClient({
                         {winGoalProgress >= 7 ? (
                           <span
                             className="inline-flex items-center px-2 py-0.5 rounded text-xs text-white"
-                            style={{ backgroundColor: "hsl(270deg 80% 36%)" }}
+                            style={{ backgroundColor: 'hsl(270deg 80% 36%)' }}
                           >
                             Objetivo ✓
                           </span>
@@ -270,33 +263,7 @@ export default function PlayersClient({
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end items-center gap-3">
-                          <Link
-                            href={`/players/${player.id}`}
-                            className="text-brand hover:text-brand/80"
-                          >
-                            Ver
-                          </Link>
-                          {isAdmin && (
-                            <Link
-                              href={`/players/edit/${player.id}`}
-                              className="text-brand hover:text-brand/80"
-                            >
-                              Editar
-                            </Link>
-                          )}
-                          {isAdmin && (
-                            <button
-                              onClick={() => handleDelete(player.id)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              Eliminar
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                    </ActionRow>
                   )
                 })
               )}
