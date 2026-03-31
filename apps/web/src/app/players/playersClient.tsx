@@ -1,50 +1,49 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import SkillBadge from "@/components/SkillBadge";
-import StreakBadge from "@/components/StreakBadge";
-import { calculateAllCurrentStreaks } from "@/lib/playerStats";
-import type { Match, Player } from "@fulbito/types";
-import { useMatchStore } from "@/store/useMatchStore";
-import { usePlayerStore } from "@/store/usePlayerStore";
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import Image from "next/image";
+import Link from "next/link"
+import { useSession } from "next-auth/react"
+import SkillBadge from "@/components/SkillBadge"
+import StreakBadge from "@/components/StreakBadge"
+import { calculateAllCurrentStreaks } from "@/lib/playerStats"
+import type { Match, Player } from "@fulbito/types"
+import { useMatchStore } from "@/store/useMatchStore"
+import { usePlayerStore } from "@/store/usePlayerStore"
+import { useEffect, useMemo, useState, useCallback, useRef } from "react"
+import Image from "next/image"
 
 export default function PlayersClient({
   players: initialPlayers,
   matches: initialMatches,
 }: {
-  players: Player[];
-  matches: Match[];
+  players: Player[]
+  matches: Match[]
 }) {
-  const { data } = useSession();
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  const isAdmin =
-    (data?.user as unknown as { role?: string })?.role === "ADMIN";
+  const { data } = useSession()
+  const [showModal, setShowModal] = useState(false)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
+  const isAdmin = (data?.user as unknown as { role?: string })?.role === "ADMIN"
   const {
     deletePlayer,
     hydratePlayers,
     players: storePlayers,
     resetAndReload: resetPlayers,
-  } = usePlayerStore();
+  } = usePlayerStore()
   const {
     hydrateMatches,
     matches: storeMatches,
     resetAndReload: resetMatches,
-  } = useMatchStore();
+  } = useMatchStore()
 
-  const initialized = useRef(false);
+  const initialized = useRef(false)
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    if (initialized.current) return
+    initialized.current = true
 
-    hydratePlayers(initialPlayers);
-    hydrateMatches(initialMatches);
-    resetPlayers();
-    resetMatches();
+    hydratePlayers(initialPlayers)
+    hydrateMatches(initialMatches)
+    resetPlayers()
+    resetMatches()
   }, [
     hydratePlayers,
     initialPlayers,
@@ -52,80 +51,80 @@ export default function PlayersClient({
     initialMatches,
     resetPlayers,
     resetMatches,
-  ]);
+  ])
 
-  const streaks = calculateAllCurrentStreaks(storeMatches);
+  const streaks = calculateAllCurrentStreaks(storeMatches)
 
-  type SortKey = "skill" | "streak" | "goal7";
-  const [sortKey, setSortKey] = useState<SortKey>("skill");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  type SortKey = "skill" | "streak" | "goal7"
+  const [sortKey, setSortKey] = useState<SortKey>("skill")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
 
   const toggleSort = useCallback(
     (key: SortKey) => {
       if (sortKey === key) {
-        setSortDir((prevDir) => (prevDir === "asc" ? "desc" : "asc"));
+        setSortDir((prevDir) => (prevDir === "asc" ? "desc" : "asc"))
       } else {
-        setSortKey(key);
-        setSortDir("desc");
+        setSortKey(key)
+        setSortDir("desc")
       }
     },
     [sortKey],
-  );
+  )
 
   const sortedPlayers = useMemo(() => {
-    const dir = sortDir === "asc" ? 1 : -1;
+    const dir = sortDir === "asc" ? 1 : -1
     return [...storePlayers].sort((a, b) => {
-      const sa = a.skill ?? -Infinity;
-      const sb = b.skill ?? -Infinity;
+      const sa = a.skill ?? -Infinity
+      const sb = b.skill ?? -Infinity
       const stA = streaks[a.id] ?? {
         kind: null as "win" | "loss" | null,
         count: 0,
-      };
+      }
       const stB = streaks[b.id] ?? {
         kind: null as "win" | "loss" | null,
         count: 0,
-      };
+      }
       const streakValue = (st: {
-        kind: "win" | "loss" | null;
-        count: number;
-      }) => (st.kind === "win" ? st.count : st.kind === "loss" ? -st.count : 0);
-      const goalA = stA.kind === "win" ? stA.count : 0;
-      const goalB = stB.kind === "win" ? stB.count : 0;
+        kind: "win" | "loss" | null
+        count: number
+      }) => (st.kind === "win" ? st.count : st.kind === "loss" ? -st.count : 0)
+      const goalA = stA.kind === "win" ? stA.count : 0
+      const goalB = stB.kind === "win" ? stB.count : 0
 
-      let av: number;
-      let bv: number;
+      let av: number
+      let bv: number
       switch (sortKey) {
         case "skill":
-          av = sa;
-          bv = sb;
-          break;
+          av = sa
+          bv = sb
+          break
         case "streak":
-          av = streakValue(stA);
-          bv = streakValue(stB);
-          break;
+          av = streakValue(stA)
+          bv = streakValue(stB)
+          break
         case "goal7":
-          av = goalA;
-          bv = goalB;
-          break;
+          av = goalA
+          bv = goalB
+          break
       }
-      if (av === bv) return 0;
-      return av > bv ? dir : -dir;
-    });
-  }, [storePlayers, streaks, sortKey, sortDir]);
+      if (av === bv) return 0
+      return av > bv ? dir : -dir
+    })
+  }, [storePlayers, streaks, sortKey, sortDir])
 
   const selectedPlayer = useMemo(
     () => storePlayers.find((p) => p.id === selectedPlayerId) ?? null,
     [storePlayers, selectedPlayerId],
-  );
+  )
   const handleDelete = (playerId: string) => {
-    setShowModal(true);
-    setSelectedPlayerId(playerId);
-  };
+    setShowModal(true)
+    setSelectedPlayerId(playerId)
+  }
 
   const handleConfirmDelete = () => {
-    deletePlayer(selectedPlayerId as string);
-    setShowModal(false);
-  };
+    deletePlayer(selectedPlayerId as string)
+    setShowModal(false)
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -211,8 +210,8 @@ export default function PlayersClient({
                   const st = streaks[player.id] ?? {
                     kind: null as "win" | "loss" | null,
                     count: 0,
-                  };
-                  const winGoalProgress = st.kind === "win" ? st.count : 0;
+                  }
+                  const winGoalProgress = st.kind === "win" ? st.count : 0
                   return (
                     <tr key={player.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
@@ -298,7 +297,7 @@ export default function PlayersClient({
                         </div>
                       </td>
                     </tr>
-                  );
+                  )
                 })
               )}
             </tbody>
@@ -336,5 +335,5 @@ export default function PlayersClient({
         </div>
       </dialog>
     </div>
-  );
+  )
 }
