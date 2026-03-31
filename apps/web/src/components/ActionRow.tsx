@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React, { type ReactNode, type ReactElement, type MouseEvent } from 'react'
+import React, { type ReactNode, type MouseEvent } from 'react'
 import Tooltip from '@/components/Tooltip'
 
 export type RowAction = {
@@ -47,40 +47,24 @@ export default function ActionRow({ actions, children, className = '', tooltipPo
     )
   }
 
-  const childArray = React.Children.toArray(children)
-  const lastChild = childArray[childArray.length - 1]
-  const restChildren = childArray.slice(0, -1)
-
-  const overlay = (
-    <div className="absolute inset-0 flex items-center justify-end pr-3 gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-gray-50 via-gray-50/90 to-transparent pointer-events-none">
-      {actions.map((action, i) => {
-        const cls = `pointer-events-auto p-1.5 rounded-md transition-colors ${variantStyles[action.variant]}`
-        const element = action.href ? (
-          <Link key={i} href={action.href} className={cls}>{action.icon}</Link>
-        ) : (
-          <button key={i} onClick={action.onClick} className={cls}>{action.icon}</button>
-        )
-        return action.tooltip ? (
-          <Tooltip key={i} label={action.tooltip} position={tooltipPosition} variant={action.variant}>{element}</Tooltip>
-        ) : element
-      })}
-    </div>
-  )
-
-  const enhancedLast = (() => {
-    if (!React.isValidElement(lastChild)) return lastChild
-    const el = lastChild as ReactElement<{ className?: string; children?: ReactNode }>
-    return React.cloneElement(
-      el,
-      { className: `${el.props.className || ''} relative`.trim() },
-      <>{el.props.children}{overlay}</>
-    )
-  })()
-
   return (
-    <tr className={`group hover:bg-gray-50 ${className}`}>
-      {restChildren}
-      {enhancedLast}
+    <tr className={`hover:bg-gray-50 ${className}`}>
+      {children}
+      <td className="px-4 py-3">
+        <div className="flex justify-end items-center gap-1">
+          {actions.map((action, i) => {
+            const cls = `p-1.5 rounded-md transition-colors ${variantStyles[action.variant]}`
+            const element = action.href ? (
+              <Link key={i} href={action.href} className={cls}>{action.icon}</Link>
+            ) : (
+              <button key={i} onClick={action.onClick} className={cls}>{action.icon}</button>
+            )
+            return action.tooltip ? (
+              <Tooltip key={i} label={action.tooltip} position={tooltipPosition} variant={action.variant}>{element}</Tooltip>
+            ) : element
+          })}
+        </div>
+      </td>
     </tr>
   )
 }
