@@ -4,8 +4,10 @@ export type { FulbitoTamaguiConfig } from './createConfig'
 
 export * from 'tamagui'
 
+export { FulbitoCard, type FulbitoCardProps } from './components/FulbitoCard'
 export { HomeFeatureCard, type HomeFeatureCardProps } from './components/HomeFeatureCard'
 export { MatchHistoryCard } from './components/MatchHistoryCard'
+export { PlayerListRow, type PlayerListRowProps } from './components/PlayerListRow'
 export { HeroTitle, PageChrome, SectionTitle } from './components/PageChrome'
 export { ConfirmDialog } from './components/ConfirmDialog'
 export { SkillBadge } from './components/SkillBadge'

@@ -25524,6 +25524,7 @@
       "useAnimatedNumber": "Function",
       "useAnimatedNumberReaction": "Function",
       "useAnimatedNumberStyle": "Function",
+      "useAnimatedNumbersStyle": "Function",
       "usePresence": "Function",
       "ResetPresence": "Function",
       "useAnimations": "Function"

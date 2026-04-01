@@ -3,7 +3,8 @@
 import type { PlayerInfo, TeamResult } from '@fulbito/types'
 import { useMatchStore, usePlayerStore } from '@fulbito/state'
 import { balanceTeams, buildPlayedBeforeSet, computeLeastAssignedPoolIds, getEligiblePlayerIds } from '@fulbito/utils'
-import { useEffect, useMemo, useState } from 'react'
+import { useFulbitoTabDataReload } from '../../lib/useFulbitoTabDataReload'
+import { useMemo, useState } from 'react'
 import { Pressable, ScrollView } from 'react-native'
 import { Button, Paragraph, Separator, XStack, YStack } from 'tamagui'
 
@@ -11,8 +12,9 @@ type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9']
 
 export default function MatchScreen() {
-  const { players, initLoad } = usePlayerStore()
-  const { matches: allMatches, initLoad: initMatches } = useMatchStore()
+  const { players, playersInit } = usePlayerStore()
+  const { matches: allMatches, matchesInit } = useMatchStore()
+  useFulbitoTabDataReload()
   const [matchType, setMatchType] = useState<MatchType>('5v5')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
   const requiredPlayers = playersPerTeam * 2
@@ -21,11 +23,6 @@ export default function MatchScreen() {
   const [autoTeams, setAutoTeams] = useState<{ teamA: TeamResult; teamB: TeamResult } | null>(null)
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
   const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
-
-  useEffect(() => {
-    void initLoad()
-    void initMatches()
-  }, [initLoad, initMatches])
 
   const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
 
@@ -71,12 +68,21 @@ export default function MatchScreen() {
   const probA = combinedSkill > 0 ? Math.round((totalSkillA / combinedSkill) * 100) : 50
   const probB = combinedSkill > 0 ? 100 - probA : 50
 
+  const dataLoading =
+    (playersInit === 'loading' && players.length === 0) ||
+    (matchesInit === 'loading' && allMatches.length === 0)
+  const dataError = playersInit === 'error' || matchesInit === 'error'
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#f9fafb' }}>
       <YStack padding={16} gap={16}>
         <Paragraph fontSize={24} fontWeight="700">
           Preparar partido
         </Paragraph>
+        {dataLoading ? <Paragraph color="$color.muted">Cargando jugadores y partidos…</Paragraph> : null}
+        {dataError ? (
+          <Paragraph color="$color.danger">No se pudieron cargar los datos. Revisá EXPO_PUBLIC_API_URL.</Paragraph>
+        ) : null}
         <YStack backgroundColor="white" padding={16} borderRadius={12} borderWidth={1} borderColor="#e5e7eb">
           <Paragraph fontWeight="600" marginBottom={8}>
             Tipo de partido

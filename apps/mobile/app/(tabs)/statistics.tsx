@@ -2,8 +2,9 @@
 
 import { useMatchStore, usePlayerStore } from '@fulbito/state'
 import { SimpleFeatureScreen } from '@fulbito/ui'
+import { useFulbitoTabDataReload } from '../../lib/useFulbitoTabDataReload'
 import { Link, type Href } from 'expo-router'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Pressable } from 'react-native'
 import { Paragraph, XStack, YStack } from 'tamagui'
 
@@ -20,15 +21,11 @@ type StatRow = {
 }
 
 export default function StatisticsScreen() {
-  const { matches, initLoad: initMatches } = useMatchStore()
-  const { players, initLoad: initPlayers } = usePlayerStore()
+  const { matches, matchesInit } = useMatchStore()
+  const { players, playersInit } = usePlayerStore()
+  useFulbitoTabDataReload()
   const [sortKey, setSortKey] = useState<keyof StatRow | 'goalsPerMatch' | 'winRate'>('goals')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-
-  useEffect(() => {
-    void initMatches()
-    void initPlayers()
-  }, [initMatches, initPlayers])
 
   const stats = useMemo<StatRow[]>(() => {
     const map: Record<string, StatRow> = {}
@@ -103,6 +100,11 @@ export default function StatisticsScreen() {
     })
   }, [stats, sortKey, sortDir])
 
+  const loading =
+    (matchesInit === 'loading' && matches.length === 0) ||
+    (playersInit === 'loading' && players.length === 0)
+  const failed = matchesInit === 'error' || playersInit === 'error'
+
   return (
     <SimpleFeatureScreen title="Estadísticas" subtitle="Toca un encabezado para ordenar. Misma lógica que la web.">
       <XStack gap={8} flexWrap="wrap" marginBottom={12}>
@@ -111,7 +113,11 @@ export default function StatisticsScreen() {
         <SortChip label="Partidos" active={sortKey === 'matches'} dir={sortDir} onPress={() => toggleSort('matches')} />
       </XStack>
       <YStack gap={12}>
-        {matches.length === 0 ? (
+        {loading ? (
+          <Paragraph color="$color.muted">Cargando estadísticas…</Paragraph>
+        ) : failed ? (
+          <Paragraph color="$color.danger">No se pudieron cargar los datos. Revisá EXPO_PUBLIC_API_URL.</Paragraph>
+        ) : matches.length === 0 ? (
           <Paragraph color="#6b7280">No hay estadísticas disponibles.</Paragraph>
         ) : (
           sorted.map((stat) => (

@@ -1,62 +1,60 @@
 'use client'
 
-import { SkillBadge } from '@fulbito/ui'
+import { PlayerListRow, SimpleFeatureScreen } from '@fulbito/ui'
 import { usePlayerStore } from '@fulbito/state'
+import { useFulbitoTabDataReload } from '../../lib/useFulbitoTabDataReload'
 import { Image } from 'expo-image'
 import { Link, type Href } from 'expo-router'
-import { useEffect } from 'react'
-import { Pressable, ScrollView } from 'react-native'
-import { Paragraph, XStack, YStack } from 'tamagui'
+import { ActivityIndicator, Pressable } from 'react-native'
+import { Button, Paragraph, YStack } from 'tamagui'
 
 export default function PlayersScreen() {
-  const { players, initLoad } = usePlayerStore()
-
-  useEffect(() => {
-    void initLoad()
-  }, [initLoad])
+  const { players, playersInit, initLoad } = usePlayerStore()
+  useFulbitoTabDataReload()
 
   return (
-    <YStack flex={1} backgroundColor="#f9fafb" padding={16}>
-      <Paragraph fontSize={24} fontWeight="700" marginBottom={16}>
-        Jugadores
-      </Paragraph>
-      <ScrollView>
+    <SimpleFeatureScreen
+      title="Jugadores"
+      subtitle="Misma API y base de datos que la web. En Android emulador, localhost se mapea a 10.0.2.2 automáticamente."
+    >
+      {playersInit === 'loading' && players.length === 0 ? (
+        <YStack alignItems="center" paddingVertical={24} gap={12}>
+          <ActivityIndicator size="large" color="#7c3aed" />
+          <Paragraph color="$color.muted">Cargando jugadores…</Paragraph>
+        </YStack>
+      ) : playersInit === 'error' ? (
+        <YStack gap={12} alignItems="flex-start">
+          <Paragraph color="$color.danger">
+            No se pudo conectar al API. Revisá EXPO_PUBLIC_API_URL (IP de tu PC en red local si usás
+            dispositivo físico).
+          </Paragraph>
+          <Button backgroundColor="$color.brand" onPress={() => void initLoad({ force: true })}>
+            <Paragraph color="$color.white">Reintentar</Paragraph>
+          </Button>
+        </YStack>
+      ) : players.length === 0 ? (
+        <Paragraph color="$color.muted">No hay jugadores en la base de datos.</Paragraph>
+      ) : (
         <YStack gap={10}>
-          {players.length === 0 ? (
-            <Paragraph color="#6b7280">No hay jugadores. Sincronizá con el servidor (API).</Paragraph>
-          ) : (
-            players.map((p) => (
-              <Link key={p.id} href={`/players/${p.id}` as Href} asChild>
-                <Pressable>
-                  <XStack
-                    alignItems="center"
-                    gap={12}
-                    padding={12}
-                    borderRadius={12}
-                    borderWidth={1}
-                    borderColor="#e5e7eb"
-                    backgroundColor="white"
-                  >
+          {players.map((p) => (
+            <Link key={p.id} href={`/players/${p.id}` as Href} asChild>
+              <Pressable>
+                <PlayerListRow
+                  name={p.name}
+                  position={p.position}
+                  skill={p.skill ?? 'unknown'}
+                  leading={
                     <Image
                       source={p.photoUrl ? { uri: p.photoUrl } : require('@/assets/images/icon.png')}
                       style={{ width: 40, height: 40, borderRadius: 20 }}
                     />
-                    <YStack flex={1}>
-                      <Paragraph fontWeight="700" color="#111827">
-                        {p.name}
-                      </Paragraph>
-                      <Paragraph fontSize={13} color="#6b7280">
-                        {p.position}
-                      </Paragraph>
-                    </YStack>
-                    <SkillBadge skill={p.skill ?? 'unknown'} />
-                  </XStack>
-                </Pressable>
-              </Link>
-            ))
-          )}
+                  }
+                />
+              </Pressable>
+            </Link>
+          ))}
         </YStack>
-      </ScrollView>
-    </YStack>
+      )}
+    </SimpleFeatureScreen>
   )
 }

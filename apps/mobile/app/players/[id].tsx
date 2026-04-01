@@ -4,17 +4,20 @@ import { SkillBadge } from '@fulbito/ui'
 import { usePlayerStore } from '@fulbito/state'
 import { Image } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
-import { useEffect } from 'react'
+import { useCallback } from 'react'
 import { ScrollView } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { Paragraph, YStack } from 'tamagui'
 
 export default function PlayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { players, initLoad, getPlayer } = usePlayerStore()
 
-  useEffect(() => {
-    void initLoad()
-  }, [initLoad])
+  useFocusEffect(
+    useCallback(() => {
+      void initLoad({ force: true })
+    }, [initLoad]),
+  )
 
   const player = getPlayer(id)
 

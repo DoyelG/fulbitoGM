@@ -10,7 +10,11 @@ type Props = {
 export function PageChrome({ children, refreshControl }: Props) {
   return (
     <YStack flex={1} backgroundColor="$background" minHeight={Platform.OS === 'web' ? '100vh' : undefined}>
-      <ScrollView showsVerticalScrollIndicator={false} refreshControl={refreshControl}>
+      <ScrollView
+        flex={Platform.OS === 'web' ? undefined : 1}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
         <YStack
           width="100%"
           alignSelf="center"

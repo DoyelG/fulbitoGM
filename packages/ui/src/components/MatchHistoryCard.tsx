@@ -1,5 +1,6 @@
 import type { Match, MatchPlayer } from '@fulbito/types'
 import { Paragraph, XStack, YStack } from 'tamagui'
+import { FulbitoCard } from './FulbitoCard'
 
 type Props = {
   match: Match
@@ -17,20 +18,7 @@ export function MatchHistoryCard({ match, shirtResponsibleName }: Props) {
   const bWins = match.teamBScore > match.teamAScore
 
   return (
-    <YStack
-      borderWidth={1}
-      borderColor="$color.border"
-      borderRadius={12}
-      padding={16}
-      backgroundColor="rgba(255,255,255,0.96)"
-      borderLeftWidth={4}
-      borderLeftColor="$color.indigo"
-      shadowColor="rgba(0,0,0,0.25)"
-      shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={0.06}
-      shadowRadius={8}
-      elevation={2}
-    >
+    <FulbitoCard borderLeftWidth={4} borderLeftColor="$color.indigo" shadowOpacity={0.06}>
       <XStack justifyContent="space-between" alignItems="flex-start" marginBottom={12} flexWrap="wrap" gap={8}>
         <YStack flex={1} minWidth={160} gap={6}>
           {match.name ? (
@@ -80,7 +68,7 @@ export function MatchHistoryCard({ match, shirtResponsibleName }: Props) {
           </Paragraph>
         </XStack>
       ) : null}
-    </YStack>
+    </FulbitoCard>
   )
 }
 

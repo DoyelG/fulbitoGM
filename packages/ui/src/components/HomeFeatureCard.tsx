@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Paragraph, XStack, YStack } from 'tamagui'
+import { FulbitoCard } from './FulbitoCard'
 
 export type HomeFeatureCardProps = {
   title: string
@@ -9,18 +10,7 @@ export type HomeFeatureCardProps = {
 
 export function HomeFeatureCard({ title, description, iconSlot }: HomeFeatureCardProps) {
   return (
-    <YStack
-      borderWidth={1}
-      borderColor="$color.border"
-      backgroundColor="rgba(255,255,255,0.92)"
-      borderRadius={12}
-      padding={16}
-      shadowColor="rgba(0,0,0,0.25)"
-      shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={0.08}
-      shadowRadius={8}
-      elevation={2}
-    >
+    <FulbitoCard backgroundColor="rgba(255,255,255,0.92)">
       <XStack gap={12} alignItems="flex-start">
         <YStack
           padding={8}
@@ -40,6 +30,6 @@ export function HomeFeatureCard({ title, description, iconSlot }: HomeFeatureCar
           </Paragraph>
         </YStack>
       </XStack>
-    </YStack>
+    </FulbitoCard>
   )
 }

@@ -5,7 +5,7 @@ import { apiFetch } from './api'
 type MatchStore = {
   matches: Match[]
   matchesInit: 'idle' | 'loading' | 'loaded' | 'error'
-  initLoad: () => Promise<void>
+  initLoad: (opts?: { force?: boolean }) => Promise<void>
   addMatch: (m: Omit<Match, 'id'>) => Promise<string>
   updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
@@ -16,9 +16,11 @@ type MatchStore = {
 export const useMatchStore = create<MatchStore>()((set, get) => ({
   matches: [],
   matchesInit: 'idle',
-  initLoad: async () => {
+  initLoad: async (opts) => {
+    const force = opts?.force === true
     const state = get().matchesInit
-    if (state === 'loading' || state === 'loaded') return
+    if (!force && (state === 'loading' || state === 'loaded')) return
+    if (force && state === 'loading') return
     set({ matchesInit: 'loading' })
     try {
       const res = await apiFetch('/api/matches', { cache: 'no-store' })

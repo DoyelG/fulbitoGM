@@ -7,7 +7,7 @@ export type { Player }
 type PlayerStore = {
   players: Player[]
   playersInit: 'idle' | 'loading' | 'loaded' | 'error'
-  initLoad: () => Promise<void>
+  initLoad: (opts?: { force?: boolean }) => Promise<void>
   hydratePlayers: (players: Player[]) => void
   addPlayer: (player: Omit<Player, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   updatePlayer: (id: string, player: Partial<Player>) => Promise<void>
@@ -19,12 +19,17 @@ type PlayerStore = {
 export const usePlayerStore = create<PlayerStore>()((set, get) => ({
   players: [],
   playersInit: 'idle',
-  initLoad: async () => {
+  initLoad: async (opts) => {
+    const force = opts?.force === true
     const state = get().playersInit
-    if (state === 'loading' || state === 'loaded') return
+    if (!force && (state === 'loading' || state === 'loaded')) return
+    if (force && state === 'loading') return
     set({ playersInit: 'loading' })
     try {
       const res = await apiFetch('/api/players', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const ct = res.headers.get('content-type') || ''
+      if (!ct.includes('application/json')) throw new Error('Unexpected response')
       const data: Player[] = await res.json()
       set({ players: data, playersInit: 'loaded' })
     } catch {
@@ -77,8 +82,15 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
   },
   getPlayer: (id) => get().players.find((p) => p.id === id),
   resetAndReload: async () => {
-    const res = await apiFetch('/api/players', { cache: 'no-store' })
-    const data: Player[] = await res.json()
-    set({ players: data, playersInit: 'loaded' })
+    try {
+      const res = await apiFetch('/api/players', { cache: 'no-store' })
+      if (!res.ok) throw new Error('Failed to reload players')
+      const ct = res.headers.get('content-type') || ''
+      if (!ct.includes('application/json')) throw new Error('Unexpected response')
+      const data: Player[] = await res.json()
+      set({ players: data, playersInit: 'loaded' })
+    } catch {
+      set({ playersInit: 'error' })
+    }
   },
 }))
