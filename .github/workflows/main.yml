@@ -83,7 +83,6 @@ jobs:
 
           echo "--- Running: vercel deploy apps/backend ---"
           vercel deploy apps/backend $ARGS \
-            --scope=$VERCEL_ORG_ID \
             --project=$VERCEL_PROJECT_ID 2>&1 | tee /tmp/backend_deploy.log
           echo "--- Deploy command finished ---"
 
@@ -127,7 +126,6 @@ jobs:
           echo "Backend URL: ${{ needs.deploy-backend.outputs.backend_url }}"
           echo "--- Running: vercel deploy apps/web ---"
           vercel deploy apps/web $ARGS \
-            --scope=$VERCEL_ORG_ID \
             --project=$VERCEL_PROJECT_ID \
             --build-env NEXT_PUBLIC_API_URL=${{ needs.deploy-backend.outputs.backend_url }}
           echo "--- Frontend deploy finished ---"
