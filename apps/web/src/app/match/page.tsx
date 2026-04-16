@@ -1,11 +1,12 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
 import { shapeStorePlayers } from '@/lib/shape'
+import { getBackendBaseUrl } from '@/lib/backend'
 import MatchClient from './matchClient'
 
 export default async function MatchPage() {
-  const players = await prisma.player.findMany({ orderBy: { name: 'asc' } })
+  const res = await fetch(`${getBackendBaseUrl()}/api/players`, { cache: 'no-store' })
+  const players = await res.json()
   const shaped = shapeStorePlayers(players)
   return <MatchClient players={shaped} />
 }

@@ -20,5 +20,8 @@
       "sharp",
       "unrs-resolver"
     ]
+  },
+  "prettier": {
+    "semi": false
   }
 }

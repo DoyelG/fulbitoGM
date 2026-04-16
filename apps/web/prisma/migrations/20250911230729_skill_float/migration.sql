@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "public"."Player" ALTER COLUMN "skill" SET DATA TYPE DOUBLE PRECISION;

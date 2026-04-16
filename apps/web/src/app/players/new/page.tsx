@@ -1,7 +1,7 @@
 import PlayerForm from '../PlayerForm'
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions'
+import { authOptions } from '@/lib/authOptions'
 
 export default async function NewPlayerPage() {
   const session = await getServerSession(authOptions)

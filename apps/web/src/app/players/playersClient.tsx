@@ -5,13 +5,14 @@ import { useSession } from 'next-auth/react'
 import SkillBadge from '@/components/SkillBadge'
 import StreakBadge from '@/components/StreakBadge'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
+import type { Match, Player } from '@fulbito/types'
 import { useMatchStore } from '@/store/useMatchStore'
-import { Match } from '@fulbito/types'
-import { usePlayerStore, Player } from '@/store/usePlayerStore'
+import { usePlayerStore } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import ActionRow, { type RowAction } from '@/components/ActionRow'
+
 
 export default function PlayersClient({
   players: initialPlayers,
@@ -23,9 +24,18 @@ export default function PlayersClient({
   const { data } = useSession()
   const [showModal, setShowModal] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
-  const isAdmin = (data?.user as unknown as { role?: string })?.role === 'ADMIN'
-  const { deletePlayer, hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
-  const { hydrateMatches, matches: storeMatches, resetAndReload: resetMatches } = useMatchStore()
+  const isAdmin = (data?.user as unknown as { role?: string })?.role === "ADMIN"
+  const {
+    deletePlayer,
+    hydratePlayers,
+    players: storePlayers,
+    resetAndReload: resetPlayers,
+  } = usePlayerStore()
+  const {
+    hydrateMatches,
+    matches: storeMatches,
+    resetAndReload: resetMatches,
+  } = useMatchStore()
 
   const initialized = useRef(false)
 
@@ -37,13 +47,20 @@ export default function PlayersClient({
     hydrateMatches(initialMatches)
     resetPlayers()
     resetMatches()
-  }, [hydratePlayers, initialPlayers, hydrateMatches, initialMatches, resetPlayers, resetMatches])
+  }, [
+    hydratePlayers,
+    initialPlayers,
+    hydrateMatches,
+    initialMatches,
+    resetPlayers,
+    resetMatches,
+  ])
 
   const streaks = calculateAllCurrentStreaks(storeMatches)
 
-  type SortKey = 'skill' | 'streak' | 'goal7'
-  const [sortKey, setSortKey] = useState<SortKey>('skill')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  type SortKey = "skill" | "streak" | "goal7"
+  const [sortKey, setSortKey] = useState<SortKey>("skill")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
 
   const toggleSort = useCallback(
     (key: SortKey) => {
@@ -58,7 +75,7 @@ export default function PlayersClient({
   )
 
   const sortedPlayers = useMemo(() => {
-    const dir = sortDir === 'asc' ? 1 : -1
+    const dir = sortDir === "asc" ? 1 : -1
     return [...storePlayers].sort((a, b) => {
       const sa = a.skill ?? -Infinity
       const sb = b.skill ?? -Infinity
@@ -72,15 +89,15 @@ export default function PlayersClient({
       let av: number
       let bv: number
       switch (sortKey) {
-        case 'skill':
+        case "skill":
           av = sa
           bv = sb
           break
-        case 'streak':
+        case "streak":
           av = streakValue(stA)
           bv = streakValue(stB)
           break
-        case 'goal7':
+        case "goal7":
           av = goalA
           bv = goalB
           break
@@ -109,7 +126,10 @@ export default function PlayersClient({
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Jugadores</h1>
         {isAdmin && (
-          <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">
+          <Link
+            href="/players/new"
+            className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90"
+          >
             Agregar jugador
           </Link>
         )}
@@ -147,12 +167,18 @@ export default function PlayersClient({
             <tbody className="divide-y">
               {storePlayers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-800">
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-gray-800"
+                  >
                     No hay jugadores agregados aún.
                     {isAdmin && (
                       <>
-                        {' '}
-                        <Link href="/players/new" className="text-brand hover:underline">
+                        {" "}
+                        <Link
+                          href="/players/new"
+                          className="text-brand hover:underline"
+                        >
                           Agrega tu primer jugador
                         </Link>
                       </>
@@ -201,7 +227,9 @@ export default function PlayersClient({
                       <td className="px-4 py-3">
                         <SkillBadge skill={player.skill ?? 'unknown'} />
                       </td>
-                      <td className="px-4 py-3 text-gray-800">{player.position}</td>
+                      <td className="px-4 py-3 text-gray-800">
+                        {player.position}
+                      </td>
                       <td className="px-4 py-3">
                         {st.kind ? (
                           <StreakBadge kind={st.kind} count={st.count} />
@@ -228,7 +256,7 @@ export default function PlayersClient({
                                 className="h-1.5 rounded"
                                 style={{
                                   width: `${(Math.min(7, winGoalProgress) / 7) * 100}%`,
-                                  backgroundColor: 'hsl(270deg 75% 45%)',
+                                  backgroundColor: "hsl(270deg 75% 45%)",
                                 }}
                               />
                             </div>
@@ -248,9 +276,13 @@ export default function PlayersClient({
         className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
       >
         <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Confirmar eliminación
+          </h2>
 
-          <p className="text-gray-600 mb-6">¿Estás seguro de que querés eliminar a {selectedPlayer?.name}?</p>
+          <p className="text-gray-600 mb-6">
+            ¿Estás seguro de que querés eliminar a {selectedPlayer?.name}?
+          </p>
 
           <div className="flex justify-end gap-3">
             <button
