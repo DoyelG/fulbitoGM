@@ -6,8 +6,16 @@ const nextConfig: NextConfig = {
     const backend = process.env.BACKEND_URL || "http://localhost:3001";
     return [
       {
-        source: "/api/:path*",
-        destination: `${backend}/api/:path*`,
+        source: "/api/auth/login",
+        destination: `${backend}/api/auth/login`,
+      },
+      {
+        source: "/api/auth/register",
+        destination: `${backend}/api/auth/register`,
+      },
+      {
+        source: "/api/:path((?!auth/).*)",
+        destination: `${backend}/api/:path`,
       },
     ];
   },
