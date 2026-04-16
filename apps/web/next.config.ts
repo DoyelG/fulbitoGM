@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const backend = process.env.BACKEND_URL || "http://localhost:3001";
     return [
-      // Keep credential/register endpoints in backend.
       {
         source: "/api/auth/login",
         destination: `${backend}/api/auth/login`,
@@ -14,7 +13,6 @@ const nextConfig: NextConfig = {
         source: "/api/auth/register",
         destination: `${backend}/api/auth/register`,
       },
-      // Let NextAuth routes stay in this app (/api/auth/* except login/register).
       {
         source: "/api/:path((?!auth/).*)",
         destination: `${backend}/api/:path`,
