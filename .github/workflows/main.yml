@@ -68,4 +68,4 @@ jobs:
           working-directory: apps/web
           vercel-args: >
             ${{ github.ref == 'refs/heads/master' && '--prod' || '' }}
-            --build-env NEXT_PUBLIC_API_URL=https://${{ needs.deploy-backend.outputs.backend_url }}
+            --build-env NEXT_PUBLIC_API_URL=${{ needs.deploy-backend.outputs.backend_url }}
