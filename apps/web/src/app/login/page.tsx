@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { getBackendBaseUrl } from '@/lib/backend'
 
 export default function LoginPage() {
+
   const [mode, setMode] = useState<'signin' | 'register'>('signin')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -18,7 +20,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       if (mode === 'register') {
-        const res = await fetch('/api/auth/register', {
+        const res = await fetch(`${getBackendBaseUrl()}/api/auth/register`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
         })
         if (!res.ok) {
