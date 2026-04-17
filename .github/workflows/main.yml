@@ -116,5 +116,5 @@ jobs:
 
           echo "--- Running: vercel deploy (frontend) ---"
           vercel deploy $ARGS \
-            --build-env BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
+            --env BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
           echo "--- Frontend deploy finished ---"
