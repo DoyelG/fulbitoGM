@@ -62,6 +62,11 @@ jobs:
             echo "Deploying backend to PREVIEW (branch: ${{ github.ref }})"
           fi
 
+          curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/backend"}' > /dev/null
+
           echo "--- Running: vercel deploy (backend) ---"
           vercel deploy $ARGS 2>&1 | tee /tmp/backend_deploy.log
           echo "--- Deploy command finished ---"
@@ -104,6 +109,11 @@ jobs:
           fi
 
           echo "Backend URL: ${{ needs.deploy-backend.outputs.backend_url }}"
+          curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/web"}' > /dev/null
+
           echo "--- Running: vercel deploy (frontend) ---"
           vercel deploy $ARGS \
             --build-env BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
