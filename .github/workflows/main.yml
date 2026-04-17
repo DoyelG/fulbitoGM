@@ -1,50 +1,120 @@
 name: fulbito-yml
+
 on:
   pull_request:
+  push:
+    branches:
+      - master
+
 jobs:
   lint-test-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.6.5
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: "pnpm"
+
       - name: Install dependencies
         run: pnpm install
+
       - name: Run ESLint
         run: pnpm lint
+
       - name: Build
         run: pnpm build
-  deploy:
+
+  deploy-backend:
     needs: lint-test-build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    outputs:
+      backend_url: ${{ steps.get_url.outputs.url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.6.5
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install
-      - name: Build fulbito
-        run: pnpm build
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy Backend
+        id: get_url
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+        run: |
+          set -eo pipefail
+
+          ARGS="--token=$VERCEL_TOKEN --yes"
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            ARGS="$ARGS --prod"
+            echo "Deploying backend to PRODUCTION"
+          else
+            echo "Deploying backend to PREVIEW (branch: ${{ github.ref }})"
+          fi
+
+          curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/backend"}' > /dev/null
+
+          echo "--- Running: vercel deploy (backend) ---"
+          vercel deploy $ARGS 2>&1 | tee /tmp/backend_deploy.log
+          echo "--- Deploy command finished ---"
+
+          URL=$(grep -E "^https://" /tmp/backend_deploy.log | tail -1)
+          if [ -z "$URL" ]; then
+            echo "ERROR: Could not extract deployment URL from output"
+            echo "Full output:"
+            cat /tmp/backend_deploy.log
+            exit 1
+          fi
+
+          echo "Backend deployed to: $URL"
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+  deploy-frontend:
+    needs: deploy-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy Frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+        run: |
+          set -eo pipefail
+
+          ARGS="--token=$VERCEL_TOKEN --yes"
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            ARGS="$ARGS --prod"
+            echo "Deploying frontend to PRODUCTION"
+          else
+            echo "Deploying frontend to PREVIEW (branch: ${{ github.ref }})"
+          fi
+
+          echo "Backend URL: ${{ needs.deploy-backend.outputs.backend_url }}"
+          curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/web"}' > /dev/null
+
+          echo "--- Running: vercel deploy (frontend) ---"
+          vercel deploy $ARGS \
+            --env BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
+          echo "--- Frontend deploy finished ---"

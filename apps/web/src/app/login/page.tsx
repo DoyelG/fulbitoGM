@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+
   const [mode, setMode] = useState<'signin' | 'register'>('signin')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
