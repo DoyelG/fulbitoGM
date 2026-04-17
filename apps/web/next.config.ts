@@ -14,8 +14,8 @@ const nextConfig: NextConfig = {
         destination: `${backend}/api/auth/register`,
       },
       {
-        source: "/api/:path((?!auth/).*)",
-        destination: `${backend}/api/:path`,
+        source: "/api/:path*",
+        destination: `${backend}/api/:path*`,
       },
     ];
   },
