@@ -62,8 +62,8 @@ jobs:
             echo "Deploying backend to PREVIEW (branch: ${{ github.ref }})"
           fi
 
-          echo "--- Running: vercel deploy apps/backend ---"
-          vercel deploy apps/backend $ARGS 2>&1 | tee /tmp/backend_deploy.log
+          echo "--- Running: vercel deploy (backend) ---"
+          vercel deploy $ARGS 2>&1 | tee /tmp/backend_deploy.log
           echo "--- Deploy command finished ---"
 
           URL=$(grep -E "^https://" /tmp/backend_deploy.log | tail -1)
@@ -104,7 +104,7 @@ jobs:
           fi
 
           echo "Backend URL: ${{ needs.deploy-backend.outputs.backend_url }}"
-          echo "--- Running: vercel deploy apps/web ---"
-          vercel deploy apps/web $ARGS \
-            --build-env NEXT_PUBLIC_API_URL=${{ needs.deploy-backend.outputs.backend_url }}
+          echo "--- Running: vercel deploy (frontend) ---"
+          vercel deploy $ARGS \
+            --build-env BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
           echo "--- Frontend deploy finished ---"
