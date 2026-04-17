@@ -15,12 +15,7 @@ const nextConfig: NextConfig = {
           destination: `${backend}/api/auth/register`,
         },
       ],
-      fallback: [
-        {
-          source: "/api/:path*",
-          destination: `${backend}/api/:path*`,
-        },
-      ],
+      fallback: [],
     };
   },
 };
