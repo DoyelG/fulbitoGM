@@ -108,13 +108,34 @@ jobs:
             echo "Deploying frontend to PREVIEW (branch: ${{ github.ref }})"
           fi
 
-          echo "Backend URL: ${{ needs.deploy-backend.outputs.backend_url }}"
           curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{"rootDirectory":"apps/web"}' > /dev/null
 
+          if [ "${{ github.ref }}" != "refs/heads/master" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+            BACKEND_URL_VALUE="${{ needs.deploy-backend.outputs.backend_url }}"
+            echo "Setting branch-specific BACKEND_URL → $BACKEND_URL_VALUE"
+
+            EXISTING_ID=$(curl -sf "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" | \
+              jq -r --arg b "$BRANCH_NAME" \
+              '[.envs[] | select(.key == "BACKEND_URL" and .gitBranch == $b)] | first | .id // ""')
+
+            if [ -n "$EXISTING_ID" ]; then
+              curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$EXISTING_ID" \
+                -H "Authorization: Bearer $VERCEL_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "{\"value\":\"$BACKEND_URL_VALUE\"}" > /dev/null
+            else
+              curl -sf -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
+                -H "Authorization: Bearer $VERCEL_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "{\"key\":\"BACKEND_URL\",\"value\":\"$BACKEND_URL_VALUE\",\"type\":\"encrypted\",\"target\":[\"preview\"],\"gitBranch\":\"$BRANCH_NAME\"}" > /dev/null
+            fi
+          fi
+
           echo "--- Running: vercel deploy (frontend) ---"
-          vercel deploy $ARGS \
-            --env BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
+          vercel deploy $ARGS
           echo "--- Frontend deploy finished ---"
