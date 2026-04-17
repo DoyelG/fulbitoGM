@@ -14,16 +14,27 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null
 
-        const res = await fetch(`${process.env.BACKEND_URL}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: credentials.username,
-            password: credentials.password
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001'
+        console.log(`[auth] calling ${backendUrl}/api/auth/login`)
+        let res: Response
+        try {
+          res = await fetch(`${backendUrl}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: credentials.username,
+              password: credentials.password
+            })
           })
-        })
+        } catch (err) {
+          console.error('[auth] fetch error:', err)
+          return null
+        }
 
-        if (!res.ok) return null
+        if (!res.ok) {
+          console.error(`[auth] login failed: ${res.status}`, await res.text())
+          return null
+        }
         return res.json()
       }
     })
