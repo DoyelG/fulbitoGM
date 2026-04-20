@@ -71,7 +71,7 @@ jobs:
           vercel deploy $ARGS 2>&1 | tee /tmp/backend_deploy.log
           echo "--- Deploy command finished ---"
 
-          URL=$(grep -E "^https://" /tmp/backend_deploy.log | tail -1)
+          URL=$(grep -oE "https://[a-zA-Z0-9._-]+\.vercel\.app" /tmp/backend_deploy.log | tail -1)
           if [ -z "$URL" ]; then
             echo "ERROR: Could not extract deployment URL from output"
             echo "Full output:"
