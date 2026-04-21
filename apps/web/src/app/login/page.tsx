@@ -15,10 +15,6 @@ export default function LoginPage() {
   const router = useRouter()
 
   const onSubmit = async (e: React.FormEvent) => {
-
-    console.log('backedn URL')
-    console.log('getBackendBaseUrl()', getBackendBaseUrl())
-
     e.preventDefault()
     setError(null)
     setLoading(true)
