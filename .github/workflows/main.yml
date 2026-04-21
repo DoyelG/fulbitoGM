@@ -74,15 +74,6 @@ jobs:
             exit 1
           fi
 
-          DEPLOYMENT_INFO=$(curl -sf "https://api.vercel.com/v13/deployments?url=${URL#https://}&limit=1" \
-            -H "Authorization: Bearer $VERCEL_TOKEN")
-
-          REAL_URL=$(echo "$DEPLOYMENT_INFO" | jq -r '.deployments[0].url // ""')
-
-          if [ -n "$REAL_URL" ]; then
-            URL="https://$REAL_URL"
-          fi
-
           echo "Backend deployed to: $URL"
           echo "backend_url=$URL" >> $GITHUB_OUTPUT
 
