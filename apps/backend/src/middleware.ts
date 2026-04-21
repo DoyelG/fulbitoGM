@@ -6,6 +6,13 @@ export function middleware(request: NextRequest) {
     const origin = request.headers.get('origin')
     const headers = corsHeaders(origin)
 
+    console.log('[CORS middleware]', {
+        method: request.method,
+        url: request.url,
+        origin,
+        headersReturned: Object.keys(headers),
+    })
+
     if (request.method === 'OPTIONS') {
         return new NextResponse(null, { status: 204, headers })
     }
