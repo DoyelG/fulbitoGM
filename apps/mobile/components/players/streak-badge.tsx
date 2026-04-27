@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 
-import { useColorScheme } from '@/hooks/use-color-scheme'
+import { useAppTheme } from '@/hooks/use-theme'
 
 type Kind = 'win' | 'loss' | null
 
@@ -8,27 +8,25 @@ function colorForStreak(kind: Kind, count: number): string {
   const c = Math.max(0, Math.min(10, count))
   const t = c / 10
   if (kind === 'win') {
-    const s = 70 + 10 * t
-    const l = 52 - 16 * t
-    return `hsl(270, ${s}%, ${l}%)`
+    const s = 60 + 15 * t
+    const l = 42 - 8 * t
+    return `hsl(145, ${s}%, ${l}%)`
   }
   if (kind === 'loss') {
-    const s = 80 + 5 * t
-    const l = 50 - 12 * t
-    return `hsl(24, ${s}%, ${l}%)`
+    const s = 75 + 10 * t
+    const l = 50 - 10 * t
+    return `hsl(0, ${s}%, ${l}%)`
   }
   return '#9ca3af'
 }
 
 type Props = { kind: Kind; count: number }
 
+/** Mini pill de racha: verde para victorias, rojo para derrotas. */
 export function StreakBadge({ kind, count }: Props) {
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark'
+  const { colors } = useAppTheme()
   if (!count || count <= 0 || !kind) {
-    return (
-      <Text style={[styles.dash, { color: isDark ? '#6b7280' : '#9ca3af' }]}>—</Text>
-    )
+    return <Text style={[styles.dash, { color: colors.muted }]}>—</Text>
   }
   const label = kind === 'win' ? `W${count}` : `L${count}`
   return (
@@ -41,18 +39,19 @@ export function StreakBadge({ kind, count }: Props) {
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: 999,
   },
   text: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
+    lineHeight: 14,
     fontWeight: '700',
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
   dash: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
   },
 })
