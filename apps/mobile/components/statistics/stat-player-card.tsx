@@ -125,24 +125,24 @@ export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    paddingVertical: 14,      // era 16
-    paddingHorizontal: 16,    // era 14
-    marginBottom: 0,          // era 12 → moverlo al FlatList ItemSeparator
+    paddingVertical: 14,      
+    paddingHorizontal: 16,    
+    marginBottom: 0,          
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,                  // era 10
+    gap: 12,                  
   },
   rank: {
     width: 24,
-    fontSize: 18,             // era 29 → mucho más pequeño
-    fontWeight: '700',        // era '800'
+    fontSize: 18,            
+    fontWeight: '700',       
     textAlign: 'center',
   },
   avatar: {
-    width: 48,                // era 54
-    height: 48,               // era 54
+    width: 48,               
+    height: 48,              
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   initials: {
-    fontSize: 18,             // era 22
+    fontSize: 18,            
     letterSpacing: 0.4,
   },
   mainInfo: {
@@ -161,13 +161,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   name: {
-    fontSize: 20,             // era 33 → el cambio más grande
+    fontSize: 20,             
     fontWeight: '700',
     marginBottom: 2,
   },
   record: {
-    fontSize: 13,             // era 21
-    fontWeight: '500',        // era '600'
+    fontSize: 13,             
+    fontWeight: '500',       
     letterSpacing: 0.2,
   },
   featured: {
@@ -175,38 +175,38 @@ const styles = StyleSheet.create({
   },
   featuredValue: {
     color: '#f97316',
-    fontWeight: '800',        // era '900'
-    fontSize: 32,             // era 42
-    lineHeight: 32,           // era 42
+    fontWeight: '800',        
+    fontSize: 32,            
+    lineHeight: 32,           
   },
   featuredLabel: {
     marginTop: 2,
-    fontSize: 11,             // era 16
+    fontSize: 11,             
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   separator: {
     height: 1,
-    marginVertical: 10,       // era 12
+    marginVertical: 10,       
   },
   metrics: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 4,                   // era 8
+    gap: 4,                   
   },
   metricItem: {
     flex: 1,
     alignItems: 'center',
   },
   metricValue: {
-    fontSize: 18,             // era 32
-    lineHeight: 22,           // era 34
-    fontWeight: '700',        // era '800'
+    fontSize: 18,             
+    lineHeight: 22,           
+    fontWeight: '700',       
   },
   metricLabel: {
     marginTop: 2,
-    fontSize: 10,             // era 13
-    fontWeight: '600',        // era '700'
+    fontSize: 10,            
+    fontWeight: '600',        
     letterSpacing: 0.4,
   },
 })
