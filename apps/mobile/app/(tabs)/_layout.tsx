@@ -20,7 +20,7 @@ export default function TabLayout() {
         name="statistics"
         options={{
           title: 'Estadísticas',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
+          headerShown: true,
         }}
       />
       <Tabs.Screen
