@@ -1,10 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
-import Animated, {
+import { Text, Image, Pressable, StyleSheet } from 'react-native';
+import {
   useSharedValue,
-  useAnimatedStyle,
   withTiming,
-  withDelay,
   Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,51 +12,31 @@ import { DrawerMenu } from '@/components/drawer-menu';
 
 type User = { name: string; email: string; image: string | null };
 
-const MOCK_USER: User | null = {
-  name:'John Does',
-  email:"eljohndoe@gmail.com",
-  image:null
-}
+ const MOCK_USER: User | null = {
+  name: 'John Does',
+  email: 'eljohndoe@gmail.com',
+  image: null,
+};
 
 const OPEN = { duration: 420, easing: Easing.out(Easing.cubic) };
 const CLOSE = { duration: 300, easing: Easing.in(Easing.cubic) };
-const ICON_OUT = { duration: 100 };
-const ICON_IN = { duration: 150 };
 const GRADIENT = ['#7C3AED', '#F97316'] as const;
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const progress = useSharedValue(0);
-  const hamburgerOpacity = useSharedValue(1);
-  const xOpacity = useSharedValue(0);
   const insets = useSafeAreaInsets();
 
   const toggle = useCallback(() => {
-    setIsOpen((prev) => {
-      const next = !prev;
-      if (next) {
-        hamburgerOpacity.value = withTiming(0, ICON_OUT);
-        xOpacity.value = withDelay(OPEN.duration - 150, withTiming(1, ICON_IN));
-        progress.value = withTiming(1, OPEN);
-      } else {
-        xOpacity.value = withTiming(0, ICON_OUT);
-        hamburgerOpacity.value = withDelay(CLOSE.duration - 120, withTiming(1, ICON_IN));
-        progress.value = withTiming(0, CLOSE);
-      }
-      return next;
-    });
-  }, [progress, hamburgerOpacity, xOpacity]);
+    const next = !isOpen;
+    setIsOpen(next);
+    progress.value = withTiming(next ? 1 : 0, next ? OPEN : CLOSE);
+  }, [isOpen, progress]);
 
   const close = useCallback(() => {
     setIsOpen(false);
-    xOpacity.value = withTiming(0, ICON_OUT);
-    hamburgerOpacity.value = withDelay(CLOSE.duration - 120, withTiming(1, ICON_IN));
     progress.value = withTiming(0, CLOSE);
-  }, [progress, hamburgerOpacity, xOpacity]);
-
-  const hamburgerStyle = useAnimatedStyle(() => ({
-    opacity: hamburgerOpacity.value,
-  }));
+  }, [progress]);
 
   return (
     <>
@@ -66,19 +44,9 @@ export function Navbar() {
         colors={GRADIENT}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={[styles.bar, { paddingTop: insets.top + 14, height: 60 + insets.top }]}
+        style={[styles.bar, { paddingTop: insets.top + 6, height: 50 + insets.top }]}
       >
-        <View style={styles.navLeft}>
-        <Pressable onPress={toggle} hitSlop={16} style={styles.iconBtn}>
-          <Animated.View style={[styles.lines, hamburgerStyle]}>
-            <View style={styles.line} />
-            <View style={styles.line} />
-            <View style={styles.line} />
-          </Animated.View>
-        </Pressable>
         <Text style={styles.logo}>FULBITOAPP</Text>
-        </View>
-
 
         {MOCK_USER ? (
           <Pressable onPress={toggle} hitSlop={12} style={styles.avatar}>
@@ -104,7 +72,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 20,
-    paddingBottom: 14,
+    paddingBottom: 10,
     justifyContent: 'space-between',
   },
   iconBtn: {
