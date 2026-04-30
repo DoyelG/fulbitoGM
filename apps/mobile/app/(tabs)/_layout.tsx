@@ -1,49 +1,41 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs } from 'expo-router'
+import React from 'react'
+import { View } from 'react-native'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Navbar } from '@/components/navbar'
+import { Colors } from '@/constants/theme'
+import { useColorScheme } from '@/hooks/use-color-scheme'
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="statistics"
-        options={{
-          title: 'Estadísticas',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
+    <View style={{ flex: 1 }}>
+      <Navbar />
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+            borderTopWidth: isDark ? 0 : 1,
+            borderTopColor: isDark ? Colors.dark.border : Colors.light.border,
+          },
+          tabBarItemStyle: {
+            paddingVertical: 8,
+          },
+          tabBarActiveTintColor: isDark ? Colors.dark.brand : Colors.light.brand,
+          tabBarInactiveTintColor: isDark ? Colors.dark.icon : Colors.light.icon,
+          tabBarShowLabel: false,
         }}
-      />
-      <Tabs.Screen
-        name="players"
-        options={{
-          title: 'Jugadores',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="match"
-        options={{
-          title: 'Partido',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="sportscourt.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'Historial',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="clock.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+      >
+        <Tabs.Screen name="history" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="history" size={24} color={color} /> }} />
+        <Tabs.Screen name="statistics" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={24} color={color} /> }} />
+        <Tabs.Screen name="home" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="home" size={24} color={color} /> }} />
+        <Tabs.Screen name="players" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="group" size={24} color={color} /> }} />
+        <Tabs.Screen name="match" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="sports-soccer" size={24} color={color} /> }} />
+      </Tabs>
+    </View>
+  )
 }
