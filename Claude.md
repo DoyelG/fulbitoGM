@@ -1,7 +1,8 @@
 # Claude Code Instructions — Fulbito GM
 
 ## Branching
-Always work directly on the current branch. Never create separate worktree branches. Apply all changes directly to the branch the user is on.
+Always work directly on the current branch. **Never under any circumstance create worktree branches, shadow branches, or any other branch** — not even temporarily. Apply all changes directly to the branch the user is on.
+If the user is on `master`, recommend creating a new feature branch before making changes, but do not create it automatically.
 
 ---
 
@@ -9,9 +10,9 @@ Always work directly on the current branch. Never create separate worktree branc
 
 ```
 apps/
-  web/       → Next.js 15 (App Router) — Tailwind CSS v4, Zustand, NextAuth
-  mobile/    → Expo 54 + React Native — Expo Router, StyleSheet API
-  backend/   → Next.js 15 (API only) — Prisma + PostgreSQL (Neon)
+  web/       → Next.js (App Router) — Tailwind CSS, Zustand, NextAuth
+  mobile/    → Expo + React Native — Expo Router, StyleSheet API
+  backend/   → Next.js (API only) — Prisma + PostgreSQL (Neon)
 packages/
   types/     → Shared domain types (Player, Match, Team, Skills)
   utils/     → Shared business logic (teamUtils, playerStats, shirtDuty)
