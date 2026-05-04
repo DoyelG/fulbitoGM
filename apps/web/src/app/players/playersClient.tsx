@@ -194,9 +194,10 @@ export default function PlayersClient({
         )}
       </div>
 
-      <div className="mb-4">
+      <div className="mb-10">
         <input
           type="text"
+          name="searchPlayer"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder="Buscar por nombre..."
