@@ -1,7 +1,8 @@
 import type { Player } from '@fulbito/types'
 import { useCallback, useMemo, useState } from 'react'
 
-import type { SortDir, SortKey } from '@/components/players/players-list-header'
+export type SortKey = 'skill' | 'streak' | 'goal7'
+export type SortDir = 'asc' | 'desc'
 
 type StreakKind = 'win' | 'loss' | null
 type StreakInfo = { kind: StreakKind; count: number }
@@ -14,6 +15,7 @@ function streakScore(streak: StreakInfo): number {
   return 0
 }
 
+/** Maneja criterio y dirección de orden + calcula la lista ordenada. */
 export function usePlayerSort(
   players: Player[],
   streaks: Record<string, StreakInfo>,
@@ -23,9 +25,9 @@ export function usePlayerSort(
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   const toggleSort = useCallback((key: SortKey) => {
-    setSortKey((prevKey) => {
+    setSortKey((prevKey: SortKey) => {
       if (prevKey === key) {
-        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+        setSortDir((d: SortDir) => (d === 'asc' ? 'desc' : 'asc'))
         return prevKey
       }
       setSortDir('desc')
@@ -41,8 +43,8 @@ export function usePlayerSort(
       const goalA = stA.kind === 'win' ? stA.count : 0
       const goalB = stB.kind === 'win' ? stB.count : 0
 
-      let av: number
-      let bv: number
+      let av = 0
+      let bv = 0
       switch (sortKey) {
         case 'skill':
           av = a.skill ?? -Infinity

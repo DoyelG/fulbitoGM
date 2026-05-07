@@ -10,57 +10,42 @@ type Props = {
   size?: number
 }
 
-export function PlayerAvatar({ name, photoUrl, size = 52 }: Props) {
+/** Avatar circular. Muestra la foto ajustada al círculo o la inicial como fallback. */
+export function PlayerAvatar({ name, photoUrl, size = 48 }: Props) {
   const { colors } = useAppTheme()
   const initial = name.trim().charAt(0).toUpperCase() || '?'
-  const ringSize = size + 4
+  const dim = { width: size, height: size, borderRadius: size / 2 }
 
   if (photoUrl) {
     return (
-      <View
-        style={[
-          styles.ring,
-          { width: ringSize, height: ringSize, borderRadius: ringSize / 2, borderColor: colors.brandRing },
-        ]}>
-        <Image
-          source={{ uri: photoUrl }}
-          style={{ width: size, height: size, borderRadius: size / 2 }}
-          contentFit="cover"
-          transition={200}
-        />
-      </View>
+      <Image
+        source={{ uri: photoUrl }}
+        style={dim}
+        contentFit="cover"
+        transition={200}
+      />
     )
   }
 
   return (
     <View
       style={[
-        styles.ring,
-        { width: ringSize, height: ringSize, borderRadius: ringSize / 2, borderColor: colors.brandRing },
+        styles.placeholder,
+        dim,
+        { backgroundColor: colors.brandSoft },
       ]}>
-      <View
+      <ThemedText
         style={[
-          styles.placeholder,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            backgroundColor: colors.brandSoft,
-          },
+          styles.letter,
+          { color: colors.brand, fontSize: size * 0.4, lineHeight: size * 0.5 },
         ]}>
-        <ThemedText style={[styles.letter, { color: colors.brand, fontSize: size * 0.4 }]}>
-          {initial}
-        </ThemedText>
-      </View>
+        {initial}
+      </ThemedText>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  ring: {
-    borderWidth: 2,
-    padding: 2,
-  },
   placeholder: {
     alignItems: 'center',
     justifyContent: 'center',

@@ -13,10 +13,11 @@ import { PlayersError } from '@/components/players/players-error'
 import { PlayersListHeader } from '@/components/players/players-list-header'
 import { PlayersLoading } from '@/components/players/players-loading'
 import { ThemedView } from '@/components/themed-view'
-import { useAppTheme } from '@/hooks/use-theme'
 import { useIsAdmin } from '@/hooks/use-is-admin'
+import { usePlayerFilters } from '@/hooks/use-player-filters'
 import { usePlayerSort } from '@/hooks/use-player-sort'
 import { usePlayersData } from '@/hooks/use-players-data'
+import { useAppTheme } from '@/hooks/use-theme'
 
 export default function PlayersScreen() {
   const router = useRouter()
@@ -36,7 +37,15 @@ export default function PlayersScreen() {
   } = usePlayersData()
 
   const streaks = useMemo(() => calculateAllCurrentStreaks(matches), [matches])
-  const { sortKey, sortDir, toggleSort, sortedPlayers } = usePlayerSort(players, streaks)
+  const {
+    query,
+    setQuery,
+    position,
+    setPosition,
+    positions,
+    filteredPlayers,
+  } = usePlayerFilters(players)
+  const { sortedPlayers } = usePlayerSort(filteredPlayers, streaks, 'skill')
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -73,6 +82,25 @@ export default function PlayersScreen() {
     [deletePlayer],
   )
 
+  const openAdminActions = useCallback(
+    (player: Player) => {
+      if (!isAdmin) return
+      Alert.alert(player.name, 'Elegí una acción', [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Editar',
+          onPress: () => router.push(`/(tabs)/players/edit/${player.id}`),
+        },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => confirmDelete(player),
+        },
+      ])
+    },
+    [isAdmin, router, confirmDelete],
+  )
+
   if (loading) return <PlayersLoading />
   if (error) return <PlayersError message={error} onRetry={() => void reload()} />
 
@@ -84,10 +112,11 @@ export default function PlayersScreen() {
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <PlayersListHeader
-              total={players.length}
-              sortKey={sortKey}
-              sortDir={sortDir}
-              onToggle={toggleSort}
+              query={query}
+              onQueryChange={setQuery}
+              positions={positions}
+              position={position}
+              onPositionChange={setPosition}
             />
           }
           refreshControl={
@@ -110,10 +139,8 @@ export default function PlayersScreen() {
             <PlayerCard
               player={player}
               streak={streaks[player.id] ?? { kind: null, count: 0 }}
-              isAdmin={isAdmin}
-              onView={() => router.push(`/(tabs)/players/${player.id}`)}
-              onEdit={() => router.push(`/(tabs)/players/edit/${player.id}`)}
-              onDelete={() => confirmDelete(player)}
+              onPress={() => router.push(`/(tabs)/players/${player.id}`)}
+              onLongPress={isAdmin ? () => openAdminActions(player) : undefined}
             />
           )}
         />
