@@ -30,7 +30,7 @@ export function HomeMatchCard({ match, accentColor }: Props) {
         <Text style={[styles.date, { color: C.muted }]}>{match.date}</Text>
         <View style={styles.row}>
           <Text style={[styles.team, { color: C.text }]}>{match.teamA}</Text>
-          <SkewedBadge color={C.brand} cutColor={C.surface}>
+          <SkewedBadge color={accent} cutColor={C.surface}>
             <Text style={styles.scoreText}>
               {match.scoreA} - {match.scoreB}
             </Text>
