@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
 import type { SortTabKey } from '@/hooks/use-player-statistics'
+import { styles } from './styles/stat-filter-tabs.styles'
 
 type Props = {
   activeTab: SortTabKey
@@ -57,24 +58,3 @@ export function StatFilterTabs({ activeTab, onChange }: Props) {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  content: {
-    gap: 8,
-    paddingRight: 16,
-  },
-  tab: {
-    minHeight: 36,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-})
