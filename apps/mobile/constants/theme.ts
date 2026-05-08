@@ -31,8 +31,8 @@ export const Colors = {
     danger: '#dc2626',
     dangerIcon: '#f87171',
     dangerBg: 'rgba(220, 38, 38, 0.1)',
-    warning: '#f97316',
 
+    secondary: '#f97316',
     shadow: '#4c1d95',
   },
   dark: {
@@ -59,7 +59,7 @@ export const Colors = {
     danger: '#dc2626',
     dangerIcon: '#f87171',
     dangerBg: 'rgba(220, 38, 38, 0.15)',
-    warning: '#f97316',
+    secondary: '#f97316',
 
     shadow: '#000',
   },
@@ -122,27 +122,14 @@ export const Shadows = {
     }),
 } as const
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-})
+export const Fonts = {
+  regular: 'Montserrat_400Regular',
+  regularItalic: 'Montserrat_400Regular_Italic',
+  medium: 'Montserrat_500Medium',
+  semiBold: 'Montserrat_600SemiBold',
+  bold: 'Montserrat_700Bold',
+  extraBold: 'Montserrat_800ExtraBold',
+  extraBoldItalic: 'Montserrat_800ExtraBold_Italic',
+  black: 'Montserrat_900Black',
+  blackItalic: 'Montserrat_900Black_Italic',
+} as const
