@@ -24,7 +24,7 @@ export function HomeMenuGrid() {
           activeOpacity={0.75}
           onPress={() => router.push(item.href as any)}
         >
-          <Ionicons name={item.icon} size={26} color="rgba(255,255,255,0.9)" />
+          <Ionicons name={item.icon} size={32} color="rgba(255,255,255,0.9)" />
           <Text style={styles.label}>{item.label.toUpperCase()}</Text>
         </TouchableOpacity>
       ))}

@@ -1,7 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Spacing, Radii, Fonts } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-theme';
 import { MOCK_PLAYERS } from '@/lib/mock/players';
@@ -17,7 +15,6 @@ const LAST_MATCHES: Match[] = [
 
 export default function HomeScreen() {
   const { colors: C, isDark, shadows } = useAppTheme();
-  const router = useRouter();
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: C.background }]} edges={['top']}>
@@ -25,15 +22,6 @@ export default function HomeScreen() {
 
         <HomeHero />
         <HomeMenuGrid />
-
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: C.secondary }, shadows.cta(C.secondary) as object]}
-          activeOpacity={0.8}
-          onPress={() => router.push('/(tabs)/match')}
-        >
-          <Ionicons name="add-circle-outline" size={20} color="#fff" />
-          <Text style={styles.ctaText}>CREAR PARTIDO</Text>
-        </TouchableOpacity>
 
         <Text style={[styles.sectionTitle, { color: C.text }]}>ÚLTIMOS PARTIDOS</Text>
         <View style={styles.matchList}>
@@ -62,23 +50,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { paddingBottom: 32 },
-
-  cta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
-    paddingVertical: 16,
-    borderRadius: Radii.sm,
-  },
-  ctaText: {
-    fontFamily: Fonts.extraBoldItalic,
-    color: '#fff',
-    fontSize: 16,
-    letterSpacing: 1.5,
-  },
 
   sectionTitle: {
     fontFamily: Fonts.blackItalic,
