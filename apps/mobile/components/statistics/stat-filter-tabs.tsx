@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
@@ -10,7 +10,7 @@ type Props = {
   onChange: (tab: SortTabKey) => void
 }
 
-const TABS: Array<{ key: SortTabKey; label: string }> = [
+const TABS: { key: SortTabKey; label: string }[] = [
   { key: 'goals', label: 'Goles' },
   { key: 'matches', label: 'Partidos' },
   { key: 'totalPerformance', label: 'Rendimiento' },

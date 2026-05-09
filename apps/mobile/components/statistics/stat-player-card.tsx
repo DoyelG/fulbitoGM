@@ -1,4 +1,4 @@
-import { Image, Pressable, StyleSheet, View } from 'react-native'
+import { Image, Pressable, View } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
