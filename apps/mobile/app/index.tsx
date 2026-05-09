@@ -1,6 +1,7 @@
-import { Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import { useAuth } from '@/hooks/use-auth';
 
 const routes = [
   { label: '/login', href: '/login' },
@@ -14,9 +15,31 @@ const routes = [
 ];
 
 export default function IndexScreen() {
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>/</Text>
+      {user ? (
+        <View style={styles.sessionRow}>
+          <Text style={styles.sessionText}>
+            Sesión: {user.name} ({user.role})
+          </Text>
+          <Pressable
+            onPress={async () => {
+              await signOut();
+            }}
+            style={styles.signOutBtn}
+          >
+            <Text style={styles.signOutText}>Salir</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable onPress={() => router.push('/login')} style={styles.loginCta}>
+          <Text style={styles.loginCtaText}>Iniciar sesión</Text>
+        </Pressable>
+      )}
       <Text style={styles.subtitle}>Rutas disponibles</Text>
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
         {routes.map(({ label, href }) => (
@@ -65,5 +88,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'monospace',
     color: '#1d4ed8',
+  },
+  sessionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    gap: 12,
+  },
+  sessionText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#374151',
+  },
+  signOutBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#fee2e2',
+    borderRadius: 8,
+  },
+  signOutText: {
+    color: '#b91c1c',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  loginCta: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#7c3aed',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  loginCtaText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 15,
   },
 });
