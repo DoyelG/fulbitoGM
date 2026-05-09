@@ -1,22 +1,98 @@
-import { Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRouter } from 'expo-router'
+import { useLayoutEffect, useMemo } from 'react'
+import { FlatList, RefreshControl, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { styles } from '@/components/statistics/styles/statics.styles'
+
+import { StatFilterTabs } from '@/components/statistics/stat-filter-tabs'
+import { StatPlayerCard } from '@/components/statistics/stat-player-card'
+import { ThemedText } from '@/components/themed-text'
+import { ThemedView } from '@/components/themed-view'
+import { usePlayersData } from '@/hooks/use-players-data'
+import { usePlayerStatistics } from '@/hooks/use-player-statistics'
+import { useAppTheme } from '@/hooks/use-theme'
 
 export default function StatisticsScreen() {
-  return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <Text style={styles.title}>/statistics</Text>
-    </SafeAreaView>
-  );
-}
+  const router = useRouter()
+  const navigation = useNavigation()  
+  const { colors } = useAppTheme()
+  const { players, matches, loading, refreshing, error, refresh, reload } = usePlayersData()
+  const { activeTab, setActiveTab, sortedStats } = usePlayerStatistics(players, matches)
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-});
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: 'Estadísticas',
+    })
+  }, [navigation])
+
+  const header = useMemo(
+    () => (
+      <>
+        <StatFilterTabs activeTab={activeTab} onChange={setActiveTab} />
+      </>
+    ),
+    [activeTab, setActiveTab],
+  )
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <ThemedView style={styles.screen}>
+          {header}
+          <ThemedText style={[styles.stateText, { color: colors.muted }]}>
+            Cargando estadísticas...
+          </ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    )
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <ThemedView style={styles.screen}>
+          {header}
+          <ThemedText style={styles.errorText}>{error}</ThemedText>
+          <ThemedText onPress={() => void reload()} style={[styles.retryText, { color: colors.brand }]}>
+            Reintentar
+          </ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    )
+  }
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <ThemedView style={styles.screen}>
+        <FlatList
+          data={sortedStats}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            <ThemedText style={[styles.stateText, { color: colors.muted }]}>
+              No hay estadísticas disponibles.
+            </ThemedText>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void refresh()}
+              tintColor={colors.brand}
+            />
+          }
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          contentContainerStyle={sortedStats.length === 0 ? styles.emptyContent : styles.content}
+          renderItem={({ item, index }) => (
+            <StatPlayerCard
+              stat={item}
+              rank={index + 1}
+              activeTab={activeTab}
+              onPress={() => router.push(`/(tabs)/players/${item.id}`)}
+            />
+          )}
+        />
+      </ThemedView>
+    </SafeAreaView>
+  )
+}
