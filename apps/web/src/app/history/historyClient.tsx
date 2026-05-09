@@ -12,8 +12,8 @@ import {
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 
-type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9";
-const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9"];
+type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
+const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
 
 type RecordingPlayer = { id: string; name: string };
 
