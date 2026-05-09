@@ -28,12 +28,12 @@ export const authOptions: NextAuthOptions = {
           })
         } catch (err) {
           console.error('[auth] fetch error:', err)
-          return null
+          throw new Error('No se pudo conectar al servidor')
         }
 
         if (!res.ok) {
-          console.error(`[auth] login failed: ${res.status}`, await res.text())
-          return null
+          const data = await res.json().catch(() => ({})) as { error?: string }
+          throw new Error(data.error || 'Credenciales inválidas')
         }
         return res.json()
       }
