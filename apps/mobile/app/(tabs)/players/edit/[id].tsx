@@ -6,7 +6,7 @@ export default function EditPlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <Text style={styles.title}>/players/edit/{id}</Text>
     </SafeAreaView>
   );
