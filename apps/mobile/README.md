@@ -1,20 +1,31 @@
-# Welcome to your Expo app 👋
+# FulbitoGM — Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobile app built with Expo (React Native).
+
+> **Important:** Use `pnpm` from the monorepo root, not `npm install` directly here. Internal packages use the `workspace:*` protocol which only pnpm understands.
 
 ## Get started
 
-1. Install dependencies
+1. Install dependencies from the monorepo root:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
-2. Start the app
+2. Start the app:
 
    ```bash
-   npx expo start
+   pnpm --filter mobile start
+   # or from this directory:
+   pnpm expo start
    ```
+
+### iOS Simulator
+
+Requires Xcode installed with at least one simulator downloaded:
+- Xcode → Settings → Platforms → iOS → download
+
+If `xcrun` throws an error, run: `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer`
 
 In the output, you'll find options to open the app in a
 
