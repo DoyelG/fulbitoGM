@@ -5,6 +5,7 @@ import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
 import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
+import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
@@ -31,6 +32,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [autoTeams, setAutoTeams] = useState<{ teamA: TeamResult, teamB: TeamResult } | null>(null)
+  const [streakSeparated, setStreakSeparated] = useState(false)
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
   const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
 
@@ -82,14 +84,79 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     setSelectionOpen(true)
   }
 
+  const fillRemainingPlayers = (
+    unassigned: PlayerInfo[],
+    preTeamA: PlayerInfo[],
+    preTeamB: PlayerInfo[],
+  ): { teamA: TeamResult; teamB: TeamResult } => {
+    const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
+    const normPhys = (p: PlayerInfo) =>
+      p.physical === undefined || p.physical === 'unknown' ? 5 : (p.physical as number)
+
+    const teamA = [...preTeamA]
+    const teamB = [...preTeamB]
+    let physA = teamA.reduce((s, p) => s + normPhys(p), 0)
+    let physB = teamB.reduce((s, p) => s + normPhys(p), 0)
+
+    const sorted = [...unassigned].sort((a, b) => normSkill(b.skill) - normSkill(a.skill))
+
+    for (const p of sorted) {
+      const phys = normPhys(p)
+      const spotsA = playersPerTeam - teamA.length
+      const spotsB = playersPerTeam - teamB.length
+      if (spotsA === 0) { teamB.push(p); physB += phys; continue }
+      if (spotsB === 0) { teamA.push(p); physA += phys; continue }
+      if (physA <= physB) { teamA.push(p); physA += phys }
+      else { teamB.push(p); physB += phys }
+    }
+
+    return {
+      teamA: { players: teamA, totalSkill: teamA.reduce((s, p) => s + normSkill(p.skill), 0), totalPhysical: physA },
+      teamB: { players: teamB, totalSkill: teamB.reduce((s, p) => s + normSkill(p.skill), 0), totalPhysical: physB },
+    }
+  }
+
+  const splitByStreak = (
+    pool: PlayerInfo[],
+    streaks: Record<string, { kind: 'win' | 'loss' | null; count: number }>,
+  ): { seedA: PlayerInfo[]; seedB: PlayerInfo[]; rest: PlayerInfo[] } => {
+    const onStreak = pool
+      .filter(p => streaks[p.id]?.kind === 'win' && (streaks[p.id]?.count ?? 0) >= 4)
+      .sort((a, b) => (streaks[b.id]?.count ?? 0) - (streaks[a.id]?.count ?? 0))
+    const rest = pool.filter(p => !onStreak.some(s => s.id === p.id))
+    const seedA: PlayerInfo[] = []
+    const seedB: PlayerInfo[] = []
+    const overflow: PlayerInfo[] = []
+    for (let i = 0; i < onStreak.length; i++) {
+      if (i % 2 === 0) {
+        if (seedA.length < playersPerTeam) seedA.push(onStreak[i])
+        else overflow.push(onStreak[i])
+      } else {
+        if (seedB.length < playersPerTeam) seedB.push(onStreak[i])
+        else overflow.push(onStreak[i])
+      }
+    }
+    return { seedA, seedB, rest: [...rest, ...overflow] }
+  }
+
+  const buildTeams = (pool: PlayerInfo[], streaks: Record<string, { kind: 'win' | 'loss' | null; count: number }>) => {
+    const { seedA, seedB, rest } = splitByStreak(pool, streaks)
+    if (seedA.length + seedB.length > 0) {
+      return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam), hadStreak: true }
+    }
+    return { teams: balanceTeams(pool, playersPerTeam), hadStreak: false }
+  }
+
   const doAuto = async () => {
     await initMatchesLoad()
     if (selected.size !== requiredPlayers) {
       alert(`Por favor, selecciona exactamente ${requiredPlayers} jugadores para ${matchType}.`)
       return
     }
-    const teams = balanceTeams(selectedPlayers, playersPerTeam)
+    const streaks = calculateAllCurrentStreaks(allMatches)
+    const { teams, hadStreak } = buildTeams(selectedPlayers, streaks)
     setAutoTeams(teams)
+    setStreakSeparated(hadStreak)
     const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
     const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
@@ -102,9 +169,11 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const regenerate = async () => {
     await initMatchesLoad()
     if (!selectedPlayers.length) return
+    const streaks = calculateAllCurrentStreaks(allMatches)
     const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5)
-    const teams = balanceTeams(shuffled, playersPerTeam)
+    const { teams, hadStreak } = buildTeams(shuffled, streaks)
     setAutoTeams(teams)
+    setStreakSeparated(hadStreak)
     const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
     const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
@@ -115,6 +184,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
   const finishManual = async () => {
     await initMatchesLoad()
+    setStreakSeparated(false)
     const assigned = [...manualA, ...manualB]
     const unassigned = selectedPlayers.filter(p => !assigned.some(a => a.id === p.id))
     if (unassigned.length === 0) {
@@ -136,7 +206,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       setDutyPool(poolObjs)
       setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     } else {
-      const teams = balanceRemainingPlayers(unassigned, manualA, manualB, playersPerTeam)
+      const teams = fillRemainingPlayers(unassigned, manualA, manualB)
       setAutoTeams(teams)
       const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
       const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
@@ -303,6 +373,12 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               🔄 Re-generar equipos
             </button>
           </div>
+
+          {streakSeparated && (
+            <div className="mb-4 px-3 py-2 rounded bg-orange-50 border border-orange-200 text-orange-800 text-sm">
+              🔥 Jugadores en racha de 4+ victorias fueron distribuidos en equipos distintos
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-4">
             <TeamCard title="Team A" team={autoTeams.teamA} color="blue" winProbability={probA} />
