@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { TrophyIcon } from "@heroicons/react/24/solid";
 import type { Match, Player } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import {
@@ -32,7 +31,6 @@ export default function HistoryClient({
     hydrateMatches,
     addMatch,
     updateMatch,
-    setMvp,
     deleteMatch,
     matches: storeMatches,
   } = useMatchStore();
@@ -42,7 +40,6 @@ export default function HistoryClient({
   >(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [mvpModalMatch, setMvpModalMatch] = useState<Match | null>(null);
 
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
@@ -180,10 +177,15 @@ export default function HistoryClient({
                     {m.teamA.map((p: Match["teamA"][number]) => (
                       <div
                         key={p.id}
-                        className="flex justify-between border-b last:border-b-0 py-1"
+                        className="flex justify-between items-center border-b last:border-b-0 py-1"
                       >
                         <span>{p.name}</span>
-                        <span>
+                        <span className="flex items-center gap-1.5">
+                          {m.mvpId === p.id && (
+                            <span aria-label="MVP" role="img">
+                              🏆
+                            </span>
+                          )}
                           {p.goals}⚽ {p.performance}★
                         </span>
                       </div>
@@ -197,10 +199,15 @@ export default function HistoryClient({
                     {m.teamB.map((p: Match["teamB"][number]) => (
                       <div
                         key={p.id}
-                        className="flex justify-between border-b last:border-b-0 py-1"
+                        className="flex justify-between items-center border-b last:border-b-0 py-1"
                       >
                         <span>{p.name}</span>
-                        <span>
+                        <span className="flex items-center gap-1.5">
+                          {m.mvpId === p.id && (
+                            <span aria-label="MVP" role="img">
+                              🏆
+                            </span>
+                          )}
                           {p.goals}⚽ {p.performance}★
                         </span>
                       </div>
@@ -219,12 +226,6 @@ export default function HistoryClient({
                         </span>
                       </div>
                     )}
-                    <MvpBadge
-                      match={m}
-                      players={storePlayers}
-                      isAdmin={isAdmin}
-                      onEdit={() => setMvpModalMatch(m)}
-                    />
                   </div>
                   <div className="flex justify-end gap-3">
                     {isAdmin && (
@@ -249,17 +250,6 @@ export default function HistoryClient({
             ))
         )}
       </div>
-      {mvpModalMatch && (
-        <MvpModal
-          match={mvpModalMatch}
-          players={storePlayers}
-          onClose={() => setMvpModalMatch(null)}
-          onSave={async (mvpId) => {
-            await setMvp(mvpModalMatch.id, mvpId);
-            setMvpModalMatch(null);
-          }}
-        />
-      )}
       <dialog
         open={showModal}
         className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
@@ -767,7 +757,7 @@ function RecordModal({
           <div className="flex items-center justify-between gap-3">
             <div className="text-sm">
               <div className="font-semibold flex items-center gap-1.5">
-                <TrophyIcon className="h-4 w-4 text-[var(--color-accent)]" />
+                <span aria-hidden="true">🏆</span>
                 MVP del partido
               </div>
               <div className="text-gray-800">
@@ -841,224 +831,3 @@ function RecordModal({
   );
 }
 
-function MvpBadge({
-  match,
-  players,
-  isAdmin,
-  onEdit,
-}: {
-  match: Match;
-  players: Player[];
-  isAdmin: boolean;
-  onEdit: () => void;
-}) {
-  const mvp = match.mvpId
-    ? players.find((p) => p.id === match.mvpId)
-    : undefined;
-
-  if (!match.mvpId) {
-    if (!isAdmin) {
-      return (
-        <div className="flex items-center gap-1.5 text-gray-400 text-sm">
-          <TrophyIcon className="h-4 w-4" aria-hidden="true" />
-          <span>MVP no registrado</span>
-        </div>
-      );
-    }
-    return (
-      <button
-        type="button"
-        onClick={onEdit}
-        className="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-full border border-dashed border-gray-300 text-gray-600 hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] hover:bg-orange-50 transition"
-        aria-label="Asignar MVP a este partido"
-      >
-        <TrophyIcon className="h-4 w-4" aria-hidden="true" />
-        Asignar MVP
-      </button>
-    );
-  }
-
-  return (
-    <div className="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-900">
-      <TrophyIcon
-        className="h-4 w-4 text-[var(--color-accent)]"
-        aria-hidden="true"
-      />
-      <span>
-        MVP: <span className="font-semibold">{mvp?.name ?? "—"}</span>
-      </span>
-      {isAdmin && (
-        <button
-          type="button"
-          onClick={onEdit}
-          className="ml-1 text-xs text-orange-700 hover:text-orange-900 underline"
-          aria-label={`Cambiar MVP de ${mvp?.name ?? "este partido"}`}
-        >
-          cambiar
-        </button>
-      )}
-    </div>
-  );
-}
-
-function MvpModal({
-  match,
-  players,
-  onClose,
-  onSave,
-}: {
-  match: Match;
-  players: Player[];
-  onClose: () => void;
-  onSave: (mvpId: string | null) => Promise<void>;
-}) {
-  const participants = useMemo(() => {
-    return [...match.teamA, ...match.teamB];
-  }, [match]);
-
-  const suggestedId = useMemo(() => {
-    const sorted = [...participants].sort(
-      (a, b) => b.performance - a.performance,
-    );
-    return sorted[0]?.id ?? null;
-  }, [participants]);
-
-  const [selectedId, setSelectedId] = useState<string | null>(
-    match.mvpId ?? suggestedId,
-  );
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    setError(null);
-    try {
-      await onSave(selectedId);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "No se pudo guardar el MVP",
-      );
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="mvp-modal-title"
-    >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[85vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <div className="flex items-center gap-2">
-            <TrophyIcon
-              className="h-5 w-5 text-[var(--color-accent)]"
-              aria-hidden="true"
-            />
-            <h2 id="mvp-modal-title" className="text-lg font-semibold">
-              Elegir MVP del partido
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-800"
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="p-5">
-          <p className="text-sm text-gray-600 mb-4">
-            Seleccioná al jugador más destacado del partido. Se sugiere el de
-            mayor performance.
-          </p>
-
-          <ul className="space-y-2" role="radiogroup" aria-label="Jugadores del partido">
-            {participants.map((p) => {
-              const isSelected = selectedId === p.id;
-              const isSuggested = p.id === suggestedId;
-              return (
-                <li key={p.id}>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    onClick={() => setSelectedId(p.id)}
-                    className={`w-full text-left flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border transition ${
-                      isSelected
-                        ? "border-[var(--color-brand)] bg-purple-50 ring-1 ring-[var(--color-brand)]"
-                        : "border-gray-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span
-                        className={`h-4 w-4 rounded-full border-2 flex-shrink-0 ${
-                          isSelected
-                            ? "border-[var(--color-brand)] bg-[var(--color-brand)]"
-                            : "border-gray-300"
-                        }`}
-                        aria-hidden="true"
-                      />
-                      <div className="min-w-0">
-                        <div className="font-medium truncate">{p.name}</div>
-                        <div className="text-xs text-gray-500">
-                          ⚽ {p.goals} · ★ {p.performance}
-                        </div>
-                      </div>
-                    </div>
-                    {isSuggested && (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--color-brand)] text-white flex-shrink-0">
-                        sugerido
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-
-          {error && (
-            <div
-              role="alert"
-              className="mt-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2"
-            >
-              {error}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between gap-3 px-5 py-4 border-t bg-gray-50 rounded-b-xl">
-          <button
-            type="button"
-            onClick={() => onSave(null).then(onClose).catch(() => {})}
-            disabled={isSaving || !match.mvpId}
-            className="text-sm text-gray-600 hover:text-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Quitar MVP
-          </button>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving || !selectedId}
-              aria-busy={isSaving}
-              className="px-4 py-2 rounded-lg bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              {isSaving ? "Guardando..." : "Guardar MVP"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
