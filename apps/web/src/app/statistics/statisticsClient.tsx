@@ -53,6 +53,7 @@ export default function StatisticsClient({
     losses: number;
     draws: number;
     shirts: number;
+    mvps: number;
   };
 
   const stats = useMemo<StatRow[]>(() => {
@@ -68,10 +69,14 @@ export default function StatisticsClient({
         losses: number;
         draws: number;
         shirts: number;
+        mvps: number;
       }
     > = {};
     const shirtCountById = new Map(
       players.map((p) => [p.id, p.shirtDutiesCount ?? 0]),
+    );
+    const mvpCountById = new Map(
+      players.map((p) => [p.id, p.mvpCount ?? 0]),
     );
     for (const m of matches) {
       const process =
@@ -93,6 +98,7 @@ export default function StatisticsClient({
               losses: 0,
               draws: 0,
               shirts: shirtCountById.get(p.id) ?? 0,
+              mvps: mvpCountById.get(p.id) ?? 0,
             };
           map[p.id].matches++;
           map[p.id].goals += p.goals;
@@ -246,13 +252,25 @@ export default function StatisticsClient({
                       : " ▼"
                     : ""}
                 </th>
+                <th
+                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer select-none"
+                  onClick={() => toggleSort("mvps")}
+                  aria-label="Veces que fue MVP"
+                >
+                  🏆 MVP
+                  {sortKey === "mvps"
+                    ? sortDir === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {matches.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={10}
                     className="px-4 py-8 text-center text-gray-800"
                   >
                     No hay estadísticas disponibles.
@@ -281,6 +299,7 @@ export default function StatisticsClient({
                         {stat.wins}W-{stat.losses}L-{stat.draws}D
                       </td>
                       <td className="px-4 py-3">{stat.shirts}</td>
+                      <td className="px-4 py-3 font-semibold">{stat.mvps}</td>
                     </tr>
                   );
                 })

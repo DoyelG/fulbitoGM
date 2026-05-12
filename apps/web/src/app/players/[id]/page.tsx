@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { TrophyIcon } from "@heroicons/react/24/solid";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
 import SkillBadge from "@/components/SkillBadge";
@@ -429,6 +430,13 @@ export default function PlayerDetailPage() {
         <div className="bg-white rounded-lg shadow p-4 text-center">
           <div className="text-sm text-gray-700">Llevo las Camisetas</div>
           <div className="text-2xl font-semibold">{player.shirtDutiesCount ?? 0} Veces</div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4 text-center">
+          <div className="text-sm text-gray-700 flex items-center justify-center gap-1.5">
+            <TrophyIcon className="h-4 w-4 text-[var(--color-accent)]" aria-hidden="true" />
+            MVP del partido
+          </div>
+          <div className="text-2xl font-semibold">{player.mvpCount ?? 0} Veces</div>
         </div>
       </div>
 

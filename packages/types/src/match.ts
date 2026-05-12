@@ -15,6 +15,7 @@ export type Match = {
   teamB: MatchPlayer[]
   name?: string
   shirtsResponsibleId?: string | null
+  mvpId?: string | null
 }
 
 /** Minimal match shape used by streak-calculation algorithms */

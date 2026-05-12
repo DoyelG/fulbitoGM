@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { TrophyIcon } from "@heroicons/react/24/solid";
 import type { Match, Player } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import {
@@ -31,6 +32,7 @@ export default function HistoryClient({
     hydrateMatches,
     addMatch,
     updateMatch,
+    setMvp,
     deleteMatch,
     matches: storeMatches,
   } = useMatchStore();
@@ -40,6 +42,7 @@ export default function HistoryClient({
   >(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [mvpModalMatch, setMvpModalMatch] = useState<Match | null>(null);
 
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
@@ -204,37 +207,59 @@ export default function HistoryClient({
                     ))}
                   </div>
                 </div>
-                {m.shirtsResponsibleId && (
-                  <div className="text-sm text-gray-700 mt-2">
-                    Camisetas:{" "}
-                    <span className="font-medium">
-                      {storePlayers.find((p) => p.id === m.shirtsResponsibleId)
-                        ?.name ?? "—"}
-                    </span>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                    {m.shirtsResponsibleId && (
+                      <div className="text-gray-700">
+                        🎽 Camisetas:{" "}
+                        <span className="font-medium">
+                          {storePlayers.find(
+                            (p) => p.id === m.shirtsResponsibleId,
+                          )?.name ?? "—"}
+                        </span>
+                      </div>
+                    )}
+                    <MvpBadge
+                      match={m}
+                      players={storePlayers}
+                      isAdmin={isAdmin}
+                      onEdit={() => setMvpModalMatch(m)}
+                    />
                   </div>
-                )}
-                <div className="text-right mt-3 flex justify-end gap-3">
-                  {isAdmin && (
-                    <>
-                      <button
-                        className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                        onClick={() => setOpen({ mode: "edit", match: m })}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-800 text-sm"
-                        onClick={() => handleDelete(m.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </>
-                  )}
+                  <div className="flex justify-end gap-3">
+                    {isAdmin && (
+                      <>
+                        <button
+                          className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                          onClick={() => setOpen({ mode: "edit", match: m })}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-800 text-sm"
+                          onClick={() => handleDelete(m.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
         )}
       </div>
+      {mvpModalMatch && (
+        <MvpModal
+          match={mvpModalMatch}
+          players={storePlayers}
+          onClose={() => setMvpModalMatch(null)}
+          onSave={async (mvpId) => {
+            await setMvp(mvpModalMatch.id, mvpId);
+            setMvpModalMatch(null);
+          }}
+        />
+      )}
       <dialog
         open={showModal}
         className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
@@ -340,6 +365,13 @@ function RecordModal({
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(
     initial?.shirtsResponsibleId ?? null,
   );
+  const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null);
+
+  useEffect(() => {
+    if (!mvpId) return;
+    const inTeams = [...teamA, ...teamB].some((p) => p.id === mvpId);
+    if (!inTeams) setMvpId(null);
+  }, [teamA, teamB, mvpId]);
 
   const [goalsA, setGoalsA] = useState<Record<string, number>>(() =>
     Object.fromEntries(
@@ -456,7 +488,7 @@ function RecordModal({
         name: matchName.trim() || undefined,
       };
 
-      await onSave({ ...m, shirtsResponsibleId: chosen });
+      await onSave({ ...m, shirtsResponsibleId: chosen, mvpId });
 
       alert("Partido guardado correctamente!");
       onClose();
@@ -731,6 +763,54 @@ function RecordModal({
           </div>
         </div>
 
+        <div className="mt-3 bg-amber-50 border border-amber-200 rounded p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm">
+              <div className="font-semibold flex items-center gap-1.5">
+                <TrophyIcon className="h-4 w-4 text-[var(--color-accent)]" />
+                MVP del partido
+              </div>
+              <div className="text-gray-800">
+                {mvpId
+                  ? (players.find((p) => p.id === mvpId)?.name ?? "—")
+                  : "Opcional — elegí al jugador del partido"}
+              </div>
+            </div>
+            <div className="flex-1">
+              <select
+                className="border rounded px-3 py-2 w-full bg-white"
+                value={mvpId ?? ""}
+                onChange={(e) => setMvpId(e.target.value || null)}
+              >
+                <option value="">Sin MVP</option>
+                {(() => {
+                  const current = [...teamA, ...teamB];
+                  const topPerfId = (() => {
+                    const all = [
+                      ...current.map((p) => ({
+                        id: p.id,
+                        perf: perfA[p.id] ?? perfB[p.id] ?? 0,
+                      })),
+                    ];
+                    return all.sort((a, b) => b.perf - a.perf)[0]?.id;
+                  })();
+                  return current.map((p) => {
+                    const perf = perfA[p.id] ?? perfB[p.id] ?? 0;
+                    const goals = goalsA[p.id] ?? goalsB[p.id] ?? 0;
+                    const isSuggested = p.id === topPerfId && perf > 0;
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — ⚽ {goals} · ★ {perf}
+                        {isSuggested ? " · sugerido" : ""}
+                      </option>
+                    );
+                  });
+                })()}
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-end gap-3 mt-6">
           <button
             className="border px-4 py-2 rounded hover:bg-gray-50"
@@ -755,6 +835,228 @@ function RecordModal({
                 ? "Actualizar Partido"
                 : "Guardar Partido"}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MvpBadge({
+  match,
+  players,
+  isAdmin,
+  onEdit,
+}: {
+  match: Match;
+  players: Player[];
+  isAdmin: boolean;
+  onEdit: () => void;
+}) {
+  const mvp = match.mvpId
+    ? players.find((p) => p.id === match.mvpId)
+    : undefined;
+
+  if (!match.mvpId) {
+    if (!isAdmin) {
+      return (
+        <div className="flex items-center gap-1.5 text-gray-400 text-sm">
+          <TrophyIcon className="h-4 w-4" aria-hidden="true" />
+          <span>MVP no registrado</span>
+        </div>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={onEdit}
+        className="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-full border border-dashed border-gray-300 text-gray-600 hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] hover:bg-orange-50 transition"
+        aria-label="Asignar MVP a este partido"
+      >
+        <TrophyIcon className="h-4 w-4" aria-hidden="true" />
+        Asignar MVP
+      </button>
+    );
+  }
+
+  return (
+    <div className="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-900">
+      <TrophyIcon
+        className="h-4 w-4 text-[var(--color-accent)]"
+        aria-hidden="true"
+      />
+      <span>
+        MVP: <span className="font-semibold">{mvp?.name ?? "—"}</span>
+      </span>
+      {isAdmin && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="ml-1 text-xs text-orange-700 hover:text-orange-900 underline"
+          aria-label={`Cambiar MVP de ${mvp?.name ?? "este partido"}`}
+        >
+          cambiar
+        </button>
+      )}
+    </div>
+  );
+}
+
+function MvpModal({
+  match,
+  players,
+  onClose,
+  onSave,
+}: {
+  match: Match;
+  players: Player[];
+  onClose: () => void;
+  onSave: (mvpId: string | null) => Promise<void>;
+}) {
+  const participants = useMemo(() => {
+    return [...match.teamA, ...match.teamB];
+  }, [match]);
+
+  const suggestedId = useMemo(() => {
+    const sorted = [...participants].sort(
+      (a, b) => b.performance - a.performance,
+    );
+    return sorted[0]?.id ?? null;
+  }, [participants]);
+
+  const [selectedId, setSelectedId] = useState<string | null>(
+    match.mvpId ?? suggestedId,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      await onSave(selectedId);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo guardar el MVP",
+      );
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mvp-modal-title"
+    >
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[85vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <div className="flex items-center gap-2">
+            <TrophyIcon
+              className="h-5 w-5 text-[var(--color-accent)]"
+              aria-hidden="true"
+            />
+            <h2 id="mvp-modal-title" className="text-lg font-semibold">
+              Elegir MVP del partido
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-800"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-5">
+          <p className="text-sm text-gray-600 mb-4">
+            Seleccioná al jugador más destacado del partido. Se sugiere el de
+            mayor performance.
+          </p>
+
+          <ul className="space-y-2" role="radiogroup" aria-label="Jugadores del partido">
+            {participants.map((p) => {
+              const isSelected = selectedId === p.id;
+              const isSuggested = p.id === suggestedId;
+              return (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => setSelectedId(p.id)}
+                    className={`w-full text-left flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border transition ${
+                      isSelected
+                        ? "border-[var(--color-brand)] bg-purple-50 ring-1 ring-[var(--color-brand)]"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        className={`h-4 w-4 rounded-full border-2 flex-shrink-0 ${
+                          isSelected
+                            ? "border-[var(--color-brand)] bg-[var(--color-brand)]"
+                            : "border-gray-300"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{p.name}</div>
+                        <div className="text-xs text-gray-500">
+                          ⚽ {p.goals} · ★ {p.performance}
+                        </div>
+                      </div>
+                    </div>
+                    {isSuggested && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--color-brand)] text-white flex-shrink-0">
+                        sugerido
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {error && (
+            <div
+              role="alert"
+              className="mt-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2"
+            >
+              {error}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-t bg-gray-50 rounded-b-xl">
+          <button
+            type="button"
+            onClick={() => onSave(null).then(onClose).catch(() => {})}
+            disabled={isSaving || !match.mvpId}
+            className="text-sm text-gray-600 hover:text-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Quitar MVP
+          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving || !selectedId}
+              aria-busy={isSaving}
+              className="px-4 py-2 rounded-lg bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {isSaving ? "Guardando..." : "Guardar MVP"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

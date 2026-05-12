@@ -15,6 +15,7 @@ export type Player = {
   skills?: Skills
   photoUrl?: string
   shirtDutiesCount?: number
+  mvpCount?: number
   createdAt: Date
   updatedAt: Date
 }

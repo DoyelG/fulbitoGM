@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Usage: scripts/backup-db.sh [label]
+#   label: optional, gets appended to the backup filename for context.
+#          Useful before risky operations, e.g. `backup-db.sh pre_add_match_mvp`.
+#          Only [a-zA-Z0-9_-] are allowed; everything else is stripped.
+
 # ── Config ────────────────────────────────────────────────────────────────────
 BACKUP_DIR="$HOME/.fulbito-backups"
 MAX_BACKUPS=4
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILE="$BACKUP_DIR/fulbito_$TIMESTAMP.sql.gz"
+
+RAW_LABEL="${1:-}"
+LABEL="$(printf '%s' "$RAW_LABEL" | tr -cd '[:alnum:]_-')"
+LABEL_SUFFIX=""
+[[ -n "$LABEL" ]] && LABEL_SUFFIX="_$LABEL"
+
+BACKUP_FILE="$BACKUP_DIR/fulbito_${TIMESTAMP}${LABEL_SUFFIX}.sql.gz"
 
 # Load DATABASE_URL from backend .env if not already set
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -49,7 +60,11 @@ echo "🗄️  Starting backup → $BACKUP_FILE"
 echo "✅  Backup complete ($(du -sh "$BACKUP_FILE" | cut -f1))"
 
 # ── Rotate: keep only last MAX_BACKUPS ────────────────────────────────────────
-mapfile -t OLD_BACKUPS < <(ls -t "$BACKUP_DIR"/fulbito_*.sql.gz 2>/dev/null | tail -n +$((MAX_BACKUPS + 1)))
+# Portable replacement for `mapfile` (not available in macOS's default bash 3.2).
+OLD_BACKUPS=()
+while IFS= read -r line; do
+  OLD_BACKUPS+=("$line")
+done < <(ls -t "$BACKUP_DIR"/fulbito_*.sql.gz 2>/dev/null | tail -n +$((MAX_BACKUPS + 1)))
 
 if [[ ${#OLD_BACKUPS[@]} -gt 0 ]]; then
   echo "🗑️  Removing ${#OLD_BACKUPS[@]} old backup(s):"
