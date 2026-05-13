@@ -8,6 +8,7 @@ type MatchStore = {
   initLoad: () => Promise<void>
   addMatch: (m: Omit<Match, 'id'>) => Promise<string>
   updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
+  setMvp: (id: string, mvpId: string | null) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
   resetAndReload: () => Promise<void>
@@ -51,6 +52,16 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     })
     if (!res.ok) throw new Error('Failed to update match')
     await get().resetAndReload()
+  },
+  setMvp: async (id, mvpId) => {
+    const res = await fetch(`/api/matches/${id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mvpId })
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: 'Failed to set MVP' }))
+      throw new Error(body.error || 'Failed to set MVP')
+    }
+    set({ matches: get().matches.map(m => m.id === id ? { ...m, mvpId } : m) })
   },
   deleteMatch: async (id) => {
     await fetch(`/api/matches/${id}`, { method: 'DELETE' })
