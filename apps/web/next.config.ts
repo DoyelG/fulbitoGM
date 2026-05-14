@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@fulbito/utils", "@fulbito/types"],
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
+    ],
+  },
   async rewrites() {
     const backend = process.env.BACKEND_URL || "http://localhost:3001";
     return {

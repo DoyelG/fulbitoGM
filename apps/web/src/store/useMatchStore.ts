@@ -1,6 +1,29 @@
-import { Match } from '@fulbito/types'
 import { create } from 'zustand'
+import type { Match } from '@fulbito/types'
+import {
+  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
+  query, orderBy, Timestamp,
+} from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 
+function docToMatch(id: string, data: Record<string, any>): Match {
+  return {
+    id,
+    date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
+    type: data.type,
+    name: data.name ?? undefined,
+    teamAScore: data.teamAScore,
+    teamBScore: data.teamBScore,
+    teamA: data.teamA ?? [],
+    teamB: data.teamB ?? [],
+    shirtsResponsibleId: data.shirtsResponsibleId ?? null,
+  }
+}
+
+async function fetchMatches(): Promise<Match[]> {
+  const snap = await getDocs(query(collection(db, 'matches'), orderBy('date', 'desc')))
+  return snap.docs.map(d => docToMatch(d.id, d.data() as Record<string, any>))
+}
 
 type MatchStore = {
   matches: Match[]
@@ -22,11 +45,7 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     if (state === 'loading' || state === 'loaded') return
     set({ matchesInit: 'loading' })
     try {
-      const res = await fetch('/api/matches', { cache: 'no-store' })
-      if (!res.ok) throw new Error('Failed to load matches')
-      const ct = res.headers.get('content-type') || ''
-      if (!ct.includes('application/json')) throw new Error('Unexpected response')
-      const data: Match[] = await res.json()
+      const data = await fetchMatches()
       set({ matches: data, matchesInit: 'loaded' })
     } catch {
       set({ matchesInit: 'error' })
@@ -36,21 +55,21 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     set({ matches, matchesInit: 'loaded' })
   },
   addMatch: async (m) => {
-    const res = await fetch('/api/matches', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m)
+    const ref = await addDoc(collection(db, 'matches'), {
+      ...m,
+      date: Timestamp.fromDate(new Date(m.date)),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     })
-    if (!res.ok) throw new Error('Failed to create match')
-    const ct = res.headers.get('content-type') || ''
-    if (!ct.includes('application/json')) throw new Error('Unexpected response creating match')
-    const { id } = await res.json()
     await get().resetAndReload()
-    return id
+    return ref.id
   },
   updateMatch: async (id, m) => {
-    const res = await fetch(`/api/matches/${id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m)
+    await updateDoc(doc(db, 'matches', id), {
+      ...m,
+      date: Timestamp.fromDate(new Date(m.date)),
+      updatedAt: Timestamp.now(),
     })
-    if (!res.ok) throw new Error('Failed to update match')
     await get().resetAndReload()
   },
   setMvp: async (id, mvpId) => {
@@ -64,13 +83,11 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     set({ matches: get().matches.map(m => m.id === id ? { ...m, mvpId } : m) })
   },
   deleteMatch: async (id) => {
-    await fetch(`/api/matches/${id}`, { method: 'DELETE' })
+    await deleteDoc(doc(db, 'matches', id))
     await get().resetAndReload()
   },
   resetAndReload: async () => {
-    const res = await fetch('/api/matches', { cache: 'no-store' })
-    if (!res.ok) throw new Error('Failed to load matches')
-    const data: Match[] = await res.json()
+    const data = await fetchMatches()
     set({ matches: data, matchesInit: 'loaded' })
   },
 }))

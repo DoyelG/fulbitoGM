@@ -1,0 +1,19 @@
+{
+  "name": "@fulbito/firebase",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@fulbito/types": "workspace:*"
+  },
+  "peerDependencies": {
+    "firebase": "^11.0.0"
+  },
+  "scripts": {
+    "lint": "echo 'No linting configured'"
+  }
+}

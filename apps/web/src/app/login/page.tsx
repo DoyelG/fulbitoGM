@@ -1,18 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { getBackendBaseUrl } from '@/lib/backend'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 export default function LoginPage() {
-
   const [mode, setMode] = useState<'signin' | 'register'>('signin')
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { signIn, register } = useFirebaseAuth()
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,18 +19,11 @@ export default function LoginPage() {
     setLoading(true)
     try {
       if (mode === 'register') {
-        const res = await fetch(`${getBackendBaseUrl()}/api/auth/register`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
-        })
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({ error: 'Registration failed' }))
-          throw new Error(data.error || 'Registration failed')
-        }
+        await register(email, password)
+      } else {
+        await signIn(email, password)
       }
-      const r = await signIn('credentials', { username, password, redirect: false })
-      if (r?.error) throw new Error(r.error)
       router.push('/')
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -58,13 +50,13 @@ export default function LoginPage() {
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-700 mb-1">Usuario</label>
+            <label className="block text-sm text-gray-700 mb-1">Email</label>
             <input
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full border rounded px-3 py-2"
-              autoComplete="username"
+              autoComplete="email"
               required
             />
           </div>
@@ -98,5 +90,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
-

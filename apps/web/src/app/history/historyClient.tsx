@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useSession } from "next-auth/react";
+import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 import type { Match, Player } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import {
@@ -24,9 +24,7 @@ export default function HistoryClient({
   matches: Match[];
   players: Player[];
 }) {
-  const { data } = useSession();
-  const isAdmin =
-    (data?.user as unknown as { role?: string })?.role === "ADMIN";
+  const { isAdmin } = useFirebaseAuth();
   const {
     hydrateMatches,
     addMatch,
