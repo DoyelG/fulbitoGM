@@ -9,6 +9,7 @@ export function shapeStoreMatches(
     teamAScore: number
     teamBScore: number
     shirtsResponsibleId?: string | null
+    mvpId?: string | null
     players: Array<{ playerId: string; team: 'A' | 'B'; goals: number; performance: number }>
   }>,
   nameMap: Map<string, string>
@@ -19,6 +20,7 @@ export function shapeStoreMatches(
     type: m.type,
     name: m.name ?? undefined,
     shirtsResponsibleId: m.shirtsResponsibleId ?? undefined,
+    mvpId: m.mvpId ?? undefined,
     teamAScore: m.teamAScore,
     teamBScore: m.teamBScore,
     teamA: m.players

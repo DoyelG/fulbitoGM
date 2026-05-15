@@ -430,6 +430,13 @@ export default function PlayerDetailPage() {
           <div className="text-sm text-gray-700">Llevo las Camisetas</div>
           <div className="text-2xl font-semibold">{player.shirtDutiesCount ?? 0} Veces</div>
         </div>
+        <div className="bg-white rounded-lg shadow p-4 text-center">
+          <div className="text-sm text-gray-700 flex items-center justify-center gap-1.5">
+            <span aria-hidden="true">🏆</span>
+            MVP del partido
+          </div>
+          <div className="text-2xl font-semibold">{player.mvpCount ?? 0} Veces</div>
+        </div>
       </div>
 
       {/* Recent matches card remains the same */}

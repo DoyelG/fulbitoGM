@@ -14,6 +14,7 @@ type IncomingMatchBody = {
   teamA?: IncomingMatchPlayer[]
   teamB?: IncomingMatchPlayer[]
   shirtsResponsibleId?: string | null
+  mvpId?: string | null
 }
 
 export async function GET() {
@@ -29,6 +30,14 @@ export async function POST(req: Request) {
   const gate = await requireAdmin()
   if (!gate.ok) return NextResponse.json(gate.body, { status: gate.status })
   const b = (await req.json()) as IncomingMatchBody
+
+  if (b.mvpId) {
+    const participants = new Set([...(b.teamA || []), ...(b.teamB || [])].map(p => p.id))
+    if (!participants.has(b.mvpId)) {
+      return NextResponse.json({ error: 'MVP must be a player in this match' }, { status: 400 })
+    }
+  }
+
   const [created] = await prisma.$transaction([
     prisma.match.create({
       data: {
@@ -38,6 +47,7 @@ export async function POST(req: Request) {
         teamAScore: b.teamAScore,
         teamBScore: b.teamBScore,
         shirtsResponsibleId: b.shirtsResponsibleId ?? null,
+        mvpId: b.mvpId ?? null,
         players: {
           create: [
             ...(b.teamA || []).map((p: IncomingMatchPlayer) => ({ playerId: p.id, team: 'A' as const, goals: p.goals, performance: p.performance })),
@@ -50,6 +60,12 @@ export async function POST(req: Request) {
       prisma.player.update({
         where: { id: b.shirtsResponsibleId },
         data: { shirtDutiesCount: { increment: 1 } }
+      })
+    ] : []),
+    ...(b.mvpId ? [
+      prisma.player.update({
+        where: { id: b.mvpId },
+        data: { mvpCount: { increment: 1 } }
       })
     ] : [])
   ])

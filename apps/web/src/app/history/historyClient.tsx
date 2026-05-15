@@ -12,8 +12,8 @@ import {
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 
-type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9";
-const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9"];
+type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
+const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
 
 type RecordingPlayer = { id: string; name: string };
 
@@ -220,10 +220,15 @@ export default function HistoryClient({
                     {m.teamA.map((p: Match["teamA"][number]) => (
                       <div
                         key={p.id}
-                        className="flex justify-between border-b last:border-b-0 py-0.5 gap-1"
+                        className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                       >
                         <span className="text-sm truncate">{p.name}</span>
-                        <span className="text-xs text-gray-500 shrink-0">
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
+                          {m.mvpId === p.id && (
+                            <span aria-label="MVP" role="img">
+                              🏆
+                            </span>
+                          )}
                           {p.goals}⚽ {p.performance}★
                         </span>
                       </div>
@@ -236,42 +241,52 @@ export default function HistoryClient({
                     {m.teamB.map((p: Match["teamB"][number]) => (
                       <div
                         key={p.id}
-                        className="flex justify-between border-b last:border-b-0 py-0.5 gap-1"
+                        className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                       >
                         <span className="text-sm truncate">{p.name}</span>
-                        <span className="text-xs text-gray-500 shrink-0">
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
+                          {m.mvpId === p.id && (
+                            <span aria-label="MVP" role="img">
+                              🏆
+                            </span>
+                          )}
                           {p.goals}⚽ {p.performance}★
                         </span>
                       </div>
                     ))}
                   </div>
                 </div>
-                {m.shirtsResponsibleId && (
-                  <div className="text-sm text-gray-700 mt-2">
-                    Camisetas:{" "}
-                    <span className="font-medium">
-                      {storePlayers.find((p) => p.id === m.shirtsResponsibleId)
-                        ?.name ?? "—"}
-                    </span>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                    {m.shirtsResponsibleId && (
+                      <div className="text-gray-700">
+                        🎽 Camisetas:{" "}
+                        <span className="font-medium">
+                          {storePlayers.find(
+                            (p) => p.id === m.shirtsResponsibleId,
+                          )?.name ?? "—"}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="text-right mt-3 flex justify-end gap-3">
-                  {isAdmin && (
-                    <>
-                      <button
-                        className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                        onClick={() => setOpen({ mode: "edit", match: m })}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-800 text-sm"
-                        onClick={() => handleDelete(m.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </>
-                  )}
+                  <div className="flex justify-end gap-3">
+                    {isAdmin && (
+                      <>
+                        <button
+                          className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                          onClick={() => setOpen({ mode: "edit", match: m })}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-800 text-sm"
+                          onClick={() => handleDelete(m.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
@@ -382,6 +397,13 @@ function RecordModal({
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(
     initial?.shirtsResponsibleId ?? null,
   );
+  const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null);
+
+  useEffect(() => {
+    if (!mvpId) return;
+    const inTeams = [...teamA, ...teamB].some((p) => p.id === mvpId);
+    if (!inTeams) setMvpId(null);
+  }, [teamA, teamB, mvpId]);
 
   const [goalsA, setGoalsA] = useState<Record<string, number>>(() =>
     Object.fromEntries(
@@ -498,7 +520,7 @@ function RecordModal({
         name: matchName.trim() || undefined,
       };
 
-      await onSave({ ...m, shirtsResponsibleId: chosen });
+      await onSave({ ...m, shirtsResponsibleId: chosen, mvpId });
 
       alert("Partido guardado correctamente!");
       onClose();
@@ -773,6 +795,54 @@ function RecordModal({
           </div>
         </div>
 
+        <div className="mt-3 bg-amber-50 border border-amber-200 rounded p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm">
+              <div className="font-semibold flex items-center gap-1.5">
+                <span aria-hidden="true">🏆</span>
+                MVP del partido
+              </div>
+              <div className="text-gray-800">
+                {mvpId
+                  ? (players.find((p) => p.id === mvpId)?.name ?? "—")
+                  : "Opcional — elegí al jugador del partido"}
+              </div>
+            </div>
+            <div className="flex-1">
+              <select
+                className="border rounded px-3 py-2 w-full bg-white"
+                value={mvpId ?? ""}
+                onChange={(e) => setMvpId(e.target.value || null)}
+              >
+                <option value="">Sin MVP</option>
+                {(() => {
+                  const current = [...teamA, ...teamB];
+                  const topPerfId = (() => {
+                    const all = [
+                      ...current.map((p) => ({
+                        id: p.id,
+                        perf: perfA[p.id] ?? perfB[p.id] ?? 0,
+                      })),
+                    ];
+                    return all.sort((a, b) => b.perf - a.perf)[0]?.id;
+                  })();
+                  return current.map((p) => {
+                    const perf = perfA[p.id] ?? perfB[p.id] ?? 0;
+                    const goals = goalsA[p.id] ?? goalsB[p.id] ?? 0;
+                    const isSuggested = p.id === topPerfId && perf > 0;
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — ⚽ {goals} · ★ {perf}
+                        {isSuggested ? " · sugerido" : ""}
+                      </option>
+                    );
+                  });
+                })()}
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-end gap-3 mt-6">
           <button
             className="border px-4 py-2 rounded hover:bg-gray-50"
@@ -802,3 +872,4 @@ function RecordModal({
     </div>
   );
 }
+

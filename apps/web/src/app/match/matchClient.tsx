@@ -7,8 +7,8 @@ import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds
 import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
-type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9'
-const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9']
+type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
+const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()

@@ -19,7 +19,11 @@
     "next-auth": "^4.24.12",
     "prisma": "^6.15.0"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "devDependencies": {
+    "tsx": "^4.19.4",
     "@eslint/eslintrc": "^3",
     "@types/node": "20.19.24",
     "eslint": "^9",

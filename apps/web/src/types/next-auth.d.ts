@@ -1,5 +1,7 @@
 import type { DefaultSession } from 'next-auth'
 
+declare module '*.css' {}
+
 type UserRole = 'USER' | 'ADMIN'
 
 declare module 'next-auth' {
