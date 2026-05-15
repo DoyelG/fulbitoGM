@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 import type { Match } from '@fulbito/types'
 import {
-  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
-  query, orderBy, Timestamp,
+  collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
+  query, orderBy, Timestamp, type DocumentData,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
-function docToMatch(id: string, data: Record<string, any>): Match {
+function docToMatch(id: string, data: DocumentData): Match {
   return {
     id,
     date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
@@ -22,7 +22,7 @@ function docToMatch(id: string, data: Record<string, any>): Match {
 
 async function fetchMatches(): Promise<Match[]> {
   const snap = await getDocs(query(collection(db, 'matches'), orderBy('date', 'desc')))
-  return snap.docs.map(d => docToMatch(d.id, d.data() as Record<string, any>))
+  return snap.docs.map(d => docToMatch(d.id, d.data()))
 }
 
 type MatchStore = {

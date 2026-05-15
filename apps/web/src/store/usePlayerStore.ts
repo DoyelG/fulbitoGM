@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import type { Player } from '@fulbito/types'
 import {
-  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
-  query, orderBy, Timestamp,
+  collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
+  query, orderBy, Timestamp, type DocumentData,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 export type { Player }
 
-function docToPlayer(id: string, data: Record<string, any>): Player {
+function docToPlayer(id: string, data: DocumentData): Player {
   return {
     id,
     name: data.name,
@@ -24,7 +24,7 @@ function docToPlayer(id: string, data: Record<string, any>): Player {
 
 async function fetchPlayers(): Promise<Player[]> {
   const snap = await getDocs(query(collection(db, 'players'), orderBy('skill', 'desc')))
-  return snap.docs.map(d => docToPlayer(d.id, d.data() as Record<string, any>))
+  return snap.docs.map(d => docToPlayer(d.id, d.data()))
 }
 
 type PlayerStore = {
