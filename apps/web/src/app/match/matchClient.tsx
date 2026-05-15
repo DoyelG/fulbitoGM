@@ -80,6 +80,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     }
     setSelected(new Set())
     setAutoTeams(null)
+    setStreakSeparated(false)
     setManualOpen(false)
     setSelectionOpen(true)
   }
@@ -141,7 +142,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
   const buildTeams = (pool: PlayerInfo[], streaks: Record<string, { kind: 'win' | 'loss' | null; count: number }>) => {
     const { seedA, seedB, rest } = splitByStreak(pool, streaks)
-    if (seedA.length + seedB.length > 0) {
+    if (seedA.length > 0 && seedB.length > 0) {
       return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam), hadStreak: true }
     }
     return { teams: balanceTeams(pool, playersPerTeam), hadStreak: false }
