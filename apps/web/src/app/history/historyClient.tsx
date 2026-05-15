@@ -43,6 +43,7 @@ export default function HistoryClient({
 
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     if (storeMatches.length === 0) hydrateMatches(matches);
@@ -93,44 +94,78 @@ export default function HistoryClient({
           </button>
         )}
       </div>
-      <div className="mb-3 flex gap-3">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Desde</label>
+      <div className="mb-4 flex flex-col md:flex-row md:items-end gap-3">
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
           <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="border rounded px-3 py-2"
+            type="text"
+            placeholder="Buscar por título o jugador..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border rounded pl-9 pr-3 py-2 w-full"
           />
         </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Hasta</label>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-        </div>
-        {(fromDate || toDate) && (
-          <div className="flex items-end">
-            <button
-              className="border rounded px-3 py-2 hover:bg-gray-50"
-              onClick={() => {
-                setFromDate("");
-                setToDate("");
-              }}
-            >
-              Limpiar filtros
-            </button>
+        <div className="flex gap-3 flex-wrap">
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">Desde</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="border rounded px-3 py-2"
+            />
           </div>
-        )}
+          <div>
+            <label className="block text-sm text-gray-700 mb-1">Hasta</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="border rounded px-3 py-2"
+            />
+          </div>
+          {(fromDate || toDate) && (
+            <div className="flex items-end">
+              <button
+                className="border rounded px-3 py-2 hover:bg-gray-50"
+                onClick={() => {
+                  setFromDate("");
+                  setToDate("");
+                }}
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div className="space-y-4 mb-10">
         {storeMatches.filter((m) => {
           const d = m.date.slice(0, 10);
           if (fromDate && d < fromDate) return false;
           if (toDate && d > toDate) return false;
+          if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            const inTitle = m.name?.toLowerCase().includes(q) ?? false;
+            const inPlayers = [...m.teamA, ...m.teamB].some((p) =>
+              p.name.toLowerCase().includes(q),
+            );
+            if (!inTitle && !inPlayers) return false;
+          }
           return true;
         }).length === 0 ? (
           <div className="text-black">
@@ -142,6 +177,14 @@ export default function HistoryClient({
               const d = m.date.slice(0, 10);
               if (fromDate && d < fromDate) return false;
               if (toDate && d > toDate) return false;
+              if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const inTitle = m.name?.toLowerCase().includes(q) ?? false;
+                const inPlayers = [...m.teamA, ...m.teamB].some((p) =>
+                  p.name.toLowerCase().includes(q),
+                );
+                if (!inTitle && !inPlayers) return false;
+              }
               return true;
             })
             .slice(0, 10)
@@ -169,18 +212,18 @@ export default function HistoryClient({
                     {m.teamAScore} - {m.teamBScore}
                   </div>
                 </div>
-                <div className="grid md:grid-cols-3 gap-4 items-start">
+                <div className="flex gap-2 items-start">
                   <div
-                    className={`${m.teamAScore > m.teamBScore ? "bg-green-50" : m.teamAScore < m.teamBScore ? "bg-red-50" : "bg-gray-50"} rounded p-3`}
+                    className={`flex-1 min-w-0 ${m.teamAScore > m.teamBScore ? "bg-green-50" : m.teamAScore < m.teamBScore ? "bg-red-50" : "bg-gray-50"} rounded p-2`}
                   >
-                    <h4 className="text-center font-semibold mb-2">Equipo A</h4>
+                    <h4 className="text-center font-semibold mb-2 text-sm">Equipo A</h4>
                     {m.teamA.map((p: Match["teamA"][number]) => (
                       <div
                         key={p.id}
-                        className="flex justify-between items-center border-b last:border-b-0 py-1"
+                        className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                       >
-                        <span>{p.name}</span>
-                        <span className="flex items-center gap-1.5">
+                        <span className="text-sm truncate">{p.name}</span>
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
                           {m.mvpId === p.id && (
                             <span aria-label="MVP" role="img">
                               🏆
@@ -191,18 +234,17 @@ export default function HistoryClient({
                       </div>
                     ))}
                   </div>
-                  <div className="text-center font-bold text-black">VS</div>
                   <div
-                    className={`${m.teamBScore > m.teamAScore ? "bg-green-50" : m.teamBScore < m.teamAScore ? "bg-red-50" : "bg-gray-50"} rounded p-3`}
+                    className={`flex-1 min-w-0 ${m.teamBScore > m.teamAScore ? "bg-green-50" : m.teamBScore < m.teamAScore ? "bg-red-50" : "bg-gray-50"} rounded p-2`}
                   >
-                    <h4 className="text-center font-semibold mb-2">Equipo B</h4>
+                    <h4 className="text-center font-semibold mb-2 text-sm">Equipo B</h4>
                     {m.teamB.map((p: Match["teamB"][number]) => (
                       <div
                         key={p.id}
-                        className="flex justify-between items-center border-b last:border-b-0 py-1"
+                        className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                       >
-                        <span>{p.name}</span>
-                        <span className="flex items-center gap-1.5">
+                        <span className="text-sm truncate">{p.name}</span>
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
                           {m.mvpId === p.id && (
                             <span aria-label="MVP" role="img">
                               🏆
