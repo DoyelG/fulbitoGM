@@ -6,6 +6,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
+  signInWithPopup,
+  GoogleAuthProvider,
   type User as FirebaseUser,
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
@@ -22,6 +24,7 @@ type AuthContextValue = {
   loading: boolean
   isAdmin: boolean
   signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
   register: (email: string, password: string) => Promise<void>
 }
@@ -48,6 +51,19 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     setUser({ uid: cred.user.uid, email: cred.user.email!, role })
   }
 
+  const signInWithGoogle = async () => {
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider())
+    const uid = cred.user.uid
+    const email = cred.user.email!
+    const userRef = doc(db, 'users', uid)
+    const snap = await getDoc(userRef)
+    if (!snap.exists()) {
+      await setDoc(userRef, { email, role: 'USER', createdAt: Timestamp.now() })
+    }
+    const role = (snap.data()?.role as 'USER' | 'ADMIN') ?? 'USER'
+    setUser({ uid, email, role })
+  }
+
   const signOut = async () => {
     await firebaseSignOut(auth)
     setUser(null)
@@ -64,7 +80,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin: user?.role === 'ADMIN', signIn, signOut, register }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin: user?.role === 'ADMIN', signIn, signInWithGoogle, signOut, register }}>
       {children}
     </AuthContext.Provider>
   )
