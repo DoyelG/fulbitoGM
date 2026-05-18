@@ -12,7 +12,7 @@ import {
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { Fonts, Spacing } from '@/constants/theme'
 
 export type PlayerEditFormValues = {
   name: string

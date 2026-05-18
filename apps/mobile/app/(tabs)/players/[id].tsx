@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 
 import { PlayerAvatar } from '@/components/players/player-avatar'
-import { SkillBadge } from '@/components/players/skill-badge'
 import { StreakBadge } from '@/components/players/streak-badge'
 import { PlayerSkillBars } from '@/components/players/detail/player-skill-bars'
 import { PlayerStatsGrid } from '@/components/players/detail/player-stats-grid'
