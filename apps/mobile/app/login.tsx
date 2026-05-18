@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router'
 import { Colors } from '@/constants/theme'
 import { useColorScheme } from '@/hooks/use-color-scheme'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import { styles } from './login.styles'
+import { styles } from '@/styles/login.styles'
 
 const BRAND = '#7c3aed'
 
