@@ -29,6 +29,32 @@ export async function loadPlayersAndMatches(): Promise<{
   }
 }
 
+export type PlayerPayload = {
+  name: string
+  position: string
+  skills: {
+    physical: number
+    technical: number
+    tactical: number
+    psychological: number
+  }
+  skill: number
+}
+
+export async function updatePlayerRequest(id: string, payload: PlayerPayload): Promise<void> {
+  const base = getBackendUrl()
+  const res = await fetch(`${base}/api/players/${id}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || `Error al actualizar jugador (${res.status})`)
+  }
+}
+
 export async function deletePlayerRequest(id: string): Promise<void> {
   const base = getBackendUrl()
   const res = await fetch(`${base}/api/players/${id}`, {
