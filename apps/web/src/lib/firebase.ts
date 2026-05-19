@@ -12,27 +12,13 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Defer initialization so module import during static prerender (where env
-// vars are absent) does not call initializeApp with an empty apiKey.
-let _app: FirebaseApp | undefined
-let _auth: Auth | undefined
-let _db: Firestore | undefined
-let _storage: FirebaseStorage | undefined
+// Skip initialization when no apiKey is present so the CI `next build`
+// step can statically prerender pages (e.g. /_not-found) without
+// NEXT_PUBLIC_FIREBASE_* secrets injected. Real runtime always has them.
+const app: FirebaseApp | undefined = firebaseConfig.apiKey
+  ? (getApps()[0] ?? initializeApp(firebaseConfig))
+  : undefined
 
-function ensureApp(): FirebaseApp {
-  if (_app) return _app
-  _app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-  return _app
-}
-
-function lazy<T extends object>(factory: () => T): T {
-  return new Proxy({} as T, {
-    get(_, prop, receiver) {
-      return Reflect.get(factory(), prop, receiver)
-    },
-  })
-}
-
-export const auth: Auth = lazy(() => (_auth ??= getAuth(ensureApp())))
-export const db: Firestore = lazy(() => (_db ??= getFirestore(ensureApp())))
-export const storage: FirebaseStorage = lazy(() => (_storage ??= getStorage(ensureApp())))
+export const auth = (app ? getAuth(app) : undefined) as Auth
+export const db = (app ? getFirestore(app) : undefined) as Firestore
+export const storage = (app ? getStorage(app) : undefined) as FirebaseStorage
