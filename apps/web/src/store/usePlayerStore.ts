@@ -1,7 +1,32 @@
 import { create } from 'zustand'
 import type { Player } from '@fulbito/types'
+import {
+  collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
+  query, orderBy, Timestamp, type DocumentData,
+} from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 
 export type { Player }
+
+function docToPlayer(id: string, data: DocumentData): Player {
+  return {
+    id,
+    name: data.name,
+    position: data.position,
+    skill: data.skill ?? null,
+    skills: data.skills,
+    photoUrl: data.photoUrl,
+    shirtDutiesCount: data.shirtDutiesCount ?? 0,
+    mvpCount: data.mvpCount ?? 0,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
+  }
+}
+
+async function fetchPlayers(): Promise<Player[]> {
+  const snap = await getDocs(query(collection(db, 'players'), orderBy('skill', 'desc')))
+  return snap.docs.map(d => docToPlayer(d.id, d.data()))
+}
 
 type PlayerStore = {
   players: Player[]
@@ -12,7 +37,7 @@ type PlayerStore = {
   updatePlayer: (id: string, player: Partial<Player>) => Promise<void>
   deletePlayer: (id: string) => Promise<void>
   getPlayer: (id: string) => Player | undefined
-  resetAndReload: () => Promise<void> 
+  resetAndReload: () => Promise<void>
 }
 
 export const usePlayerStore = create<PlayerStore>()((set, get) => ({
@@ -23,8 +48,7 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     if (state === 'loading' || state === 'loaded') return
     set({ playersInit: 'loading' })
     try {
-      const res = await fetch('/api/players', { cache: 'no-store' })
-      const data: Player[] = await res.json()
+      const data = await fetchPlayers()
       set({ players: data, playersInit: 'loaded' })
     } catch {
       set({ playersInit: 'error' })
@@ -34,46 +58,25 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     set({ players, playersInit: 'loaded' })
   },
   addPlayer: async (player) => {
-    const res = await fetch('/api/players', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(player)
+    await addDoc(collection(db, 'players'), {
+      ...player,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     })
-    if (!res.ok) {
-      const msg = await res.text().catch(() => '')
-      throw new Error(msg || 'Failed to create player')
-    }
-    const ct = res.headers.get('content-type') || ''
-    if (!ct.includes('application/json')) throw new Error('Unexpected response creating player')
-    const created: Player = await res.json()
-    set(s => ({ players: [...s.players, created].sort((a, b) => a.name.localeCompare(b.name)) }))
     await get().resetAndReload()
   },
   updatePlayer: async (id, updates) => {
-    const res = await fetch(`/api/players/${id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updates)
-    })
-    if (!res.ok) {
-      const msg = await res.text().catch(() => '')
-      throw new Error(msg || 'Failed to update player')
-    }
-    const ct = res.headers.get('content-type') || ''
-    if (!ct.includes('application/json')) throw new Error('Unexpected response updating player')
-    const updated: Player = await res.json()
-    set(s => ({ players: s.players.map(p => p.id === id ? updated : p) }))
+    await updateDoc(doc(db, 'players', id), { ...updates, updatedAt: Timestamp.now() })
     await get().resetAndReload()
   },
   deletePlayer: async (id) => {
-    const res = await fetch(`/api/players/${id}`, { method: 'DELETE' })
-    if (!res.ok) {
-      const msg = await res.text().catch(() => '')
-      throw new Error(msg || 'Failed to delete player')
-    }
+    await deleteDoc(doc(db, 'players', id))
     set(s => ({ players: s.players.filter(p => p.id !== id) }))
     await get().resetAndReload()
   },
   getPlayer: (id) => get().players.find(p => p.id === id),
   resetAndReload: async () => {
-    const res = await fetch('/api/players', { cache: 'no-store' })
-    const data: Player[] = await res.json()
+    const data = await fetchPlayers()
     set({ players: data, playersInit: 'loaded' })
   },
 }))

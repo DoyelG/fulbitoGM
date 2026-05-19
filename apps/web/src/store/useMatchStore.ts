@@ -1,6 +1,52 @@
-import { Match } from '@fulbito/types'
 import { create } from 'zustand'
+import type { Match, MatchPlayer } from '@fulbito/types'
+import {
+  collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
+  query, orderBy, Timestamp, increment, type DocumentData,
+} from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 
+async function fetchMatches(): Promise<Match[]> {
+  const [matchSnap, mpSnap, playerSnap] = await Promise.all([
+    getDocs(query(collection(db, 'matches'), orderBy('date', 'desc'))),
+    getDocs(collection(db, 'matchPlayers')),
+    getDocs(collection(db, 'players')),
+  ])
+
+  const playerNames = new Map<string, string>(
+    playerSnap.docs.map(d => [d.id, d.data().name as string])
+  )
+
+  const teamsByMatch = new Map<string, { A: MatchPlayer[]; B: MatchPlayer[] }>()
+  for (const d of mpSnap.docs) {
+    const mp = d.data()
+    if (!teamsByMatch.has(mp.matchId)) teamsByMatch.set(mp.matchId, { A: [], B: [] })
+    const entry: MatchPlayer = {
+      id: mp.playerId,
+      name: playerNames.get(mp.playerId) ?? '',
+      goals: mp.goals,
+      performance: mp.performance,
+    }
+    teamsByMatch.get(mp.matchId)![mp.team as 'A' | 'B'].push(entry)
+  }
+
+  return matchSnap.docs.map(d => {
+    const data: DocumentData = d.data()
+    const teams = teamsByMatch.get(d.id) ?? { A: [], B: [] }
+    return {
+      id: d.id,
+      date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
+      type: data.type,
+      name: data.name ?? undefined,
+      teamAScore: data.teamAScore,
+      teamBScore: data.teamBScore,
+      teamA: teams.A,
+      teamB: teams.B,
+      shirtsResponsibleId: data.shirtsResponsibleId ?? null,
+      mvpId: data.mvpId ?? null,
+    }
+  })
+}
 
 type MatchStore = {
   matches: Match[]
@@ -8,7 +54,6 @@ type MatchStore = {
   initLoad: () => Promise<void>
   addMatch: (m: Omit<Match, 'id'>) => Promise<string>
   updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
-  setMvp: (id: string, mvpId: string | null) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
   resetAndReload: () => Promise<void>
@@ -22,11 +67,7 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     if (state === 'loading' || state === 'loaded') return
     set({ matchesInit: 'loading' })
     try {
-      const res = await fetch('/api/matches', { cache: 'no-store' })
-      if (!res.ok) throw new Error('Failed to load matches')
-      const ct = res.headers.get('content-type') || ''
-      if (!ct.includes('application/json')) throw new Error('Unexpected response')
-      const data: Match[] = await res.json()
+      const data = await fetchMatches()
       set({ matches: data, matchesInit: 'loaded' })
     } catch {
       set({ matchesInit: 'error' })
@@ -36,41 +77,82 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     set({ matches, matchesInit: 'loaded' })
   },
   addMatch: async (m) => {
-    const res = await fetch('/api/matches', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m)
+    const { teamA, teamB, mvpId, ...rest } = m
+    const nextMvpId = mvpId ?? null
+    const ref = await addDoc(collection(db, 'matches'), {
+      ...rest,
+      mvpId: nextMvpId,
+      date: Timestamp.fromDate(new Date(m.date)),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     })
-    if (!res.ok) throw new Error('Failed to create match')
-    const ct = res.headers.get('content-type') || ''
-    if (!ct.includes('application/json')) throw new Error('Unexpected response creating match')
-    const { id } = await res.json()
+    const players = [
+      ...teamA.map(p => ({ ...p, team: 'A' })),
+      ...teamB.map(p => ({ ...p, team: 'B' })),
+    ]
+    await Promise.all(players.map(p =>
+      addDoc(collection(db, 'matchPlayers'), {
+        matchId: ref.id,
+        playerId: p.id,
+        team: p.team,
+        goals: p.goals,
+        performance: p.performance,
+      })
+    ))
+    if (nextMvpId) {
+      await updateDoc(doc(db, 'players', nextMvpId), { mvpCount: increment(1) })
+    }
     await get().resetAndReload()
-    return id
+    return ref.id
   },
   updateMatch: async (id, m) => {
-    const res = await fetch(`/api/matches/${id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(m)
+    const { teamA, teamB, mvpId, ...rest } = m
+    const prevMvpId = get().matches.find(x => x.id === id)?.mvpId ?? null
+    const nextMvpId = mvpId ?? null
+    await updateDoc(doc(db, 'matches', id), {
+      ...rest,
+      mvpId: nextMvpId,
+      date: Timestamp.fromDate(new Date(m.date)),
+      updatedAt: Timestamp.now(),
     })
-    if (!res.ok) throw new Error('Failed to update match')
+    // Replace matchPlayers: delete existing, write new
+    const existing = await getDocs(query(collection(db, 'matchPlayers')))
+    const toDelete = existing.docs.filter(d => d.data().matchId === id)
+    await Promise.all(toDelete.map(d => deleteDoc(d.ref)))
+    const players = [
+      ...teamA.map(p => ({ ...p, team: 'A' })),
+      ...teamB.map(p => ({ ...p, team: 'B' })),
+    ]
+    await Promise.all(players.map(p =>
+      addDoc(collection(db, 'matchPlayers'), {
+        matchId: id,
+        playerId: p.id,
+        team: p.team,
+        goals: p.goals,
+        performance: p.performance,
+      })
+    ))
+    if (prevMvpId !== nextMvpId) {
+      const ops: Promise<void>[] = []
+      if (prevMvpId) ops.push(updateDoc(doc(db, 'players', prevMvpId), { mvpCount: increment(-1) }))
+      if (nextMvpId) ops.push(updateDoc(doc(db, 'players', nextMvpId), { mvpCount: increment(1) }))
+      await Promise.all(ops)
+    }
     await get().resetAndReload()
   },
-  setMvp: async (id, mvpId) => {
-    const res = await fetch(`/api/matches/${id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mvpId })
-    })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({ error: 'Failed to set MVP' }))
-      throw new Error(body.error || 'Failed to set MVP')
-    }
-    set({ matches: get().matches.map(m => m.id === id ? { ...m, mvpId } : m) })
-  },
   deleteMatch: async (id) => {
-    await fetch(`/api/matches/${id}`, { method: 'DELETE' })
+    const prevMvpId = get().matches.find(x => x.id === id)?.mvpId ?? null
+    await deleteDoc(doc(db, 'matches', id))
+    // Clean up associated matchPlayers
+    const mpSnap = await getDocs(collection(db, 'matchPlayers'))
+    await Promise.all(mpSnap.docs.filter(d => d.data().matchId === id).map(d => deleteDoc(d.ref)))
+    if (prevMvpId) {
+      await updateDoc(doc(db, 'players', prevMvpId), { mvpCount: increment(-1) })
+    }
     await get().resetAndReload()
   },
   resetAndReload: async () => {
-    const res = await fetch('/api/matches', { cache: 'no-store' })
-    if (!res.ok) throw new Error('Failed to load matches')
-    const data: Match[] = await res.json()
+    const data = await fetchMatches()
     set({ matches: data, matchesInit: 'loaded' })
   },
 }))

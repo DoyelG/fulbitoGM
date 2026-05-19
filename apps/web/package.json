@@ -15,13 +15,15 @@
     "@fulbito/utils": "workspace:*",
     "@heroicons/react": "^2.2.0",
     "@tanstack/react-table": "^8.21.3",
+    "firebase": "^12.13.0",
     "next": "15.5.9",
     "next-auth": "^4.24.12",
     "nodemailer": "^7.0.10",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "@fulbito/firebase": "workspace:*"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -1,18 +1,16 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import PlayerForm from '../../PlayerForm'
 import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 export default function EditPlayerPage() {
-  const { data, status } = useSession()
+  const { isAdmin, loading } = useFirebaseAuth()
   const router = useRouter()
   useEffect(() => {
-    const role = (data?.user as unknown as { role?: string })?.role
-    if (status !== 'loading' && role !== 'ADMIN') router.replace('/login')
-  }, [data, status, router])
+    if (!loading && !isAdmin) router.replace('/login')
+  }, [loading, isAdmin, router])
   const { id } = useParams()
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

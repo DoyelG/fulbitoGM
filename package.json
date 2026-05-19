@@ -18,7 +18,8 @@
       "@prisma/engines",
       "prisma",
       "sharp",
-      "unrs-resolver"
+      "unrs-resolver",
+      "@firebase/util"
     ]
   },
   "prettier": {

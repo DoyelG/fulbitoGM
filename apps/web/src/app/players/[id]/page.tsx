@@ -11,11 +11,10 @@ import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
 import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
-import { useSession } from 'next-auth/react'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 export default function PlayerDetailPage() {
-  const { data } = useSession()
-  const isAdmin = ((data?.user as unknown as { role?: string })?.role) === 'ADMIN'
+  const { isAdmin } = useFirebaseAuth()
   const { id } = useParams();
   const router = useRouter();
   const updatePlayer = usePlayerStore((s) => s.updatePlayer);

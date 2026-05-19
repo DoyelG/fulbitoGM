@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import SkillBadge from '@/components/SkillBadge'
 import StreakBadge from '@/components/StreakBadge'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
@@ -37,11 +37,9 @@ export default function PlayersClient({
   players: Player[]
   matches: Match[]
 }) {
-  const { data: session } = useSession()
+  const { isAdmin } = useFirebaseAuth()
   const [showModal, setShowModal] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
-  const isAdmin = (session?.user as unknown as { role?: string })?.role === 'ADMIN'
-
   const { deletePlayer, hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
   const { hydrateMatches, matches: storeMatches, resetAndReload: resetMatches } = useMatchStore()
 

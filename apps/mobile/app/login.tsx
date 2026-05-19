@@ -13,8 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Colors } from '@/constants/theme'
 import { useColorScheme } from '@/hooks/use-color-scheme'
-import { loginWithCredentials, registerAccount } from '@/lib/auth'
-import { styles } from './login.styles'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { styles } from '@/styles/login.styles'
 
 const BRAND = '#7c3aed'
 
@@ -22,9 +22,10 @@ export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light'
   const theme = Colors[colorScheme]
   const router = useRouter()
+  const { signIn } = useFirebaseAuth()
 
   const [mode, setMode] = useState<'signin' | 'register'>('signin')
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,11 +34,8 @@ export default function LoginScreen() {
     setError(null)
     setLoading(true)
     try {
-      if (mode === 'register') {
-        await registerAccount(username, password)
-      }
-      await loginWithCredentials(username, password)
-      router.replace('/(tabs)/statistics')
+      await signIn(email, password)
+      router.replace('/(tabs)/players')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Algo salió mal')
     } finally {
@@ -82,14 +80,15 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={[styles.label, { color: theme.text }]}>Usuario</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Email</Text>
             <TextInput
-              value={username}
-              onChangeText={setUsername}
+              value={email}
+              onChangeText={setEmail}
               autoCapitalize="none"
               autoCorrect={false}
-              autoComplete="username"
-              placeholder="Nombre de usuario"
+              autoComplete="email"
+              keyboardType="email-address"
+              placeholder="tu@email.com"
               placeholderTextColor={theme.icon}
               style={[styles.input, { color: theme.text, borderColor: theme.icon }]}
             />
@@ -113,7 +112,7 @@ export default function LoginScreen() {
           <Pressable
             style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
             onPress={onSubmit}
-            disabled={loading || username.trim().length < 3 || password.length < 6}
+            disabled={loading || email.trim().length < 3 || password.length < 6}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
