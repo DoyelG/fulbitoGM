@@ -1,7 +1,7 @@
-import { initializeApp, getApps } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
-import { getStorage } from 'firebase/storage'
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
+import { getAuth, type Auth } from 'firebase/auth'
+import { getFirestore, type Firestore } from 'firebase/firestore'
+import { getStorage, type FirebaseStorage } from 'firebase/storage'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,8 +12,27 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+// Defer initialization so module import during static prerender (where env
+// vars are absent) does not call initializeApp with an empty apiKey.
+let _app: FirebaseApp | undefined
+let _auth: Auth | undefined
+let _db: Firestore | undefined
+let _storage: FirebaseStorage | undefined
 
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const storage = getStorage(app)
+function ensureApp(): FirebaseApp {
+  if (_app) return _app
+  _app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+  return _app
+}
+
+function lazy<T extends object>(factory: () => T): T {
+  return new Proxy({} as T, {
+    get(_, prop, receiver) {
+      return Reflect.get(factory(), prop, receiver)
+    },
+  })
+}
+
+export const auth: Auth = lazy(() => (_auth ??= getAuth(ensureApp())))
+export const db: Firestore = lazy(() => (_db ??= getFirestore(ensureApp())))
+export const storage: FirebaseStorage = lazy(() => (_storage ??= getStorage(ensureApp())))
