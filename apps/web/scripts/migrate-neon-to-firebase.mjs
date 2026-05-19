@@ -124,6 +124,7 @@ async function main() {
         skills: p.skills ?? null,
         photoUrl,
         shirtDutiesCount: p.shirtDutiesCount,
+        mvpCount: p.mvpCount ?? 0,
         createdAt: Timestamp.fromDate(new Date(p.createdAt)),
         updatedAt: Timestamp.fromDate(new Date(p.updatedAt)),
       })
@@ -142,6 +143,7 @@ async function main() {
         teamAScore: m.teamAScore,
         teamBScore: m.teamBScore,
         shirtsResponsibleId: m.shirtsResponsibleId ?? null,
+        mvpId: m.mvpId ?? null,
         createdAt: Timestamp.fromDate(new Date(m.createdAt)),
         updatedAt: Timestamp.fromDate(new Date(m.updatedAt)),
       })
