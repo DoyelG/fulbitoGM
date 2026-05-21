@@ -10,10 +10,10 @@ If the user is on `master`, recommend creating a new feature branch before makin
 
 ```
 apps/
-  web/       → Next.js (App Router) — Tailwind CSS, Zustand, NextAuth
-  mobile/    → Expo + React Native — Expo Router, StyleSheet API
-  backend/   → Next.js (API only) — Prisma + PostgreSQL (Neon)
+  web/       → Next.js (App Router) — Tailwind CSS, Zustand, Firebase
+  mobile/    → Expo + React Native — Expo Router, StyleSheet API, Firebase
 packages/
+  firebase/  → Shared Firebase SDK wrapper (auth, firestore, storage)
   types/     → Shared domain types (Player, Match, Team, Skills)
   utils/     → Shared business logic (teamUtils, playerStats, shirtDuty)
 ```
@@ -28,7 +28,7 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 - **TypeScript strict mode** everywhere — never use `any`, prefer `unknown` if type is truly unknown
 - **File naming**: kebab-case for hooks and utilities (`use-auth.ts`, `player-stats.ts`), PascalCase for components (`PlayerCard.tsx`)
 - **Exports**: default exports for components/screens, named exports for types and utilities
-- **Imports**: use path aliases (`@/` for web/backend, `@/*` for mobile, `@fulbito/types`, `@fulbito/utils`)
+- **Imports**: use path aliases (`@/` for web, `@/*` for mobile, `@fulbito/types`, `@fulbito/utils`, `@fulbito/firebase`)
 - **No unused imports** — remove them immediately
 - **No `console.log`** in committed code — use proper error handling instead
 - **Prettier** is the source of truth for formatting: `singleQuote`, no `semi`, `trailingComma: all`, `printWidth: 120`, `tabWidth: 2`
@@ -41,7 +41,9 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 - Next.js 15 App Router — use server components by default, add `"use client"` only when needed (event handlers, hooks, browser APIs)
 - Tailwind CSS v4 — utility classes only, no inline `style=` props unless dynamic values require it
 - Zustand v5 for global state (`src/store/`)
-- NextAuth v4 for authentication
+- Firebase Auth for authentication (`FirebaseAuthContext`, `useFirebaseAuth()`)
+- Firebase Firestore for data (`src/store/usePlayerStore.ts`, `src/store/useMatchStore.ts`)
+- Firebase Storage for file uploads (`src/lib/firebase.ts` exports `storage`)
 
 ### Component rules
 - Keep components small and focused — extract when a component exceeds ~100 lines
@@ -56,8 +58,8 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 
 ### Data fetching
 - Server components fetch directly (no `useEffect` + `fetch`)
-- Client components use Zustand store actions for mutations and reads
-- Backend URL via `process.env.NEXT_PUBLIC_API_URL` — never hardcode URLs
+- Client components use Zustand store actions for mutations and reads (backed by Firestore)
+- Never hardcode Firebase project URLs — all config comes from `NEXT_PUBLIC_FIREBASE_*` env vars
 
 ### Accessibility (web)
 - All interactive elements must be keyboard-navigable (`button`, `a`, or explicit `tabIndex`)
@@ -79,6 +81,8 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 - `StyleSheet.create()` for all styles — **always in a separate `*.styles.ts` file**, never inline in the view file
 - Custom theme system via `constants/theme.ts` and `useAppTheme()` hook
 - `react-native-reanimated` v4 for animations
+- Firebase Auth for authentication (`FirebaseAuthContext`, `useFirebaseAuth()`)
+- Firebase Firestore for data (`hooks/use-players-data.ts`, `hooks/use-matches-data.ts`)
 
 ### Component & screen rules
 - Screens live in `app/` (Expo Router convention), reusable components in `components/`
@@ -104,33 +108,11 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 
 ---
 
-## Backend (`apps/backend`)
-
-### Stack
-- Next.js 15 Route Handlers — REST API only, no frontend pages
-- Prisma v6 + PostgreSQL (Neon)
-- NextAuth v4 (Credentials provider)
-- bcryptjs for password hashing
-
-### API rules
-- Always validate request body shape before using it — never trust `req.json()` blindly
-- Use `requireAdmin()` middleware for admin-only routes
-- Return consistent JSON error shapes: `{ error: string }`
-- HTTP status codes matter: 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error
-- All route handlers must include `runtime: 'nodejs'` directive
-- Never expose password hashes or internal Prisma errors to the client
-
-### Database
-- All DB access goes through Prisma — never raw SQL unless Prisma cannot handle the query
-- Use Prisma migrations for schema changes — never edit the DB directly
-- Sensitive fields (passwords) must be excluded from SELECT via `select` or `omit` in Prisma queries
-
----
-
 ## Shared Packages
 
+- **`@fulbito/firebase`**: Firebase SDK wrapper — auth, firestore, storage helpers shared between web and mobile
 - **`@fulbito/types`**: domain types only — no logic, no side effects
-- **`@fulbito/utils`**: pure functions only — no framework imports, must work in any context (web, mobile, backend)
+- **`@fulbito/utils`**: pure functions only — no framework imports, must work in any context (web, mobile)
 - When adding a type used in more than one app, add it to `packages/types`
 - When adding a utility used in more than one app, add it to `packages/utils`
 
@@ -139,9 +121,8 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 ## Security
 
 - Never commit secrets, API keys, or `.env` files
-- Passwords must always be hashed with bcryptjs before storing
-- JWT secrets must come from environment variables
-- Sanitize and validate all user input on the backend before DB operations
+- Firebase Security Rules enforce access control — do not rely solely on client-side checks
+- Sanitize and validate all user input before writing to Firestore
 - No `dangerouslySetInnerHTML` in React unless content is explicitly sanitized
 
 ---

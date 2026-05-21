@@ -3,10 +3,11 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { doc, updateDoc, Timestamp } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { PlayerEditForm, type PlayerEditFormValues } from '@/components/players/edit/player-edit-form'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { usePlayersData } from '@/hooks/use-players-data'
-import { updatePlayerRequest } from '@/lib/api'
 import { useAppTheme } from '@/hooks/use-theme'
 
 export default function EditPlayerScreen() {
@@ -66,11 +67,12 @@ export default function EditPlayerScreen() {
         psychological: values.psychological,
       }
       const skill = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
-      await updatePlayerRequest(id, {
+      await updateDoc(doc(db, 'players', id), {
         name: values.name.trim(),
         position: values.position,
         skills,
         skill,
+        updatedAt: Timestamp.now(),
       })
       await reload()
       router.back()
