@@ -1,65 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fulbito GM — Web
+
+Next.js 15 (App Router) frontend for managing your group: players, matches, stats, and team generation.
+
+## Stack
+
+- **Next.js 15** — App Router, server + client components
+- **Tailwind CSS v4** — utility-first styling
+- **Zustand v5** — global state (players, matches)
+- **Firebase** — Auth, Firestore (data), Storage (photos)
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies from the monorepo root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+```
+
+Set up environment variables in `apps/web/.env`:
+
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
+
+Run the dev server:
+
+```bash
+# from monorepo root
 pnpm dev
-# or
-bun dev
+
+# or from apps/web directly
+pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Authentication
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Auth is handled entirely by Firebase. Two roles exist: `USER` (read-only) and `ADMIN` (full access).
 
-## Learn More
+- Sign up at `/login` — new accounts get `USER` role by default.
+- To promote a user to `ADMIN`, update the `role` field in the `users` Firestore collection for that user's UID.
 
-To learn more about Next.js, take a look at the following resources:
+Admin-only actions: create, edit and delete players and matches, upload player photos.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Authentication setup
-
-This app includes credentials-based authentication (username + password) with two roles: `USER` (read-only) and `ADMIN` (full access).
-
-1. Configure environment variables in `.env`:
-
-```
-DATABASE_URL="postgres://..."
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="generate_a_strong_secret"
-```
-
-2. Apply Prisma changes and generate the client:
-
-```
-npx prisma migrate dev
-```
-
-3. Create your first user at `/login` (Registration tab). New users get `USER` role by default.
-
-4. Promote an account to admin manually (one-time), for example via Prisma Studio:
-
-```
-npx prisma studio
-# Open User table, set role to ADMIN for the desired user
-```
-
-Admin-only actions include creating, editing and deleting players and matches, and uploading images. Regular users can view everything but cannot modify data.
+Deployed to Vercel. The CI pipeline (GitHub Actions) lints, builds, and deploys automatically on push to `master`.
