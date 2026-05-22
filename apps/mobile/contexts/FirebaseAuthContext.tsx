@@ -2,10 +2,11 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import {
   onAuthStateChanged as firebaseOnAuthStateChanged,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   type User as FirebaseUser,
 } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import type { AppUser } from '@fulbito/firebase'
 
@@ -19,6 +20,7 @@ type AuthContextValue = {
   loading: boolean
   isAdmin: boolean
   signIn: (email: string, password: string) => Promise<void>
+  register: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -39,9 +41,19 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const cred = await signInWithEmailAndPassword(auth, email, password)
+    const cred = await signInWithEmailAndPassword(auth, email.trim(), password.trim())
     const role = await getUserRole(cred.user.uid)
     setUser({ uid: cred.user.uid, email: cred.user.email!, role })
+  }
+
+  const register = async (email: string, password: string) => {
+    const cred = await createUserWithEmailAndPassword(auth, email.trim(), password.trim())
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email: cred.user.email,
+      role: 'USER',
+      createdAt: Timestamp.now(),
+    })
+    setUser({ uid: cred.user.uid, email: cred.user.email!, role: 'USER' })
   }
 
   const signOut = async () => {
@@ -50,7 +62,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin: user?.role === 'ADMIN', signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin: user?.role === 'ADMIN', signIn, register, signOut }}>
       {children}
     </AuthContext.Provider>
   )
