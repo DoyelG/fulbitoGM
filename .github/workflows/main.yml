@@ -33,52 +33,8 @@ jobs:
       - name: Build
         run: pnpm build
 
-  deploy-backend:
-    needs: lint-test-build
-    runs-on: ubuntu-latest
-    outputs:
-      backend_url: ${{ steps.get_url.outputs.backend_url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Deploy Backend
-        id: get_url
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
-        run: |
-          set -eo pipefail
-
-          ARGS="--token=$VERCEL_TOKEN --yes"
-          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
-            ARGS="$ARGS --prod"
-          fi
-
-          curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"rootDirectory":"apps/backend"}' > /dev/null
-
-          vercel deploy $ARGS 2>&1 | tee /tmp/backend_deploy.log
-
-          URL=$(cat /tmp/backend_deploy.log | tr -d '\r' | grep -oE "https://[a-zA-Z0-9._-]+\.vercel\.app" | tail -1)
-
-          if [ -z "$URL" ]; then
-            echo "ERROR: Could not extract URL"
-            cat /tmp/backend_deploy.log
-            exit 1
-          fi
-
-          echo "Backend deployed to: $URL"
-          echo "backend_url=$URL" >> $GITHUB_OUTPUT
-
   deploy-frontend:
-    needs: deploy-backend
+    needs: lint-test-build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -108,27 +64,4 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"rootDirectory":"apps/web"}' > /dev/null
 
-          if [ "${{ github.ref }}" != "refs/heads/master" ]; then
-            BRANCH_NAME="${{ github.head_ref }}"
-            BACKEND_URL_VALUE="${{ needs.deploy-backend.outputs.backend_url }}"
-            echo "Setting branch-specific NEXT_PUBLIC_BACKEND_URL → $BACKEND_URL_VALUE"
-
-            EXISTING_ID=$(curl -sf "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env" \
-              -H "Authorization: Bearer $VERCEL_TOKEN" | \
-              jq -r --arg b "$BRANCH_NAME" \
-              '[.envs[] | select(.key == "NEXT_PUBLIC_BACKEND_URL" and .gitBranch == $b)] | first | .id // ""')
-
-            if [ -n "$EXISTING_ID" ]; then
-              curl -sf -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$EXISTING_ID" \
-                -H "Authorization: Bearer $VERCEL_TOKEN" \
-                -H "Content-Type: application/json" \
-                -d "{\"value\":\"$BACKEND_URL_VALUE\"}" > /dev/null
-            else
-              curl -sf -X POST "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
-                -H "Authorization: Bearer $VERCEL_TOKEN" \
-                -H "Content-Type: application/json" \
-                -d "{\"key\":\"NEXT_PUBLIC_BACKEND_URL\",\"value\":\"$BACKEND_URL_VALUE\",\"type\":\"encrypted\",\"target\":[\"preview\"],\"gitBranch\":\"$BRANCH_NAME\"}" > /dev/null
-            fi
-          fi
-
-          vercel deploy $ARGS --build-env NEXT_PUBLIC_BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
+          vercel deploy $ARGS

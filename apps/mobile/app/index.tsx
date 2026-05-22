@@ -1,7 +1,7 @@
 import { Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
-import { useAuth } from '@/hooks/use-auth';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 
 const routes = [
   { label: '/login', href: '/login' },
@@ -15,7 +15,7 @@ const routes = [
 ];
 
 export default function IndexScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useFirebaseAuth();
   const router = useRouter();
 
   return (
@@ -24,7 +24,7 @@ export default function IndexScreen() {
       {user ? (
         <View style={styles.sessionRow}>
           <Text style={styles.sessionText}>
-            Sesión: {user.name} ({user.role})
+            Sesión: {user.email} ({user.role})
           </Text>
           <Pressable
             onPress={async () => {

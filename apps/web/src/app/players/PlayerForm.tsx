@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { storage } from '@/lib/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 
 type Props = {
@@ -58,13 +60,10 @@ export default function PlayerForm({ mode, playerId }: Props) {
 
     let uploadedUrl: string | undefined
     if (photoFile) {
-      const fd = new FormData()
-      fd.append('file', photoFile)
-      const res = await fetch('/api/upload', { method: 'POST', body: fd })
-      if (res.ok) {
-        const data = await res.json()
-        uploadedUrl = data.url
-      }
+      const photoId = mode === 'edit' && playerId ? playerId : crypto.randomUUID()
+      const storageRef = ref(storage, `players/${photoId}.jpg`)
+      await uploadBytes(storageRef, photoFile)
+      uploadedUrl = await getDownloadURL(storageRef)
     }
 
     if (mode === 'create') {

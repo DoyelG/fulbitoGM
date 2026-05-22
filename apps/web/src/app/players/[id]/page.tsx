@@ -3,6 +3,8 @@
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
 import SkillBadge from "@/components/SkillBadge";
@@ -30,12 +32,10 @@ export default function PlayerDetailPage() {
     if (!isAdmin) return
     const f = e.target.files?.[0]
     if (!f) return
-    const fd = new FormData()
-    fd.append('file', f)
-    const res = await fetch('/api/upload', { method: 'POST', body: fd })
-    if (!res.ok) return
-    const data = await res.json()
-    await updatePlayer(player!.id, { photoUrl: data.url })
+    const storageRef = ref(storage, `players/${player!.id}.jpg`)
+    await uploadBytes(storageRef, f)
+    const url = await getDownloadURL(storageRef)
+    await updatePlayer(player!.id, { photoUrl: url })
   }
 
   const player = usePlayerStore((s) => s.players.find((p) => p.id === (id as string)));

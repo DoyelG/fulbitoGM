@@ -17,8 +17,6 @@
     "@tanstack/react-table": "^8.21.3",
     "firebase": "^12.13.0",
     "next": "15.5.9",
-    "next-auth": "^4.24.12",
-    "nodemailer": "^7.0.10",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
