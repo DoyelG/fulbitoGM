@@ -44,6 +44,7 @@ async function fetchMatches(): Promise<Match[]> {
       teamB: teams.B,
       shirtsResponsibleId: data.shirtsResponsibleId ?? null,
       mvpId: data.mvpId ?? null,
+      status: (data.status as 'draft' | 'completed') ?? 'completed',
     }
   })
 }
@@ -53,6 +54,7 @@ type MatchStore = {
   matchesInit: 'idle' | 'loading' | 'loaded' | 'error'
   initLoad: () => Promise<void>
   addMatch: (m: Omit<Match, 'id'>) => Promise<string>
+  saveDraft: (draft: { date: string; type: string; teamA: MatchPlayer[]; teamB: MatchPlayer[]; shirtsResponsibleId?: string | null; name?: string }) => Promise<string>
   updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
@@ -76,11 +78,41 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
   hydrateMatches: (matches) => {
     set({ matches, matchesInit: 'loaded' })
   },
+  saveDraft: async (draft) => {
+    const ref = await addDoc(collection(db, 'matches'), {
+      date: Timestamp.fromDate(new Date(draft.date)),
+      type: draft.type,
+      name: draft.name ?? null,
+      teamAScore: 0,
+      teamBScore: 0,
+      status: 'draft',
+      shirtsResponsibleId: draft.shirtsResponsibleId ?? null,
+      mvpId: null,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    })
+    const players = [
+      ...draft.teamA.map(p => ({ ...p, team: 'A' })),
+      ...draft.teamB.map(p => ({ ...p, team: 'B' })),
+    ]
+    await Promise.all(players.map(p =>
+      addDoc(collection(db, 'matchPlayers'), {
+        matchId: ref.id,
+        playerId: p.id,
+        team: p.team,
+        goals: p.goals,
+        performance: p.performance,
+      })
+    ))
+    await get().resetAndReload()
+    return ref.id
+  },
   addMatch: async (m) => {
     const { teamA, teamB, mvpId, ...rest } = m
     const nextMvpId = mvpId ?? null
     const ref = await addDoc(collection(db, 'matches'), {
       ...rest,
+      status: 'completed',
       mvpId: nextMvpId,
       date: Timestamp.fromDate(new Date(m.date)),
       createdAt: Timestamp.now(),

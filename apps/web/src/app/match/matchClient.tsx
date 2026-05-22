@@ -13,7 +13,7 @@ const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()
-  const { matches: allMatches, initLoad: initMatchesLoad, resetAndReload: resetMatches } = useMatchStore()
+  const { matches: allMatches, initLoad: initMatchesLoad, resetAndReload: resetMatches, saveDraft } = useMatchStore()
   const [matchType, setMatchType] = useState<MatchType>('5v5')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
   const requiredPlayers = playersPerTeam * 2
@@ -36,6 +36,9 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
   const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
 
+  const [draftSaving, setDraftSaving] = useState(false)
+  const [draftSaved, setDraftSaved] = useState(false)
+
   // manual builder
   const [manualOpen, setManualOpen] = useState(false)
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
@@ -44,7 +47,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   // search in player selection
   const [playerQuery, setPlayerQuery] = useState('')
 
-  const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
+  const completedMatches = useMemo(() => allMatches.filter(m => m.status !== 'draft'), [allMatches])
+  const playedBefore = useMemo(() => buildPlayedBeforeSet(completedMatches), [completedMatches])
 
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
@@ -148,13 +152,32 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     return { teams: balanceTeams(pool, playersPerTeam), hadStreak: false }
   }
 
+  const handleSaveDraft = async () => {
+    if (!autoTeams) return
+    setDraftSaving(true)
+    setDraftSaved(false)
+    try {
+      const toMatchPlayer = (p: PlayerInfo) => ({ id: p.id, name: p.name, goals: 0, performance: 5 })
+      await saveDraft({
+        date: new Date().toISOString().slice(0, 10),
+        type: matchType,
+        teamA: autoTeams.teamA.players.map(toMatchPlayer),
+        teamB: autoTeams.teamB.players.map(toMatchPlayer),
+        shirtsResponsibleId: shirtsResponsibleId ?? null,
+      })
+      setDraftSaved(true)
+    } finally {
+      setDraftSaving(false)
+    }
+  }
+
   const doAuto = async () => {
     await initMatchesLoad()
     if (selected.size !== requiredPlayers) {
       alert(`Por favor, selecciona exactamente ${requiredPlayers} jugadores para ${matchType}.`)
       return
     }
-    const streaks = calculateAllCurrentStreaks(allMatches)
+    const streaks = calculateAllCurrentStreaks(completedMatches)
     const { teams, hadStreak } = buildTeams(selectedPlayers, streaks)
     setAutoTeams(teams)
     setStreakSeparated(hadStreak)
@@ -170,7 +193,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const regenerate = async () => {
     await initMatchesLoad()
     if (!selectedPlayers.length) return
-    const streaks = calculateAllCurrentStreaks(allMatches)
+    const streaks = calculateAllCurrentStreaks(completedMatches)
     const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5)
     const { teams, hadStreak } = buildTeams(shuffled, streaks)
     setAutoTeams(teams)
@@ -386,7 +409,22 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             <TeamCard title="Team B" team={autoTeams.teamB} color="red" winProbability={probB} />
           </div>
 
-          <div className="mt-6 border-t pt-4">
+          <div className="mt-6 border-t pt-4 flex flex-col items-center gap-3">
+            <button
+              className="w-full md:w-auto bg-amber-500 text-white px-6 py-2 rounded hover:bg-amber-600 disabled:opacity-50 font-medium"
+              onClick={handleSaveDraft}
+              disabled={draftSaving}
+            >
+              {draftSaving ? 'Guardando...' : '📋 Guardar borrador en historial'}
+            </button>
+            {draftSaved && (
+              <div className="w-full text-center text-sm bg-green-50 border border-green-200 text-green-800 rounded px-3 py-2">
+                ✓ Borrador guardado. Podés completarlo en Historial después del partido.
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 border-t pt-4">
             <div className="flex flex-col md:flex-row gap-3 md:items-center">
               <div className="text-sm">
                 <div className="font-semibold">Encargado de camisetas</div>

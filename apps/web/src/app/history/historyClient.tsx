@@ -56,16 +56,18 @@ export default function HistoryClient({
   ]);
 
   if (open) {
+    const isDraft = open.mode === "edit" && open.match.status === "draft";
     return (
       <RecordModal
         mode={open.mode}
+        isDraft={isDraft}
         initial={open.mode === "edit" ? open.match : undefined}
         onClose={() => setOpen(false)}
         onSave={async (m) => {
           if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, m);
+            await updateMatch(open.match.id, { ...m, status: "completed" });
           } else {
-            await addMatch(m);
+            await addMatch({ ...m, status: "completed" });
           }
         }}
       />
@@ -151,8 +153,81 @@ export default function HistoryClient({
           )}
         </div>
       </div>
+      {/* Drafts */}
+      {storeMatches.filter((m) => m.status === "draft").length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            📋 Borradores
+            <span className="text-sm bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+              {storeMatches.filter((m) => m.status === "draft").length}
+            </span>
+          </h2>
+          <div className="space-y-3">
+            {storeMatches
+              .filter((m) => m.status === "draft")
+              .map((m) => (
+                <div
+                  key={m.id}
+                  className="bg-white rounded-lg shadow p-4 border-l-4 border-amber-400"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      {m.name && <div className="text-base font-bold mb-0.5">{m.name}</div>}
+                      <div className="flex items-center gap-2">
+                        <strong>
+                          {(() => {
+                            const [yy, mm, dd] = m.date.slice(0, 10).split("-");
+                            return `${dd}/${mm}/${yy}`;
+                          })()}
+                        </strong>
+                        <span className="inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
+                          {m.type}
+                        </span>
+                        <span className="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-semibold">
+                          BORRADOR
+                        </span>
+                      </div>
+                    </div>
+                    {isAdmin && (
+                      <div className="flex gap-2">
+                        <button
+                          className="text-sm px-3 py-1 rounded bg-amber-500 text-white hover:bg-amber-600"
+                          onClick={() => setOpen({ mode: "edit", match: m })}
+                        >
+                          Completar
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-800 text-sm"
+                          onClick={() => handleDelete(m.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div className="bg-gray-50 rounded p-2">
+                      <div className="font-semibold text-center mb-1 text-xs text-gray-500">Equipo A</div>
+                      {m.teamA.map((p) => (
+                        <div key={p.id} className="text-gray-700 text-xs truncate">{p.name}</div>
+                      ))}
+                    </div>
+                    <div className="bg-gray-50 rounded p-2">
+                      <div className="font-semibold text-center mb-1 text-xs text-gray-500">Equipo B</div>
+                      {m.teamB.map((p) => (
+                        <div key={p.id} className="text-gray-700 text-xs truncate">{p.name}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4 mb-10">
         {storeMatches.filter((m) => {
+          if (m.status === "draft") return false;
           const d = m.date.slice(0, 10);
           if (fromDate && d < fromDate) return false;
           if (toDate && d > toDate) return false;
@@ -172,6 +247,7 @@ export default function HistoryClient({
         ) : (
           storeMatches
             .filter((m) => {
+              if (m.status === "draft") return false;
               const d = m.date.slice(0, 10);
               if (fromDate && d < fromDate) return false;
               if (toDate && d > toDate) return false;
@@ -326,11 +402,13 @@ export default function HistoryClient({
 
 function RecordModal({
   mode = "create",
+  isDraft = false,
   initial,
   onClose,
   onSave,
 }: {
   mode?: "create" | "edit";
+  isDraft?: boolean;
   initial?: Match;
   onClose: () => void;
   onSave: (m: Omit<Match, "id">) => void;
@@ -535,7 +613,7 @@ function RecordModal({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h2 className="text-xl font-semibold">
-            Registrar Resultado del Partido
+            {isDraft ? "Completar borrador" : mode === "edit" ? "Editar partido" : "Registrar resultado"}
           </h2>
           <button className="text-black hover:text-black" onClick={onClose}>
             ✕
@@ -858,12 +936,8 @@ function RecordModal({
             onClick={handleSave}
           >
             {isLoading
-              ? mode === "edit"
-                ? "Actualizando..."
-                : "Guardando..."
-              : mode === "edit"
-                ? "Actualizar Partido"
-                : "Guardar Partido"}
+              ? isDraft ? "Completando..." : mode === "edit" ? "Actualizando..." : "Guardando..."
+              : isDraft ? "Completar partido" : mode === "edit" ? "Actualizar Partido" : "Guardar Partido"}
           </button>
         </div>
       </div>
