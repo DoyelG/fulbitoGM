@@ -37,6 +37,7 @@ async function fetchMatches(): Promise<Match[]> {
       id: d.id,
       date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
       type: data.type,
+      status: data.status === 'draft' ? 'draft' : 'final',
       name: data.name ?? undefined,
       teamAScore: data.teamAScore,
       teamBScore: data.teamBScore,

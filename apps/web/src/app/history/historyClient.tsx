@@ -9,6 +9,7 @@ import {
   getEligiblePlayerIds,
   computeLeastAssignedPoolIds,
 } from "@/lib/shirtDuty";
+import { onlyFinalMatches } from "@fulbito/utils";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 
@@ -186,118 +187,161 @@ export default function HistoryClient({
               return true;
             })
             .slice(0, 10)
-            .map((m) => (
-              <div
-                key={m.id}
-                className="bg-white rounded-lg shadow p-4 border-l-4 border-indigo-500"
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <div>
-                    {m.name && (
-                      <div className="text-lg mb-1 font-bold">{m.name}</div>
-                    )}
-                    <strong>
-                      {(() => {
-                        const [yy, mm, dd] = m.date.slice(0, 10).split("-");
-                        return `${dd}/${mm}/${yy}`;
-                      })()}
-                    </strong>
-                    <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
-                      {m.type}
-                    </span>
-                  </div>
-                  <div className="text-indigo-600 font-bold text-xl">
-                    {m.teamAScore} - {m.teamBScore}
-                  </div>
-                </div>
-                <div className="flex gap-2 items-start">
-                  <div
-                    className={`flex-1 min-w-0 ${m.teamAScore > m.teamBScore ? "bg-green-50" : m.teamAScore < m.teamBScore ? "bg-red-50" : "bg-gray-50"} rounded p-2`}
-                  >
-                    <h4 className="text-center font-semibold mb-2 text-sm">Equipo A</h4>
-                    {m.teamA.map((p: Match["teamA"][number]) => (
-                      <div
-                        key={p.id}
-                        className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
-                      >
-                        <span className="text-sm truncate">{p.name}</span>
-                        <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
-                          {m.goalkeeperIds?.includes(p.id) && (
-                            <span aria-label="Arquero" role="img">
-                              🧤
-                            </span>
-                          )}
-                          {m.mvpId === p.id && (
-                            <span aria-label="MVP" role="img">
-                              🏆
-                            </span>
-                          )}
-                          {p.goals}⚽ {p.performance}★
+            .map((m) => {
+              const isDraft = m.status === "draft";
+              return (
+                <div
+                  key={m.id}
+                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : "border-indigo-500"}`}
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <div>
+                      {m.name && (
+                        <div className="text-lg mb-1 font-bold">{m.name}</div>
+                      )}
+                      <strong>
+                        {(() => {
+                          const [yy, mm, dd] = m.date.slice(0, 10).split("-");
+                          return `${dd}/${mm}/${yy}`;
+                        })()}
+                      </strong>
+                      <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
+                        {m.type}
+                      </span>
+                      {isDraft && (
+                        <span className="ml-2 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded">
+                          Borrador
                         </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div
-                    className={`flex-1 min-w-0 ${m.teamBScore > m.teamAScore ? "bg-green-50" : m.teamBScore < m.teamAScore ? "bg-red-50" : "bg-gray-50"} rounded p-2`}
-                  >
-                    <h4 className="text-center font-semibold mb-2 text-sm">Equipo B</h4>
-                    {m.teamB.map((p: Match["teamB"][number]) => (
-                      <div
-                        key={p.id}
-                        className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
-                      >
-                        <span className="text-sm truncate">{p.name}</span>
-                        <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
-                          {m.goalkeeperIds?.includes(p.id) && (
-                            <span aria-label="Arquero" role="img">
-                              🧤
-                            </span>
-                          )}
-                          {m.mvpId === p.id && (
-                            <span aria-label="MVP" role="img">
-                              🏆
-                            </span>
-                          )}
-                          {p.goals}⚽ {p.performance}★
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                    {m.shirtsResponsibleId && (
-                      <div className="text-gray-700">
-                        🎽 Camisetas:{" "}
-                        <span className="font-medium">
-                          {storePlayers.find(
-                            (p) => p.id === m.shirtsResponsibleId,
-                          )?.name ?? "—"}
-                        </span>
+                      )}
+                    </div>
+                    {!isDraft && (
+                      <div className="text-indigo-600 font-bold text-xl">
+                        {m.teamAScore} - {m.teamBScore}
                       </div>
                     )}
                   </div>
-                  <div className="flex justify-end gap-3">
-                    {isAdmin && (
-                      <>
-                        <button
-                          className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                          onClick={() => setOpen({ mode: "edit", match: m })}
+                  <div className="flex gap-2 items-start">
+                    <div
+                      className={`flex-1 min-w-0 ${
+                        isDraft
+                          ? "bg-gray-50"
+                          : m.teamAScore > m.teamBScore
+                            ? "bg-green-50"
+                            : m.teamAScore < m.teamBScore
+                              ? "bg-red-50"
+                              : "bg-gray-50"
+                      } rounded p-2`}
+                    >
+                      <h4 className="text-center font-semibold mb-2 text-sm">Equipo A</h4>
+                      {m.teamA.map((p: Match["teamA"][number]) => (
+                        <div
+                          key={p.id}
+                          className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                         >
-                          Editar
-                        </button>
-                        <button
-                          className="text-red-600 hover:text-red-800 text-sm"
-                          onClick={() => handleDelete(m.id)}
+                          <span className="text-sm truncate">{p.name}</span>
+                          <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
+                            {m.goalkeeperIds?.includes(p.id) && (
+                              <span aria-label="Arquero" role="img">
+                                🧤
+                              </span>
+                            )}
+                            {!isDraft && (
+                              <>
+                                {m.mvpId === p.id && (
+                                  <span aria-label="MVP" role="img">
+                                    🏆
+                                  </span>
+                                )}
+                                {p.goals}⚽ {p.performance}★
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div
+                      className={`flex-1 min-w-0 ${
+                        isDraft
+                          ? "bg-gray-50"
+                          : m.teamBScore > m.teamAScore
+                            ? "bg-green-50"
+                            : m.teamBScore < m.teamAScore
+                              ? "bg-red-50"
+                              : "bg-gray-50"
+                      } rounded p-2`}
+                    >
+                      <h4 className="text-center font-semibold mb-2 text-sm">Equipo B</h4>
+                      {m.teamB.map((p: Match["teamB"][number]) => (
+                        <div
+                          key={p.id}
+                          className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                         >
-                          Eliminar
-                        </button>
-                      </>
-                    )}
+                          <span className="text-sm truncate">{p.name}</span>
+                          <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
+                            {m.goalkeeperIds?.includes(p.id) && (
+                              <span aria-label="Arquero" role="img">
+                                🧤
+                              </span>
+                            )}
+                            {!isDraft && (
+                              <>
+                                {m.mvpId === p.id && (
+                                  <span aria-label="MVP" role="img">
+                                    🏆
+                                  </span>
+                                )}
+                                {p.goals}⚽ {p.performance}★
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                      {m.shirtsResponsibleId && (
+                        <div className="text-gray-700">
+                          🎽 Camisetas:{" "}
+                          <span className="font-medium">
+                            {storePlayers.find(
+                              (p) => p.id === m.shirtsResponsibleId,
+                            )?.name ?? "—"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      {isAdmin && (
+                        <>
+                          {isDraft ? (
+                            <button
+                              className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                              onClick={() => setOpen({ mode: "edit", match: m })}
+                            >
+                              Completar resultado
+                            </button>
+                          ) : (
+                            <button
+                              className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                              onClick={() => setOpen({ mode: "edit", match: m })}
+                            >
+                              Editar
+                            </button>
+                          )}
+                          <button
+                            className="text-red-600 hover:text-red-800 text-sm"
+                            onClick={() => handleDelete(m.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
         )}
       </div>
       <dialog
@@ -347,9 +391,13 @@ function RecordModal({
 }) {
   const { players } = usePlayerStore();
   const { matches: allMatches } = useMatchStore();
-  const playedBefore = useMemo(
-    () => buildPlayedBeforeSet(allMatches),
+  const finalMatches = useMemo(
+    () => onlyFinalMatches(allMatches),
     [allMatches],
+  );
+  const playedBefore = useMemo(
+    () => buildPlayedBeforeSet(finalMatches),
+    [finalMatches],
   );
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
@@ -446,7 +494,7 @@ function RecordModal({
     Object.fromEntries(
       (initial?.teamA || []).map((p: Match["teamA"][number]) => [
         p.id,
-        p.performance,
+        p.performance || 5,
       ]),
     ),
   );
@@ -462,7 +510,7 @@ function RecordModal({
     Object.fromEntries(
       (initial?.teamB || []).map((p: Match["teamB"][number]) => [
         p.id,
-        p.performance,
+        p.performance || 5,
       ]),
     ),
   );
@@ -532,6 +580,7 @@ function RecordModal({
       const m: Omit<Match, "id"> = {
         date: matchDate,
         type: matchType,
+        status: "final",
         teamAScore: teamAScore as number,
         teamBScore: teamBScore as number,
         teamA: teamA.map((p) => ({

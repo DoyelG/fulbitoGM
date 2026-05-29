@@ -1,22 +1,36 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
 import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
+import { onlyFinalMatches } from '@fulbito/utils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
+import type { Match } from '@fulbito/types'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
+  const router = useRouter()
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()
-  const { matches: allMatches, initLoad: initMatchesLoad, resetAndReload: resetMatches } = useMatchStore()
+  const {
+    matches: allMatches,
+    initLoad: initMatchesLoad,
+    resetAndReload: resetMatches,
+    addMatch,
+  } = useMatchStore()
+  const finalMatches = useMemo(() => onlyFinalMatches(allMatches), [allMatches])
   const [matchType, setMatchType] = useState<MatchType>('5v5')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
   const requiredPlayers = playersPerTeam * 2
+
+  const [draftDate, setDraftDate] = useState<string>(() => new Date().toISOString().slice(0, 10))
+  const [draftName, setDraftName] = useState<string>('')
+  const [isCreatingDraft, setIsCreatingDraft] = useState(false)
 
   const initialized = useRef(false)
 
@@ -47,7 +61,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
   const MAX_GOALKEEPERS = 2
 
-  const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
+  const playedBefore = useMemo(() => buildPlayedBeforeSet(finalMatches), [finalMatches])
 
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
@@ -195,7 +209,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       alert(`Por favor, selecciona exactamente ${requiredPlayers} jugadores para ${matchType}.`)
       return
     }
-    const streaks = calculateAllCurrentStreaks(allMatches)
+    const streaks = calculateAllCurrentStreaks(finalMatches)
     const { teams, hadStreak } = buildTeams(selectedPlayers, streaks)
     setAutoTeams(teams)
     setStreakSeparated(hadStreak)
@@ -211,7 +225,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const regenerate = async () => {
     await initMatchesLoad()
     if (!selectedPlayers.length) return
-    const streaks = calculateAllCurrentStreaks(allMatches)
+    const streaks = calculateAllCurrentStreaks(finalMatches)
     const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5)
     const { teams, hadStreak } = buildTeams(shuffled, streaks)
     setAutoTeams(teams)
@@ -258,6 +272,43 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     }
     setManualOpen(false)
+  }
+
+  const createDraft = async () => {
+    if (!autoTeams) return
+    if (isCreatingDraft) return
+    setIsCreatingDraft(true)
+    try {
+      const draft: Omit<Match, 'id'> = {
+        date: draftDate,
+        type: matchType,
+        status: 'draft',
+        teamAScore: 0,
+        teamBScore: 0,
+        teamA: autoTeams.teamA.players.map((p) => ({
+          id: p.id,
+          name: p.name,
+          goals: 0,
+          performance: 0,
+        })),
+        teamB: autoTeams.teamB.players.map((p) => ({
+          id: p.id,
+          name: p.name,
+          goals: 0,
+          performance: 0,
+        })),
+        name: draftName.trim() || undefined,
+        shirtsResponsibleId: shirtsResponsibleId ?? null,
+        mvpId: null,
+      }
+      await addMatch(draft)
+      router.push('/history')
+    } catch (err) {
+      console.error(err)
+      alert('Error al crear el partido')
+    } finally {
+      setIsCreatingDraft(false)
+    }
   }
 
   const moveManual = (player: PlayerInfo, target: 'unassigned' | 'a' | 'b') => {
@@ -470,7 +521,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   {(() => {
                     const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
                     const played = new Set<string>()
-                    for (const m of allMatches) {
+                    for (const m of finalMatches) {
                       for (const p of m.teamA) played.add(p.id)
                       for (const p of m.teamB) played.add(p.id)
                     }
@@ -495,6 +546,46 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="mt-6 border-t pt-4">
+            <h4 className="font-semibold mb-3">Crear partido</h4>
+            <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
+              <div>
+                <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
+                <input
+                  id="draft-date"
+                  type="date"
+                  value={draftDate}
+                  onChange={(e) => setDraftDate(e.target.value)}
+                  className="border rounded px-3 py-2 w-full"
+                />
+              </div>
+              <div>
+                <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
+                <input
+                  id="draft-name"
+                  type="text"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  placeholder="Ej: Partido del miércoles"
+                  className="border rounded px-3 py-2 w-full"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={createDraft}
+                disabled={isCreatingDraft}
+                className={`px-4 py-2 rounded text-white ${
+                  isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
+                {isCreatingDraft ? 'Creando...' : 'Crear partido'}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              Se guarda como borrador en el historial. Más tarde podés completar el resultado.
+            </p>
           </div>
         </div>
       )}
