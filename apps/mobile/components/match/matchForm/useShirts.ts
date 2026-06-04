@@ -19,7 +19,6 @@ export type ShirtsState = {
 }
 
 export function useShirts(
-  players: Player[],
   allMatches: Match[],
   teamA: RecordingPlayer[],
   teamB: RecordingPlayer[],

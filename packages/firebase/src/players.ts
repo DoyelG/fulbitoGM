@@ -13,7 +13,6 @@ function docToPlayer(id: string, data: Record<string, any>): Player {
     skill: data.skill ?? null,
     skills: data.skills,
     photoUrl: data.photoUrl,
-    shirtDutiesCount: data.shirtDutiesCount ?? 0,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
   }
@@ -39,7 +38,6 @@ export async function createPlayer(data: Omit<Player, 'id' | 'createdAt' | 'upda
     skill: data.skill ?? null,
     skills: data.skills ?? null,
     photoUrl: data.photoUrl ?? null,
-    shirtDutiesCount: data.shirtDutiesCount ?? 0,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   })
@@ -54,12 +52,4 @@ export async function updatePlayer(id: string, data: Partial<Omit<Player, 'id' |
 export async function deletePlayer(id: string): Promise<void> {
   const db = getFirestore()
   await deleteDoc(doc(db, 'players', id))
-}
-
-export async function incrementShirtDuty(playerId: string, delta: 1 | -1): Promise<void> {
-  const db = getFirestore()
-  const player = await getPlayer(playerId)
-  if (!player) return
-  const newCount = Math.max(0, (player.shirtDutiesCount ?? 0) + delta)
-  await updateDoc(doc(db, 'players', playerId), { shirtDutiesCount: newCount, updatedAt: Timestamp.now() })
 }

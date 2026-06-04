@@ -16,7 +16,6 @@ function docToPlayer(id: string, data: DocumentData): Player {
     skill: data.skill ?? null,
     skills: data.skills,
     photoUrl: data.photoUrl,
-    shirtDutiesCount: data.shirtDutiesCount ?? 0,
     mvpCount: data.mvpCount ?? 0,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
