@@ -16,6 +16,7 @@ export type Player = {
   photoUrl?: string
   shirtDutiesCount?: number
   mvpCount?: number
+  goalkeeping?: number
   createdAt: Date
   updatedAt: Date
 }

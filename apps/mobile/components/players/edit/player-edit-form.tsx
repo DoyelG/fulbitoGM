@@ -21,6 +21,7 @@ export type PlayerEditFormValues = {
   technical: number
   tactical: number
   psychological: number
+  goalkeeping: number
 }
 
 type Props = {
@@ -167,6 +168,20 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           <ThemedText style={[styles.avgValue, { color: colors.brand }]}>
             Lv {overall.toFixed(2)}
           </ThemedText>
+        </View>
+
+        {/* ── Nivel de arquero ─────────────────────────────── */}
+        <ThemedText style={[styles.label, { color: colors.muted }]}>Nivel de arquero</ThemedText>
+        <View
+          style={[
+            styles.skillsCard,
+            { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.md },
+          ]}>
+          <SkillStepper
+            label="Arquero"
+            value={values.goalkeeping}
+            onChange={(v) => set('goalkeeping', v)}
+          />
         </View>
 
         {/* ── Acciones ─────────────────────────────────────── */}

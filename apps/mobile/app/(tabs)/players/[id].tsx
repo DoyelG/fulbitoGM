@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import { getGoalkeeping } from '@fulbito/utils'
 
 import { PlayerAvatar } from '@/components/players/player-avatar'
 import { StreakBadge } from '@/components/players/streak-badge'
@@ -137,7 +138,7 @@ export default function PlayerDetailScreen() {
               { backgroundColor: colors.surface, borderColor: colors.border },
               shadows.card(isDark),
             ]}>
-            <PlayerSkillBars skills={catSkills} />
+            <PlayerSkillBars skills={catSkills} goalkeeping={getGoalkeeping(player)} />
           </View>
 
           {/* ── Últimos partidos ─────────────────────────────── */}

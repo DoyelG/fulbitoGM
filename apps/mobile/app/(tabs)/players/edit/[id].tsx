@@ -4,6 +4,7 @@ import { Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { doc, updateDoc, Timestamp } from 'firebase/firestore'
+import { getGoalkeeping } from '@fulbito/utils'
 import { db } from '@/lib/firebase'
 import { PlayerEditForm, type PlayerEditFormValues } from '@/components/players/edit/player-edit-form'
 import { useIsAdmin } from '@/hooks/use-is-admin'
@@ -27,6 +28,7 @@ export default function EditPlayerScreen() {
     technical: 5,
     tactical: 5,
     psychological: 5,
+    goalkeeping: 5,
   })
   const [saving, setSaving] = useState(false)
 
@@ -52,6 +54,7 @@ export default function EditPlayerScreen() {
         technical: Number(player.skills?.technical ?? base),
         tactical: Number(player.skills?.tactical ?? base),
         psychological: Number(player.skills?.psychological ?? base),
+        goalkeeping: getGoalkeeping(player),
       })
     }
   }, [player])
@@ -72,6 +75,7 @@ export default function EditPlayerScreen() {
         position: values.position,
         skills,
         skill,
+        goalkeeping: values.goalkeeping,
         updatedAt: Timestamp.now(),
       })
       await reload()
