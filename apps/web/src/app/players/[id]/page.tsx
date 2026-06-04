@@ -13,6 +13,7 @@ import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
 import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
+import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 export default function PlayerDetailPage() {
@@ -136,6 +137,11 @@ export default function PlayerDetailPage() {
 
   const currentStreak = useMemo(
     () => calculateCurrentStreakForPlayer(matches, id as string),
+    [matches, id]
+  );
+
+  const shirtDutiesCount = useMemo(
+    () => getShirtDutiesByPlayerId(matches).get(id as string) ?? 0,
     [matches, id]
   );
 
@@ -427,7 +433,7 @@ export default function PlayerDetailPage() {
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">
           <div className="text-sm text-gray-700">Llevo las Camisetas</div>
-          <div className="text-2xl font-semibold">{player.shirtDutiesCount ?? 0} Veces</div>
+          <div className="text-2xl font-semibold">{shirtDutiesCount} Veces</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">
           <div className="text-sm text-gray-700 flex items-center justify-center gap-1.5">

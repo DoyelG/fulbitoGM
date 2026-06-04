@@ -56,7 +56,7 @@ export function MatchForm({
   const pool = usePool(players, initial)
   const teams = useTeams(initial)
   const scores = useScores(initial)
-  const shirts = useShirts(players, allMatches, teams.teamA, teams.teamB, initial)
+  const shirts = useShirts(allMatches, teams.teamA, teams.teamB, initial)
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const teamStats = useMemo(
@@ -204,6 +204,7 @@ export function MatchForm({
         onChange={shirts.setShirtsResponsibleId}
         teamPlayers={shirts.teamPlayers}
         playedBefore={shirts.playedBefore}
+        dutiesById={shirts.dutiesById}
       />
 
       <FormActions

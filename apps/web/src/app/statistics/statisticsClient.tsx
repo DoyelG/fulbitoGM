@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Match, Player } from "@fulbito/types";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
+import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
 
 export default function StatisticsClient({
   players: propsPlayers,
@@ -72,9 +73,7 @@ export default function StatisticsClient({
         mvps: number;
       }
     > = {};
-    const shirtCountById = new Map(
-      players.map((p) => [p.id, p.shirtDutiesCount ?? 0]),
-    );
+    const shirtCountById = getShirtDutiesByPlayerId(matches);
     const mvpCountById = new Map(
       players.map((p) => [p.id, p.mvpCount ?? 0]),
     );

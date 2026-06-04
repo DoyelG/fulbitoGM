@@ -1,8 +1,9 @@
-import type { Match, Player } from '@fulbito/types'
+import type { Match } from '@fulbito/types'
 import {
   buildPlayedBeforeSet,
   computeLeastAssignedPoolIds,
   getEligiblePlayerIds,
+  getShirtDutiesByPlayerId,
 } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
@@ -16,6 +17,8 @@ export type ShirtsState = {
   teamPlayers: RecordingPlayer[]
   /** IDs candidatos para asignación automática */
   dutyPoolIds: string[]
+  /** Conteo derivado de cuántas veces cada jugador se llevó las camisetas */
+  dutiesById: Map<string, number>
 }
 
 export function useShirts(
@@ -29,14 +32,15 @@ export function useShirts(
   )
 
   const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
+  const dutiesById = useMemo(() => getShirtDutiesByPlayerId(allMatches), [allMatches])
 
   const { teamPlayers, dutyPoolIds } = useMemo(() => {
     const all = [...teamA, ...teamB]
     const teamIds = all.map((p) => p.id)
     const eligibleIds = getEligiblePlayerIds(teamIds, playedBefore)
-    const { poolIds } = computeLeastAssignedPoolIds(eligibleIds, players)
+    const { poolIds } = computeLeastAssignedPoolIds(eligibleIds, dutiesById)
     return { teamPlayers: all, dutyPoolIds: poolIds }
-  }, [teamA, teamB, players, playedBefore])
+  }, [teamA, teamB, dutiesById, playedBefore])
 
   return {
     shirtsResponsibleId,
@@ -44,6 +48,7 @@ export function useShirts(
     playedBefore,
     teamPlayers,
     dutyPoolIds,
+    dutiesById,
   }
 }
 
