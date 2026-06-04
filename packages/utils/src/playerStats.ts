@@ -1,4 +1,12 @@
-import type { MatchLike } from '@fulbito/types'
+import type { MatchLike, Player } from '@fulbito/types'
+
+export function defaultGoalkeeping(skill: number | null | undefined): number {
+  return Math.round(skill ?? 5)
+}
+
+export function getGoalkeeping(player: Pick<Player, 'goalkeeping' | 'skill'>): number {
+  return player.goalkeeping ?? defaultGoalkeeping(player.skill)
+}
 
 function relevantSorted(matches: MatchLike[], playerId: string) {
   return matches

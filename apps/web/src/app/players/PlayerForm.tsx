@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '@/lib/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
+import { getGoalkeeping } from '@fulbito/utils'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -24,6 +25,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [goalkeeping, setGoalkeeping] = useState<string>('5')
+  const [gkTouched, setGkTouched] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -40,6 +43,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
           psychological: String(p.skills?.psychological ?? base)
         })
         setPhotoPreview(p.photoUrl ?? null)
+        setGoalkeeping(String(getGoalkeeping(p)))
+        setGkTouched(p.goalkeeping != null)
       }
     }
   }, [mode, playerId, getPlayer])
@@ -47,6 +52,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const avgPreview = useMemo(() => (
     (+formData.physical + +formData.technical + +formData.tactical + +formData.psychological) / 4
   ), [formData])
+
+  const gkValue = gkTouched ? goalkeeping : String(Math.round(avgPreview))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,6 +64,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
       psychological: parseInt(formData.psychological, 10),
     }
     const avg = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
+    const goalkeepingValue = gkTouched ? parseInt(goalkeeping, 10) : Math.round(avg)
 
     let uploadedUrl: string | undefined
     if (photoFile) {
@@ -67,9 +75,9 @@ export default function PlayerForm({ mode, playerId }: Props) {
     }
 
     if (mode === 'create') {
-      await addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+      await addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
     } else if (playerId) {
-      await updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+      await updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
     }
     router.push('/players')
   }
@@ -139,6 +147,19 @@ export default function PlayerForm({ mode, playerId }: Props) {
       </div>
 
       <div className="text-sm text-gray-800">General (promedio): <span className="font-semibold">Lv {avgPreview}</span></div>
+
+      <div>
+        <label htmlFor="goalkeeping" className="block text-sm font-medium text-black">Nivel de arquero</label>
+        <select
+          id="goalkeeping"
+          value={gkValue}
+          onChange={(e) => { setGkTouched(true); setGoalkeeping(e.target.value) }}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
+        >
+          {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+        <p className="mt-1 text-xs text-gray-700">Por defecto sigue el promedio del jugador. Editalo para fijar un valor.</p>
+      </div>
 
       <div>
         <label htmlFor="position" className="block text-sm font-medium text-black">Posición</label>

@@ -16,6 +16,7 @@ function docToPlayer(id: string, data: Record<string, any>): Player {
     skills: data.skills,
     photoUrl: data.photoUrl,
     shirtDutiesCount: data.shirtDutiesCount ?? 0,
+    goalkeeping: data.goalkeeping ?? undefined,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
   }
