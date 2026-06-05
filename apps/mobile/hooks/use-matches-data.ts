@@ -10,7 +10,6 @@ import {
   query,
   orderBy,
   Timestamp,
-  increment,
   type DocumentData,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -107,25 +106,20 @@ export function useMatchesData(): MatchesDataState {
 
   const deleteMatch = useCallback(
     async (id: string) => {
-      const prevMvpId = matches.find(x => x.id === id)?.mvpId ?? null
       await deleteDoc(doc(db, 'matches', id))
       const mpSnap = await getDocs(collection(db, 'matchPlayers'))
       await Promise.all(mpSnap.docs.filter(d => d.data().matchId === id).map(d => deleteDoc(d.ref)))
-      if (prevMvpId) {
-        await updateDoc(doc(db, 'players', prevMvpId), { mvpCount: increment(-1) })
-      }
       await reload()
     },
-    [matches, reload],
+    [reload],
   )
 
   const addMatch = useCallback(
     async (m: Omit<Match, 'id'>) => {
       const { teamA, teamB, mvpId, ...rest } = m
-      const nextMvpId = mvpId ?? null
       const ref = await addDoc(collection(db, 'matches'), {
         ...rest,
-        mvpId: nextMvpId,
+        mvpId: mvpId ?? null,
         date: Timestamp.fromDate(new Date(m.date)),
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -145,9 +139,6 @@ export function useMatchesData(): MatchesDataState {
           }),
         ),
       )
-      if (nextMvpId) {
-        await updateDoc(doc(db, 'players', nextMvpId), { mvpCount: increment(1) })
-      }
       await reload()
     },
     [reload],
@@ -156,11 +147,9 @@ export function useMatchesData(): MatchesDataState {
   const updateMatch = useCallback(
     async (id: string, m: Omit<Match, 'id'>) => {
       const { teamA, teamB, mvpId, ...rest } = m
-      const prevMvpId = matches.find(x => x.id === id)?.mvpId ?? null
-      const nextMvpId = mvpId ?? null
       await updateDoc(doc(db, 'matches', id), {
         ...rest,
-        mvpId: nextMvpId,
+        mvpId: mvpId ?? null,
         date: Timestamp.fromDate(new Date(m.date)),
         updatedAt: Timestamp.now(),
       })
@@ -182,15 +171,9 @@ export function useMatchesData(): MatchesDataState {
           }),
         ),
       )
-      if (prevMvpId !== nextMvpId) {
-        const ops: Promise<void>[] = []
-        if (prevMvpId) ops.push(updateDoc(doc(db, 'players', prevMvpId), { mvpCount: increment(-1) }))
-        if (nextMvpId) ops.push(updateDoc(doc(db, 'players', nextMvpId), { mvpCount: increment(1) }))
-        await Promise.all(ops)
-      }
       await reload()
     },
-    [matches, reload],
+    [reload],
   )
 
   useEffect(() => {
