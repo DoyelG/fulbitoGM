@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import type { Match, Player } from "@fulbito/types";
+import { onlyFinalMatches } from "@fulbito/utils";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
@@ -73,9 +74,10 @@ export default function StatisticsClient({
         mvps: number;
       }
     > = {};
-    const shirtCountById = getShirtDutiesByPlayerId(matches);
-    const mvpCountById = getMvpCountsByPlayerId(matches);
-    for (const m of matches) {
+    const finalMatches = onlyFinalMatches(matches);
+    const shirtCountById = getShirtDutiesByPlayerId(finalMatches);
+    const mvpCountById = getMvpCountsByPlayerId(finalMatches);
+    for (const m of finalMatches) {
       const process =
         (team: "A" | "B") =>
         (p: {

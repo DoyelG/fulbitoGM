@@ -1,4 +1,5 @@
 export * from './teamUtils'
 export * from './playerStats'
 export * from './shirtDuty'
+export * from './match'
 export * from './mvp'

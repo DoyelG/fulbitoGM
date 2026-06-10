@@ -10,12 +10,14 @@ function docToMatch(id: string, data: Record<string, any>): Match {
     id,
     date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
     type: data.type,
+    status: data.status === 'draft' ? 'draft' : 'final',
     name: data.name ?? undefined,
     teamAScore: data.teamAScore,
     teamBScore: data.teamBScore,
     teamA: data.teamA ?? [],
     teamB: data.teamB ?? [],
     shirtsResponsibleId: data.shirtsResponsibleId ?? null,
+    mvpId: data.mvpId ?? null,
   }
 }
 
@@ -36,12 +38,14 @@ export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
   const ref = await addDoc(collection(db, 'matches'), {
     date: Timestamp.fromDate(new Date(data.date)),
     type: data.type,
+    status: data.status ?? 'final',
     name: data.name ?? null,
     teamAScore: data.teamAScore,
     teamBScore: data.teamBScore,
     teamA: data.teamA,
     teamB: data.teamB,
     shirtsResponsibleId: data.shirtsResponsibleId ?? null,
+    mvpId: data.mvpId ?? null,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   })
