@@ -112,7 +112,6 @@ async function main() {
       skill: p.skill,
       skills: p.skills,
       photoUrl,
-      shirtDutiesCount: 0,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     })

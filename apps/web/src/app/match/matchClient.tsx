@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
-import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds } from '@/lib/shirtDuty'
+import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds, getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
 import { onlyFinalMatches } from '@fulbito/utils'
@@ -62,6 +62,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const MAX_GOALKEEPERS = 2
 
   const playedBefore = useMemo(() => buildPlayedBeforeSet(finalMatches), [finalMatches])
+  const dutiesById = useMemo(() => getShirtDutiesByPlayerId(finalMatches), [finalMatches])
 
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
@@ -215,7 +216,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     setStreakSeparated(hadStreak)
     const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
-    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, dutiesById)
     const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
     setDutyPool(poolObjs)
     setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
@@ -232,7 +233,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     setStreakSeparated(hadStreak)
     const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
-    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, dutiesById)
     const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
     setDutyPool(poolObjs)
     setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
@@ -257,7 +258,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       setAutoTeams(teams)
       const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
       const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
-      const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+      const { poolIds } = computeLeastAssignedPoolIds(consideredIds, dutiesById)
       const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
       setDutyPool(poolObjs)
       setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
@@ -266,7 +267,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       setAutoTeams(teams)
       const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
       const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
-      const { poolIds } = computeLeastAssignedPoolIds(consideredIds, players)
+      const { poolIds } = computeLeastAssignedPoolIds(consideredIds, dutiesById)
       const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
       setDutyPool(poolObjs)
       setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
@@ -528,7 +529,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     const eligibleExists = current.some(p => played.has(p.id))
                     return current.map(p => (
                       <option key={p.id} value={p.id} disabled={eligibleExists && !played.has(p.id)}>
-                        {p.name} (#{(players.find(pp => pp.id === p.id)?.shirtDutiesCount ?? 0)}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
+                        {p.name} (#{dutiesById.get(p.id) ?? 0}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
                       </option>
                     ))
                   })()}

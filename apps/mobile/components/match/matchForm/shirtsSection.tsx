@@ -15,6 +15,7 @@ type Props = {
   onChange: (id: string | null) => void
   teamPlayers: RecordingPlayer[]
   playedBefore: Set<string>
+  dutiesById: Map<string, number>
 }
 
 export function ShirtsSection({
@@ -23,6 +24,7 @@ export function ShirtsSection({
   onChange,
   teamPlayers,
   playedBefore,
+  dutiesById,
 }: Props) {
   const { colors, radii } = useAppTheme()
   const [open, setOpen] = useState(false)
@@ -33,15 +35,15 @@ export function ShirtsSection({
 
   const eligible = teamPlayers.some((p) => playedBefore.has(p.id))
   const options = [
-    { id: '', name: 'Sin seleccionar', disabled: false },
+    { id: '', name: 'Sin seleccionar', disabled: false, duties: 0 },
     ...teamPlayers.map((p) => {
-      const playerData = players.find((pp) => pp.id === p.id)
+      const duties = dutiesById.get(p.id) ?? 0
       const isNew = eligible && !playedBefore.has(p.id)
       return {
         id: p.id,
-        name: `${p.name} (#${playerData?.shirtDutiesCount ?? 0})${isNew ? ' — nuevo' : ''}`,
+        name: `${p.name} (#${duties})${isNew ? ' — nuevo' : ''}`,
         disabled: isNew,
-        duties: playerData?.shirtDutiesCount ?? 0,
+        duties,
       }
     }),
   ]
