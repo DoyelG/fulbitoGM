@@ -155,11 +155,14 @@ export default function HistoryClient() {
       <div className="space-y-4 mb-10">
         {isLoadingMatches ? (
           <div
-            className="text-gray-600"
+            className="flex items-center gap-2 text-gray-600"
             role="status"
             aria-live="polite"
             aria-busy="true"
           >
+            <span className="animate-spin text-lg leading-none" aria-hidden="true">
+              ⚽
+            </span>
             Buscando partidos…
           </div>
         ) : filteredMatches.length === 0 ? (
