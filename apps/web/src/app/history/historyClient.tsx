@@ -300,12 +300,24 @@ export default function HistoryClient() {
                       {isAdmin && (
                         <>
                           {isDraft ? (
-                            <button
-                              className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-                              onClick={() => setOpen({ mode: "edit", match: m })}
-                            >
-                              Completar resultado
-                            </button>
+                            <>
+                              <button
+                                className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                                onClick={() =>
+                                  setOpen({ mode: "edit", match: m })
+                                }
+                              >
+                                Editar
+                              </button>
+                              <button
+                                className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                                onClick={() =>
+                                  setOpen({ mode: "edit", match: m })
+                                }
+                              >
+                                Completar resultado
+                              </button>
+                            </>
                           ) : (
                             <button
                               className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
@@ -396,6 +408,7 @@ function RecordModal({
   );
 
   const [isLoading, setIsLoading] = useState(false);
+  const isDraft = initial?.status === "draft";
 
   const [teamA, setTeamA] = useState<RecordingPlayer[]>(
     initial?.teamA?.map((p: Match["teamA"][number]) => ({
@@ -543,49 +556,64 @@ function RecordModal({
     />
   );
 
-  const canSave =
+  const teamsComplete =
+    teamA.length === playersPerTeam && teamB.length === playersPerTeam;
+  // Confirming a match (status 'final') needs a complete, consistent result.
+  const canConfirm =
     (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
     (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
-    teamA.length === playersPerTeam &&
-    teamB.length === playersPerTeam;
+    teamsComplete;
+  // Saving a draft only needs full teams — it hasn't been played yet.
+  const canUpdateDraft = teamsComplete;
 
-  const handleSave = async () => {
-    if (!canSave) return;
+  const buildPayload = (status: "draft" | "final"): Omit<Match, "id"> => {
+    const isFinal = status === "final";
+    const pool = selectedPlayersForDuty.pool;
+    const chosen =
+      shirtsResponsibleId ||
+      (pool.length
+        ? pool[Math.floor(Math.random() * pool.length)].id
+        : undefined);
+
+    return {
+      date: matchDate,
+      type: matchType,
+      status,
+      teamAScore: isFinal ? (teamAScore as number) : 0,
+      teamBScore: isFinal ? (teamBScore as number) : 0,
+      teamA: teamA.map((p) => ({
+        id: p.id,
+        name: p.name,
+        goals: isFinal ? goalsA[p.id] || 0 : 0,
+        performance: isFinal ? perfA[p.id] || 5 : 0,
+      })),
+      teamB: teamB.map((p) => ({
+        id: p.id,
+        name: p.name,
+        goals: isFinal ? goalsB[p.id] || 0 : 0,
+        performance: isFinal ? perfB[p.id] || 5 : 0,
+      })),
+      name: matchName.trim() || undefined,
+      shirtsResponsibleId: chosen ?? null,
+      mvpId: isFinal ? mvpId : null,
+      goalkeeperIds,
+    };
+  };
+
+  const handleSave = async (targetStatus: "draft" | "final") => {
+    if (targetStatus === "final" && !canConfirm) return;
+    if (targetStatus === "draft" && !canUpdateDraft) return;
 
     setIsLoading(true);
 
     try {
-      const pool = selectedPlayersForDuty.pool;
-      const chosen =
-        shirtsResponsibleId ||
-        (pool.length
-          ? pool[Math.floor(Math.random() * pool.length)].id
-          : undefined);
+      await onSave(buildPayload(targetStatus));
 
-      const m: Omit<Match, "id"> = {
-        date: matchDate,
-        type: matchType,
-        status: "final",
-        teamAScore: teamAScore as number,
-        teamBScore: teamBScore as number,
-        teamA: teamA.map((p) => ({
-          id: p.id,
-          name: p.name,
-          goals: goalsA[p.id] || 0,
-          performance: perfA[p.id] || 5,
-        })),
-        teamB: teamB.map((p) => ({
-          id: p.id,
-          name: p.name,
-          goals: goalsB[p.id] || 0,
-          performance: perfB[p.id] || 5,
-        })),
-        name: matchName.trim() || undefined,
-      };
-
-      await onSave({ ...m, shirtsResponsibleId: chosen, mvpId, goalkeeperIds });
-
-      alert("Partido guardado correctamente!");
+      alert(
+        targetStatus === "final"
+          ? "Partido guardado correctamente!"
+          : "Borrador actualizado!",
+      );
       onClose();
     } catch (err) {
       console.error(err);
@@ -954,27 +982,45 @@ function RecordModal({
 
         <div className="flex justify-end gap-3 mt-6">
           <button
-            className="border px-4 py-2 rounded hover:bg-gray-50"
+            className="border px-4 py-2 rounded hover:bg-gray-50 disabled:opacity-50"
             onClick={onClose}
+            disabled={isLoading}
           >
             Cancelar
           </button>
+          {isDraft && (
+            <button
+              className={`px-4 py-2 rounded text-white ${
+                canUpdateDraft
+                  ? "bg-amber-500 hover:bg-amber-600"
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
+              disabled={!canUpdateDraft || isLoading}
+              onClick={() => handleSave("draft")}
+            >
+              {isLoading ? "Actualizando..." : "Actualizar borrador"}
+            </button>
+          )}
           <button
             className={`px-4 py-2 rounded text-white ${
-              canSave
+              canConfirm
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
-            disabled={!canSave || isLoading}
-            onClick={handleSave}
+            disabled={!canConfirm || isLoading}
+            onClick={() => handleSave("final")}
           >
             {isLoading
-              ? mode === "edit"
-                ? "Actualizando..."
-                : "Guardando..."
-              : mode === "edit"
-                ? "Actualizar Partido"
-                : "Guardar Partido"}
+              ? isDraft
+                ? "Confirmando..."
+                : mode === "edit"
+                  ? "Actualizando..."
+                  : "Guardando..."
+              : isDraft
+                ? "Confirmar partido"
+                : mode === "edit"
+                  ? "Actualizar Partido"
+                  : "Guardar Partido"}
           </button>
         </div>
       </div>
