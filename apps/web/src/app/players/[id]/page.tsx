@@ -14,6 +14,7 @@ import PlayerCard from '@/components/PlayerCard'
 import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
+import { getMvpCountsByPlayerId } from "@fulbito/utils";
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 export default function PlayerDetailPage() {
@@ -142,6 +143,11 @@ export default function PlayerDetailPage() {
 
   const shirtDutiesCount = useMemo(
     () => getShirtDutiesByPlayerId(matches).get(id as string) ?? 0,
+    [matches, id]
+  );
+
+  const mvpCount = useMemo(
+    () => getMvpCountsByPlayerId(matches).get(id as string) ?? 0,
     [matches, id]
   );
 
@@ -440,7 +446,7 @@ export default function PlayerDetailPage() {
             <span aria-hidden="true">🏆</span>
             MVP del partido
           </div>
-          <div className="text-2xl font-semibold">{player.mvpCount ?? 0} Veces</div>
+          <div className="text-2xl font-semibold">{mvpCount} Veces</div>
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import type { Match, Player } from "@fulbito/types";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
+import { getMvpCountsByPlayerId } from "@fulbito/utils";
 
 export default function StatisticsClient({
   players: propsPlayers,
@@ -74,9 +75,7 @@ export default function StatisticsClient({
       }
     > = {};
     const shirtCountById = getShirtDutiesByPlayerId(matches);
-    const mvpCountById = new Map(
-      players.map((p) => [p.id, p.mvpCount ?? 0]),
-    );
+    const mvpCountById = getMvpCountsByPlayerId(matches);
     for (const m of matches) {
       const process =
         (team: "A" | "B") =>
