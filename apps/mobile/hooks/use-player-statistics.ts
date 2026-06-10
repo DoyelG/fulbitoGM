@@ -1,4 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
+import { getShirtDutiesByPlayerId } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
 export type SortTabKey = 'goals' | 'matches' | 'totalPerformance' | 'winRate'
@@ -21,7 +22,7 @@ export function usePlayerStatistics(players: Player[], matches: Match[]) {
 
   const stats = useMemo<PlayerStatRow[]>(() => {
     const map: Record<string, PlayerStatRow> = {}
-    const shirtCountById = new Map(players.map((p) => [p.id, p.shirtDutiesCount ?? 0]))
+    const shirtCountById = getShirtDutiesByPlayerId(matches)
     const photoById = new Map(players.map((p) => [p.id, p.photoUrl ?? undefined]))
 
     for (const m of matches) {

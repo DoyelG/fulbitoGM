@@ -3,8 +3,7 @@ import {
   getDocs, getDoc, addDoc, updateDoc, deleteDoc,
   query, orderBy, Timestamp,
 } from 'firebase/firestore'
-import type { Match, MatchPlayer } from '@fulbito/types'
-import { incrementShirtDuty } from './players'
+import type { Match } from '@fulbito/types'
 
 function docToMatch(id: string, data: Record<string, any>): Match {
   return {
@@ -46,37 +45,17 @@ export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   })
-  if (data.shirtsResponsibleId) {
-    await incrementShirtDuty(data.shirtsResponsibleId, 1)
-  }
   return ref.id
 }
 
 export async function updateMatch(id: string, data: Partial<Omit<Match, 'id'>>): Promise<void> {
   const db = getFirestore()
-  const existing = await getMatch(id)
-
   const update: Record<string, any> = { ...data, updatedAt: Timestamp.now() }
   if (data.date) update.date = Timestamp.fromDate(new Date(data.date))
-
   await updateDoc(doc(db, 'matches', id), update)
-
-  // Adjust shirt duty counts if responsible player changed
-  if (existing && 'shirtsResponsibleId' in data) {
-    const oldId = existing.shirtsResponsibleId
-    const newId = data.shirtsResponsibleId
-    if (oldId !== newId) {
-      if (oldId) await incrementShirtDuty(oldId, -1)
-      if (newId) await incrementShirtDuty(newId, 1)
-    }
-  }
 }
 
 export async function deleteMatch(id: string): Promise<void> {
   const db = getFirestore()
-  const match = await getMatch(id)
   await deleteDoc(doc(db, 'matches', id))
-  if (match?.shirtsResponsibleId) {
-    await incrementShirtDuty(match.shirtsResponsibleId, -1)
-  }
 }

@@ -1,4 +1,14 @@
-import type { Player, Match } from '@fulbito/types'
+import type { Match } from '@fulbito/types'
+
+export function getShirtDutiesByPlayerId(matches: Match[]): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const m of matches) {
+    if (m.shirtsResponsibleId) {
+      counts.set(m.shirtsResponsibleId, (counts.get(m.shirtsResponsibleId) ?? 0) + 1)
+    }
+  }
+  return counts
+}
 
 export function buildPlayedBeforeSet(matches: Match[]): Set<string> {
   const played = new Set<string>()
@@ -19,14 +29,13 @@ export function getEligiblePlayerIds(
 
 export function computeLeastAssignedPoolIds(
   consideredIds: string[],
-  allPlayers: Player[]
+  dutiesById: Map<string, number>,
 ): { poolIds: string[]; min: number } {
-  const counts = new Map<string, number>(allPlayers.map(p => [p.id, p.shirtDutiesCount ?? 0]))
   let min = Infinity
   for (const id of consideredIds) {
-    const c = counts.get(id) ?? 0
+    const c = dutiesById.get(id) ?? 0
     if (c < min) min = c
   }
-  const poolIds = consideredIds.filter(id => (counts.get(id) ?? 0) === min)
+  const poolIds = consideredIds.filter(id => (dutiesById.get(id) ?? 0) === min)
   return { poolIds, min }
 }

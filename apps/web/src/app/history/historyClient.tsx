@@ -8,6 +8,7 @@ import {
   buildPlayedBeforeSet,
   getEligiblePlayerIds,
   computeLeastAssignedPoolIds,
+  getShirtDutiesByPlayerId,
 } from "@/lib/shirtDuty";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
@@ -351,6 +352,10 @@ function RecordModal({
     () => buildPlayedBeforeSet(allMatches),
     [allMatches],
   );
+  const dutiesById = useMemo(
+    () => getShirtDutiesByPlayerId(allMatches),
+    [allMatches],
+  );
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
   );
@@ -397,11 +402,11 @@ function RecordModal({
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore);
     const { poolIds, min } = computeLeastAssignedPoolIds(
       consideredIds,
-      players,
+      dutiesById,
     );
     const pool = all.filter((p) => poolIds.includes(p.id));
     return { pool, min };
-  }, [teamA, teamB, players, playedBefore]);
+  }, [teamA, teamB, dutiesById, playedBefore]);
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(
     initial?.shirtsResponsibleId ?? null,
   );
@@ -809,10 +814,7 @@ function RecordModal({
                       value={p.id}
                       disabled={eligibleExists && !playedBefore.has(p.id)}
                     >
-                      {p.name} (#
-                      {players.find((pp) => pp.id === p.id)?.shirtDutiesCount ??
-                        0}
-                      )
+                      {p.name} (#{dutiesById.get(p.id) ?? 0})
                       {eligibleExists && !playedBefore.has(p.id)
                         ? " — nuevo"
                         : ""}

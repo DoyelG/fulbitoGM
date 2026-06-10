@@ -5,6 +5,8 @@ import Link from "next/link";
 import type { Match, Player } from "@fulbito/types";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
+import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
+import { getMvpCountsByPlayerId } from "@fulbito/utils";
 
 export default function StatisticsClient({
   players: propsPlayers,
@@ -20,7 +22,6 @@ export default function StatisticsClient({
   } = useMatchStore();
   const {
     hydratePlayers,
-    players,
     resetAndReload: resetPlayers,
   } = usePlayerStore();
 
@@ -72,12 +73,8 @@ export default function StatisticsClient({
         mvps: number;
       }
     > = {};
-    const shirtCountById = new Map(
-      players.map((p) => [p.id, p.shirtDutiesCount ?? 0]),
-    );
-    const mvpCountById = new Map(
-      players.map((p) => [p.id, p.mvpCount ?? 0]),
-    );
+    const shirtCountById = getShirtDutiesByPlayerId(matches);
+    const mvpCountById = getMvpCountsByPlayerId(matches);
     for (const m of matches) {
       const process =
         (team: "A" | "B") =>
@@ -122,7 +119,7 @@ export default function StatisticsClient({
       stat.totalPerformance = stat.totalPerformance / stat.matches;
     });
     return Object.values(map);
-  }, [matches, players]);
+  }, [matches]);
 
   type SortKey = keyof StatRow | "goalsPerMatch" | "winRate";
   const [sortKey, setSortKey] = useState<SortKey>("goals");
