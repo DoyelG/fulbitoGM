@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import type { Match, Player } from "@fulbito/types";
+import type { Match } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import {
   buildPlayedBeforeSet,
@@ -18,22 +18,16 @@ const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
 
 type RecordingPlayer = { id: string; name: string };
 
-export default function HistoryClient({
-  matches,
-  players,
-}: {
-  matches: Match[];
-  players: Player[];
-}) {
+export default function HistoryClient() {
   const { isAdmin } = useFirebaseAuth();
   const {
-    hydrateMatches,
     addMatch,
     updateMatch,
     deleteMatch,
     matches: storeMatches,
+    matchesInit,
   } = useMatchStore();
-  const { hydratePlayers, players: storePlayers } = usePlayerStore();
+  const { players: storePlayers } = usePlayerStore();
   const [open, setOpen] = useState<
     false | { mode: "create" } | { mode: "edit"; match: Match }
   >(false);
@@ -43,18 +37,6 @@ export default function HistoryClient({
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  useEffect(() => {
-    if (storeMatches.length === 0) hydrateMatches(matches);
-    if (storePlayers.length === 0) hydratePlayers(players);
-  }, [
-    matches,
-    hydrateMatches,
-    hydratePlayers,
-    players,
-    storeMatches.length,
-    storePlayers.length,
-  ]);
 
   if (open) {
     return (
@@ -80,6 +62,24 @@ export default function HistoryClient({
     deleteMatch(selectedMatchId as string);
     setShowModal(false);
   };
+
+  const isLoadingMatches =
+    matchesInit === "idle" || matchesInit === "loading";
+  const filteredMatches = storeMatches.filter((m) => {
+    const d = m.date.slice(0, 10);
+    if (fromDate && d < fromDate) return false;
+    if (toDate && d > toDate) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const inTitle = m.name?.toLowerCase().includes(q) ?? false;
+      const inPlayers = [...m.teamA, ...m.teamB].some((p) =>
+        p.name.toLowerCase().includes(q),
+      );
+      if (!inTitle && !inPlayers) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -153,39 +153,21 @@ export default function HistoryClient({
         </div>
       </div>
       <div className="space-y-4 mb-10">
-        {storeMatches.filter((m) => {
-          const d = m.date.slice(0, 10);
-          if (fromDate && d < fromDate) return false;
-          if (toDate && d > toDate) return false;
-          if (searchQuery) {
-            const q = searchQuery.toLowerCase();
-            const inTitle = m.name?.toLowerCase().includes(q) ?? false;
-            const inPlayers = [...m.teamA, ...m.teamB].some((p) =>
-              p.name.toLowerCase().includes(q),
-            );
-            if (!inTitle && !inPlayers) return false;
-          }
-          return true;
-        }).length === 0 ? (
+        {isLoadingMatches ? (
+          <div
+            className="text-gray-600"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            Buscando partidos…
+          </div>
+        ) : filteredMatches.length === 0 ? (
           <div className="text-black">
             No se encontraron partidos que coincidan con la búsqueda.
           </div>
         ) : (
-          storeMatches
-            .filter((m) => {
-              const d = m.date.slice(0, 10);
-              if (fromDate && d < fromDate) return false;
-              if (toDate && d > toDate) return false;
-              if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                const inTitle = m.name?.toLowerCase().includes(q) ?? false;
-                const inPlayers = [...m.teamA, ...m.teamB].some((p) =>
-                  p.name.toLowerCase().includes(q),
-                );
-                if (!inTitle && !inPlayers) return false;
-              }
-              return true;
-            })
+          filteredMatches
             .slice(0, 10)
             .map((m) => {
               const isDraft = m.status === "draft";
