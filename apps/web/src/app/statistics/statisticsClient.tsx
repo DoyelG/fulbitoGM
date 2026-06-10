@@ -22,7 +22,6 @@ export default function StatisticsClient({
   } = useMatchStore();
   const {
     hydratePlayers,
-    players,
     resetAndReload: resetPlayers,
   } = usePlayerStore();
 
@@ -120,7 +119,7 @@ export default function StatisticsClient({
       stat.totalPerformance = stat.totalPerformance / stat.matches;
     });
     return Object.values(map);
-  }, [matches, players]);
+  }, [matches]);
 
   type SortKey = keyof StatRow | "goalsPerMatch" | "winRate";
   const [sortKey, setSortKey] = useState<SortKey>("goals");

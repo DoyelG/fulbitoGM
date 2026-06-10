@@ -223,6 +223,11 @@ export default function HistoryClient({
                       >
                         <span className="text-sm truncate">{p.name}</span>
                         <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
+                          {m.goalkeeperIds?.includes(p.id) && (
+                            <span aria-label="Arquero" role="img">
+                              🧤
+                            </span>
+                          )}
                           {m.mvpId === p.id && (
                             <span aria-label="MVP" role="img">
                               🏆
@@ -244,6 +249,11 @@ export default function HistoryClient({
                       >
                         <span className="text-sm truncate">{p.name}</span>
                         <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
+                          {m.goalkeeperIds?.includes(p.id) && (
+                            <span aria-label="Arquero" role="img">
+                              🧤
+                            </span>
+                          )}
                           {m.mvpId === p.id && (
                             <span aria-label="MVP" role="img">
                               🏆
@@ -401,12 +411,33 @@ function RecordModal({
     initial?.shirtsResponsibleId ?? null,
   );
   const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null);
+  const [goalkeeperIds, setGoalkeeperIds] = useState<string[]>(
+    initial?.goalkeeperIds ?? [],
+  );
+  const MAX_GOALKEEPERS = 2;
 
   useEffect(() => {
     if (!mvpId) return;
     const inTeams = [...teamA, ...teamB].some((p) => p.id === mvpId);
     if (!inTeams) setMvpId(null);
   }, [teamA, teamB, mvpId]);
+
+  useEffect(() => {
+    const ids = new Set([...teamA, ...teamB].map((p) => p.id));
+    setGoalkeeperIds((prev) => {
+      const next = prev.filter((id) => ids.has(id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [teamA, teamB]);
+
+  const toggleGoalkeeper = (id: string) =>
+    setGoalkeeperIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length >= MAX_GOALKEEPERS
+          ? prev
+          : [...prev, id],
+    );
 
   const [goalsA, setGoalsA] = useState<Record<string, number>>(() =>
     Object.fromEntries(
@@ -523,7 +554,7 @@ function RecordModal({
         name: matchName.trim() || undefined,
       };
 
-      await onSave({ ...m, shirtsResponsibleId: chosen, mvpId });
+      await onSave({ ...m, shirtsResponsibleId: chosen, mvpId, goalkeeperIds });
 
       alert("Partido guardado correctamente!");
       onClose();
@@ -840,6 +871,52 @@ function RecordModal({
                 })()}
               </select>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-3 bg-purple-50 border border-purple-200 rounded p-3">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="text-sm">
+              <div className="font-semibold flex items-center gap-1.5">
+                <span aria-hidden="true">🧤</span>
+                Arqueros
+              </div>
+              <div className="text-gray-800">
+                Marcá quién atajó (máximo {MAX_GOALKEEPERS})
+              </div>
+            </div>
+            <span className="text-sm px-2 py-0.5 rounded bg-purple-100 text-purple-800 shrink-0">
+              {goalkeeperIds.length} / {MAX_GOALKEEPERS}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[...teamA, ...teamB].length === 0 ? (
+              <span className="text-sm text-gray-600">
+                Asigná jugadores a los equipos para elegir arqueros.
+              </span>
+            ) : (
+              [...teamA, ...teamB].map((p) => {
+                const active = goalkeeperIds.includes(p.id);
+                const disabled =
+                  !active && goalkeeperIds.length >= MAX_GOALKEEPERS;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleGoalkeeper(p.id)}
+                    disabled={disabled}
+                    aria-pressed={active}
+                    className={`text-sm px-3 py-1 rounded-full border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                      active
+                        ? "bg-brand text-white border-brand"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                    }`}
+                  >
+                    🧤 {p.name}
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
 

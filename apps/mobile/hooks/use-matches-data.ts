@@ -53,6 +53,7 @@ async function fetchMatchesAndPlayers(): Promise<{ matches: Match[]; players: Pl
       teamB: teams.B,
       shirtsResponsibleId: data.shirtsResponsibleId ?? null,
       mvpId: data.mvpId ?? null,
+      goalkeeperIds: data.goalkeeperIds ?? [],
     } as Match
   })
 
@@ -116,10 +117,11 @@ export function useMatchesData(): MatchesDataState {
 
   const addMatch = useCallback(
     async (m: Omit<Match, 'id'>) => {
-      const { teamA, teamB, mvpId, ...rest } = m
+      const { teamA, teamB, mvpId, goalkeeperIds, ...rest } = m
       const ref = await addDoc(collection(db, 'matches'), {
         ...rest,
         mvpId: mvpId ?? null,
+        goalkeeperIds: goalkeeperIds ?? [],
         date: Timestamp.fromDate(new Date(m.date)),
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -146,10 +148,11 @@ export function useMatchesData(): MatchesDataState {
 
   const updateMatch = useCallback(
     async (id: string, m: Omit<Match, 'id'>) => {
-      const { teamA, teamB, mvpId, ...rest } = m
+      const { teamA, teamB, mvpId, goalkeeperIds, ...rest } = m
       await updateDoc(doc(db, 'matches', id), {
         ...rest,
         mvpId: mvpId ?? null,
+        goalkeeperIds: goalkeeperIds ?? [],
         date: Timestamp.fromDate(new Date(m.date)),
         updatedAt: Timestamp.now(),
       })

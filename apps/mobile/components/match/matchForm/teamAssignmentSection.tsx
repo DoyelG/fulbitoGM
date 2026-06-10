@@ -17,6 +17,7 @@ type Props = {
   teamB: RecordingPlayer[]
   pinnedA: Set<string>
   pinnedB: Set<string>
+  goalkeeperIds: Set<string>
   stats: TeamStats
   onConfirmTeam: (side: TeamSide, players: RecordingPlayer[]) => void
   onRemoveFromTeam: (side: TeamSide, id: string) => void
@@ -29,6 +30,7 @@ export function TeamAssignmentSection({
   teamB,
   pinnedA,
   pinnedB,
+  goalkeeperIds,
   stats,
   onConfirmTeam,
   onRemoveFromTeam,
@@ -43,6 +45,7 @@ export function TeamAssignmentSection({
           side="a"
           team={teamA}
           pinned={pinnedA}
+          goalkeeperIds={goalkeeperIds}
           playersPerTeam={playersPerTeam}
           stats={{ skill: stats.skillA, phys: stats.physA, winPct: stats.winPctA }}
           onAdd={() => setSelectingTeam('a')}
@@ -52,6 +55,7 @@ export function TeamAssignmentSection({
           side="b"
           team={teamB}
           pinned={pinnedB}
+          goalkeeperIds={goalkeeperIds}
           playersPerTeam={playersPerTeam}
           stats={{ skill: stats.skillB, phys: stats.physB, winPct: stats.winPctB }}
           onAdd={() => setSelectingTeam('b')}
@@ -81,6 +85,7 @@ function TeamColumn({
   side,
   team,
   pinned,
+  goalkeeperIds,
   playersPerTeam,
   stats,
   onAdd,
@@ -89,6 +94,7 @@ function TeamColumn({
   side: TeamSide
   team: RecordingPlayer[]
   pinned: Set<string>
+  goalkeeperIds: Set<string>
   playersPerTeam: number
   stats: { skill: number; phys: number; winPct: number }
   onAdd: () => void
@@ -106,6 +112,7 @@ function TeamColumn({
       {team.map((p) => (
         <View key={p.id} style={[styles.playerRow, { borderColor: colors.border }]}>
           <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
+            {goalkeeperIds.has(p.id) ? '🧤 ' : ''}
             {p.name}
             {pinned.has(p.id) ? ' ⭐' : ''}
           </Text>

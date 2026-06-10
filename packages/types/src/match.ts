@@ -16,6 +16,7 @@ export type Match = {
   name?: string
   shirtsResponsibleId?: string | null
   mvpId?: string | null
+  goalkeeperIds?: string[]
 }
 
 /** Minimal match shape used by streak-calculation algorithms */

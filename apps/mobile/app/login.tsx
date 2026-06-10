@@ -22,7 +22,7 @@ export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light'
   const theme = Colors[colorScheme]
   const router = useRouter()
-  const { signIn } = useFirebaseAuth()
+  const { signIn, register } = useFirebaseAuth()
 
   const [mode, setMode] = useState<'signin' | 'register'>('signin')
   const [email, setEmail] = useState('')
@@ -34,7 +34,11 @@ export default function LoginScreen() {
     setError(null)
     setLoading(true)
     try {
-      await signIn(email, password)
+      if (mode === 'register') {
+        await register(email, password)
+      } else {
+        await signIn(email, password)
+      }
       router.replace('/(tabs)/players')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Algo salió mal')
@@ -100,7 +104,10 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              autoComplete="password"
+              autoComplete="current-password"
+              autoCorrect={false}
+              autoCapitalize="none"
+              spellCheck={false}
               placeholder="Mínimo 6 caracteres"
               placeholderTextColor={theme.icon}
               style={[styles.input, { color: theme.text, borderColor: theme.icon }]}

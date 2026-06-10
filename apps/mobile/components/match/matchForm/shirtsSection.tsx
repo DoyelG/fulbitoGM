@@ -51,8 +51,8 @@ export function ShirtsSection({
   const pickRandom = () => {
     const candidates = options.filter((o) => o.id !== '' && !o.disabled)
     if (candidates.length === 0) return
-    const minDuties = Math.min(...candidates.map((c) => c.duties))
-    const pool = candidates.filter((c) => c.duties === minDuties)
+    const minDuties = Math.min(...candidates.map((c) => (c as { duties: number }).duties))
+    const pool = candidates.filter((c) => (c as { duties: number }).duties === minDuties)
     const picked = pool[Math.floor(Math.random() * pool.length)]
     onChange(picked.id)
   }

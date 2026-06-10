@@ -14,7 +14,7 @@ import PlayerCard from '@/components/PlayerCard'
 import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
-import { getMvpCountsByPlayerId } from "@fulbito/utils";
+import { getMvpCountsByPlayerId, getGoalkeeping } from "@fulbito/utils";
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 export default function PlayerDetailPage() {
@@ -48,6 +48,7 @@ export default function PlayerDetailPage() {
   }, [playersInit, matchesInit, initPlayersLoad, initMatchesLoad]);
 
   const [editMode, setEditMode] = useState(false);
+  const [gkTouched, setGkTouched] = useState(false);
   const [form, setForm] = useState({
     name: "",
     position: "PLAYER",
@@ -55,6 +56,7 @@ export default function PlayerDetailPage() {
     technical: "5",
     tactical: "5",
     psychological: "5",
+    goalkeeping: "5",
   });
 
   useEffect(() => {
@@ -67,7 +69,9 @@ export default function PlayerDetailPage() {
         technical: String(player.skills?.technical ?? base),
         tactical: String(player.skills?.tactical ?? base),
         psychological: String(player.skills?.psychological ?? base),
+        goalkeeping: String(getGoalkeeping(player)),
       });
+      setGkTouched(player.goalkeeping != null);
     }
   }, [player]);
 
@@ -178,11 +182,13 @@ export default function PlayerDetailPage() {
         skills.tactical +
         skills.psychological) /
       4;
+    const goalkeeping = gkTouched ? parseInt(form.goalkeeping, 10) : Math.round(avg);
     updatePlayer(player.id, {
       name: form.name.trim(),
       position: form.position,
       skills,
       skill: avg,
+      goalkeeping,
     });
     setEditMode(false);
   };
@@ -212,6 +218,7 @@ export default function PlayerDetailPage() {
   const avgPreview =
     (+form.physical + +form.technical + +form.tactical + +form.psychological) /
     4;
+  const gkQuickValue = gkTouched ? form.goalkeeping : String(Math.round(avgPreview));
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6 flex gap-5 items-center justify-between">
@@ -279,6 +286,7 @@ export default function PlayerDetailPage() {
               overall={overallAvg}
               photoUrl={player.photoUrl}
               skills={catSkills}
+              goalkeeping={getGoalkeeping(player)}
               onAvatarClick={onAvatarClick}
             />
             {isAdmin && (
@@ -360,6 +368,20 @@ export default function PlayerDetailPage() {
               onChange={(e) =>
                 setForm({ ...form, psychological: e.target.value })
               }
+              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Arquero</label>
+            <select
+              value={gkQuickValue}
+              onChange={(e) => { setGkTouched(true); setForm({ ...form, goalkeeping: e.target.value }) }}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (

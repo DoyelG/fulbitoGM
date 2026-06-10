@@ -66,6 +66,7 @@ export type BuildPayloadInput = {
   perfA: Record<string, string>
   perfB: Record<string, string>
   shirtsResponsibleId: string | null
+  goalkeeperIds?: string[]
 }
 
 export function buildMatchPayload(input: BuildPayloadInput): Omit<Match, 'id'> {
@@ -90,5 +91,6 @@ export function buildMatchPayload(input: BuildPayloadInput): Omit<Match, 'id'> {
     teamA: buildTeamPlayers(input.teamA, input.goalsA, input.perfA),
     teamB: buildTeamPlayers(input.teamB, input.goalsB, input.perfB),
     shirtsResponsibleId: input.shirtsResponsibleId,
+    goalkeeperIds: input.goalkeeperIds ?? [],
   }
 }

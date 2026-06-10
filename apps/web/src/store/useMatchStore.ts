@@ -44,6 +44,7 @@ async function fetchMatches(): Promise<Match[]> {
       teamB: teams.B,
       shirtsResponsibleId: data.shirtsResponsibleId ?? null,
       mvpId: data.mvpId ?? null,
+      goalkeeperIds: data.goalkeeperIds ?? [],
     }
   })
 }
@@ -77,10 +78,11 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     set({ matches, matchesInit: 'loaded' })
   },
   addMatch: async (m) => {
-    const { teamA, teamB, mvpId, ...rest } = m
+    const { teamA, teamB, mvpId, goalkeeperIds, ...rest } = m
     const ref = await addDoc(collection(db, 'matches'), {
       ...rest,
       mvpId: mvpId ?? null,
+      goalkeeperIds: goalkeeperIds ?? [],
       date: Timestamp.fromDate(new Date(m.date)),
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -102,10 +104,11 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     return ref.id
   },
   updateMatch: async (id, m) => {
-    const { teamA, teamB, mvpId, ...rest } = m
+    const { teamA, teamB, mvpId, goalkeeperIds, ...rest } = m
     await updateDoc(doc(db, 'matches', id), {
       ...rest,
       mvpId: mvpId ?? null,
+      goalkeeperIds: goalkeeperIds ?? [],
       date: Timestamp.fromDate(new Date(m.date)),
       updatedAt: Timestamp.now(),
     })

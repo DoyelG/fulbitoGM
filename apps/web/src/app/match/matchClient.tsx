@@ -5,7 +5,7 @@ import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds, getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
-import { calculateAllCurrentStreaks } from '@/lib/playerStats'
+import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
@@ -31,6 +31,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(new Set())
   const [autoTeams, setAutoTeams] = useState<{ teamA: TeamResult, teamB: TeamResult } | null>(null)
   const [streakSeparated, setStreakSeparated] = useState(false)
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
@@ -44,6 +45,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   // search in player selection
   const [playerQuery, setPlayerQuery] = useState('')
 
+  const MAX_GOALKEEPERS = 2
+
   const playedBefore = useMemo(() => buildPlayedBeforeSet(allMatches), [allMatches])
   const dutiesById = useMemo(() => getShirtDutiesByPlayerId(allMatches), [allMatches])
 
@@ -54,11 +57,14 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       .map(p => ({
         id: p.id,
         name: p.name,
-        skill: (p.skill ?? 'unknown') as number | 'unknown',
+        // Designated goalkeepers are balanced by their goalkeeping level, not their overall skill.
+        skill: goalkeeperIds.has(p.id)
+          ? getGoalkeeping(p)
+          : ((p.skill ?? 'unknown') as number | 'unknown'),
         position: p.position,
         physical: (p.skills?.physical ?? 'unknown') as number | 'unknown'
       }))
-  }, [players, selected])
+  }, [players, selected, goalkeeperIds])
 
   const unassignedManual = useMemo(() => {
     const ids = new Set([...manualA, ...manualB].map(p => p.id))
@@ -66,10 +72,32 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }, [selectedPlayers, manualA, manualB])
 
   const toggleSelect = (id: string) => {
+    const wasSelected = selected.has(id)
     setSelected(prev => {
       const s = new Set(prev)
       if (s.has(id)) s.delete(id)
       else s.add(id)
+      return s
+    })
+    if (wasSelected) {
+      setGoalkeeperIds(prev => {
+        if (!prev.has(id)) return prev
+        const s = new Set(prev)
+        s.delete(id)
+        return s
+      })
+    }
+  }
+
+  const toggleGoalkeeper = (id: string) => {
+    setGoalkeeperIds(prev => {
+      const s = new Set(prev)
+      if (s.has(id)) {
+        s.delete(id)
+      } else {
+        if (s.size >= MAX_GOALKEEPERS) return prev
+        s.add(id)
+      }
       return s
     })
   }
@@ -80,6 +108,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       return
     }
     setSelected(new Set())
+    setGoalkeeperIds(new Set())
     setAutoTeams(null)
     setStreakSeparated(false)
     setManualOpen(false)
@@ -142,6 +171,18 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }
 
   const buildTeams = (pool: PlayerInfo[], streaks: Record<string, { kind: 'win' | 'loss' | null; count: number }>) => {
+    // Designated goalkeepers take precedence: seed one per team so they end up split,
+    // then balance the rest around them (keepers already carry their goalkeeping level as skill).
+    const keepers = pool.filter(p => goalkeeperIds.has(p.id))
+    if (keepers.length > 0) {
+      const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
+      const sortedKeepers = [...keepers].sort((a, b) => normSkill(b.skill) - normSkill(a.skill))
+      const seedA: PlayerInfo[] = []
+      const seedB: PlayerInfo[] = []
+      sortedKeepers.forEach((k, i) => (i % 2 === 0 ? seedA : seedB).push(k))
+      const rest = pool.filter(p => !goalkeeperIds.has(p.id))
+      return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam), hadStreak: false }
+    }
     const { seedA, seedB, rest } = splitByStreak(pool, streaks)
     if (seedA.length > 0 && seedB.length > 0) {
       return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam), hadStreak: true }
@@ -297,6 +338,9 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   <span className={`ml-3 px-2 py-0.5 rounded ${missing === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                     Faltan: {missing}
                   </span>
+                  <span className="ml-3 px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                    🧤 Arqueros: {goalkeeperIds.size} / {MAX_GOALKEEPERS}
+                  </span>
                 </span>
               )
             })()}
@@ -318,14 +362,32 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                 return p.name.toLowerCase().includes(q)
               })
               .map(p => (
-              <label key={p.id} className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selected.has(p.id)}
-                  onChange={() => toggleSelect(p.id)}
-                />
-                <span className="font-medium">{p.name}</span>
-              </label>
+              <div key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
+                <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(p.id)}
+                    onChange={() => toggleSelect(p.id)}
+                  />
+                  <span className="font-medium truncate">{p.name}</span>
+                </label>
+                {selected.has(p.id) && (
+                  <button
+                    type="button"
+                    onClick={() => toggleGoalkeeper(p.id)}
+                    disabled={!goalkeeperIds.has(p.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
+                    aria-pressed={goalkeeperIds.has(p.id)}
+                    title={goalkeeperIds.has(p.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
+                    className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                      goalkeeperIds.has(p.id)
+                        ? 'bg-brand text-white border-brand'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                    }`}
+                  >
+                    🧤 Arquero
+                  </button>
+                )}
+              </div>
             ))}
           </div>
           <div className="flex gap-3 justify-center mt-4">
@@ -383,8 +445,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           )}
 
           <div className="grid md:grid-cols-2 gap-4">
-            <TeamCard title="Team A" team={autoTeams.teamA} color="blue" winProbability={probA} />
-            <TeamCard title="Team B" team={autoTeams.teamB} color="red" winProbability={probB} />
+            <TeamCard title="Team A" team={autoTeams.teamA} color="blue" winProbability={probA} goalkeeperIds={goalkeeperIds} />
+            <TeamCard title="Team B" team={autoTeams.teamB} color="red" winProbability={probB} goalkeeperIds={goalkeeperIds} />
           </div>
 
           <div className="mt-6 border-t pt-4">
@@ -441,7 +503,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   )
 }
 
-function TeamCard({ title, team, color, winProbability }: { title: string, team: TeamResult, color: 'blue' | 'red', winProbability?: number }) {
+function TeamCard({ title, team, color, winProbability, goalkeeperIds }: { title: string, team: TeamResult, color: 'blue' | 'red', winProbability?: number, goalkeeperIds?: Set<string> }) {
   return (
     <div className="border rounded-lg p-4">
       <h3 className={`text-center font-semibold mb-3 ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>{title}</h3>
@@ -449,6 +511,7 @@ function TeamCard({ title, team, color, winProbability }: { title: string, team:
         {team.players.map((p: PlayerInfo) => (
           <div key={p.id} className="bg-gray-50 rounded px-3 py-2 text-center">
             <strong>{p.name}</strong>
+            {goalkeeperIds?.has(p.id) && <span className="ml-2" title="Arquero">🧤</span>}
           </div>
         ))}
       </div>

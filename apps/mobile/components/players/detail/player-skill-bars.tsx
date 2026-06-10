@@ -7,6 +7,7 @@ import { Fonts, Radii, Spacing } from '@/constants/theme'
 
 type Props = {
   skills: CatSkills
+  goalkeeping?: number
 }
 
 type SkillRowProps = {
@@ -43,13 +44,14 @@ function SkillRow({ label, value }: SkillRowProps) {
   )
 }
 
-export function PlayerSkillBars({ skills }: Props) {
+export function PlayerSkillBars({ skills, goalkeeping }: Props) {
   return (
     <View style={styles.container}>
       <SkillRow label="Físico" value={skills.physical} />
       <SkillRow label="Técnico" value={skills.technical} />
       <SkillRow label="Táctico" value={skills.tactical} />
       <SkillRow label="Mental" value={skills.psychological} />
+      {goalkeeping != null ? <SkillRow label="Arquero" value={goalkeeping} /> : null}
     </View>
   )
 }

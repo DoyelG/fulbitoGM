@@ -1,5 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
-import { balanceRemainingPlayers } from '@fulbito/utils'
+import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
 
@@ -8,6 +8,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 import { AutoGenerateButton } from './matchForm/autoGenerateButton'
 import { DateField } from './matchForm/dateField'
 import { FormActions } from './matchForm/formActions'
+import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { buildMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
 import { NameField } from './matchForm/nameField'
 import { PoolSection } from './matchForm/poolSection'
@@ -51,6 +52,10 @@ export function MatchForm({
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) ?? '5v5')
   const [matchName, setMatchName] = useState(initial?.name ?? '')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
+  const MAX_GOALKEEPERS = 2
+  const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(
+    () => new Set(initial?.goalkeeperIds ?? []),
+  )
 
   // ── State hooks ─────────────────────────────────────────────────────────────
   const pool = usePool(players, initial)
@@ -78,6 +83,20 @@ export function MatchForm({
   const handlePoolChange = (ids: Set<string>) => {
     pool.setPoolIds(ids)
     teams.filterByPool(ids)
+    setGoalkeeperIds((prev) => new Set([...prev].filter((id) => ids.has(id))))
+  }
+
+  const toggleGoalkeeper = (id: string) => {
+    setGoalkeeperIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        if (next.size >= MAX_GOALKEEPERS) return prev
+        next.add(id)
+      }
+      return next
+    })
   }
 
   const handleTypeChange = (t: MatchType) => {
@@ -86,19 +105,32 @@ export function MatchForm({
   }
 
   const generateRemainingTeams = () => {
-    const pinnedAPlayers = pool.poolPlayers.filter((p) => teams.pinnedA.has(p.id)).map(toPlayerInfo)
-    const pinnedBPlayers = pool.poolPlayers.filter((p) => teams.pinnedB.has(p.id)).map(toPlayerInfo)
+    const toInfo = (p: Player) => {
+      const info = toPlayerInfo(p)
+      return goalkeeperIds.has(p.id) ? { ...info, skill: getGoalkeeping(p) } : info
+    }
+    const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
     const pinnedIds = new Set([...teams.pinnedA, ...teams.pinnedB])
+
+    const seedA = pool.poolPlayers.filter((p) => teams.pinnedA.has(p.id)).map(toInfo)
+    const seedB = pool.poolPlayers.filter((p) => teams.pinnedB.has(p.id)).map(toInfo)
+
+    const unpinnedKeepers = pool.poolPlayers
+      .filter((p) => goalkeeperIds.has(p.id) && !pinnedIds.has(p.id))
+      .map(toInfo)
+      .sort((a, b) => normSkill(b.skill) - normSkill(a.skill))
+    const keeperSeededIds = new Set<string>()
+    for (const k of unpinnedKeepers) {
+      if (seedA.length <= seedB.length) seedA.push(k)
+      else seedB.push(k)
+      keeperSeededIds.add(k.id)
+    }
+
     const unassigned = pool.poolPlayers
-      .filter((p) => !pinnedIds.has(p.id))
-      .map(toPlayerInfo)
+      .filter((p) => !pinnedIds.has(p.id) && !keeperSeededIds.has(p.id))
+      .map(toInfo)
       .sort(() => Math.random() - 0.5)
-    const result = balanceRemainingPlayers(
-      unassigned,
-      pinnedAPlayers,
-      pinnedBPlayers,
-      playersPerTeam,
-    )
+    const result = balanceRemainingPlayers(unassigned, seedA, seedB, playersPerTeam)
     teams.setTeamA(result.teamA.players.map((p) => ({ id: p.id, name: p.name })))
     teams.setTeamB(result.teamB.players.map((p) => ({ id: p.id, name: p.name })))
   }
@@ -119,6 +151,7 @@ export function MatchForm({
         perfA: scores.perfA,
         perfB: scores.perfB,
         shirtsResponsibleId: pickShirtsResponsible(shirts.shirtsResponsibleId, shirts.dutyPoolIds),
+        goalkeeperIds: [...goalkeeperIds],
       })
       await onSave(payload)
     } catch (e) {
@@ -153,6 +186,13 @@ export function MatchForm({
         onConfirm={handlePoolChange}
       />
 
+      <GoalkeeperSection
+        poolPlayers={pool.poolPlayers}
+        goalkeeperIds={goalkeeperIds}
+        maxSize={MAX_GOALKEEPERS}
+        onToggle={toggleGoalkeeper}
+      />
+
       <TeamAssignmentSection
         playersPerTeam={playersPerTeam}
         poolPlayers={pool.poolPlayers}
@@ -160,6 +200,7 @@ export function MatchForm({
         teamB={teams.teamB}
         pinnedA={teams.pinnedA}
         pinnedB={teams.pinnedB}
+        goalkeeperIds={goalkeeperIds}
         stats={teamStats}
         onConfirmTeam={teams.confirmTeam}
         onRemoveFromTeam={teams.removeFromTeam}
