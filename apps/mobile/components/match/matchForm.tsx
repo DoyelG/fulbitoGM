@@ -1,6 +1,6 @@
 import type { Match, Player } from '@fulbito/types'
 import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
@@ -10,6 +10,7 @@ import { DateField } from './matchForm/dateField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { buildMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
+import { MvpSection } from './matchForm/mvpSection'
 import { NameField } from './matchForm/nameField'
 import { PoolSection } from './matchForm/poolSection'
 import { ShirtsSection } from './matchForm/shirtsSection'
@@ -56,6 +57,7 @@ export function MatchForm({
   const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(
     () => new Set(initial?.goalkeeperIds ?? []),
   )
+  const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null)
 
   // ── State hooks ─────────────────────────────────────────────────────────────
   const pool = usePool(players, initial)
@@ -78,6 +80,13 @@ export function MatchForm({
     scores.teamBScore !== '' &&
     scoreA === scores.totalGoalsA &&
     scoreB === scores.totalGoalsB
+
+  // Si el MVP elegido deja de estar en los equipos, lo limpiamos
+  useEffect(() => {
+    if (!mvpId) return
+    const inTeams = [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
+    if (!inTeams) setMvpId(null)
+  }, [teams.teamA, teams.teamB, mvpId])
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handlePoolChange = (ids: Set<string>) => {
@@ -152,6 +161,7 @@ export function MatchForm({
         perfB: scores.perfB,
         shirtsResponsibleId: pickShirtsResponsible(shirts.shirtsResponsibleId, shirts.dutyPoolIds),
         goalkeeperIds: [...goalkeeperIds],
+        mvpId,
       })
       await onSave(payload)
     } catch (e) {
@@ -238,6 +248,17 @@ export function MatchForm({
           onPerfChange={scores.setPerfB}
         />
       </View>
+
+      <MvpSection
+        teamA={teams.teamA}
+        teamB={teams.teamB}
+        mvpId={mvpId}
+        onChange={setMvpId}
+        goalsA={scores.goalsA}
+        goalsB={scores.goalsB}
+        perfA={scores.perfA}
+        perfB={scores.perfB}
+      />
 
       <ShirtsSection
         players={players}

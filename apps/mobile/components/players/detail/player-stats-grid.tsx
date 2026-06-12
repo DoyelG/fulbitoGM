@@ -58,6 +58,7 @@ export function PlayerStatsGrid({ stats }: Props) {
         value={stats.avgPerformance.toFixed(1)}
         sub={`W${stats.wins} D${stats.draws} L${stats.losses}`}
       />
+      <StatBox label="MVP" value={String(stats.mvps)} sub="🏆" accent="#f59e0b" />
     </View>
   )
 }

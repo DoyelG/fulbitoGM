@@ -24,6 +24,7 @@ export type PlayerDetailStats = {
   avgPerformance: number
   gpm: string
   winRate: string
+  mvps: number
   recent: RecentMatchEntry[]
 }
 
@@ -45,6 +46,7 @@ function computeStats(matches: Match[], playerId: string): PlayerDetailStats {
     avgPerformance: 0,
     gpm: '0.0',
     winRate: '0.0',
+    mvps: 0,
     recent: [],
   }
 
@@ -61,6 +63,7 @@ function computeStats(matches: Match[], playerId: string): PlayerDetailStats {
     res.matches++
     res.goals += me.goals
     totalPerformance += me.performance
+    if (m.mvpId === playerId) res.mvps++
 
     let result: 'W' | 'L' | 'D'
     if (a === b) {
