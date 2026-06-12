@@ -62,6 +62,7 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
           winner={winA}
           loser={winB}
           goalkeeperIds={m.goalkeeperIds}
+          mvpId={m.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
@@ -72,6 +73,7 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
           winner={winB}
           loser={winA}
           goalkeeperIds={m.goalkeeperIds}
+          mvpId={m.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
@@ -111,6 +113,7 @@ function TeamColumn({
   winner,
   loser,
   goalkeeperIds,
+  mvpId,
   colors,
   radii,
   spacing,
@@ -120,6 +123,7 @@ function TeamColumn({
   winner: boolean
   loser: boolean
   goalkeeperIds?: string[]
+  mvpId?: string | null
   colors: TeamColumnColors
   radii: TeamColumnRadii
   spacing: TeamColumnSpacing
@@ -131,10 +135,10 @@ function TeamColumn({
       {players.map((p) => (
         <View key={p.id} style={styles.playerRow}>
           <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
-            {goalkeeperIds?.includes(p.id) ? '🧤 ' : ''}{p.name}
+            {p.name}
           </Text>
           <Text style={[styles.playerStats, { color: colors.muted }]}>
-            {p.goals}⚽ {p.performance}★
+            {goalkeeperIds?.includes(p.id) ? '🧤 ' : ''}{mvpId === p.id ? '🏆 ' : ''}{p.goals}⚽ {p.performance}★
           </Text>
         </View>
       ))}
