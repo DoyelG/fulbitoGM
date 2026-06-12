@@ -1,3 +1,9 @@
+// Replaces Firebase's default "test mode" rules, which were
+// `allow read, write: if request.time < timestamp.date(2026, 6, 12)`
+// and expired on 2026-06-12 — denying all reads/writes in prod and
+// surfacing as "Missing or insufficient permissions" everywhere.
+// Keep these deployed: `firebase deploy --only firestore:rules` (run
+// from the repo root, where firebase.json lives).
 rules_version = '2';
 
 service cloud.firestore {
