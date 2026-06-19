@@ -28,6 +28,8 @@ function getFeaturedValue(stat: PlayerStatRow, activeTab: SortTabKey): { value: 
         value: `${((stat.wins / Math.max(stat.matches, 1)) * 100).toFixed(1)}%`,
         label: 'VICTORIAS',
       }
+    case 'mvps':
+      return { value: `${stat.mvps}`, label: 'MVP' }
     case 'goals':
     default:
       return { value: `${stat.goals}`, label: 'GOLES' }
@@ -117,6 +119,12 @@ export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
             {((stat.wins / Math.max(stat.matches, 1)) * 100).toFixed(1)}%
           </ThemedText>
           <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>VICTORIAS</ThemedText>
+        </View>
+        <View style={styles.metricItem}>
+          <ThemedText type="defaultSemiBold" style={styles.metricValue}>
+            {stat.mvps}
+          </ThemedText>
+          <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>🏆 MVP</ThemedText>
         </View>
       </View>
     </Pressable>
