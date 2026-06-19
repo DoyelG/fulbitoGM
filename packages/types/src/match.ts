@@ -5,10 +5,13 @@ export type MatchPlayer = {
   performance: number
 }
 
+export type MatchStatus = 'draft' | 'final'
+
 export type Match = {
   id: string
   date: string
   type: string
+  status?: MatchStatus
   teamAScore: number
   teamBScore: number
   teamA: MatchPlayer[]
@@ -26,4 +29,12 @@ export type MatchLike = {
   teamBScore: number
   teamA: { id: string }[]
   teamB: { id: string }[]
+}
+
+export function isDraft(m: Pick<Match, 'status'>): boolean {
+  return m.status === 'draft'
+}
+
+export function isFinal(m: Pick<Match, 'status'>): boolean {
+  return m.status !== 'draft'
 }

@@ -5,6 +5,7 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import SkillBadge from '@/components/SkillBadge'
 import StreakBadge from '@/components/StreakBadge'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
+import { onlyFinalMatches } from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -53,7 +54,10 @@ export default function PlayersClient({
     resetMatches()
   }, [hydratePlayers, initialPlayers, hydrateMatches, initialMatches, resetPlayers, resetMatches])
 
-  const streaks = useMemo(() => calculateAllCurrentStreaks(storeMatches), [storeMatches])
+  const streaks = useMemo(
+    () => calculateAllCurrentStreaks(onlyFinalMatches(storeMatches)),
+    [storeMatches],
+  )
 
   const tableData: PlayerRow[] = useMemo(
     () =>
