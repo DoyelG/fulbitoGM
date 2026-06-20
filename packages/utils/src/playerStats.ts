@@ -33,7 +33,7 @@ export function calculateCurrentStreakForPlayer(
 
   for (const m of arr) {
     const r = resultForPlayer(m, playerId)
-    if (r === 'draw') return { kind: null, count: 0 }
+    if (r === 'draw') continue
     if (!kind) {
       kind = r
       count = 1
