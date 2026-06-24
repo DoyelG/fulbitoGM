@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { storage } from '@/lib/firebase'
+import { uploadPlayerPhoto } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { getGoalkeeping } from '@fulbito/utils'
 
@@ -69,9 +68,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
     let uploadedUrl: string | undefined
     if (photoFile) {
       const photoId = mode === 'edit' && playerId ? playerId : crypto.randomUUID()
-      const storageRef = ref(storage, `players/${photoId}.jpg`)
-      await uploadBytes(storageRef, photoFile)
-      uploadedUrl = await getDownloadURL(storageRef)
+      uploadedUrl = await uploadPlayerPhoto(photoFile, photoId)
     }
 
     if (mode === 'create') {
