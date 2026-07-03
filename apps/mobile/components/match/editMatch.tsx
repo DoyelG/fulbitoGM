@@ -1,6 +1,6 @@
 import { useNavigation, useRouter } from 'expo-router'
 import { useLayoutEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native'
 
 import { useMatchesData } from '@/hooks/use-matches-data'
 import { useAppTheme } from '@/hooks/use-theme'
@@ -48,6 +48,8 @@ export function EditMatch({ matchId }: Props) {
         try {
           await updateMatch(matchId, m)
           router.back()
+        } catch (e) {
+          Alert.alert('No se pudo guardar', e instanceof Error ? e.message : 'Revisá la API.')
         } finally {
           setSaving(false)
         }

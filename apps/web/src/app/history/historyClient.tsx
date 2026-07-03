@@ -59,9 +59,15 @@ export default function HistoryClient() {
     setShowModal(true);
     setSelectedMatchId(matchId);
   };
-  const handleConfirmDelete = () => {
-    deleteMatch(selectedMatchId as string);
-    setShowModal(false);
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteMatch(selectedMatchId as string);
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar el partido");
+    } finally {
+      setShowModal(false);
+    }
   };
 
   const isLoadingMatches =
