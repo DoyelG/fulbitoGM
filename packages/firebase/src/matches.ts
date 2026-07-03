@@ -4,9 +4,7 @@ import {
   doc,
   getDocs,
   getDoc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
+  writeBatch,
   query,
   orderBy,
   Timestamp,
@@ -102,7 +100,12 @@ export async function getMatch(id: string): Promise<Match | null> {
 export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
-  const matchRef = await addDoc(collection(db, 'matches'), {
+
+  // Write the match and all its matchPlayers atomically: either every doc lands
+  // or none does, so the caller never observes a half-created match.
+  const batch = writeBatch(db)
+  const matchRef = doc(collection(db, 'matches'))
+  batch.set(matchRef, {
     ...scalars,
     date: Timestamp.fromDate(new Date(data.date)),
     status: data.status ?? 'final',
@@ -117,60 +120,67 @@ export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
     ...teamA.map(p => ({ ...p, team: 'A' as const })),
     ...teamB.map(p => ({ ...p, team: 'B' as const })),
   ]
-  await Promise.all(
-    allPlayers.map(p =>
-      addDoc(collection(db, 'matchPlayers'), {
-        matchId: matchRef.id,
-        playerId: p.id,
-        team: p.team,
-        goals: p.goals,
-        performance: p.performance,
-      }),
-    ),
-  )
+  for (const p of allPlayers) {
+    batch.set(doc(collection(db, 'matchPlayers')), {
+      matchId: matchRef.id,
+      playerId: p.id,
+      team: p.team,
+      goals: p.goals,
+      performance: p.performance,
+    })
+  }
 
+  await batch.commit()
   return matchRef.id
 }
 
 export async function updateMatch(id: string, data: Omit<Match, 'id'>): Promise<void> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
-  await updateDoc(doc(db, 'matches', id), {
+
+  // Reads can't be part of a batch, so resolve the old matchPlayers first.
+  const mpSnap = await getDocs(collection(db, 'matchPlayers'))
+  const toDelete = mpSnap.docs.filter(d => (d.data() as Record<string, unknown>)['matchId'] === id)
+
+  // Atomically update the match, drop its old matchPlayers, and re-insert the
+  // new set — a partial failure would otherwise leave stale/duplicated rosters.
+  const batch = writeBatch(db)
+  batch.update(doc(db, 'matches', id), {
     ...scalars,
     date: Timestamp.fromDate(new Date(data.date)),
     mvpId: mvpId ?? null,
     goalkeeperIds: goalkeeperIds ?? [],
     updatedAt: Timestamp.now(),
   })
-
-  // Delete all existing matchPlayers for this match, then re-insert
-  const mpSnap = await getDocs(collection(db, 'matchPlayers'))
-  const toDelete = mpSnap.docs.filter(d => (d.data() as Record<string, unknown>)['matchId'] === id)
-  await Promise.all(toDelete.map(d => deleteDoc(d.ref)))
+  for (const d of toDelete) batch.delete(d.ref)
 
   const allPlayers = [
     ...teamA.map(p => ({ ...p, team: 'A' as const })),
     ...teamB.map(p => ({ ...p, team: 'B' as const })),
   ]
-  await Promise.all(
-    allPlayers.map(p =>
-      addDoc(collection(db, 'matchPlayers'), {
-        matchId: id,
-        playerId: p.id,
-        team: p.team,
-        goals: p.goals,
-        performance: p.performance,
-      }),
-    ),
-  )
+  for (const p of allPlayers) {
+    batch.set(doc(collection(db, 'matchPlayers')), {
+      matchId: id,
+      playerId: p.id,
+      team: p.team,
+      goals: p.goals,
+      performance: p.performance,
+    })
+  }
+
+  await batch.commit()
 }
 
 export async function deleteMatch(id: string): Promise<void> {
   const db = getFirestore()
-  await deleteDoc(doc(db, 'matches', id))
 
-  // Cascade: delete associated matchPlayers
+  // Reads can't be part of a batch, so resolve the matchPlayers first.
   const mpSnap = await getDocs(collection(db, 'matchPlayers'))
   const toDelete = mpSnap.docs.filter(d => (d.data() as Record<string, unknown>)['matchId'] === id)
-  await Promise.all(toDelete.map(d => deleteDoc(d.ref)))
+
+  // Atomically remove the match and cascade-delete all its matchPlayers.
+  const batch = writeBatch(db)
+  batch.delete(doc(db, 'matches', id))
+  for (const d of toDelete) batch.delete(d.ref)
+  await batch.commit()
 }
