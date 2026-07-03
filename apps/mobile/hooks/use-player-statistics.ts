@@ -1,8 +1,8 @@
 import type { Match, Player } from '@fulbito/types'
-import { getShirtDutiesByPlayerId } from '@fulbito/utils'
+import { getMvpCountsByPlayerId, getShirtDutiesByPlayerId } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
-export type SortTabKey = 'goals' | 'matches' | 'totalPerformance' | 'winRate'
+export type SortTabKey = 'goals' | 'matches' | 'totalPerformance' | 'winRate' | 'mvps'
 
 export type PlayerStatRow = {
   id: string
@@ -15,6 +15,7 @@ export type PlayerStatRow = {
   losses: number
   draws: number
   shirts: number
+  mvps: number
 }
 
 export function usePlayerStatistics(players: Player[], matches: Match[]) {
@@ -23,6 +24,7 @@ export function usePlayerStatistics(players: Player[], matches: Match[]) {
   const stats = useMemo<PlayerStatRow[]>(() => {
     const map: Record<string, PlayerStatRow> = {}
     const shirtCountById = getShirtDutiesByPlayerId(matches)
+    const mvpCountById = getMvpCountsByPlayerId(matches)
     const photoById = new Map(players.map((p) => [p.id, p.photoUrl ?? undefined]))
 
     for (const m of matches) {
@@ -46,6 +48,7 @@ export function usePlayerStatistics(players: Player[], matches: Match[]) {
               losses: 0,
               draws: 0,
               shirts: shirtCountById.get(p.id) ?? 0,
+              mvps: mvpCountById.get(p.id) ?? 0,
             }
           }
 
@@ -86,6 +89,8 @@ export function usePlayerStatistics(players: Player[], matches: Match[]) {
           return row.totalPerformance
         case 'winRate':
           return row.matches === 0 ? 0 : row.wins / row.matches
+        case 'mvps':
+          return row.mvps
         case 'goals':
         default:
           return row.goals

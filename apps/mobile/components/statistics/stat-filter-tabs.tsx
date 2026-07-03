@@ -15,6 +15,7 @@ const TABS: { key: SortTabKey; label: string }[] = [
   { key: 'matches', label: 'Partidos' },
   { key: 'totalPerformance', label: 'Rendimiento' },
   { key: 'winRate', label: '% Victorias' },
+  { key: 'mvps', label: 'MVP' },
 ]
 
 export function StatFilterTabs({ activeTab, onChange }: Props) {
