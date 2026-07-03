@@ -13,25 +13,33 @@ import {
 } from 'firebase/firestore'
 import type { Match, MatchPlayer } from '@fulbito/types'
 
-function buildTeams(
-  matchId: string,
+type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
+
+// Groups every matchPlayers doc by its matchId in a single pass, so each match
+// resolves its teams with an O(1) Map lookup instead of re-scanning the whole
+// collection per match.
+function groupTeamsByMatch(
   mpDocs: Array<{ id: string; data: () => Record<string, unknown> }>,
   playerNames: Map<string, string>,
-): { A: MatchPlayer[]; B: MatchPlayer[] } {
-  const teams: { A: MatchPlayer[]; B: MatchPlayer[] } = { A: [], B: [] }
+): Map<string, Teams> {
+  const byMatch = new Map<string, Teams>()
   for (const d of mpDocs) {
     const mp = d.data()
-    if (mp['matchId'] !== matchId) continue
+    const matchId = mp['matchId'] as string
+    let teams = byMatch.get(matchId)
+    if (!teams) {
+      teams = { A: [], B: [] }
+      byMatch.set(matchId, teams)
+    }
     const entry: MatchPlayer = {
       id: mp['playerId'] as string,
       name: playerNames.get(mp['playerId'] as string) ?? '',
       goals: (mp['goals'] as number) ?? 0,
       performance: (mp['performance'] as number) ?? 0,
     }
-    const team = mp['team'] as 'A' | 'B'
-    teams[team].push(entry)
+    teams[mp['team'] as 'A' | 'B'].push(entry)
   }
-  return teams
+  return byMatch
 }
 
 function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Match, 'teamA' | 'teamB'> {
@@ -62,11 +70,12 @@ export async function getMatches(): Promise<Match[]> {
   )
 
   const mpDocs = mpSnap.docs.map(d => ({ id: d.id, data: () => d.data() as Record<string, unknown> }))
+  const teamsByMatch = groupTeamsByMatch(mpDocs, playerNames)
 
   return matchSnap.docs.map(d => {
     const scalars = docToMatchScalars(d.id, d.data() as Record<string, unknown>)
-    const { A, B } = buildTeams(d.id, mpDocs, playerNames)
-    return { ...scalars, teamA: A, teamB: B }
+    const teams = teamsByMatch.get(d.id) ?? { A: [], B: [] }
+    return { ...scalars, teamA: teams.A, teamB: teams.B }
   })
 }
 
@@ -86,8 +95,8 @@ export async function getMatch(id: string): Promise<Match | null> {
 
   const mpDocs = mpSnap.docs.map(d => ({ id: d.id, data: () => d.data() as Record<string, unknown> }))
   const scalars = docToMatchScalars(matchSnap.id, matchSnap.data() as Record<string, unknown>)
-  const { A, B } = buildTeams(id, mpDocs, playerNames)
-  return { ...scalars, teamA: A, teamB: B }
+  const teams = groupTeamsByMatch(mpDocs, playerNames).get(id) ?? { A: [], B: [] }
+  return { ...scalars, teamA: teams.A, teamB: teams.B }
 }
 
 export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
