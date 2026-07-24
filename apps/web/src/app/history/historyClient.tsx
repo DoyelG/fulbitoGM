@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 import type { Match } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
@@ -13,6 +14,9 @@ import {
 import { onlyFinalMatches } from "@fulbito/utils";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
+import { Pagination } from "../shared/Pagination";
+import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
+import { usePagination } from "../shared/use-pagination";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
@@ -39,6 +43,36 @@ export default function HistoryClient() {
   const [toDate, setToDate] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const isLoadingMatches = matchesInit === "idle" || matchesInit === "loading";
+
+  const filteredMatches = storeMatches.filter((match) => {
+    const matchDateOnly = match.date.slice(0, 10);
+    if (fromDate && matchDateOnly < fromDate) return false;
+    if (toDate && matchDateOnly > toDate) return false;
+    if (searchQuery) {
+      const normalizedQuery = searchQuery.toLowerCase();
+      const matchesTitle =
+        match.name?.toLowerCase().includes(normalizedQuery) ?? false;
+      const matchesPlayerName = [...match.teamA, ...match.teamB].some(
+        (player) => player.name.toLowerCase().includes(normalizedQuery),
+      );
+      if (!matchesTitle && !matchesPlayerName) return false;
+    }
+    return true;
+  });
+
+  const {
+    items: displayedMatches,
+    page,
+    totalPages,
+    setPage,
+    showPagination,
+    hasMore,
+    sentinelRef,
+  } = usePagination(filteredMatches, {
+    resetKey: `${fromDate}|${toDate}|${searchQuery}`,
+  });
+
   if (open) {
     return (
       <RecordModal
@@ -63,23 +97,6 @@ export default function HistoryClient() {
     deleteMatch(selectedMatchId as string);
     setShowModal(false);
   };
-
-  const isLoadingMatches =
-    matchesInit === "idle" || matchesInit === "loading";
-  const filteredMatches = storeMatches.filter((m) => {
-    const d = m.date.slice(0, 10);
-    if (fromDate && d < fromDate) return false;
-    if (toDate && d > toDate) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const inTitle = m.name?.toLowerCase().includes(q) ?? false;
-      const inPlayers = [...m.teamA, ...m.teamB].some((p) =>
-        p.name.toLowerCase().includes(q),
-      );
-      if (!inTitle && !inPlayers) return false;
-    }
-    return true;
-  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -171,8 +188,7 @@ export default function HistoryClient() {
             No se encontraron partidos que coincidan con la búsqueda.
           </div>
         ) : (
-          filteredMatches
-            .slice(0, 10)
+          displayedMatches
             .map((m) => {
               const isDraft = m.status === "draft";
               return (
@@ -342,6 +358,22 @@ export default function HistoryClient() {
             })
         )}
       </div>
+      {hasMore && (
+        <InfiniteScrollSentinel
+          sentinelRef={sentinelRef}
+          label="Cargando más partidos…"
+          className="mb-4"
+        />
+      )}
+      {showPagination && !isLoadingMatches && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          label="Paginación del historial"
+          className="mb-10"
+        />
+      )}
       <dialog
         open={showModal}
         className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
