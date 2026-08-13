@@ -1,19 +1,20 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "FulbitoGM",
+    "slug": "fulbito-gm",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "fulbitogm",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "jsEngine": "hermes",
-      "bundleIdentifier": "com.anonymous.mobile"
+      "bundleIdentifier": "com.fulbitogm.app"
     },
     "android": {
+      "package": "com.fulbitogm.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -45,13 +46,24 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "La app accede a tus fotos para elegir la imagen del jugador."
+          "photosPermission": "La app accede a tus fotos para elegir la imagen del jugador.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
-      ]
+      ],
+      "expo-font",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b314a953-ce6d-4b9f-ba2f-b9ce245d5172"
+      }
     }
   }
 }
