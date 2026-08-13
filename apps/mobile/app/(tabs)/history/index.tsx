@@ -1,7 +1,15 @@
 import type { Match } from '@fulbito/types'
 import { useRouter } from 'expo-router'
-import { useCallback, useState } from 'react'
-import { Alert, FlatList, RefreshControl, StyleSheet, TextInput, View } from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native'
 
 import { DateFilterBar } from '@/components/history/dateFilterBar'
 import { HistoryEmpty } from '@/components/history/historyEmpty'
@@ -9,6 +17,7 @@ import { HistoryError } from '@/components/history/historyError'
 import { HistoryLoading } from '@/components/history/historyLoading'
 import { MatchCard } from '@/components/history/matchCard'
 import { ThemedView } from '@/components/themed-view'
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { useMatchesData } from '@/hooks/use-matches-data'
 import { useAppTheme } from '@/hooks/use-theme'
@@ -25,20 +34,30 @@ export default function HistoryScreen() {
   const [toDate, setToDate] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredMatches = matches.filter((m) => {
-    const d = m.date.slice(0, 10)
-    if (fromDate && d < fromDate) return false
-    if (toDate && d > toDate) return false
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase()
-      const inTitle = m.name?.toLowerCase().includes(q) ?? false
-      const inPlayers = [...m.teamA, ...m.teamB].some((p) =>
-        p.name.toLowerCase().includes(q),
-      )
-      if (!inTitle && !inPlayers) return false
-    }
-    return true
-  })
+  const filteredMatches = useMemo(
+    () =>
+      matches.filter((match) => {
+        const matchDateOnly = match.date.slice(0, 10)
+        if (fromDate && matchDateOnly < fromDate) return false
+        if (toDate && matchDateOnly > toDate) return false
+        if (searchQuery) {
+          const normalizedQuery = searchQuery.toLowerCase()
+          const matchesTitle =
+            match.name?.toLowerCase().includes(normalizedQuery) ?? false
+          const matchesPlayerName = [...match.teamA, ...match.teamB].some(
+            (player) => player.name.toLowerCase().includes(normalizedQuery),
+          )
+          if (!matchesTitle && !matchesPlayerName) return false
+        }
+        return true
+      }),
+    [matches, fromDate, toDate, searchQuery],
+  )
+
+  const { visibleItems: visibleMatches, hasMore, loadMore } = useInfiniteScroll(
+    filteredMatches,
+    { resetKey: `${fromDate}|${toDate}|${searchQuery}` },
+  )
 
   const confirmDelete = useCallback(
     (match: Match) => {
@@ -74,8 +93,17 @@ export default function HistoryScreen() {
     <View style={[styles.safe, { backgroundColor: colors.background }]}>
       <ThemedView style={styles.screen}>
         <FlatList
-          data={filteredMatches}
+          data={visibleMatches}
           keyExtractor={(item) => item.id}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            hasMore ? (
+              <View style={styles.footer} accessibilityLiveRegion="polite">
+                <ActivityIndicator color={colors.brand} />
+              </View>
+            ) : null
+          }
           ListHeaderComponent={
             <View style={styles.filterBar}>
               <TextInput
@@ -163,5 +191,8 @@ const styles = StyleSheet.create({
   emptyList: {
     flexGrow: 1,
     justifyContent: 'center',
+  },
+  footer: {
+    paddingVertical: 16,
   },
 })

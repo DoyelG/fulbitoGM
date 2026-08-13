@@ -41,7 +41,13 @@
           }
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La app accede a tus fotos para elegir la imagen del jugador."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
