@@ -1,4 +1,4 @@
-import type { Match, Player } from '@fulbito/types'
+import type { Match, MatchPlayer, Player } from '@fulbito/types'
 import { useCallback, useEffect, useState } from 'react'
 import {
   collection, doc, getDocs, deleteDoc,
@@ -21,7 +21,11 @@ function docToPlayer(id: string, data: Record<string, any>): Player {
   }
 }
 
-function docToMatch(id: string, data: Record<string, any>): Match {
+function docToMatch(
+  id: string,
+  data: Record<string, any>,
+  teams: { A: MatchPlayer[]; B: MatchPlayer[] },
+): Match {
   return {
     id,
     date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
@@ -29,9 +33,11 @@ function docToMatch(id: string, data: Record<string, any>): Match {
     name: data.name ?? undefined,
     teamAScore: data.teamAScore,
     teamBScore: data.teamBScore,
-    teamA: data.teamA ?? [],
-    teamB: data.teamB ?? [],
+    teamA: teams.A,
+    teamB: teams.B,
     shirtsResponsibleId: data.shirtsResponsibleId ?? null,
+    mvpId: data.mvpId ?? null,
+    goalkeeperIds: data.goalkeeperIds ?? [],
   }
 }
 
@@ -56,13 +62,33 @@ export function usePlayersData(): PlayersDataState {
   const reload = useCallback(async () => {
     setError(null)
     try {
-      const [playerSnap, matchSnap] = await Promise.all([
+      const [playerSnap, matchSnap, mpSnap] = await Promise.all([
         getDocs(query(collection(db, 'players'), orderBy('skill', 'desc'))),
         getDocs(query(collection(db, 'matches'), orderBy('date', 'desc'))),
+        getDocs(collection(db, 'matchPlayers')),
       ])
       const rawPlayers = playerSnap.docs.map(d => docToPlayer(d.id, d.data() as Record<string, any>))
+      const playerNames = new Map<string, string>(rawPlayers.map(p => [p.id, p.name]))
+
+      const teamsByMatch = new Map<string, { A: MatchPlayer[]; B: MatchPlayer[] }>()
+      for (const d of mpSnap.docs) {
+        const mp = d.data()
+        if (!teamsByMatch.has(mp.matchId)) teamsByMatch.set(mp.matchId, { A: [], B: [] })
+        const entry: MatchPlayer = {
+          id: mp.playerId,
+          name: playerNames.get(mp.playerId) ?? '',
+          goals: mp.goals,
+          performance: mp.performance,
+        }
+        teamsByMatch.get(mp.matchId)![mp.team as 'A' | 'B'].push(entry)
+      }
+
       setPlayers(shapeStorePlayers(rawPlayers))
-      setMatches(matchSnap.docs.map(d => docToMatch(d.id, d.data() as Record<string, any>)))
+      setMatches(
+        matchSnap.docs.map(d =>
+          docToMatch(d.id, d.data() as Record<string, any>, teamsByMatch.get(d.id) ?? { A: [], B: [] }),
+        ),
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar datos')
     } finally {
