@@ -46,6 +46,7 @@ async function fetchMatches(): Promise<Match[]> {
       shirtsResponsibleId: data.shirtsResponsibleId ?? null,
       mvpId: data.mvpId ?? null,
       goalkeeperIds: data.goalkeeperIds ?? [],
+      isFriendly: data.isFriendly || false,
     }
   })
 }

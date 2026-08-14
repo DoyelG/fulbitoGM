@@ -194,7 +194,7 @@ export default function HistoryClient() {
               return (
                 <div
                   key={m.id}
-                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : "border-indigo-500"}`}
+                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : m.isFriendly ? "border-green-400" : "border-indigo-500"}`}
                 >
                   <div className="flex justify-between items-center mb-3">
                     <div>
@@ -213,6 +213,11 @@ export default function HistoryClient() {
                       {isDraft && (
                         <span className="ml-2 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded">
                           Borrador
+                        </span>
+                      )}
+                      {m.isFriendly && (
+                        <span className="ml-2 inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">
+                          Amistoso
                         </span>
                       )}
                     </div>
@@ -474,6 +479,7 @@ function RecordModal({
     typeof initial?.teamBScore === "number" ? initial.teamBScore : "",
   );
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const [isFriendly, setIsFriendly] = useState<boolean>(initial?.isFriendly ?? false);
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB];
     const teamIds = all.map((p) => p.id);
@@ -634,6 +640,7 @@ function RecordModal({
       shirtsResponsibleId: chosen ?? null,
       mvpId: isFinal ? mvpId : null,
       goalkeeperIds,
+      isFriendly,
     };
   };
 
@@ -713,6 +720,18 @@ function RecordModal({
               className="border rounded px-3 py-2 w-full"
             />
           </div>
+          <label
+            htmlFor="isFriendlyMatch"
+            className="flex items-center gap-2 text-sm font-medium cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              id="isFriendlyMatch"
+              checked={isFriendly}
+              onChange={(e) => setIsFriendly(e.target.checked)}
+            />
+            Partido amistoso
+          </label>
         </div>
 
         <div className="grid md:grid-cols-3 gap-3 mb-4">

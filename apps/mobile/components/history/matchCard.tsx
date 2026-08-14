@@ -47,6 +47,11 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
             <View style={[styles.typeBadge, { backgroundColor: colors.brand }]}>
               <Text style={styles.typeBadgeText}>{m.type}</Text>
             </View>
+            {m.isFriendly && (
+              <View style={[styles.typeBadge, { backgroundColor: colors.friendlyBrand }]}>
+                <Text style={styles.typeBadgeText}>Amistoso</Text>
+              </View>
+            )}
           </View>
         </View>
         <Text style={[styles.score, { color: colors.brand }]}>

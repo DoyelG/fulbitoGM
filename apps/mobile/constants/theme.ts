@@ -1,8 +1,7 @@
-
-
 import { Platform } from 'react-native'
 
 const BRAND = '#7c3aed'
+const FRIENDLYBRAND = '#0cb000'
 const tintColorLight = '#0a7ea4'
 const tintColorDark = '#fff'
 
@@ -20,6 +19,8 @@ export const Colors = {
     brandSoft: 'rgba(124, 58, 237, 0.12)',
     brandSoftStrong: 'rgba(124, 58, 237, 0.12)',
     brandRing: 'rgba(124, 58, 237, 0.25)',
+
+    friendlyBrand: FRIENDLYBRAND,
 
     surface: '#ffffff',
     border: 'rgba(124, 58, 237, 0.12)',
@@ -48,6 +49,8 @@ export const Colors = {
     brandSoft: 'rgba(124, 58, 237, 0.2)',
     brandSoftStrong: 'rgba(124, 58, 237, 0.28)',
     brandRing: 'rgba(124, 58, 237, 0.25)',
+
+    friendlyBrand: FRIENDLYBRAND,
 
     surface: '#2a2d32',
     border: 'rgba(255,255,255,0.08)',

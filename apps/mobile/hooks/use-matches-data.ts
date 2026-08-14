@@ -54,6 +54,7 @@ async function fetchMatchesAndPlayers(): Promise<{ matches: Match[]; players: Pl
       shirtsResponsibleId: data.shirtsResponsibleId ?? null,
       mvpId: data.mvpId ?? null,
       goalkeeperIds: data.goalkeeperIds ?? [],
+      isFriendly: data.isFriendly ?? false,
     } as Match
   })
 

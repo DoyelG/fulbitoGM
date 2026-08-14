@@ -43,6 +43,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     resetMatches()
   }, [hydratePlayers, initialPlayers, resetAndReload, resetMatches])
 
+  const [isFriendly, setIsFriendly] = useState(false)
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(new Set())
@@ -301,6 +302,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         name: draftName.trim() || undefined,
         shirtsResponsibleId: shirtsResponsibleId ?? null,
         mvpId: null,
+        isFriendly,
       }
       await addMatch(draft)
       router.push('/history')
@@ -374,6 +376,15 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             )
           })()}
         </div>
+        <label htmlFor="friendlyMatch" className="mt-3 flex items-center gap-2 text-sm text-gray-800 cursor-pointer">
+          <input
+            type="checkbox"
+            id="friendlyMatch"
+            checked={isFriendly}
+            onChange={(e) => setIsFriendly(e.target.checked)}
+          />
+          Partido amistoso
+        </label>
       </div>
 
       {selectionOpen && (
@@ -392,6 +403,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   <span className="ml-3 px-2 py-0.5 rounded bg-purple-100 text-purple-800">
                     🧤 Arqueros: {goalkeeperIds.size} / {MAX_GOALKEEPERS}
                   </span>
+                  {isFriendly && <span className="ml-3 px-2 py-0.5 rounded bg-green-100 text-green-800">Amistoso</span>}
                 </span>
               )
             })()}

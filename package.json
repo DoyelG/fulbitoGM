@@ -18,8 +18,5 @@
       "unrs-resolver",
       "@firebase/util"
     ]
-  },
-  "prettier": {
-    "semi": false
   }
 }
