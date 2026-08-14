@@ -1,22 +1,22 @@
 {
   "expo": {
-    "name": "FulbitoGM",
+    "name": "FulbitoApp",
     "slug": "fulbito-gm",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "fulbitogm",
+    "scheme": "fulbitoapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "jsEngine": "hermes",
-      "bundleIdentifier": "com.fulbitogm.app"
+      "bundleIdentifier": "com.fulbitoapp.app"
     },
     "android": {
-      "package": "com.fulbitogm.app",
+      "package": "com.fulbitoapp.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#7C3AED",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
