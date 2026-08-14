@@ -1,31 +1,8 @@
 import { create } from 'zustand'
 import type { Player } from '@fulbito/types'
-import {
-  collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
-  query, orderBy, Timestamp, type DocumentData,
-} from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { getPlayers, createPlayer, updatePlayer, deletePlayer } from '@fulbito/firebase'
 
 export type { Player }
-
-function docToPlayer(id: string, data: DocumentData): Player {
-  return {
-    id,
-    name: data.name,
-    position: data.position,
-    skill: data.skill ?? null,
-    skills: data.skills,
-    photoUrl: data.photoUrl,
-    goalkeeping: data.goalkeeping ?? undefined,
-    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
-    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
-  }
-}
-
-async function fetchPlayers(): Promise<Player[]> {
-  const snap = await getDocs(query(collection(db, 'players'), orderBy('skill', 'desc')))
-  return snap.docs.map(d => docToPlayer(d.id, d.data()))
-}
 
 type PlayerStore = {
   players: Player[]
@@ -47,7 +24,7 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     if (state === 'loading' || state === 'loaded') return
     set({ playersInit: 'loading' })
     try {
-      const data = await fetchPlayers()
+      const data = await getPlayers()
       set({ players: data, playersInit: 'loaded' })
     } catch {
       set({ playersInit: 'error' })
@@ -57,25 +34,21 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     set({ players, playersInit: 'loaded' })
   },
   addPlayer: async (player) => {
-    await addDoc(collection(db, 'players'), {
-      ...player,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    })
+    await createPlayer(player)
     await get().resetAndReload()
   },
   updatePlayer: async (id, updates) => {
-    await updateDoc(doc(db, 'players', id), { ...updates, updatedAt: Timestamp.now() })
+    await updatePlayer(id, updates as Partial<Omit<Player, 'id' | 'createdAt'>>)
     await get().resetAndReload()
   },
   deletePlayer: async (id) => {
-    await deleteDoc(doc(db, 'players', id))
+    await deletePlayer(id)
     set(s => ({ players: s.players.filter(p => p.id !== id) }))
     await get().resetAndReload()
   },
   getPlayer: (id) => get().players.find(p => p.id === id),
   resetAndReload: async () => {
-    const data = await fetchPlayers()
+    const data = await getPlayers()
     set({ players: data, playersInit: 'loaded' })
   },
 }))
