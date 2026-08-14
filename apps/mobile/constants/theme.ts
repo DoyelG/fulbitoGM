@@ -67,6 +67,23 @@ export const Colors = {
 
 export type ColorName = keyof typeof Colors.light & keyof typeof Colors.dark
 
+export const CardColors = {
+  ink: '#1f2430',
+  fill: '#C8CAC5',
+  gold: {
+    light: '#F0DA92',
+    mid: '#C9A227',
+    dark: '#9A7B1A',
+  },
+  glow: '#E7CE7A',
+  avatarBorder: 'rgba(255,255,255,0.1)',
+  avatarShadow: '#000',
+  avatarEmptyBg: '#ffffff',
+  nameBandBg: 'rgba(255,255,255,0.32)',
+  statDivider: 'rgba(31,36,48,0.12)',
+  statLabel: '#6f6a5c',
+} as const
+
 export const Radii = {
   xs: 4,
   sm: 8,
