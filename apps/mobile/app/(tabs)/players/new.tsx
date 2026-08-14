@@ -1,7 +1,6 @@
 import * as ImagePicker from 'expo-image-picker'
 import { useRouter } from 'expo-router'
-import { addDoc, collection, doc, Timestamp, updateDoc } from 'firebase/firestore'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
+import { createPlayer, updatePlayer, uploadPlayerPhoto } from '@fulbito/firebase'
 import { useCallback, useState } from 'react'
 import { Alert, Linking, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { PlayerCreateForm, type PlayerCreateFormValues } from '@/components/players/new/player-create-form'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { useAppTheme } from '@/hooks/use-theme'
-import { db, storage } from '@/lib/firebase'
 
 export default function NewPlayerScreen() {
   const router = useRouter()
@@ -65,25 +63,20 @@ export default function NewPlayerScreen() {
         psychological: values.psychological,
       }
       const skill = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
-      const now = Timestamp.now()
 
-      const docRef = await addDoc(collection(db, 'players'), {
+      const playerId = await createPlayer({
         name: values.name.trim(),
         position: values.position,
         skills,
         skill,
         goalkeeping: Math.round(skill),
-        createdAt: now,
-        updatedAt: now,
       })
 
       if (photoUri) {
         const response = await fetch(photoUri)
         const blob = await response.blob()
-        const storageRef = ref(storage, `players/${docRef.id}.jpg`)
-        await uploadBytes(storageRef, blob)
-        const photoUrl = await getDownloadURL(storageRef)
-        await updateDoc(doc(db, 'players', docRef.id), { photoUrl })
+        const photoUrl = await uploadPlayerPhoto(blob, playerId)
+        await updatePlayer(playerId, { photoUrl })
       }
 
       await reload()
