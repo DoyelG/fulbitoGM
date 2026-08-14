@@ -10,9 +10,12 @@
  *   node scripts/cleanup-orphan-player-fields.mjs           # dry run (default — no writes)
  *   node scripts/cleanup-orphan-player-fields.mjs --apply   # actually delete the fields
  *
- * Reads Firebase config from apps/web/.env.local.
- * Optional auth via SEED_EMAIL / SEED_PASSWORD env vars (only needed if
- * Firestore rules require an authenticated writer).
+ * Reads Firebase config from apps/web/.env.local — the target project is
+ * printed before anything runs, so double-check it before confirming.
+ *
+ * --apply requires SEED_EMAIL / SEED_PASSWORD for an account with role
+ * "ADMIN" in `users/{uid}`; the script refuses to write otherwise. Dry runs
+ * don't require auth (unless Firestore rules require an authenticated reader).
  *
  * Notes:
  *   - Skips documents that don't have either field — avoids unnecessary writes.
@@ -22,7 +25,7 @@
  */
 
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, getDocs, updateDoc, deleteField } from 'firebase/firestore'
+import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteField } from 'firebase/firestore'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import fs from 'fs'
 import path from 'path'
@@ -38,7 +41,10 @@ const env = Object.fromEntries(
     .readFileSync(envPath, 'utf8')
     .split('\n')
     .filter(l => l.includes('='))
-    .map(l => l.split('=').map(s => s.trim())),
+    .map(l => {
+      const i = l.indexOf('=')
+      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
+    }),
 )
 
 const firebaseConfig = {
@@ -57,18 +63,33 @@ const auth = getAuth(app)
 const APPLY = process.argv.includes('--apply')
 
 async function main() {
+  console.log(`Target project: ${firebaseConfig.projectId}`)
+  console.log(`Mode: ${APPLY ? 'APPLY (will write)' : 'DRY RUN (no writes)'}`)
+  console.log(`Target collection: players`)
+  console.log(`Orphan fields: ${ORPHAN_FIELDS.join(', ')}\n`)
+
   const email = process.env.SEED_EMAIL
   const password = process.env.SEED_PASSWORD
-  if (email && password) {
+
+  if (APPLY) {
+    if (!email || !password) {
+      console.error('Refusing to --apply without SEED_EMAIL/SEED_PASSWORD: cannot verify the caller is an admin.')
+      process.exit(1)
+    }
+    const cred = await signInWithEmailAndPassword(auth, email, password)
+    const userSnap = await getDoc(doc(db, 'users', cred.user.uid))
+    const role = userSnap.data()?.role
+    if (role !== 'ADMIN') {
+      console.error(`Refusing to --apply: signed in as ${email} with role "${role ?? 'unknown'}", not ADMIN.`)
+      process.exit(1)
+    }
+    console.log(`Signed in as ${email} (ADMIN) — confirmed on project "${firebaseConfig.projectId}".`)
+  } else if (email && password) {
     await signInWithEmailAndPassword(auth, email, password)
     console.log(`Signed in as ${email}`)
   } else {
-    console.log('No SEED_EMAIL/SEED_PASSWORD set — relying on Firestore rules to allow the write.')
+    console.log('No SEED_EMAIL/SEED_PASSWORD set — dry run will rely on Firestore rules to allow the read.')
   }
-
-  console.log(`\nMode: ${APPLY ? 'APPLY (will write)' : 'DRY RUN (no writes)'}`)
-  console.log(`Target collection: players`)
-  console.log(`Orphan fields: ${ORPHAN_FIELDS.join(', ')}\n`)
 
   const snap = await getDocs(collection(db, 'players'))
   console.log(`Scanned ${snap.size} player documents.`)
