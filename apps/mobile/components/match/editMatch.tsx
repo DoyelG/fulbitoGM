@@ -48,8 +48,8 @@ export function EditMatch({ matchId }: Props) {
         try {
           await updateMatch(matchId, m)
           router.back()
-        } catch (e) {
-          Alert.alert('No se pudo guardar', e instanceof Error ? e.message : 'Revisá la API.')
+        } catch {
+          Alert.alert('No se pudo guardar', 'Revisá tu conexión e intentá de nuevo.')
         } finally {
           setSaving(false)
         }

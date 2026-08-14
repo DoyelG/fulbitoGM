@@ -42,8 +42,8 @@ export function NewMatch() {
           setFormKey((k) => k + 1)
           setTitle('')
           router.navigate('/(tabs)/history')
-        } catch (e) {
-          Alert.alert('No se pudo crear el partido', e instanceof Error ? e.message : 'Revisá la API.')
+        } catch {
+          Alert.alert('No se pudo crear el partido', 'Revisá tu conexión e intentá de nuevo.')
         } finally {
           setSaving(false)
         }

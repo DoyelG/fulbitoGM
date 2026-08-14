@@ -96,8 +96,7 @@ export default function HistoryClient() {
   const handleConfirmDelete = async () => {
     try {
       await deleteMatch(selectedMatchId as string);
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error al eliminar el partido");
     } finally {
       setShowModal(false);
@@ -658,8 +657,7 @@ function RecordModal({
           : "Borrador actualizado!",
       );
       onClose();
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error al guardar el partido");
     } finally {
       setIsLoading(false);
