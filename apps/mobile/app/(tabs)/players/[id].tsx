@@ -276,15 +276,15 @@ export default function PlayerDetailScreen() {
           />
 
           <RNModal visible={playbackUrl !== null} animationType="fade" onRequestClose={() => setPlaybackUrl(null)}>
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+            <SafeAreaView style={styles.playerModalOverlay}>
               <Pressable
                 onPress={() => setPlaybackUrl(null)}
-                style={{ padding: Spacing.md }}
+                style={styles.playerCloseBtn}
                 accessibilityRole="button"
                 accessibilityLabel="Cerrar reproductor">
                 <MaterialIcons name="close" size={28} color="#fff" />
               </Pressable>
-              {playbackUrl && <VideoView player={clipPlayer} style={{ flex: 1 }} nativeControls />}
+              {playbackUrl && <VideoView player={clipPlayer} style={styles.playerVideoView} nativeControls />}
             </SafeAreaView>
           </RNModal>
 
@@ -470,5 +470,17 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.sm,
     marginBottom: Spacing.xl,
+  },
+
+  /* Fullscreen clip player */
+  playerModalOverlay: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  playerCloseBtn: {
+    padding: Spacing.md,
+  },
+  playerVideoView: {
+    flex: 1,
   },
 })
