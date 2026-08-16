@@ -1,5 +1,12 @@
 import type { VideoClip, VideoClipCategory } from '@fulbito/types'
-import { createVideoClip, deleteVideoClip as deleteVideoClipRemote, getVideoClips, uploadVideoClip } from '@fulbito/firebase'
+import {
+  createVideoClip,
+  deleteVideoClip as deleteVideoClipRemote,
+  deleteVideoClipFile,
+  getVideoClips,
+  newVideoClipId,
+  uploadVideoClip,
+} from '@fulbito/firebase'
 import { useCallback, useEffect, useState } from 'react'
 
 export type NewVideoClipData = {
@@ -44,11 +51,16 @@ export function useVideoClipsData(): VideoClipsDataState {
   }, [reload])
 
   const addVideoClip = useCallback(async (data: NewVideoClipData, fileUri: string) => {
-    const id = crypto.randomUUID()
+    const id = newVideoClipId()
     const response = await fetch(fileUri)
     const blob = await response.blob()
     const url = await uploadVideoClip(blob, id)
-    await createVideoClip(id, { ...data, url })
+    try {
+      await createVideoClip(id, { ...data, url })
+    } catch (err) {
+      await deleteVideoClipFile(id)
+      throw err
+    }
     await reload()
   }, [reload])
 

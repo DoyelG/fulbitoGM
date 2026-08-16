@@ -16,9 +16,10 @@ type Props = {
   currentPlayerId: string
   onSubmit: (data: UploadData, file: File) => Promise<void>
   onCancel: () => void
+  error?: string | null
 }
 
-export default function VideoClipUploadForm({ matches, currentPlayerId, onSubmit, onCancel }: Props) {
+export default function VideoClipUploadForm({ matches, currentPlayerId, onSubmit, onCancel, error }: Props) {
   const [matchId, setMatchId] = useState('')
   const [playerIds, setPlayerIds] = useState<string[]>([])
   const [category, setCategory] = useState<VideoClipCategory>('highlight')
@@ -56,6 +57,11 @@ export default function VideoClipUploadForm({ matches, currentPlayerId, onSubmit
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div role="alert" className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </div>
+      )}
       <div>
         <label htmlFor="clip-match" className="block text-sm font-medium text-black">
           Partido

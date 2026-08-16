@@ -1,6 +1,7 @@
 import {
   getFirestore, collection, doc,
   getDocs, setDoc, deleteDoc, Timestamp,
+  query, orderBy,
 } from 'firebase/firestore'
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import type { VideoClip } from '@fulbito/types'
@@ -16,6 +17,11 @@ function docToVideoClip(id: string, data: Record<string, any>): VideoClip {
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
   }
+}
+
+export function newVideoClipId(): string {
+  const db = getFirestore()
+  return doc(collection(db, 'videoClips')).id
 }
 
 export async function uploadVideoClip(file: File | Blob, clipId: string): Promise<string> {
@@ -53,7 +59,7 @@ export async function createVideoClip(
 
 export async function getVideoClips(): Promise<VideoClip[]> {
   const db = getFirestore()
-  const snap = await getDocs(collection(db, 'videoClips'))
+  const snap = await getDocs(query(collection(db, 'videoClips'), orderBy('createdAt', 'desc')))
   return snap.docs.map(d => docToVideoClip(d.id, d.data()))
 }
 

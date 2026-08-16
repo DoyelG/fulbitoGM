@@ -24,6 +24,8 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
   const [filter, setFilter] = useState<VideoClipCategory | 'all'>('all')
   const [uploadOpen, setUploadOpen] = useState(false)
   const [playbackClipId, setPlaybackClipId] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     if (videoClipsInit !== 'loaded') initLoad()
@@ -41,13 +43,24 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
   const playbackClip = playbackClipId ? (playerClips.find(c => c.id === playbackClipId) ?? null) : null
 
   const handleUpload = async (data: NewVideoClipData, file: File) => {
-    await addVideoClip(data, file)
-    setUploadOpen(false)
+    setUploadError(null)
+    try {
+      await addVideoClip(data, file)
+      setUploadOpen(false)
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'No se pudo subir el clip.')
+      throw error
+    }
   }
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Eliminar este clip?')) return
-    await deleteVideoClip(id)
+    setDeleteError(null)
+    try {
+      await deleteVideoClip(id)
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'No se pudo eliminar el clip.')
+    }
   }
 
   return (
@@ -57,14 +70,33 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
         {isAdmin && (
           <button
             type="button"
-            onClick={() => setUploadOpen(true)}
+            onClick={() => {
+              setUploadError(null)
+              setUploadOpen(true)
+            }}
             className="px-3 py-1.5 rounded bg-brand text-white text-sm hover:bg-brand/90"
           >
             + Subir clip
           </button>
         )}
       </div>
-      <div className="p-4">
+      <div className="p-4" aria-busy={videoClipsInit === 'loading'}>
+        {deleteError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          >
+            <span>{deleteError}</span>
+            <button
+              type="button"
+              onClick={() => setDeleteError(null)}
+              className="ml-3 text-red-800 hover:text-red-950 focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+              aria-label="Descartar error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <div className="flex gap-2 mb-4 flex-wrap" role="tablist" aria-label="Filtrar por categoría">
           <button
             type="button"
@@ -93,8 +125,14 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
           ))}
         </div>
 
-        {filteredClips.length === 0 ? (
-          <div className="text-gray-800">No hay clips para este jugador todavía.</div>
+        {videoClipsInit === 'error' ? (
+          <div role="alert" className="text-red-800">
+            No se pudieron cargar los clips.
+          </div>
+        ) : filteredClips.length === 0 ? (
+          <div className="text-gray-800">
+            {videoClipsInit === 'loading' ? 'Cargando clips...' : 'No hay clips para este jugador todavía.'}
+          </div>
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {filteredClips.map(clip => (
@@ -111,12 +149,23 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
         )}
       </div>
 
-      <Modal open={uploadOpen} onClose={() => setUploadOpen(false)} title="Subir clip">
+      <Modal
+        open={uploadOpen}
+        onClose={() => {
+          setUploadOpen(false)
+          setUploadError(null)
+        }}
+        title="Subir clip"
+      >
         <VideoClipUploadForm
           matches={matches}
           currentPlayerId={player.id}
           onSubmit={handleUpload}
-          onCancel={() => setUploadOpen(false)}
+          onCancel={() => {
+            setUploadOpen(false)
+            setUploadError(null)
+          }}
+          error={uploadError}
         />
       </Modal>
 

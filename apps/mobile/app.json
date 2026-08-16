@@ -45,7 +45,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "La app accede a tus fotos para elegir la imagen del jugador."
+          "photosPermission": "La app accede a tus fotos y videos para elegir contenido."
         }
       ],
       "expo-video"

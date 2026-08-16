@@ -31,7 +31,6 @@ import { ThemedView } from '@/components/themed-view'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { usePlayerDetail } from '@/hooks/use-player-detail'
 import { useVideoClipsData } from '@/hooks/use-video-clips-data'
-import { useMatchesData } from '@/hooks/use-matches-data'
 import { useAppTheme } from '@/hooks/use-theme'
 import { Fonts, Radii, Spacing } from '@/constants/theme'
 
@@ -45,12 +44,21 @@ export default function PlayerDetailScreen() {
   const isAdmin = useIsAdmin()
   const { colors, isDark, shadows } = useAppTheme()
 
-  const { player, stats, streak, catSkills, overallAvg, loading, refreshing, error, refresh, reload } =
-    usePlayerDetail(id)
+  const {
+    player,
+    stats,
+    streak,
+    catSkills,
+    overallAvg,
+    matches: allMatches,
+    loading,
+    refreshing,
+    error,
+    refresh,
+    reload,
+  } = usePlayerDetail(id)
 
-  const isAdminUser = isAdmin // already computed above via useIsAdmin()
-  const { matches: allMatches } = useMatchesData()
-  const { videoClips, addVideoClip, deleteVideoClip } = useVideoClipsData()
+  const { videoClips, addVideoClip, deleteVideoClip, error: videoClipsError } = useVideoClipsData()
   const [clipFilter, setClipFilter] = useState<VideoClipCategory | 'all'>('all')
   const [uploadVisible, setUploadVisible] = useState(false)
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
@@ -232,7 +240,7 @@ export default function PlayerDetailScreen() {
             ))}
           </View>
 
-          {isAdminUser && (
+          {isAdmin && (
             <Pressable
               onPress={() => setUploadVisible(true)}
               style={[styles.uploadClipBtn, { backgroundColor: colors.brand }]}
@@ -242,7 +250,16 @@ export default function PlayerDetailScreen() {
             </Pressable>
           )}
 
-          {filteredClips.length === 0 ? (
+          {videoClipsError ? (
+            <View
+              style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              accessibilityLiveRegion="polite">
+              <MaterialIcons name="error-outline" size={32} color={colors.muted} />
+              <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
+                No se pudieron cargar los clips
+              </ThemedText>
+            </View>
+          ) : filteredClips.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <MaterialIcons name="movie" size={32} color={colors.muted} />
               <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
@@ -256,7 +273,7 @@ export default function PlayerDetailScreen() {
                   key={clip.id}
                   clip={clip}
                   match={matchById.get(clip.matchId)}
-                  isAdmin={isAdminUser}
+                  isAdmin={isAdmin}
                   onOpen={() => setPlaybackUrl(clip.url)}
                   onDelete={() => handleDeleteClip(clip.id, clip.title || 'clip')}
                 />

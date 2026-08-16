@@ -84,14 +84,19 @@ export function VideoClipUploadModal({ visible, matches, currentPlayerId, onSubm
     }
   }
 
+  const handleClose = () => {
+    reset()
+    onClose()
+  }
+
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={handleClose}>
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.header}>
             <ThemedText style={[styles.title, { color: colors.text }]}>Subir clip</ThemedText>
             <Pressable
-              onPress={onClose}
+              onPress={handleClose}
               style={styles.closeBtn}
               accessibilityRole="button"
               accessibilityLabel="Cerrar">

@@ -5,6 +5,8 @@ import {
   createVideoClip,
   getVideoClips,
   deleteVideoClip as deleteVideoClipRemote,
+  deleteVideoClipFile,
+  newVideoClipId,
 } from '@fulbito/firebase'
 
 export type NewVideoClipData = {
@@ -38,9 +40,14 @@ export const useVideoClipStore = create<VideoClipStore>()((set, get) => ({
     }
   },
   addVideoClip: async (data, file) => {
-    const id = crypto.randomUUID()
+    const id = newVideoClipId()
     const url = await uploadVideoClip(file, id)
-    await createVideoClip(id, { ...data, url })
+    try {
+      await createVideoClip(id, { ...data, url })
+    } catch (err) {
+      await deleteVideoClipFile(id)
+      throw err
+    }
     await get().resetAndReload()
   },
   deleteVideoClip: async (id) => {
