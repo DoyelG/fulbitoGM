@@ -47,7 +47,8 @@
         {
           "photosPermission": "La app accede a tus fotos para elegir la imagen del jugador."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
