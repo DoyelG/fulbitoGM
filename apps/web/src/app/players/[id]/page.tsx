@@ -11,6 +11,7 @@ import SkillBadge from "@/components/SkillBadge";
 import StreakBadge from "@/components/StreakBadge";
 import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
+import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
 import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
@@ -518,6 +519,10 @@ export default function PlayerDetailPage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-6">
+        <VideoClipsSection player={player} matches={matches} isAdmin={isAdmin} />
       </div>
     </div>
   );
