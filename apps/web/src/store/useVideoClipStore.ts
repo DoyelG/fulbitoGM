@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import type { VideoClip, VideoClipCategory } from '@fulbito/types'
+import { getApp } from 'firebase/app'
 import {
-  collection, doc, getDocs, setDoc, deleteDoc,
+  getFirestore, collection, doc, getDocs, setDoc, deleteDoc,
   query, orderBy, Timestamp, type DocumentData,
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-import { db, storage } from '@/lib/firebase'
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 
 export type NewVideoClipData = {
   matchId: string
@@ -28,11 +28,13 @@ function docToVideoClip(id: string, data: DocumentData): VideoClip {
 }
 
 async function fetchVideoClips(): Promise<VideoClip[]> {
+  const db = getFirestore(getApp())
   const snap = await getDocs(query(collection(db, 'videoClips'), orderBy('createdAt', 'desc')))
   return snap.docs.map(d => docToVideoClip(d.id, d.data()))
 }
 
 async function deleteVideoClipFile(clipId: string): Promise<void> {
+  const storage = getStorage(getApp())
   try {
     await deleteObject(ref(storage, `videoClips/${clipId}`))
   } catch {
@@ -64,6 +66,8 @@ export const useVideoClipStore = create<VideoClipStore>()((set, get) => ({
     }
   },
   addVideoClip: async (data, file) => {
+    const db = getFirestore(getApp())
+    const storage = getStorage(getApp())
     const id = doc(collection(db, 'videoClips')).id
     const storageRef = ref(storage, `videoClips/${id}`)
     await uploadBytes(storageRef, file)
@@ -85,6 +89,7 @@ export const useVideoClipStore = create<VideoClipStore>()((set, get) => ({
     await get().resetAndReload()
   },
   deleteVideoClip: async (id) => {
+    const db = getFirestore(getApp())
     await deleteDoc(doc(db, 'videoClips', id))
     await deleteVideoClipFile(id)
     set(s => ({ videoClips: s.videoClips.filter(c => c.id !== id) }))
