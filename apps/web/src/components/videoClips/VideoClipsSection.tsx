@@ -5,7 +5,7 @@ import type { Match, Player, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
-import VideoClipCard from '@/components/videoClips/VideoClipCard'
+import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
 import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
 
 type Props = {
@@ -134,18 +134,13 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
             {videoClipsInit === 'loading' ? 'Cargando clips...' : 'No hay clips para este jugador todavía.'}
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {filteredClips.map(clip => (
-              <VideoClipCard
-                key={clip.id}
-                clip={clip}
-                match={matchById.get(clip.matchId)}
-                isAdmin={isAdmin}
-                onOpen={() => setPlaybackClipId(clip.id)}
-                onDelete={() => handleDelete(clip.id)}
-              />
-            ))}
-          </div>
+          <VideoClipCarousel
+            clips={filteredClips}
+            matchById={matchById}
+            isAdmin={isAdmin}
+            onOpen={setPlaybackClipId}
+            onDelete={handleDelete}
+          />
         )}
       </div>
 
@@ -169,9 +164,14 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
         />
       </Modal>
 
-      <Modal open={playbackClip !== null} onClose={() => setPlaybackClipId(null)} title={playbackClip?.title || 'Clip'}>
+      <Modal
+        open={playbackClip !== null}
+        onClose={() => setPlaybackClipId(null)}
+        title={playbackClip?.title || 'Clip'}
+        size="large"
+      >
         {playbackClip && (
-          <video controls autoPlay className="w-full rounded" src={playbackClip.url}>
+          <video controls autoPlay className="w-full max-h-[75vh] rounded" src={playbackClip.url}>
             Tu navegador no soporta la reproducción de video.
           </video>
         )}

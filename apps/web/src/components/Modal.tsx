@@ -7,9 +7,10 @@ type Props = {
   onClose: () => void
   title: string
   children: React.ReactNode
+  size?: 'default' | 'large'
 }
 
-export default function Modal({ open, onClose, title, children }: Props) {
+export default function Modal({ open, onClose, title, children, size = 'default' }: Props) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (e: KeyboardEvent) => {
@@ -28,7 +29,11 @@ export default function Modal({ open, onClose, title, children }: Props) {
       aria-modal="true"
       aria-label={title}
     >
-      <div className="bg-white rounded-lg shadow-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div
+        className={`bg-white rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto ${
+          size === 'large' ? 'max-w-4xl' : 'max-w-lg'
+        }`}
+      >
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <h2 className="text-lg font-semibold">{title}</h2>
           <button

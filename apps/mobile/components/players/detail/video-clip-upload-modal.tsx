@@ -20,14 +20,22 @@ type UploadData = {
 type Props = {
   visible: boolean
   matches: Match[]
-  currentPlayerId: string
+  currentPlayerId?: string
+  lockedMatchId?: string
   onSubmit: (data: UploadData, fileUri: string) => Promise<void>
   onClose: () => void
 }
 
-export function VideoClipUploadModal({ visible, matches, currentPlayerId, onSubmit, onClose }: Props) {
+export function VideoClipUploadModal({
+  visible,
+  matches,
+  currentPlayerId,
+  lockedMatchId,
+  onSubmit,
+  onClose,
+}: Props) {
   const { colors } = useAppTheme()
-  const [matchId, setMatchId] = useState('')
+  const [matchId, setMatchId] = useState(lockedMatchId ?? '')
   const [playerIds, setPlayerIds] = useState<string[]>([])
   const [category, setCategory] = useState<VideoClipCategory>('highlight')
   const [title, setTitle] = useState('')
@@ -42,7 +50,7 @@ export function VideoClipUploadModal({ visible, matches, currentPlayerId, onSubm
 
   const selectMatch = (id: string) => {
     setMatchId(id)
-    setPlayerIds(id ? [currentPlayerId] : [])
+    setPlayerIds(id && currentPlayerId ? [currentPlayerId] : [])
   }
 
   const togglePlayer = (id: string) => {
@@ -62,7 +70,7 @@ export function VideoClipUploadModal({ visible, matches, currentPlayerId, onSubm
   }
 
   const reset = () => {
-    setMatchId('')
+    setMatchId(lockedMatchId ?? '')
     setPlayerIds([])
     setCategory('highlight')
     setTitle('')
@@ -106,23 +114,33 @@ export function VideoClipUploadModal({ visible, matches, currentPlayerId, onSubm
 
           <View>
             <ThemedText style={[styles.fieldLabel, { color: colors.text }]}>Partido</ThemedText>
-            {matches.map(m => (
-              <Pressable
-                key={m.id}
-                onPress={() => selectMatch(m.id)}
-                style={[
-                  styles.optionRow,
-                  { borderColor: matchId === m.id ? colors.brand : colors.border },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={`Partido ${new Date(m.date).toLocaleDateString()} ${m.type}`}
-                accessibilityState={{ selected: matchId === m.id }}>
+            {lockedMatchId ? (
+              <View style={[styles.optionRow, { borderColor: colors.border }]}>
                 <ThemedText style={[styles.optionText, { color: colors.text }]}>
-                  {new Date(m.date).toLocaleDateString()} · {m.type}
+                  {selectedMatch
+                    ? `${new Date(selectedMatch.date).toLocaleDateString()} · ${selectedMatch.type}`
+                    : '—'}
                 </ThemedText>
-                {matchId === m.id && <MaterialIcons name="check" size={18} color={colors.brand} />}
-              </Pressable>
-            ))}
+              </View>
+            ) : (
+              matches.map(m => (
+                <Pressable
+                  key={m.id}
+                  onPress={() => selectMatch(m.id)}
+                  style={[
+                    styles.optionRow,
+                    { borderColor: matchId === m.id ? colors.brand : colors.border },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Partido ${new Date(m.date).toLocaleDateString()} ${m.type}`}
+                  accessibilityState={{ selected: matchId === m.id }}>
+                  <ThemedText style={[styles.optionText, { color: colors.text }]}>
+                    {new Date(m.date).toLocaleDateString()} · {m.type}
+                  </ThemedText>
+                  {matchId === m.id && <MaterialIcons name="check" size={18} color={colors.brand} />}
+                </Pressable>
+              ))
+            )}
           </View>
 
           {selectedMatch && (

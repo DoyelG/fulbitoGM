@@ -23,10 +23,23 @@ export default function VideoClipCard({ clip, match, isAdmin, onOpen, onDelete }
         className="w-full text-left rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
         aria-label={`Ver clip: ${label}`}
       >
-        <div className="flex items-center justify-center h-20 text-3xl" aria-hidden="true">
-          {meta?.icon ?? '🎬'}
+        <div className="relative h-24 bg-black rounded-t-lg overflow-hidden">
+          <video
+            src={`${clip.url}#t=0.1`}
+            muted
+            playsInline
+            preload="metadata"
+            aria-hidden="true"
+            className="w-full h-full object-cover pointer-events-none"
+          />
+          <span
+            className="absolute bottom-1 left-1 text-xs bg-black/70 text-white rounded px-1.5 py-0.5 flex items-center gap-1"
+            aria-hidden="true"
+          >
+            {meta?.icon ?? '🎬'}
+          </span>
         </div>
-        <div className="px-2 pb-2 text-center">
+        <div className="px-2 pb-2 pt-1 text-center">
           <div className="text-xs font-medium truncate">{label}</div>
           {match && (
             <div className="text-[10px] text-gray-700">

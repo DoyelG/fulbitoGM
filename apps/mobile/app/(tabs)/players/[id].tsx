@@ -4,7 +4,6 @@ import { useLayoutEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  Modal as RNModal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -14,7 +13,6 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import { useVideoPlayer, VideoView } from 'expo-video'
 import { getGoalkeeping } from '@fulbito/utils'
 import type { VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
@@ -24,8 +22,9 @@ import { StreakBadge } from '@/components/players/streak-badge'
 import { PlayerSkillBars } from '@/components/players/detail/player-skill-bars'
 import { PlayerStatsGrid } from '@/components/players/detail/player-stats-grid'
 import { RecentMatchRow } from '@/components/players/detail/recent-match-row'
-import { VideoClipCard } from '@/components/players/detail/video-clip-card'
+import { VideoClipCarousel } from '@/components/players/detail/video-clip-carousel'
 import { VideoClipUploadModal } from '@/components/players/detail/video-clip-upload-modal'
+import { VideoClipPlaybackModal } from '@/components/video-clip-playback-modal'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useIsAdmin } from '@/hooks/use-is-admin'
@@ -72,8 +71,6 @@ export default function PlayerDetailScreen() {
     [playerClips, clipFilter],
   )
   const matchById = useMemo(() => new Map(allMatches.map(m => [m.id, m])), [allMatches])
-
-  const clipPlayer = useVideoPlayer(playbackUrl ?? '', p => { p.loop = false })
 
   const handleDeleteClip = (clipId: string, label: string) => {
     Alert.alert('Eliminar clip', `¿Eliminar "${label}"?`, [
@@ -267,17 +264,20 @@ export default function PlayerDetailScreen() {
               </ThemedText>
             </View>
           ) : (
-            <View style={styles.clipsGrid}>
-              {filteredClips.map(clip => (
-                <VideoClipCard
-                  key={clip.id}
-                  clip={clip}
-                  match={matchById.get(clip.matchId)}
-                  isAdmin={isAdmin}
-                  onOpen={() => setPlaybackUrl(clip.url)}
-                  onDelete={() => handleDeleteClip(clip.id, clip.title || 'clip')}
-                />
-              ))}
+            <View style={styles.clipsCarouselWrap}>
+              <VideoClipCarousel
+                clips={filteredClips}
+                matchById={matchById}
+                isAdmin={isAdmin}
+                onOpen={clipId => {
+                  const clip = filteredClips.find(c => c.id === clipId)
+                  if (clip) setPlaybackUrl(clip.url)
+                }}
+                onDelete={clipId => {
+                  const clip = filteredClips.find(c => c.id === clipId)
+                  handleDeleteClip(clipId, clip?.title || 'clip')
+                }}
+              />
             </View>
           )}
 
@@ -292,18 +292,7 @@ export default function PlayerDetailScreen() {
             onClose={() => setUploadVisible(false)}
           />
 
-          <RNModal visible={playbackUrl !== null} animationType="fade" onRequestClose={() => setPlaybackUrl(null)}>
-            <SafeAreaView style={styles.playerModalOverlay}>
-              <Pressable
-                onPress={() => setPlaybackUrl(null)}
-                style={styles.playerCloseBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Cerrar reproductor">
-                <MaterialIcons name="close" size={28} color="#fff" />
-              </Pressable>
-              {playbackUrl && <VideoView player={clipPlayer} style={styles.playerVideoView} nativeControls />}
-            </SafeAreaView>
-          </RNModal>
+          <VideoClipPlaybackModal url={playbackUrl} onClose={() => setPlaybackUrl(null)} />
 
           <View style={styles.bottomPad} />
         </ScrollView>
@@ -482,22 +471,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: Fonts.semiBold,
   },
-  clipsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
+  clipsCarouselWrap: {
     marginBottom: Spacing.xl,
-  },
-
-  /* Fullscreen clip player */
-  playerModalOverlay: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  playerCloseBtn: {
-    padding: Spacing.md,
-  },
-  playerVideoView: {
-    flex: 1,
   },
 })
