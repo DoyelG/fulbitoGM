@@ -3,6 +3,7 @@ import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
 
+import { useIsAdmin } from '@/hooks/use-is-admin'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { AutoGenerateButton } from './matchForm/autoGenerateButton'
@@ -45,6 +46,7 @@ export function MatchForm({
   onTitleChange,
 }: MatchFormProps) {
   const { colors, spacing } = useAppTheme()
+  const isAdmin = useIsAdmin()
 
   // ── Basic info ──────────────────────────────────────────────────────────────
   const [matchDate, setMatchDate] = useState<string>(
@@ -273,6 +275,7 @@ export function MatchForm({
         mode={mode}
         saving={saving}
         canSave={canSave}
+        showSave={mode === 'edit' || isAdmin}
         onCancel={onCancel}
         onSave={() => void handleSave()}
       />
