@@ -31,6 +31,19 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  addVideoBtn: {
+    borderRadius: Radii.sm,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    marginBottom: Spacing.md,
+  },
+  addVideoBtnText: {
+    color: '#fff',
+    fontFamily: Fonts.semiBold,
+    fontSize: 14,
+  },
   emptyWrap: {
     alignItems: 'center',
     gap: Spacing.sm,

@@ -410,15 +410,6 @@ export default function HistoryClient() {
                             </button>
                           )}
                           <button
-                            className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                            onClick={() => {
-                              setVideoUploadError(null);
-                              setVideoUploadMatch(m);
-                            }}
-                          >
-                            + Video
-                          </button>
-                          <button
                             className="text-red-600 hover:text-red-800 text-sm"
                             onClick={() => handleDelete(m.id)}
                           >
@@ -511,6 +502,21 @@ export default function HistoryClient() {
         title={`Clips${viewClipsMatch?.name ? `: ${viewClipsMatch.name}` : ""}`}
         size="large"
       >
+        {isAdmin && viewClipsMatch && (
+          <div className="flex justify-end mb-4">
+            <button
+              type="button"
+              className="text-sm px-3 py-1.5 rounded bg-brand text-white hover:bg-brand/90"
+              onClick={() => {
+                setVideoUploadError(null);
+                setVideoUploadMatch(viewClipsMatch);
+                setViewClipsMatch(null);
+              }}
+            >
+              + Subir clip
+            </button>
+          </div>
+        )}
         {viewDeleteError && (
           <div
             role="alert"

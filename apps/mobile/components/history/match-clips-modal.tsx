@@ -15,10 +15,11 @@ type Props = {
   clips: VideoClip[]
   isAdmin: boolean
   onDelete: (clipId: string) => Promise<void>
+  onAddVideo: () => void
   onClose: () => void
 }
 
-export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onClose }: Props) {
+export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAddVideo, onClose }: Props) {
   const { colors } = useAppTheme()
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
 
@@ -58,6 +59,16 @@ export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onCl
                 <MaterialIcons name="close" size={24} color={colors.text} />
               </Pressable>
             </View>
+
+            {isAdmin && (
+              <Pressable
+                onPress={onAddVideo}
+                style={[styles.addVideoBtn, { backgroundColor: colors.brand }]}
+                accessibilityRole="button"
+                accessibilityLabel="Subir clip">
+                <ThemedText style={styles.addVideoBtnText}>+ Subir clip</ThemedText>
+              </Pressable>
+            )}
 
             {clips.length === 0 ? (
               <View style={styles.emptyWrap}>

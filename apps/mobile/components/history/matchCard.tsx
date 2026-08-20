@@ -12,7 +12,6 @@ type Props = {
   clipCount: number
   onEdit: () => void
   onDelete: () => void
-  onAddVideo: () => void
   onViewClips: () => void
 }
 
@@ -28,7 +27,6 @@ export function MatchCard({
   clipCount,
   onEdit,
   onDelete,
-  onAddVideo,
   onViewClips,
 }: Props) {
   const { colors, radii, spacing, shadows, isDark } = useAppTheme()
@@ -118,13 +116,6 @@ export function MatchCard({
             <>
               <TouchableOpacity onPress={onEdit} style={[styles.editBtn, { borderColor: colors.border }]}>
                 <Text style={[styles.editBtnText, { color: colors.text }]}>Editar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={onAddVideo}
-                style={[styles.editBtn, { borderColor: colors.border }]}
-                accessibilityRole="button"
-                accessibilityLabel="Subir video">
-                <Text style={[styles.editBtnText, { color: colors.text }]}>+ Video</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={onDelete}>
                 <Text style={[styles.deleteText, { color: colors.danger }]}>Eliminar</Text>

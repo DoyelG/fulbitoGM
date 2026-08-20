@@ -165,7 +165,6 @@ export default function HistoryScreen() {
                 })
               }
               onDelete={() => confirmDelete(item)}
-              onAddVideo={() => setVideoUploadMatch(item)}
               onViewClips={() => setViewClipsMatch(item)}
             />
           )}
@@ -190,6 +189,10 @@ export default function HistoryScreen() {
         clips={viewClipsMatch ? videoClips.filter((c) => c.matchId === viewClipsMatch.id) : []}
         isAdmin={isAdmin}
         onDelete={deleteVideoClip}
+        onAddVideo={() => {
+          setVideoUploadMatch(viewClipsMatch)
+          setViewClipsMatch(null)
+        }}
         onClose={() => setViewClipsMatch(null)}
       />
     </View>
