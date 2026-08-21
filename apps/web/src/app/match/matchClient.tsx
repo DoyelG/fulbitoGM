@@ -584,7 +584,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   aria-checked={isFriendly}
                   aria-label="Partido amistoso"
                   onClick={() => setIsFriendly((v) => !v)}
-                  className={`relative inline-flex h-9 w-28 shrink-0 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                  className={`relative inline-flex h-9 w-28 shrink-0 my-1 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
                     isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
                   }`}
                 >
