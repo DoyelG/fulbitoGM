@@ -3,9 +3,8 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { doc, updateDoc, Timestamp } from 'firebase/firestore'
+import { updatePlayer } from '@fulbito/firebase'
 import { getGoalkeeping } from '@fulbito/utils'
-import { db } from '@/lib/firebase'
 import { PlayerEditForm, type PlayerEditFormValues } from '@/components/players/edit/player-edit-form'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { usePlayersData } from '@/hooks/use-players-data'
@@ -70,13 +69,12 @@ export default function EditPlayerScreen() {
         psychological: values.psychological,
       }
       const skill = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
-      await updateDoc(doc(db, 'players', id), {
+      await updatePlayer(id, {
         name: values.name.trim(),
         position: values.position,
         skills,
         skill,
         goalkeeping: values.goalkeeping,
-        updatedAt: Timestamp.now(),
       })
       await reload()
       router.back()

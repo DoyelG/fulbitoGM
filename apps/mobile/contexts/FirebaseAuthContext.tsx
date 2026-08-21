@@ -1,19 +1,14 @@
+// Side-effect import: runs initFirebase before any @fulbito/firebase calls in this tree
+import '@/lib/firebase'
+
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import {
-  onAuthStateChanged as firebaseOnAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
+  signIn as firebaseSignIn,
   signOut as firebaseSignOut,
-  type User as FirebaseUser,
-} from 'firebase/auth'
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase'
-import type { AppUser } from '@fulbito/firebase'
-
-async function getUserRole(uid: string): Promise<'USER' | 'ADMIN'> {
-  const snap = await getDoc(doc(db, 'users', uid))
-  return (snap.data()?.role as 'USER' | 'ADMIN') ?? 'USER'
-}
+  register as firebaseRegister,
+  onAuthStateChanged,
+  type AppUser,
+} from '@fulbito/firebase'
 
 type AuthContextValue = {
   user: AppUser | null
@@ -31,33 +26,25 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsub = firebaseOnAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
-      if (!fbUser) { setUser(null); setLoading(false); return }
-      const role = await getUserRole(fbUser.uid)
-      setUser({ uid: fbUser.uid, email: fbUser.email!, role })
+    const unsub = onAuthStateChanged((appUser) => {
+      setUser(appUser)
       setLoading(false)
     })
     return unsub
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const cred = await signInWithEmailAndPassword(auth, email.trim(), password.trim())
-    const role = await getUserRole(cred.user.uid)
-    setUser({ uid: cred.user.uid, email: cred.user.email!, role })
+    const appUser = await firebaseSignIn(email.trim(), password.trim())
+    setUser(appUser)
   }
 
   const register = async (email: string, password: string) => {
-    const cred = await createUserWithEmailAndPassword(auth, email.trim(), password.trim())
-    await setDoc(doc(db, 'users', cred.user.uid), {
-      email: cred.user.email,
-      role: 'USER',
-      createdAt: Timestamp.now(),
-    })
-    setUser({ uid: cred.user.uid, email: cred.user.email!, role: 'USER' })
+    const appUser = await firebaseRegister(email.trim(), password.trim())
+    setUser(appUser)
   }
 
   const signOut = async () => {
-    await firebaseSignOut(auth)
+    await firebaseSignOut()
     setUser(null)
   }
 

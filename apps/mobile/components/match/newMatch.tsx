@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
+import { Alert } from 'react-native'
 
 import { useMatchesData } from '@/hooks/use-matches-data'
 
@@ -29,6 +30,8 @@ export function NewMatch() {
           await addMatch(m)
           setFormKey((k) => k + 1)
           router.navigate('/(tabs)/history')
+        } catch {
+          Alert.alert('No se pudo crear el partido', 'Revisá tu conexión e intentá de nuevo.')
         } finally {
           setSaving(false)
         }
