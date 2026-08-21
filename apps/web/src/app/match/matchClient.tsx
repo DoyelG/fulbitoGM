@@ -43,6 +43,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     resetMatches()
   }, [hydratePlayers, initialPlayers, resetAndReload, resetMatches])
 
+  const [isFriendly, setIsFriendly] = useState(false)
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(new Set())
@@ -301,6 +302,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         name: draftName.trim() || undefined,
         shirtsResponsibleId: shirtsResponsibleId ?? null,
         mvpId: null,
+        isFriendly,
       }
       await addMatch(draft)
       router.push('/history')
@@ -345,7 +347,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <label className="font-medium">Tipo de partido</label>
+          <label className="font-medium">Modo de partido</label>
           <select
             value={matchType}
             onChange={e => setMatchType(e.target.value as MatchType)}
@@ -392,6 +394,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   <span className="ml-3 px-2 py-0.5 rounded bg-purple-100 text-purple-800">
                     🧤 Arqueros: {goalkeeperIds.size} / {MAX_GOALKEEPERS}
                   </span>
+                  {isFriendly && <span className="ml-3 px-2 py-0.5 rounded bg-green-100 text-green-800">Amistoso</span>}
                 </span>
               )
             })()}
@@ -551,7 +554,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
           <div className="mt-6 border-t pt-4">
             <h4 className="font-semibold mb-3">Crear partido</h4>
-            <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto_auto] gap-3 sm:items-end">
               <div>
                 <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
                 <input
@@ -573,11 +576,48 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   className="border rounded px-3 py-2 w-full"
                 />
               </div>
+              <div>
+                <label className="block text-sm mb-1">Tipo de partido</label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isFriendly}
+                  aria-label="Partido amistoso"
+                  onClick={() => setIsFriendly((v) => !v)}
+                  className={`relative inline-flex h-9 w-28 shrink-0 my-1 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                    isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
+                  }`}
+                >
+                  <span
+                    className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                    }`}
+                  >
+                    Competitivo
+                  </span>
+
+                  <span
+                    className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                    }`}
+                  >
+                    Amistoso
+                  </span>
+
+                  <span
+                    className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
+                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                    }`}
+                  >
+                    <span className="text-md">{isFriendly ? '🤝' : '⚔️'}</span>
+                  </span>
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={createDraft}
                 disabled={isCreatingDraft}
-                className={`px-4 py-2 rounded text-white ${
+                className={`w-full sm:w-auto px-4 py-2 rounded text-white ${
                   isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
               >

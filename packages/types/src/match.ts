@@ -20,7 +20,9 @@ export type Match = {
   shirtsResponsibleId?: string | null
   mvpId?: string | null
   goalkeeperIds?: string[]
+  isFriendly?: boolean
 }
+// To show in history who are friendly matches
 
 /** Minimal match shape used by streak-calculation algorithms */
 export type MatchLike = {
@@ -29,6 +31,7 @@ export type MatchLike = {
   teamBScore: number
   teamA: { id: string }[]
   teamB: { id: string }[]
+  isFriendly?: boolean
 }
 
 export function isDraft(m: Pick<Match, 'status'>): boolean {

@@ -16,6 +16,7 @@ import { PoolSection } from './matchForm/poolSection'
 import { ShirtsSection } from './matchForm/shirtsSection'
 import { TeamAssignmentSection } from './matchForm/teamAssignmentSection'
 import { TeamScoreSection } from './matchForm/teamScoreSection'
+import { ToggleFriendlyMatch } from './matchForm/toggleFriendlyMatch'
 import type { MatchType } from './matchForm/types'
 import { TypeSelector } from './matchForm/typeSelector'
 import { usePool } from './matchForm/usePool'
@@ -58,6 +59,7 @@ export function MatchForm({
     () => new Set(initial?.goalkeeperIds ?? []),
   )
   const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null)
+  const [isMatchFriendly, setIsMatchFriendly] = useState<boolean>(initial?.isFriendly ?? false)
 
   // ── State hooks ─────────────────────────────────────────────────────────────
   const pool = usePool(players, initial)
@@ -162,6 +164,7 @@ export function MatchForm({
         shirtsResponsibleId: pickShirtsResponsible(shirts.shirtsResponsibleId, shirts.dutyPoolIds),
         goalkeeperIds: [...goalkeeperIds],
         mvpId,
+        isMatchFriendly,
       })
       await onSave(payload)
     } catch (e) {
@@ -185,6 +188,8 @@ export function MatchForm({
       />
 
       <DateField value={matchDate} onChange={setMatchDate} />
+
+      <ToggleFriendlyMatch isMatchFriendly={isMatchFriendly} setIsMatchFriendly={setIsMatchFriendly} />
 
       <TypeSelector value={matchType} onChange={handleTypeChange} />
 

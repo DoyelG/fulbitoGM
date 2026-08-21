@@ -199,7 +199,7 @@ export default function HistoryClient() {
               return (
                 <div
                   key={m.id}
-                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : "border-indigo-500"}`}
+                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : m.isFriendly ? "border-green-400" : "border-indigo-500"}`}
                 >
                   <div className="flex justify-between items-center mb-3">
                     <div>
@@ -218,6 +218,11 @@ export default function HistoryClient() {
                       {isDraft && (
                         <span className="ml-2 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded">
                           Borrador
+                        </span>
+                      )}
+                      {m.isFriendly && (
+                        <span className="ml-2 inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">
+                          Amistoso
                         </span>
                       )}
                     </div>
@@ -479,6 +484,7 @@ function RecordModal({
     typeof initial?.teamBScore === "number" ? initial.teamBScore : "",
   );
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const [isFriendly, setIsFriendly] = useState<boolean>(initial?.isFriendly ?? false);
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB];
     const teamIds = all.map((p) => p.id);
@@ -639,6 +645,7 @@ function RecordModal({
       shirtsResponsibleId: chosen ?? null,
       mvpId: isFinal ? mvpId : null,
       goalkeeperIds,
+      isFriendly,
     };
   };
 
@@ -676,7 +683,7 @@ function RecordModal({
           </button>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+        <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 mb-3">
           <div>
             <label className="block text-sm font-medium mb-1">Fecha</label>
             <input
@@ -688,7 +695,7 @@ function RecordModal({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              Tipo de Partido
+              Modo de Partido
             </label>
             <select
               value={matchType}
@@ -707,6 +714,45 @@ function RecordModal({
             </select>
           </div>
           <div>
+            <label className="block text-sm font-medium mb-1">
+              Tipo de partido
+            </label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isFriendly}
+              aria-label="Partido amistoso"
+              onClick={() => setIsFriendly((v) => !v)}
+              className={`relative inline-flex h-9 w-28 shrink-0 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
+              }`}
+            >
+              <span
+                className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Competitivo
+              </span>
+
+              <span
+                className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Amistoso
+              </span>
+
+              <span
+                className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                <span className="text-md">{isFriendly ? "🤝" : "⚔️"}</span>
+              </span>
+            </button>
+          </div>
+          <div className="sm:col-span-3">
             <label className="block text-lg font-medium mb-1">
               Nombre del Partido
             </label>

@@ -52,6 +52,7 @@ function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Matc
     shirtsResponsibleId: (data['shirtsResponsibleId'] as string | null) ?? null,
     mvpId: (data['mvpId'] as string | null) ?? null,
     goalkeeperIds: (data['goalkeeperIds'] as string[]) ?? [],
+    isFriendly: (data['isFriendly'] as boolean) ?? false,
   }
 }
 
