@@ -10,12 +10,14 @@ import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
 import { onlyFinalMatches } from '@fulbito/utils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { Match } from '@fulbito/types'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
   const router = useRouter()
+  const { isAdmin } = useFirebaseAuth()
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()
   const {
     matches: allMatches,
@@ -549,45 +551,47 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             </div>
           </div>
 
-          <div className="mt-6 border-t pt-4">
-            <h4 className="font-semibold mb-3">Crear partido</h4>
-            <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
-              <div>
-                <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
-                <input
-                  id="draft-date"
-                  type="date"
-                  value={draftDate}
-                  onChange={(e) => setDraftDate(e.target.value)}
-                  className="border rounded px-3 py-2 w-full"
-                />
+          {isAdmin && (
+            <div className="mt-6 border-t pt-4">
+              <h4 className="font-semibold mb-3">Crear partido</h4>
+              <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
+                <div>
+                  <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
+                  <input
+                    id="draft-date"
+                    type="date"
+                    value={draftDate}
+                    onChange={(e) => setDraftDate(e.target.value)}
+                    className="border rounded px-3 py-2 w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
+                  <input
+                    id="draft-name"
+                    type="text"
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    placeholder="Ej: Partido del miércoles"
+                    className="border rounded px-3 py-2 w-full"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={createDraft}
+                  disabled={isCreatingDraft}
+                  className={`px-4 py-2 rounded text-white ${
+                    isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
+                >
+                  {isCreatingDraft ? 'Creando...' : 'Crear partido'}
+                </button>
               </div>
-              <div>
-                <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
-                <input
-                  id="draft-name"
-                  type="text"
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  placeholder="Ej: Partido del miércoles"
-                  className="border rounded px-3 py-2 w-full"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={createDraft}
-                disabled={isCreatingDraft}
-                className={`px-4 py-2 rounded text-white ${
-                  isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-                }`}
-              >
-                {isCreatingDraft ? 'Creando...' : 'Crear partido'}
-              </button>
+              <p className="mt-2 text-xs text-gray-500">
+                Se guarda como borrador en el historial. Más tarde podés completar el resultado.
+              </p>
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Se guarda como borrador en el historial. Más tarde podés completar el resultado.
-            </p>
-          </div>
+          )}
         </div>
       )}
     </div>
@@ -619,5 +623,3 @@ function TeamCard({ title, team, color, winProbability, goalkeeperIds }: { title
     </div>
   )
 }
-
-

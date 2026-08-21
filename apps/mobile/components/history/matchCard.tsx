@@ -29,7 +29,12 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
     : null
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={isAdmin ? 0.85 : 1}
+      disabled={!isAdmin}
+      onPress={onEdit}
+      accessibilityRole={isAdmin ? 'button' : undefined}
+      accessibilityLabel={isAdmin ? 'Editar partido' : undefined}
       style={[
         styles.card,
         { backgroundColor: colors.surface, borderRadius: radii.md },
@@ -99,7 +104,7 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
           </View>
         ) : null}
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 
