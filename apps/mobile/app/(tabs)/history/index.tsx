@@ -19,6 +19,7 @@ import { MatchCard } from '@/components/history/matchCard'
 import { MatchClipsModal } from '@/components/history/match-clips-modal'
 import { VideoClipUploadModal } from '@/components/players/detail/video-clip-upload-modal'
 import { ThemedView } from '@/components/themed-view'
+import { Spacing } from '@/constants/theme'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { useMatchesData } from '@/hooks/use-matches-data'
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: Spacing.lg,
   },
   filterBar: {
     marginBottom: 4,

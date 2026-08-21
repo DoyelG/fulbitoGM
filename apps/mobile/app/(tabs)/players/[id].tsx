@@ -38,7 +38,6 @@ const RECENT_MAX = 10
 
 export default function PlayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const navigation = useNavigation()
   const router = useRouter()
   const isAdmin = useIsAdmin()
   const { colors, isDark, shadows } = useAppTheme()
@@ -78,21 +77,6 @@ export default function PlayerDetailScreen() {
       { text: 'Eliminar', style: 'destructive', onPress: () => void deleteVideoClip(clipId) },
     ])
   }
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: player?.name ?? 'Jugador',
-      headerRight: isAdmin
-        ? () => (
-            <Pressable
-              onPress={() => router.push(`/(tabs)/players/edit/${id}`)}
-              style={styles.editBtn}>
-              <MaterialIcons name="edit" size={20} color={colors.brand} />
-            </Pressable>
-          )
-        : undefined,
-    })
-  }, [navigation, player?.name, isAdmin, router, id, colors.brand])
 
   if (loading) {
     return (
@@ -159,10 +143,21 @@ export default function PlayerDetailScreen() {
                 </View>
               </View>
             </View>
-            {/* Derecha: skill overall */}
-            <View style={styles.skillPill}>
-              <Text style={styles.skillPillLabel}>OVERALL</Text>
-              <Text style={styles.skillPillText}>Lv {overallAvg.toFixed(1)}</Text>
+            {/* Derecha: skill overall + editar */}
+            <View style={styles.heroRight}>
+              <View style={styles.skillPill}>
+                <Text style={styles.skillPillLabel}>OVERALL</Text>
+                <Text style={styles.skillPillText}>Lv {overallAvg.toFixed(1)}</Text>
+              </View>
+              {isAdmin && (
+                <Pressable
+                  onPress={() => router.push(`/(tabs)/players/edit/${id}`)}
+                  style={styles.editBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Editar jugador">
+                  <MaterialIcons name="edit" size={18} color="#fff" />
+                </Pressable>
+              )}
             </View>
           </LinearGradient>
 
@@ -439,9 +434,20 @@ const styles = StyleSheet.create({
 
   bottomPad: { height: 16 },
 
+  heroRight: {
+    alignItems: 'flex-end',
+    gap: Spacing.sm,
+  },
+
   editBtn: {
-    padding: 6,
-    marginRight: 4,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
 
   /* Clips */

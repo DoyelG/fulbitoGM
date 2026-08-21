@@ -1,21 +1,22 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "FulbitoApp",
+    "slug": "fulbito-gm",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "fulbitoapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "jsEngine": "hermes",
-      "bundleIdentifier": "com.anonymous.mobile"
+      "bundleIdentifier": "com.fulbitoapp.app"
     },
     "android": {
+      "package": "com.fulbitoapp.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#7C3AED",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -45,14 +46,24 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "La app accede a tus fotos y videos para elegir contenido."
+          "photosPermission": "La app accede a tus fotos para elegir la imagen del jugador.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
-      "expo-video"
+      "expo-font",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b314a953-ce6d-4b9f-ba2f-b9ce245d5172"
+      }
     }
   }
 }

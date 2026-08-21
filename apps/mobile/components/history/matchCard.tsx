@@ -39,7 +39,12 @@ export function MatchCard({
     : null
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={isAdmin ? 0.85 : 1}
+      disabled={!isAdmin}
+      onPress={onEdit}
+      accessibilityRole={isAdmin ? 'button' : undefined}
+      accessibilityLabel={isAdmin ? 'Editar partido' : undefined}
       style={[
         styles.card,
         { backgroundColor: colors.surface, borderRadius: radii.md },
@@ -124,7 +129,7 @@ export function MatchCard({
           )}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 

@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native'
 
+import { Spacing } from '@/constants/theme'
+
 export const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -7,7 +9,7 @@ export const styles = StyleSheet.create({
   screen: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 4,
+    paddingTop: Spacing.lg,
   },
   content: {
     paddingBottom: 24,

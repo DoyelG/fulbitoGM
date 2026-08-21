@@ -3,8 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+import { uploadPlayerPhoto } from "@fulbito/firebase";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
 import SkillBadge from "@/components/SkillBadge";
@@ -35,9 +34,7 @@ export default function PlayerDetailPage() {
     if (!isAdmin) return
     const f = e.target.files?.[0]
     if (!f) return
-    const storageRef = ref(storage, `players/${player!.id}.jpg`)
-    await uploadBytes(storageRef, f)
-    const url = await getDownloadURL(storageRef)
+    const url = await uploadPlayerPhoto(f, player!.id)
     await updatePlayer(player!.id, { photoUrl: url })
   }
 

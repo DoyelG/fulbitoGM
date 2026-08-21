@@ -1,18 +1,17 @@
 import type { Player } from '@fulbito/types'
 import { calculateAllCurrentStreaks } from '@fulbito/utils'
-import { useNavigation } from '@react-navigation/native'
 import { useRouter } from 'expo-router'
-import { useCallback, useLayoutEffect, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Alert, FlatList, RefreshControl, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { HeaderAddButton } from '@/components/players/header-add-button'
 import { PlayerCard } from '@/components/players/player-card'
 import { PlayersEmpty } from '@/components/players/players-empty'
 import { PlayersError } from '@/components/players/players-error'
 import { PlayersListHeader } from '@/components/players/players-list-header'
 import { PlayersLoading } from '@/components/players/players-loading'
 import { ThemedView } from '@/components/themed-view'
+import { Spacing } from '@/constants/theme'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { usePlayerFilters } from '@/hooks/use-player-filters'
 import { usePlayerSort } from '@/hooks/use-player-sort'
@@ -21,7 +20,6 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 export default function PlayersScreen() {
   const router = useRouter()
-  const navigation = useNavigation()
   const isAdmin = useIsAdmin()
   const { colors } = useAppTheme()
 
@@ -46,14 +44,6 @@ export default function PlayersScreen() {
     filteredPlayers,
   } = usePlayerFilters(players)
   const { sortedPlayers } = usePlayerSort(filteredPlayers, streaks, 'skill')
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: isAdmin
-        ? () => <HeaderAddButton onPress={() => router.push('/(tabs)/players/new')} />
-        : () => null,
-    })
-  }, [navigation, isAdmin, router])
 
   const confirmDelete = useCallback(
     (player: Player) => {
@@ -117,6 +107,8 @@ export default function PlayersScreen() {
               positions={positions}
               position={position}
               onPositionChange={setPosition}
+              isAdmin={isAdmin}
+              onAdd={() => router.push('/(tabs)/players/new')}
             />
           }
           refreshControl={
@@ -156,7 +148,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: Spacing.lg,
   },
   listContent: {
     paddingBottom: 32,

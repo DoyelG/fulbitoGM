@@ -146,9 +146,14 @@ export default function HistoryClient() {
     setShowModal(true);
     setSelectedMatchId(matchId);
   };
-  const handleConfirmDelete = () => {
-    deleteMatch(selectedMatchId as string);
-    setShowModal(false);
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteMatch(selectedMatchId as string);
+    } catch {
+      alert("Error al eliminar el partido");
+    } finally {
+      setShowModal(false);
+    }
   };
 
   return (
@@ -812,8 +817,7 @@ function RecordModal({
           : "Borrador actualizado!",
       );
       onClose();
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error al guardar el partido");
     } finally {
       setIsLoading(false);
