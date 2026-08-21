@@ -683,7 +683,7 @@ function RecordModal({
           </button>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+        <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 mb-3">
           <div>
             <label className="block text-sm font-medium mb-1">Fecha</label>
             <input
@@ -695,7 +695,7 @@ function RecordModal({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              Tipo de Partido
+              Modo de Partido
             </label>
             <select
               value={matchType}
@@ -714,6 +714,45 @@ function RecordModal({
             </select>
           </div>
           <div>
+            <label className="block text-sm font-medium mb-1">
+              Tipo de partido
+            </label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isFriendly}
+              aria-label="Partido amistoso"
+              onClick={() => setIsFriendly((v) => !v)}
+              className={`relative inline-flex h-9 w-28 shrink-0 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
+              }`}
+            >
+              <span
+                className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Competitivo
+              </span>
+
+              <span
+                className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Amistoso
+              </span>
+
+              <span
+                className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                <span className="text-md">{isFriendly ? "🤝" : "⚔️"}</span>
+              </span>
+            </button>
+          </div>
+          <div className="sm:col-span-3">
             <label className="block text-lg font-medium mb-1">
               Nombre del Partido
             </label>
@@ -724,18 +763,6 @@ function RecordModal({
               className="border rounded px-3 py-2 w-full"
             />
           </div>
-          <label
-            htmlFor="isFriendlyMatch"
-            className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              id="isFriendlyMatch"
-              checked={isFriendly}
-              onChange={(e) => setIsFriendly(e.target.checked)}
-            />
-            Partido amistoso
-          </label>
         </div>
 
         <div className="grid md:grid-cols-3 gap-3 mb-4">

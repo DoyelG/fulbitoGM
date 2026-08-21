@@ -15,7 +15,7 @@ export function TypeSelector({ value, onChange }: Props) {
 
   return (
     <>
-      <FormLabel text="Tipo de partido" />
+      <FormLabel text="Modo de partido" />
       <View style={styles.row}>
         {MATCH_TYPES.map((t) => {
           const active = t === value

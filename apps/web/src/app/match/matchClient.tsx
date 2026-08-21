@@ -347,7 +347,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <label className="font-medium">Tipo de partido</label>
+          <label className="font-medium">Modo de partido</label>
           <select
             value={matchType}
             onChange={e => setMatchType(e.target.value as MatchType)}
@@ -376,15 +376,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             )
           })()}
         </div>
-        <label htmlFor="friendlyMatch" className="mt-3 flex items-center gap-2 text-sm text-gray-800 cursor-pointer">
-          <input
-            type="checkbox"
-            id="friendlyMatch"
-            checked={isFriendly}
-            onChange={(e) => setIsFriendly(e.target.checked)}
-          />
-          Partido amistoso
-        </label>
       </div>
 
       {selectionOpen && (
@@ -563,7 +554,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
           <div className="mt-6 border-t pt-4">
             <h4 className="font-semibold mb-3">Crear partido</h4>
-            <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto_auto] gap-3 sm:items-end">
               <div>
                 <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
                 <input
@@ -585,11 +576,48 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   className="border rounded px-3 py-2 w-full"
                 />
               </div>
+              <div>
+                <label className="block text-sm mb-1">Tipo de partido</label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isFriendly}
+                  aria-label="Partido amistoso"
+                  onClick={() => setIsFriendly((v) => !v)}
+                  className={`relative inline-flex h-9 w-28 shrink-0 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                    isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
+                  }`}
+                >
+                  <span
+                    className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                    }`}
+                  >
+                    Competitivo
+                  </span>
+
+                  <span
+                    className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                    }`}
+                  >
+                    Amistoso
+                  </span>
+
+                  <span
+                    className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
+                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                    }`}
+                  >
+                    <span className="text-md">{isFriendly ? '🤝' : '⚔️'}</span>
+                  </span>
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={createDraft}
                 disabled={isCreatingDraft}
-                className={`px-4 py-2 rounded text-white ${
+                className={`w-full sm:w-auto px-4 py-2 rounded text-white ${
                   isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
               >
