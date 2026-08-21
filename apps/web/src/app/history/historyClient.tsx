@@ -538,9 +538,9 @@ export default function HistoryClient() {
             No se pudieron cargar los clips.
           </div>
         ) : viewClips.length === 0 ? (
-          <div className="text-gray-800">
-            {videoClipsInit === "loading" ? "Cargando clips..." : "No hay clips para este partido todavía."}
-          </div>
+          videoClipsInit === "loading" ? (
+            <div className="text-gray-800">Cargando clips...</div>
+          ) : null
         ) : (
           <VideoClipCarousel
             clips={viewClips}
