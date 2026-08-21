@@ -49,3 +49,6 @@ generated/prisma
 
 # turbo
 .turbo
+
+# superpowers brainstorming companion
+.superpowers/

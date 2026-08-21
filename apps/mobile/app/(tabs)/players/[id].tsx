@@ -1,7 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -12,16 +14,22 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { getGoalkeeping } from '@fulbito/utils'
+import type { VideoClipCategory } from '@fulbito/types'
+import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 
 import { PlayerAvatar } from '@/components/players/player-avatar'
 import { StreakBadge } from '@/components/players/streak-badge'
 import { PlayerSkillBars } from '@/components/players/detail/player-skill-bars'
 import { PlayerStatsGrid } from '@/components/players/detail/player-stats-grid'
 import { RecentMatchRow } from '@/components/players/detail/recent-match-row'
+import { VideoClipCarousel } from '@/components/players/detail/video-clip-carousel'
+import { VideoClipUploadModal } from '@/components/players/detail/video-clip-upload-modal'
+import { VideoClipPlaybackModal } from '@/components/video-clip-playback-modal'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { usePlayerDetail } from '@/hooks/use-player-detail'
+import { useVideoClipsData } from '@/hooks/use-video-clips-data'
 import { useAppTheme } from '@/hooks/use-theme'
 import { Fonts, Radii, Spacing } from '@/constants/theme'
 
@@ -34,8 +42,41 @@ export default function PlayerDetailScreen() {
   const isAdmin = useIsAdmin()
   const { colors, isDark, shadows } = useAppTheme()
 
-  const { player, stats, streak, catSkills, overallAvg, loading, refreshing, error, refresh, reload } =
-    usePlayerDetail(id)
+  const {
+    player,
+    stats,
+    streak,
+    catSkills,
+    overallAvg,
+    matches: allMatches,
+    loading,
+    refreshing,
+    error,
+    refresh,
+    reload,
+  } = usePlayerDetail(id)
+
+  const { videoClips, addVideoClip, deleteVideoClip, error: videoClipsError } = useVideoClipsData()
+  const [clipFilter, setClipFilter] = useState<VideoClipCategory | 'all'>('all')
+  const [uploadVisible, setUploadVisible] = useState(false)
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
+
+  const playerClips = useMemo(
+    () => videoClips.filter(c => c.playerIds.includes(id)),
+    [videoClips, id],
+  )
+  const filteredClips = useMemo(
+    () => (clipFilter === 'all' ? playerClips : playerClips.filter(c => c.category === clipFilter)),
+    [playerClips, clipFilter],
+  )
+  const matchById = useMemo(() => new Map(allMatches.map(m => [m.id, m])), [allMatches])
+
+  const handleDeleteClip = (clipId: string, label: string) => {
+    Alert.alert('Eliminar clip', `¿Eliminar "${label}"?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: () => void deleteVideoClip(clipId) },
+    ])
+  }
 
   if (loading) {
     return (
@@ -166,6 +207,87 @@ export default function PlayerDetailScreen() {
               </View>
             </>
           )}
+
+          {/* ── Clips ────────────────────────────────────────── */}
+          <SectionTitle title="Clips" />
+          <View style={styles.clipFilterRow}>
+            <Pressable
+              onPress={() => setClipFilter('all')}
+              style={[styles.clipFilterChip, { borderColor: clipFilter === 'all' ? colors.brand : colors.border }]}
+              accessibilityRole="button"
+              accessibilityLabel="Todos los clips"
+              accessibilityState={{ selected: clipFilter === 'all' }}>
+              <ThemedText style={{ color: colors.text }}>Todos</ThemedText>
+            </Pressable>
+            {VIDEO_CLIP_CATEGORIES.map(c => (
+              <Pressable
+                key={c.value}
+                onPress={() => setClipFilter(c.value)}
+                style={[styles.clipFilterChip, { borderColor: clipFilter === c.value ? colors.brand : colors.border }]}
+                accessibilityRole="button"
+                accessibilityLabel={c.label}
+                accessibilityState={{ selected: clipFilter === c.value }}>
+                <ThemedText style={{ color: colors.text }}>{c.icon} {c.label}</ThemedText>
+              </Pressable>
+            ))}
+          </View>
+
+          {isAdmin && (
+            <Pressable
+              onPress={() => setUploadVisible(true)}
+              style={[styles.uploadClipBtn, { backgroundColor: colors.brand }]}
+              accessibilityRole="button"
+              accessibilityLabel="Subir clip">
+              <ThemedText style={styles.uploadClipBtnText}>+ Subir clip</ThemedText>
+            </Pressable>
+          )}
+
+          {videoClipsError ? (
+            <View
+              style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              accessibilityLiveRegion="polite">
+              <MaterialIcons name="error-outline" size={32} color={colors.muted} />
+              <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
+                No se pudieron cargar los clips
+              </ThemedText>
+            </View>
+          ) : filteredClips.length === 0 ? (
+            <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <MaterialIcons name="movie" size={32} color={colors.muted} />
+              <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
+                Sin clips para este jugador
+              </ThemedText>
+            </View>
+          ) : (
+            <View style={styles.clipsCarouselWrap}>
+              <VideoClipCarousel
+                clips={filteredClips}
+                matchById={matchById}
+                isAdmin={isAdmin}
+                onOpen={clipId => {
+                  const clip = filteredClips.find(c => c.id === clipId)
+                  if (clip) setPlaybackUrl(clip.url)
+                }}
+                onDelete={clipId => {
+                  const clip = filteredClips.find(c => c.id === clipId)
+                  handleDeleteClip(clipId, clip?.title || 'clip')
+                }}
+              />
+            </View>
+          )}
+
+          <VideoClipUploadModal
+            visible={uploadVisible}
+            matches={allMatches}
+            currentPlayerId={id}
+            onSubmit={async (data, uri) => {
+              await addVideoClip(data, uri)
+              setUploadVisible(false)
+            }}
+            onClose={() => setUploadVisible(false)}
+          />
+
+          <VideoClipPlaybackModal url={playbackUrl} onClose={() => setPlaybackUrl(null)} />
 
           <View style={styles.bottomPad} />
         </ScrollView>
@@ -326,5 +448,36 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.18)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
+  },
+
+  /* Clips */
+  clipFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  clipFilterChip: {
+    borderWidth: 1,
+    borderRadius: Radii.pill,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  uploadClipBtn: {
+    borderRadius: Radii.sm,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  uploadClipBtnText: {
+    color: '#fff',
+    fontFamily: Fonts.semiBold,
+  },
+  clipsCarouselWrap: {
+    marginBottom: Spacing.xl,
   },
 })
