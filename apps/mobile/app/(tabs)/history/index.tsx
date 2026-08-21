@@ -17,6 +17,7 @@ import { HistoryError } from '@/components/history/historyError'
 import { HistoryLoading } from '@/components/history/historyLoading'
 import { MatchCard } from '@/components/history/matchCard'
 import { ThemedView } from '@/components/themed-view'
+import { Spacing } from '@/constants/theme'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { useMatchesData } from '@/hooks/use-matches-data'
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: Spacing.lg,
   },
   filterBar: {
     marginBottom: 4,

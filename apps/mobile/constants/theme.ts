@@ -60,7 +60,9 @@ export const Colors = {
     danger: '#dc2626',
     dangerIcon: '#f87171',
     dangerBg: 'rgba(220, 38, 38, 0.15)',
+
     warning: '#fbbf24',
+
     secondary: '#f97316',
 
     shadow: '#000',
