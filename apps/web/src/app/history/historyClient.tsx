@@ -5,6 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 import type { Match } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
+import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
+import Modal from "@/components/Modal";
+import VideoClipUploadForm from "@/components/videoClips/VideoClipUploadForm";
+import VideoClipCarousel from "@/components/videoClips/VideoClipCarousel";
 import {
   buildPlayedBeforeSet,
   getEligiblePlayerIds,
@@ -38,6 +42,55 @@ export default function HistoryClient() {
   >(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const addVideoClip = useVideoClipStore((s) => s.addVideoClip);
+  const deleteVideoClip = useVideoClipStore((s) => s.deleteVideoClip);
+  const videoClips = useVideoClipStore((s) => s.videoClips);
+  const videoClipsInit = useVideoClipStore((s) => s.videoClipsInit);
+  const initVideoClipsLoad = useVideoClipStore((s) => s.initLoad);
+  const [videoUploadMatch, setVideoUploadMatch] = useState<Match | null>(null);
+  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
+  const [viewClipsMatch, setViewClipsMatch] = useState<Match | null>(null);
+  const [viewPlaybackClipId, setViewPlaybackClipId] = useState<string | null>(null);
+  const [viewDeleteError, setViewDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (videoClipsInit !== "loaded") initVideoClipsLoad();
+  }, [videoClipsInit, initVideoClipsLoad]);
+
+  const viewClips = useMemo(
+    () => (viewClipsMatch ? videoClips.filter((c) => c.matchId === viewClipsMatch.id) : []),
+    [videoClips, viewClipsMatch],
+  );
+  const viewMatchById = useMemo(
+    () => (viewClipsMatch ? new Map([[viewClipsMatch.id, viewClipsMatch]]) : new Map()),
+    [viewClipsMatch],
+  );
+  const viewPlaybackClip = viewPlaybackClipId
+    ? (viewClips.find((c) => c.id === viewPlaybackClipId) ?? null)
+    : null;
+
+  const handleViewDelete = async (clipId: string) => {
+    if (!window.confirm("¿Eliminar este clip?")) return;
+    setViewDeleteError(null);
+    try {
+      await deleteVideoClip(clipId);
+    } catch (err) {
+      setViewDeleteError(err instanceof Error ? err.message : "No se pudo eliminar el clip.");
+    }
+  };
+
+  const handleVideoUpload = async (data: NewVideoClipData, file: File) => {
+    setVideoUploadError(null);
+    try {
+      await addVideoClip(data, file);
+      setVideoUploadMatch(null);
+    } catch (err) {
+      setVideoUploadError(
+        err instanceof Error ? err.message : "No se pudo subir el clip.",
+      );
+      throw err;
+    }
+  };
 
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
@@ -319,6 +372,19 @@ export default function HistoryClient() {
                       )}
                     </div>
                     <div className="flex justify-end gap-3">
+                      <button
+                        type="button"
+                        className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
+                        onClick={() => setViewClipsMatch(m)}
+                        aria-label={`Ver clips del partido${m.name ? `: ${m.name}` : ""}`}
+                      >
+                        <span aria-hidden="true">🎥</span>
+                        {videoClips.filter((c) => c.matchId === m.id).length > 0 && (
+                          <span className="text-xs bg-brand text-white rounded-full px-1.5">
+                            {videoClips.filter((c) => c.matchId === m.id).length}
+                          </span>
+                        )}
+                      </button>
                       {isAdmin && (
                         <>
                           {isDraft ? (
@@ -409,6 +475,100 @@ export default function HistoryClient() {
           </div>
         </div>
       </dialog>
+
+      <Modal
+        open={videoUploadMatch !== null}
+        onClose={() => {
+          setVideoUploadMatch(null);
+          setVideoUploadError(null);
+        }}
+        title="Subir clip"
+      >
+        {videoUploadMatch && (
+          <VideoClipUploadForm
+            matches={[videoUploadMatch]}
+            lockedMatchId={videoUploadMatch.id}
+            onSubmit={handleVideoUpload}
+            onCancel={() => {
+              setVideoUploadMatch(null);
+              setVideoUploadError(null);
+            }}
+            error={videoUploadError}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        open={viewClipsMatch !== null}
+        onClose={() => {
+          setViewClipsMatch(null);
+          setViewDeleteError(null);
+        }}
+        title={`Clips${viewClipsMatch?.name ? `: ${viewClipsMatch.name}` : ""}`}
+        size="large"
+      >
+        {isAdmin && viewClipsMatch && (
+          <div className="flex justify-end mb-4">
+            <button
+              type="button"
+              className="text-sm px-3 py-1.5 rounded bg-brand text-white hover:bg-brand/90"
+              onClick={() => {
+                setVideoUploadError(null);
+                setVideoUploadMatch(viewClipsMatch);
+                setViewClipsMatch(null);
+              }}
+            >
+              + Subir clip
+            </button>
+          </div>
+        )}
+        {viewDeleteError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          >
+            <span>{viewDeleteError}</span>
+            <button
+              type="button"
+              onClick={() => setViewDeleteError(null)}
+              className="ml-3 text-red-800 hover:text-red-950 focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+              aria-label="Descartar error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        {videoClipsInit === "error" ? (
+          <div role="alert" className="text-red-800">
+            No se pudieron cargar los clips.
+          </div>
+        ) : viewClips.length === 0 ? (
+          videoClipsInit === "loading" ? (
+            <div className="text-gray-800">Cargando clips...</div>
+          ) : null
+        ) : (
+          <VideoClipCarousel
+            clips={viewClips}
+            matchById={viewMatchById}
+            isAdmin={isAdmin}
+            onOpen={setViewPlaybackClipId}
+            onDelete={handleViewDelete}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        open={viewPlaybackClip !== null}
+        onClose={() => setViewPlaybackClipId(null)}
+        title={viewPlaybackClip?.title || "Clip"}
+        size="large"
+      >
+        {viewPlaybackClip && (
+          <video controls autoPlay className="w-full max-h-[75vh] rounded" src={viewPlaybackClip.url}>
+            Tu navegador no soporta la reproducción de video.
+          </video>
+        )}
+      </Modal>
     </div>
   );
 }
