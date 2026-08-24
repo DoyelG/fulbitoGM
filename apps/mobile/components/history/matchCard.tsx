@@ -10,8 +10,10 @@ type Props = {
   match: Match
   players: Player[]
   isAdmin: boolean
+  clipCount: number
   onEdit: () => void
   onDelete: () => void
+  onViewClips: () => void
 }
 
 function formatDate(iso: string): string {
@@ -19,7 +21,15 @@ function formatDate(iso: string): string {
   return `${dd}/${mm}/${yy}`
 }
 
-export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Props) {
+export function MatchCard({
+  match: m,
+  players,
+  isAdmin,
+  clipCount,
+  onEdit,
+  onDelete,
+  onViewClips,
+}: Props) {
   const { colors, radii, spacing, shadows, isDark } = useAppTheme()
 
   const winA = m.teamAScore > m.teamBScore
@@ -36,7 +46,12 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
   }
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={isAdmin ? 0.85 : 1}
+      disabled={!isAdmin}
+      onPress={onEdit}
+      accessibilityRole={isAdmin ? 'button' : undefined}
+      accessibilityLabel={isAdmin ? 'Editar partido' : undefined}
       style={[
         styles.card,
         { backgroundColor: colors.surface, borderRadius: radii.md },
@@ -122,20 +137,35 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
           <Text style={[styles.shirts, { color: colors.muted }]}>
             Camisetas: <Text style={{ fontWeight: '600', color: colors.text }}>{shirtName}</Text>
           </Text>
-        ) : <View />}
-
-        {isAdmin ? (
-          <View style={styles.actions}>
-            <TouchableOpacity onPress={onEdit} style={[styles.editBtn, { borderColor: colors.border }]}>
-              <Text style={[styles.editBtnText, { color: colors.text }]}>Editar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onDelete}>
-              <Text style={[styles.deleteText, { color: colors.danger }]}>Eliminar</Text>
-            </TouchableOpacity>
-          </View>
         ) : null}
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            onPress={onViewClips}
+            style={[styles.editBtn, styles.clipsBtn, { borderColor: colors.border }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Ver clips del partido${m.name ? `: ${m.name}` : ''}`}>
+            <Text style={styles.clipsBtnIcon}>🎥</Text>
+            {clipCount > 0 && (
+              <View style={[styles.clipCountBadge, { backgroundColor: colors.brand }]}>
+                <Text style={styles.clipCountBadgeText}>{clipCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {isAdmin && (
+            <>
+              <TouchableOpacity onPress={onEdit} style={[styles.editBtn, { borderColor: colors.border }]}>
+                <Text style={[styles.editBtnText, { color: colors.text }]}>Editar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onDelete}>
+                <Text style={[styles.deleteText, { color: colors.danger }]}>Eliminar</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 
@@ -255,14 +285,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 8,
+    gap: 8,
   },
   shirts: {
     fontSize: 12,
-    flex: 1,
   },
   descriptionRow: {
     gap: 6,
@@ -281,6 +308,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
     gap: 12,
   },
   editBtn: {
@@ -295,5 +324,24 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  clipsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  clipsBtnIcon: {
+    fontSize: 14,
+  },
+  clipCountBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 5,
+    minWidth: 16,
+    alignItems: 'center',
+  },
+  clipCountBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
 })

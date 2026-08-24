@@ -6,11 +6,12 @@ type Props = {
   mode: 'create' | 'edit'
   saving: boolean
   canSave: boolean
+  showSave: boolean
   onCancel: () => void
   onSave: () => void
 }
 
-export function FormActions({ mode, saving, canSave, onCancel, onSave }: Props) {
+export function FormActions({ mode, saving, canSave, showSave, onCancel, onSave }: Props) {
   const { colors, radii, spacing } = useAppTheme()
 
   const saveLabel = saving
@@ -29,19 +30,21 @@ export function FormActions({ mode, saving, canSave, onCancel, onSave }: Props) 
       >
         <Text style={[styles.cancelText, { color: colors.text }]}>Cancelar</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onSave}
-        disabled={!canSave || saving}
-        style={[
-          styles.save,
-          {
-            backgroundColor: canSave && !saving ? colors.brand : colors.muted,
-            borderRadius: radii.sm,
-          },
-        ]}
-      >
-        <Text style={styles.saveText}>{saveLabel}</Text>
-      </TouchableOpacity>
+      {showSave && (
+        <TouchableOpacity
+          onPress={onSave}
+          disabled={!canSave || saving}
+          style={[
+            styles.save,
+            {
+              backgroundColor: canSave && !saving ? colors.brand : colors.muted,
+              borderRadius: radii.sm,
+            },
+          ]}
+        >
+          <Text style={styles.saveText}>{saveLabel}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
