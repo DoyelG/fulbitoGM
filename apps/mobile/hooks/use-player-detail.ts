@@ -135,6 +135,7 @@ export function usePlayerDetail(playerId: string) {
     streak,
     catSkills,
     overallAvg,
+    matches,
     loading,
     refreshing,
     error,

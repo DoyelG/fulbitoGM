@@ -10,12 +10,14 @@ import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
 import { onlyFinalMatches } from '@fulbito/utils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { Match } from '@fulbito/types'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
   const router = useRouter()
+  const { isAdmin } = useFirebaseAuth()
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()
   const {
     matches: allMatches,
@@ -552,82 +554,82 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             </div>
           </div>
 
-          <div className="mt-6 border-t pt-4">
-            <h4 className="font-semibold mb-3">Crear partido</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto_auto] gap-3 sm:items-end">
-              <div>
-                <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
-                <input
-                  id="draft-date"
-                  type="date"
-                  value={draftDate}
-                  onChange={(e) => setDraftDate(e.target.value)}
-                  className="border rounded px-3 py-2 w-full"
-                />
-              </div>
-              <div>
-                <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
-                <input
-                  id="draft-name"
-                  type="text"
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  placeholder="Ej: Partido del miércoles"
-                  className="border rounded px-3 py-2 w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Tipo de partido</label>
+          {isAdmin && (
+            <div className="mt-6 border-t pt-4">
+              <h4 className="font-semibold mb-3">Crear partido</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto_auto] gap-3 sm:items-end">
+                <div>
+                  <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
+                  <input
+                    id="draft-date"
+                    type="date"
+                    value={draftDate}
+                    onChange={(e) => setDraftDate(e.target.value)}
+                    className="border rounded px-3 py-2 w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
+                  <input
+                    id="draft-name"
+                    type="text"
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    placeholder="Ej: Partido del miércoles"
+                    className="border rounded px-3 py-2 w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Tipo de partido</label>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isFriendly}
+                    aria-label="Partido amistoso"
+                    onClick={() => setIsFriendly((v) => !v)}
+                    className={`relative inline-flex h-9 w-28 shrink-0 my-1 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                      isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
+                    }`}
+                  >
+                    <span
+                      className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                        isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                      }`}
+                    >
+                      Competitivo
+                    </span>
+                    <span
+                      className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                        isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                      }`}
+                    >
+                      Amistoso
+                    </span>
+                    <span
+                      className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
+                        isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
+                      }`}
+                    >
+                      <span className="text-md">{isFriendly ? '🤝' : '⚔️'}</span>
+                    </span>
+                  </button>
+                </div>
                 <button
                   type="button"
-                  role="switch"
-                  aria-checked={isFriendly}
-                  aria-label="Partido amistoso"
-                  onClick={() => setIsFriendly((v) => !v)}
-                  className={`relative inline-flex h-9 w-28 shrink-0 my-1 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
-                    isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
+                  onClick={createDraft}
+                  disabled={isCreatingDraft}
+                  className={`w-full sm:w-auto px-4 py-2 rounded text-white ${
+                    isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
                   }`}
                 >
-                  <span
-                    className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                    }`}
-                  >
-                    Competitivo
-                  </span>
-
-                  <span
-                    className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                    }`}
-                  >
-                    Amistoso
-                  </span>
-
-                  <span
-                    className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
-                      isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                    }`}
-                  >
-                    <span className="text-md">{isFriendly ? '🤝' : '⚔️'}</span>
-                  </span>
+                  {isCreatingDraft ? 'Creando...' : 'Crear partido'}
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={createDraft}
-                disabled={isCreatingDraft}
-                className={`w-full sm:w-auto px-4 py-2 rounded text-white ${
-                  isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-                }`}
-              >
-                {isCreatingDraft ? 'Creando...' : 'Crear partido'}
-              </button>
+              <p className="mt-2 text-xs text-gray-500">
+                Se guarda como borrador en el historial. Más tarde podés completar el resultado.
+              </p>
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Se guarda como borrador en el historial. Más tarde podés completar el resultado.
-            </p>
-          </div>
+          )}
         </div>
       )}
     </div>
@@ -659,5 +661,3 @@ function TeamCard({ title, team, color, winProbability, goalkeeperIds }: { title
     </div>
   )
 }
-
-

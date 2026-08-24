@@ -27,7 +27,7 @@ function AuthGuard() {
     if (!user && !inAuthGroup) {
       router.replace('/login')
     } else if (user && inAuthGroup) {
-      router.replace('/(tabs)/players')
+      router.replace('/(tabs)/home')
     }
   }, [user, loading, segments, router])
 
@@ -76,7 +76,7 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <AuthGuard />
         <Stack>
-          <Stack.Screen name="index" options={{ title: 'Rutas', headerShown: true }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
         </Stack>
