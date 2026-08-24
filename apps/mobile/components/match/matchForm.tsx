@@ -22,6 +22,7 @@ import { usePool } from './matchForm/usePool'
 import { useScores } from './matchForm/useScores'
 import { pickShirtsResponsible, useShirts } from './matchForm/useShirts'
 import { useTeams } from './matchForm/useTeams'
+import { DescriptionField } from './matchForm/descriptionField'
 
 export type MatchFormProps = {
   mode: 'create' | 'edit'
@@ -50,6 +51,7 @@ export function MatchForm({
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   )
+  const [matchDescription, setMatchDescription] = useState<string>(initial?.description ?? '')
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) ?? '5v5')
   const [matchName, setMatchName] = useState(initial?.name ?? '')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
@@ -151,6 +153,7 @@ export function MatchForm({
         matchDate,
         matchType,
         matchName,
+        matchDescription,
         teamA: teams.teamA,
         teamB: teams.teamB,
         teamAScore: scoreA,
@@ -185,6 +188,11 @@ export function MatchForm({
       />
 
       <DateField value={matchDate} onChange={setMatchDate} />
+
+      <DescriptionField value={matchDescription}
+        onChange={(v) => {
+          setMatchDescription(v)
+        }}/>
 
       <TypeSelector value={matchType} onChange={handleTypeChange} />
 

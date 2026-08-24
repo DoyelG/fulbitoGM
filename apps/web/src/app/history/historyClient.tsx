@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { FiChevronDown } from "react-icons/fi";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 import type { Match } from "@fulbito/types";
@@ -42,6 +43,8 @@ export default function HistoryClient() {
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
 
   const isLoadingMatches = matchesInit === "idle" || matchesInit === "loading";
 
@@ -101,6 +104,18 @@ export default function HistoryClient() {
     } finally {
       setShowModal(false);
     }
+  };
+
+  const toggleDescription = (matchId: string) => {
+    setExpandedDescriptions((prev) => {
+      const next = new Set(prev);
+      if (next.has(matchId)) {
+        next.delete(matchId);
+      } else {
+        next.add(matchId);
+      }
+      return next;
+    });
   };
 
   return (
@@ -305,7 +320,7 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className={m.description ? "" : "flex py-2"}>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                       {m.shirtsResponsibleId && (
                         <div className="text-gray-700">
@@ -318,7 +333,35 @@ export default function HistoryClient() {
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-end gap-3">
+                    {m.description && (
+                      <div className="mt-3 flex flex-wrap pb-4 items-start gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleDescription(m.id)}
+                          aria-expanded={expandedDescriptions.has(m.id)}
+                          aria-label={
+                            expandedDescriptions.has(m.id)
+                              ? "Contraer descripción"
+                              : "Expandir descripción"
+                          }
+                          className="flex flex-1 min-w-0 items-start gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+                        >
+                          <p
+                            className={`flex-1 min-w-0 text-sm font-light text-gray-700 ${
+                              expandedDescriptions.has(m.id) ? "" : "truncate"
+                            }`}
+                          >
+                            {m.description}
+                          </p>
+                          <FiChevronDown
+                            className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ${
+                              expandedDescriptions.has(m.id) ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex justify-end gap-3 shrink-0 ml-auto">
                       {isAdmin && (
                         <>
                           {isDraft ? (
@@ -479,6 +522,9 @@ function RecordModal({
     typeof initial?.teamBScore === "number" ? initial.teamBScore : "",
   );
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const [matchDescription, setMatchDescription] = useState<string>(
+    initial?.description || "",
+  );
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB];
     const teamIds = all.map((p) => p.id);
@@ -636,6 +682,7 @@ function RecordModal({
         performance: isFinal ? perfB[p.id] || 5 : 0,
       })),
       name: matchName.trim() || undefined,
+      description: matchDescription.trim() || undefined,
       shirtsResponsibleId: chosen ?? null,
       mvpId: isFinal ? mvpId : null,
       goalkeeperIds,
@@ -744,6 +791,18 @@ function RecordModal({
               <Draggable key={p.id} p={p} />
             ))}
           </DropColumn>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">
+            Descripción del Partido
+          </label>
+          <textarea
+            value={matchDescription}
+            onChange={(e) => setMatchDescription(e.target.value)}
+            placeholder="Ej: Se jugó en la cancha nueva, faltó gente..."
+            className="border min-w-full rounded px-3 py-2 w-full"
+          />
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">

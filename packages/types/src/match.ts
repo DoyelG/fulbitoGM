@@ -17,6 +17,7 @@ export type Match = {
   teamA: MatchPlayer[]
   teamB: MatchPlayer[]
   name?: string
+  description?: string
   shirtsResponsibleId?: string | null
   mvpId?: string | null
   goalkeeperIds?: string[]

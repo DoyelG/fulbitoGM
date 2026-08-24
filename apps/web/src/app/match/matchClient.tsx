@@ -50,6 +50,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [streakSeparated, setStreakSeparated] = useState(false)
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
   const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
+  const [matchDescription, setMatchDescription] = useState<string>('')
 
   // manual builder
   const [manualOpen, setManualOpen] = useState(false)
@@ -300,6 +301,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         })),
         name: draftName.trim() || undefined,
         shirtsResponsibleId: shirtsResponsibleId ?? null,
+        description: matchDescription.trim() || undefined,
         mvpId: null,
       }
       await addMatch(draft)
@@ -546,6 +548,18 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   🎲 Elegir aleatorio
                 </button>
               </div>
+            </div>
+            <div className="mb-4 py-4">
+              <label className="block text-sm font-medium mb-1">
+                Descripción del Partido
+              </label>
+              <input
+                type="text"
+                value={matchDescription}
+                onChange={(e) => setMatchDescription(e.target.value)}
+                placeholder="Ej: Se jugó en la cancha nueva, faltó gente..."
+                className="border rounded px-3 py-2 w-full"
+              />
             </div>
           </div>
 

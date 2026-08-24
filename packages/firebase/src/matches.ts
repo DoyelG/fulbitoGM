@@ -47,6 +47,7 @@ function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Matc
     type: data['type'] as string,
     status: data['status'] === 'draft' ? 'draft' : 'final',
     name: (data['name'] as string | undefined) ?? undefined,
+    description: (data['description'] as string | undefined) ?? undefined,
     teamAScore: data['teamAScore'] as number,
     teamBScore: data['teamBScore'] as number,
     shirtsResponsibleId: (data['shirtsResponsibleId'] as string | null) ?? null,
@@ -110,6 +111,7 @@ export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
     date: Timestamp.fromDate(new Date(data.date)),
     status: data.status ?? 'final',
     name: data.name ?? null,
+    description: data.description ?? null,
     mvpId: mvpId ?? null,
     goalkeeperIds: goalkeeperIds ?? [],
     createdAt: Timestamp.now(),
@@ -148,6 +150,7 @@ export async function updateMatch(id: string, data: Omit<Match, 'id'>): Promise<
   batch.update(doc(db, 'matches', id), {
     ...scalars,
     date: Timestamp.fromDate(new Date(data.date)),
+    description: data.description ?? null,
     mvpId: mvpId ?? null,
     goalkeeperIds: goalkeeperIds ?? [],
     updatedAt: Timestamp.now(),
