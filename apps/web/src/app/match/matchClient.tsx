@@ -553,8 +553,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               <label className="block text-sm font-medium mb-1">
                 Descripción del Partido
               </label>
-              <input
-                type="text"
+              <textarea
                 value={matchDescription}
                 onChange={(e) => setMatchDescription(e.target.value)}
                 placeholder="Ej: Se jugó en la cancha nueva, faltó gente..."
