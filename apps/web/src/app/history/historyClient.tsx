@@ -800,7 +800,7 @@ function RecordModal({
           <textarea
             value={matchDescription}
             onChange={(e) => setMatchDescription(e.target.value)}
-            placeholder="Ej: Se jugó en la cancha nueva, faltó gente..."
+            placeholder="Ej: Salió la ficha del partido, puntajes duros pero justos. El MVP..."
             className="border min-w-full rounded px-3 py-2 w-full"
           />
         </div>

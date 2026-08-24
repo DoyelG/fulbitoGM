@@ -19,7 +19,7 @@ const { colors, radii } = useAppTheme()
        <TextInput
               value={value}
               onChangeText={onChange}
-              placeholder="Ej: "
+              placeholder="Ej: Salió la ficha del partido, puntajes duros pero justos. El MVP..."
               placeholderTextColor={colors.muted}
               style={[
                 fieldStyles.textInput,
