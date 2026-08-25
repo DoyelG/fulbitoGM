@@ -115,3 +115,165 @@ After payment, Google may require additional steps before activating the account
 The registration is complete only after Google has approved the account and access to the Google Play Console has been enabled.
 
 > **Note:** Account verification may not be immediate. Google may request additional documentation or information before applications can be published.
+
+# Android App Configuration and Signing
+
+## 1. Create the Android signing keystore
+
+To create the keystore that will be used to sign the Android application, run the following command in the terminal:
+
+```bash
+keytool -genkeypair \
+  -v \
+  -storetype JKS \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000 \
+  -alias FulbitoApp \
+  -keystore fulbito.keystore
+```
+
+The command will ask you to enter:
+
+- A keystore password.
+- Your name and organizational information.
+- A password for the key alias.
+
+This process should normally be completed only once. The generated keystore must be used for every release of the same application because Android updates must be signed with the correct signing identity.
+
+> **Important:** Store the keystore, alias, and passwords in a secure password manager or secrets-management system. Never commit the keystore or its credentials to the Git repository, and never include passwords in this documentation.
+
+> **Warning:** Losing the keystore or its credentials may prevent the team from publishing future application updates. Keep at least one secure backup managed by the project administrators.
+
+Add the keystore filename to `.gitignore`:
+
+```gitignore
+*.keystore
+*.jks
+```
+
+## 2. Troubleshoot a missing `build.gradle` file
+
+If Android Studio cannot build the project because the `android/build.gradle` file does not exist, first verify whether the project uses Expo Prebuild.
+
+For an Expo project, close Android Studio and run the following command from the project root:
+
+```bash
+npx expo prebuild --platform android
+```
+
+This command generates the native Android project when the `android` directory does not exist.
+
+### Cleanly regenerate the Android project
+
+If the Android project already exists but remains corrupted or cannot synchronize, it can be regenerated with:
+
+```bash
+npx expo prebuild --clean --platform android
+```
+
+Then open the generated `android` directory in Android Studio again.
+
+> **Warning:** The `--clean` option deletes and regenerates the native project. Any manual changes made directly inside the `android` directory may be lost. Commit or back up those changes before running this command.
+
+### Gradle installation
+
+React Native and Expo projects normally include the Gradle Wrapper, so a global Gradle installation is usually unnecessary.
+
+From the `android` directory, you can verify the wrapper with:
+
+```bash
+./gradlew --version
+```
+
+If the project specifically requires a global Gradle installation on macOS, it can be installed with Homebrew:
+
+```bash
+brew install gradle
+```
+
+> **Note:** Do not run `gradle init` inside an existing React Native or Expo Android project. It is intended to initialize a new Gradle project and may create files that conflict with the existing configuration.
+
+## 3. Check the Gradle configuration in Android Studio
+
+If the project still does not synchronize correctly:
+
+1. Open Android Studio.
+2. Open the **Settings** or **Preferences** menu.
+3. Go to **Build, Execution, Deployment**.
+4. Select **Build Tools → Gradle**.
+5. Make sure Android Studio is using the project’s **Gradle Wrapper**.
+6. Select a compatible Gradle JDK for the project.
+7. Click **Sync Project with Gradle Files**.
+
+![Android Studio Gradle settings](../images/google/08-App-Android-Studio-Configuration.png)
+
+> **Important:** Do not select an arbitrary Gradle version simply because it is considered stable. The Gradle version must be compatible with the Android Gradle Plugin used by the project, in this case, Homebrew 17.0.17 works.
+
+## 4. Generate a signed Android build
+
+After the project synchronizes successfully, Android Studio will provide the option to generate a signed APK or Android App Bundle.
+
+From the Android Studio menu, select:
+
+**Build → Generate Signed Bundle / APK**
+
+![Generate a signed bundle or APK](../images/google/09-App-Android-Studio-Generate-APK.png)
+
+> **Note:** Other build options may generate development or unsigned artifacts. These are useful for local testing, but they are not necessarily suitable for publication on Google Play.
+
+## 5. Select the artifact type
+
+Android Studio will ask which type of artifact should be generated:
+
+- **APK:** Recommended when the application must be installed or shared directly for testing.
+- **Android App Bundle (`.aab`):** Recommended for publishing the application on Google Play.
+
+For a Google Play release, select **Android App Bundle** and click **Next**.
+
+![Select Android App Bundle](../images/google/10-App-Android-Studio-Generate-APK.png)
+
+Google Play uses the App Bundle to generate optimized APK files for different devices and configurations.
+
+## 6. Configure the signing credentials
+
+On the signing configuration screen, select the `.keystore` or `.jks` file provided by the project administrators.
+
+Enter the following information:
+
+- **Key store path:** Location of the keystore file.
+- **Key store password:** Password assigned to the keystore.
+- **Key alias:** Alias used when the key was created.
+- **Key password:** Password assigned to the key alias.
+
+![Configure the Android signing credentials](../images/google/11-App-Android-Studio-Generate-APK.png)
+
+You may enable **Remember passwords** if the computer is secure and used only by an authorized developer.
+
+> **Security note:** Do not enable this option on a shared or public computer.
+
+Click **Next**, select the `release` build variant, and continue with the build process.
+
+## 7. Locate the generated file
+
+If the build completes successfully, Android Studio will display a notification indicating that the signed APK or App Bundle was generated.
+
+![Android build generated successfully](../images/google/12-App-Android-Studio-Generate-APK.png)
+
+Click **Locate** in the notification to open the directory containing the generated file.
+
+The output is commonly located in one of the following directories:
+
+For an Android App Bundle:
+
+```text
+android/app/build/outputs/bundle/release/app-release.aab
+```
+
+For an APK:
+
+```text
+android/app/build/outputs/apk/release/app-release.apk
+```
+
+The `.aab` file can then be uploaded to the appropriate release section in Google Play Console.
