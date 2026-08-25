@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { Modal, Pressable, StyleProp, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 
@@ -14,6 +14,7 @@ type Props = {
   /** Llamado al tocar el backdrop. Si no se provee, usa onConfirm */
   onDismiss?: () => void
   children: ReactNode
+  containerStyle?: StyleProp<ViewStyle>
 }
 
 export function BottomSheet({
@@ -23,6 +24,7 @@ export function BottomSheet({
   onConfirm,
   onDismiss,
   children,
+  containerStyle,
 }: Props) {
   const { colors } = useAppTheme()
 
@@ -31,7 +33,7 @@ export function BottomSheet({
   return (
     <Modal transparent animationType="fade" visible>
       <Pressable style={sheetStyles.backdrop} onPress={onDismiss ?? onConfirm} />
-      <View style={[sheetStyles.container, { backgroundColor: colors.surface }]}>
+      <View style={[sheetStyles.container, { backgroundColor: colors.surface }, containerStyle]}>
         <View style={sheetStyles.header}>
           <Text style={[sheetStyles.title, { color: colors.text }]}>{title}</Text>
           <TouchableOpacity onPress={onConfirm}>
