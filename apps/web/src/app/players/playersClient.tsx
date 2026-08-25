@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import ActionRow, { type RowAction } from '@/components/ActionRow'
+import { Backdrop } from '@/components/Backdrop'
 import {
   useReactTable,
   getCoreRowModel,
@@ -273,29 +274,28 @@ export default function PlayersClient({
         </div>
       </div>
 
-      <dialog
-        open={showModal}
-        className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
-      >
-        <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
-          <p className="text-gray-600 mb-6">¿Estás seguro de que querés eliminar a {selectedPlayer?.name}?</p>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setShowModal(false)}
-              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleConfirmDelete}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
-              Eliminar
-            </button>
+      {showModal && (
+        <Backdrop onClose={() => setShowModal(false)} title="Confirmar eliminación">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-xl max-w-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
+            <p className="text-gray-600 mb-6">¿Estás seguro de que querés eliminar a {selectedPlayer?.name}?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
-        </div>
-      </dialog>
+        </Backdrop>
+      )}
     </div>
   )
 }
