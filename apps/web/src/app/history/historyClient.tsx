@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import type { Match } from "@fulbito/types";
+import type { Match, MatchInput } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
 import Modal from "@/components/Modal";
@@ -126,22 +126,6 @@ export default function HistoryClient() {
     resetKey: `${fromDate}|${toDate}|${searchQuery}`,
   });
 
-  if (open) {
-    return (
-      <RecordModal
-        mode={open.mode}
-        initial={open.mode === "edit" ? open.match : undefined}
-        onClose={() => setOpen(false)}
-        onSave={async (m) => {
-          if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, m);
-          } else {
-            await addMatch(m);
-          }
-        }}
-      />
-    );
-  }
   const handleDelete = (matchId: string) => {
     setShowModal(true);
     setSelectedMatchId(matchId);
@@ -476,6 +460,19 @@ export default function HistoryClient() {
         </div>
       </dialog>
 
+      {open && <RecordModal
+        mode={open.mode}
+        initial={open.mode === "edit" ? open.match : undefined}
+        onClose={() => setOpen(false)}
+        onSave={async (m) => {
+          if (open.mode === "edit" && open.match) {
+            await updateMatch(open.match.id, m);
+          } else {
+            await addMatch(m);
+          }
+        }}
+      />}
+
       <Modal
         open={videoUploadMatch !== null}
         onClose={() => {
@@ -582,7 +579,7 @@ function RecordModal({
   mode?: "create" | "edit";
   initial?: Match;
   onClose: () => void;
-  onSave: (m: Omit<Match, "id">) => void;
+  onSave: (m: MatchInput) => void;
 }) {
   const { players } = usePlayerStore();
   const { matches: allMatches } = useMatchStore();
@@ -601,6 +598,7 @@ function RecordModal({
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
   );
+
   const [matchType, setMatchType] = useState<MatchType>(
     (initial?.type as MatchType) || "5v5",
   );
@@ -768,7 +766,7 @@ function RecordModal({
   // Saving a draft only needs full teams — it hasn't been played yet.
   const canUpdateDraft = teamsComplete;
 
-  const buildPayload = (status: "draft" | "final"): Omit<Match, "id"> => {
+  const buildPayload = (status: "draft" | "final"): MatchInput => {
     const isFinal = status === "final";
     const pool = selectedPlayersForDuty.pool;
     const chosen =
