@@ -5,9 +5,18 @@ import { useRouter } from 'next/navigation'
 import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds, getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
-import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@/lib/teamUtils'
+import {
+  balanceRemainingPlayers,
+  balanceTeams,
+  buildChemistryMatrix,
+  enrichPlayersWithHistory,
+  shuffleTeams,
+  ChemistryMatrix,
+  PlayerInfo,
+  TeamResult,
+} from '@/lib/teamUtils'
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
-import { onlyFinalMatches } from '@fulbito/utils'
+import { getMvpCountsByPlayerId, onlyFinalMatches } from '@fulbito/utils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { Match } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -46,6 +55,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }, [hydratePlayers, initialPlayers, resetAndReload, resetMatches])
 
   const [selectionOpen, setSelectionOpen] = useState(false)
+  const [selectionCollapsed, setSelectionCollapsed] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(new Set())
   const [autoTeams, setAutoTeams] = useState<{ teamA: TeamResult, teamB: TeamResult } | null>(null)
@@ -82,10 +92,20 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       }))
   }, [players, selected, goalkeeperIds])
 
+  const enrichedPlayers = useMemo(
+    () => enrichPlayersWithHistory(selectedPlayers, finalMatches),
+    [selectedPlayers, finalMatches]
+  )
+  const chemistry: ChemistryMatrix = useMemo(
+    () => buildChemistryMatrix(enrichedPlayers, finalMatches),
+    [enrichedPlayers, finalMatches]
+  )
+  const mvpCounts = useMemo(() => getMvpCountsByPlayerId(finalMatches), [finalMatches])
+
   const unassignedManual = useMemo(() => {
     const ids = new Set([...manualA, ...manualB].map(p => p.id))
-    return selectedPlayers.filter(p => !ids.has(p.id))
-  }, [selectedPlayers, manualA, manualB])
+    return enrichedPlayers.filter(p => !ids.has(p.id))
+  }, [enrichedPlayers, manualA, manualB])
 
   const toggleSelect = (id: string) => {
     const wasSelected = selected.has(id)
@@ -129,39 +149,15 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     setStreakSeparated(false)
     setManualOpen(false)
     setSelectionOpen(true)
+    setSelectionCollapsed(false)
   }
 
   const fillRemainingPlayers = (
     unassigned: PlayerInfo[],
     preTeamA: PlayerInfo[],
     preTeamB: PlayerInfo[],
-  ): { teamA: TeamResult; teamB: TeamResult } => {
-    const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
-    const normPhys = (p: PlayerInfo) =>
-      p.physical === undefined || p.physical === 'unknown' ? 5 : (p.physical as number)
-
-    const teamA = [...preTeamA]
-    const teamB = [...preTeamB]
-    let physA = teamA.reduce((s, p) => s + normPhys(p), 0)
-    let physB = teamB.reduce((s, p) => s + normPhys(p), 0)
-
-    const sorted = [...unassigned].sort((a, b) => normSkill(b.skill) - normSkill(a.skill))
-
-    for (const p of sorted) {
-      const phys = normPhys(p)
-      const spotsA = playersPerTeam - teamA.length
-      const spotsB = playersPerTeam - teamB.length
-      if (spotsA === 0) { teamB.push(p); physB += phys; continue }
-      if (spotsB === 0) { teamA.push(p); physA += phys; continue }
-      if (physA <= physB) { teamA.push(p); physA += phys }
-      else { teamB.push(p); physB += phys }
-    }
-
-    return {
-      teamA: { players: teamA, totalSkill: teamA.reduce((s, p) => s + normSkill(p.skill), 0), totalPhysical: physA },
-      teamB: { players: teamB, totalSkill: teamB.reduce((s, p) => s + normSkill(p.skill), 0), totalPhysical: physB },
-    }
-  }
+  ): { teamA: TeamResult; teamB: TeamResult } =>
+    balanceRemainingPlayers(unassigned, preTeamA, preTeamB, playersPerTeam, chemistry, mvpCounts)
 
   const splitByStreak = (
     pool: PlayerInfo[],
@@ -197,23 +193,35 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       const seedB: PlayerInfo[] = []
       sortedKeepers.forEach((k, i) => (i % 2 === 0 ? seedA : seedB).push(k))
       const rest = pool.filter(p => !goalkeeperIds.has(p.id))
-      return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam), hadStreak: false }
+      return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam, chemistry, mvpCounts), hadStreak: false }
     }
     const { seedA, seedB, rest } = splitByStreak(pool, streaks)
     if (seedA.length > 0 && seedB.length > 0) {
-      return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam), hadStreak: true }
+      return { teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam, chemistry, mvpCounts), hadStreak: true }
     }
-    return { teams: balanceTeams(pool, playersPerTeam), hadStreak: false }
+    return { teams: balanceTeams(pool, playersPerTeam, chemistry, mvpCounts), hadStreak: false }
   }
 
-  const doAuto = async () => {
+  const generateTeams = async () => {
     await initMatchesLoad()
     if (selected.size !== requiredPlayers) {
       alert(`Por favor, selecciona exactamente ${requiredPlayers} jugadores para ${matchType}.`)
       return
     }
-    const streaks = calculateAllCurrentStreaks(finalMatches)
-    const { teams, hadStreak } = buildTeams(selectedPlayers, streaks)
+
+    let teams: { teamA: TeamResult; teamB: TeamResult }
+    let hadStreak = streakSeparated
+    if (autoTeams) {
+      // Regenerate: perturb the CURRENT lineup with a random valid swap. Recomputing from
+      // scratch converges back to the same optimum almost every time (the balancer sorts by
+      // skill regardless of input order), which made "regenerate" look like it did nothing.
+      teams = shuffleTeams(autoTeams.teamA.players, autoTeams.teamB.players, chemistry)
+    } else {
+      const streaks = calculateAllCurrentStreaks(finalMatches)
+      const built = buildTeams([...enrichedPlayers].sort(() => Math.random() - 0.5), streaks)
+      teams = built.teams
+      hadStreak = built.hadStreak
+    }
     setAutoTeams(teams)
     setStreakSeparated(hadStreak)
     const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
@@ -223,29 +231,14 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     setDutyPool(poolObjs)
     setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     setManualOpen(false)
-  }
-
-  const regenerate = async () => {
-    await initMatchesLoad()
-    if (!selectedPlayers.length) return
-    const streaks = calculateAllCurrentStreaks(finalMatches)
-    const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5)
-    const { teams, hadStreak } = buildTeams(shuffled, streaks)
-    setAutoTeams(teams)
-    setStreakSeparated(hadStreak)
-    const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
-    const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
-    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, dutiesById)
-    const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
-    setDutyPool(poolObjs)
-    setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
+    setSelectionCollapsed(true)
   }
 
   const finishManual = async () => {
     await initMatchesLoad()
     setStreakSeparated(false)
     const assigned = [...manualA, ...manualB]
-    const unassigned = selectedPlayers.filter(p => !assigned.some(a => a.id === p.id))
+    const unassigned = enrichedPlayers.filter(p => !assigned.some(a => a.id === p.id))
     if (unassigned.length === 0) {
       if (manualA.length !== playersPerTeam || manualB.length !== playersPerTeam) {
         alert(`Each team needs exactly ${playersPerTeam} players.`)
@@ -275,6 +268,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     }
     setManualOpen(false)
+    setSelectionCollapsed(true)
   }
 
   const createDraft = async () => {
@@ -380,8 +374,16 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
       {selectionOpen && (
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="text-xl font-semibold mb-4">Seleccionar jugadores</h3>
-          <div className="mb-2 text-sm text-gray-800">
+          <button
+            type="button"
+            onClick={() => setSelectionCollapsed(c => !c)}
+            aria-expanded={!selectionCollapsed}
+            className="w-full flex items-center justify-between gap-3 text-left"
+          >
+            <h3 className="text-xl font-semibold">Seleccionar jugadores</h3>
+            <span className="text-gray-500">{selectionCollapsed ? '▸ Mostrar' : '▾ Ocultar'}</span>
+          </button>
+          <div className="mt-2 mb-2 text-sm text-gray-800">
             {(() => {
               const selectedCount = selected.size
               const missing = Math.max(0, requiredPlayers - selectedCount)
@@ -398,59 +400,66 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               )
             })()}
           </div>
-          <div className="mb-3">
-            <input
-              type="text"
-              value={playerQuery}
-              onChange={e => setPlayerQuery(e.target.value)}
-              className="border rounded px-3 py-2 w-full"
-              placeholder="Buscar jugadores por nombre..."
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {players
-              .filter(p => {
-                const q = playerQuery.trim().toLowerCase()
-                if (!q) return true
-                return p.name.toLowerCase().includes(q)
-              })
-              .map(p => (
-              <div key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
-                <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(p.id)}
-                    onChange={() => toggleSelect(p.id)}
-                  />
-                  <span className="font-medium truncate">{p.name}</span>
-                </label>
-                {selected.has(p.id) && (
-                  <button
-                    type="button"
-                    onClick={() => toggleGoalkeeper(p.id)}
-                    disabled={!goalkeeperIds.has(p.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
-                    aria-pressed={goalkeeperIds.has(p.id)}
-                    title={goalkeeperIds.has(p.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
-                    className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                      goalkeeperIds.has(p.id)
-                        ? 'bg-brand text-white border-brand'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                    }`}
-                  >
-                    🧤 Arquero
-                  </button>
-                )}
+          {!selectionCollapsed && (
+            <>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  value={playerQuery}
+                  onChange={e => setPlayerQuery(e.target.value)}
+                  className="border rounded px-3 py-2 w-full"
+                  placeholder="Buscar jugadores por nombre..."
+                />
               </div>
-            ))}
-          </div>
-          <div className="flex gap-3 justify-center mt-4">
-            <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={doAuto}>
-              🎲 Auto-Generar equipos balanceados
-            </button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => setManualOpen(true)}>
-              ⚽ Manual Team Setup
-            </button>
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {players
+                  .filter(p => {
+                    const q = playerQuery.trim().toLowerCase()
+                    if (!q) return true
+                    return p.name.toLowerCase().includes(q)
+                  })
+                  .map(p => (
+                  <div key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
+                    <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                      />
+                      <span className="font-medium truncate">{p.name}</span>
+                    </label>
+                    {selected.has(p.id) && (
+                      <button
+                        type="button"
+                        onClick={() => toggleGoalkeeper(p.id)}
+                        disabled={!goalkeeperIds.has(p.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
+                        aria-pressed={goalkeeperIds.has(p.id)}
+                        title={goalkeeperIds.has(p.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
+                        className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                          goalkeeperIds.has(p.id)
+                            ? 'bg-brand text-white border-brand'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                        }`}
+                      >
+                        🧤 Arquero
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {selected.size === requiredPlayers && (
+        <div className="flex gap-3 justify-center mb-6">
+          <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={generateTeams}>
+            {autoTeams ? '🔄 Regenerar equipos' : '🎲 Auto-Generar equipos balanceados'}
+          </button>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => setManualOpen(true)}>
+            ⚽ Configuración manual de equipos
+          </button>
         </div>
       )}
 
@@ -482,15 +491,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
       {autoTeams && (
         <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex gap-3 justify-center mb-4">
-            <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" onClick={() => setManualOpen(true)}>
-              Configuración manual de equipos
-            </button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={regenerate}>
-              🔄 Re-generar equipos
-            </button>
-          </div>
-
           {streakSeparated && (
             <div className="mb-4 px-3 py-2 rounded bg-orange-50 border border-orange-200 text-orange-800 text-sm">
               🔥 Jugadores en racha de 4+ victorias fueron distribuidos en equipos distintos

@@ -31,6 +31,15 @@ export type MatchLike = {
   teamB: { id: string }[]
 }
 
+/** Minimal match shape used by historical-form and chemistry algorithms */
+export type MatchPerformanceLike = {
+  status?: MatchStatus
+  teamAScore: number
+  teamBScore: number
+  teamA: { id: string; performance: number }[]
+  teamB: { id: string; performance: number }[]
+}
+
 export function isDraft(m: Pick<Match, 'status'>): boolean {
   return m.status === 'draft'
 }

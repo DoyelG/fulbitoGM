@@ -4,4 +4,5 @@ export type TeamResult = {
   players: PlayerInfo[]
   totalSkill: number
   totalPhysical: number
+  chemistry?: number
 }

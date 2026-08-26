@@ -1,4 +1,6 @@
 export * from './teamUtils'
+export * from './chemistry'
+export * from './teamValidations'
 export * from './playerStats'
 export * from './shirtDuty'
 export * from './match'

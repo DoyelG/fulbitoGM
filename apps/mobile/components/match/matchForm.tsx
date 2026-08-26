@@ -1,5 +1,13 @@
 import type { Match, Player } from '@fulbito/types'
-import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
+import {
+  balanceRemainingPlayers,
+  buildChemistryMatrix,
+  calculateAllCurrentStreaks,
+  enrichPlayersWithHistory,
+  getGoalkeeping,
+  getMvpCountsByPlayerId,
+  onlyFinalMatches,
+} from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
 
@@ -123,12 +131,19 @@ export function MatchForm({
     const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
     const pinnedIds = new Set([...teams.pinnedA, ...teams.pinnedB])
 
-    const seedA = pool.poolPlayers.filter((p) => teams.pinnedA.has(p.id)).map(toInfo)
-    const seedB = pool.poolPlayers.filter((p) => teams.pinnedB.has(p.id)).map(toInfo)
+    const finalMatches = onlyFinalMatches(allMatches)
+    const enrichedPool = enrichPlayersWithHistory(pool.poolPlayers.map(toInfo), finalMatches)
+    const byId = new Map(enrichedPool.map((p) => [p.id, p]))
+    const chemistry = buildChemistryMatrix(enrichedPool, finalMatches)
+    const mvpCounts = getMvpCountsByPlayerId(finalMatches)
+    const streaks = calculateAllCurrentStreaks(finalMatches)
+
+    const seedA = pool.poolPlayers.filter((p) => teams.pinnedA.has(p.id)).map((p) => byId.get(p.id)!)
+    const seedB = pool.poolPlayers.filter((p) => teams.pinnedB.has(p.id)).map((p) => byId.get(p.id)!)
 
     const unpinnedKeepers = pool.poolPlayers
       .filter((p) => goalkeeperIds.has(p.id) && !pinnedIds.has(p.id))
-      .map(toInfo)
+      .map((p) => byId.get(p.id)!)
       .sort((a, b) => normSkill(b.skill) - normSkill(a.skill))
     const keeperSeededIds = new Set<string>()
     for (const k of unpinnedKeepers) {
@@ -137,11 +152,26 @@ export function MatchForm({
       keeperSeededIds.add(k.id)
     }
 
-    const unassigned = pool.poolPlayers
+    // Players on a 4+ win streak are split across teams so one side doesn't stack all the hot hands.
+    const onStreak = pool.poolPlayers
       .filter((p) => !pinnedIds.has(p.id) && !keeperSeededIds.has(p.id))
-      .map(toInfo)
+      .filter((p) => streaks[p.id]?.kind === 'win' && (streaks[p.id]?.count ?? 0) >= 4)
+      .map((p) => byId.get(p.id)!)
+      .sort((a, b) => (streaks[b.id]?.count ?? 0) - (streaks[a.id]?.count ?? 0))
+    const streakSeededIds = new Set<string>()
+    onStreak.forEach((p, i) => {
+      const target = i % 2 === 0 ? seedA : seedB
+      if (target.length < playersPerTeam) {
+        target.push(p)
+        streakSeededIds.add(p.id)
+      }
+    })
+
+    const unassigned = pool.poolPlayers
+      .filter((p) => !pinnedIds.has(p.id) && !keeperSeededIds.has(p.id) && !streakSeededIds.has(p.id))
+      .map((p) => byId.get(p.id)!)
       .sort(() => Math.random() - 0.5)
-    const result = balanceRemainingPlayers(unassigned, seedA, seedB, playersPerTeam)
+    const result = balanceRemainingPlayers(unassigned, seedA, seedB, playersPerTeam, chemistry, mvpCounts)
     teams.setTeamA(result.teamA.players.map((p) => ({ id: p.id, name: p.name })))
     teams.setTeamB(result.teamB.players.map((p) => ({ id: p.id, name: p.name })))
   }
