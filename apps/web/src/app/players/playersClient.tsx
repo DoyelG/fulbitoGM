@@ -276,7 +276,7 @@ export default function PlayersClient({
 
       {showModal && (
         <Backdrop onClose={() => setShowModal(false)} title="Confirmar eliminación">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-xl max-w-md">
+          <div className="bg-white p-6 rounded-xl max-w-md">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
             <p className="text-gray-600 mb-6">¿Estás seguro de que querés eliminar a {selectedPlayer?.name}?</p>
             <div className="flex justify-end gap-3">

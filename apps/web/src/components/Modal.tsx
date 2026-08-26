@@ -26,7 +26,6 @@ export default function Modal({ open, onClose, title, children, size = 'default'
   return (
     <Backdrop onClose={onClose} title={title}>
       <div
-      onClick={(e)=> e.stopPropagation()}
         className={`bg-white rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto ${
           size === 'large' ? 'max-w-4xl' : 'max-w-lg'
         }`}
@@ -44,6 +43,6 @@ export default function Modal({ open, onClose, title, children, size = 'default'
         </div>
         <div className="p-4">{children}</div>
       </div>
-       </Backdrop>
+    </Backdrop>
   )
 }

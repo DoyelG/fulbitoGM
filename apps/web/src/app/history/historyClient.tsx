@@ -448,7 +448,7 @@ export default function HistoryClient() {
       )}
       {showModal && (
         <Backdrop onClose={() => setShowModal(false)} title="Confirmar eliminación">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-xl max-w-md">
+          <div className="bg-white p-6 rounded-xl max-w-md">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
               Confirmar eliminación
             </h2>
@@ -826,9 +826,8 @@ function RecordModal({
 
   return (
     <Backdrop onClose={onClose} title='Registrar Resultado del Partido'>
-      <div 
-      onClick={(e) => e.stopPropagation()}
-      className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h2 className="text-xl font-semibold">
             Registrar Resultado del Partido
