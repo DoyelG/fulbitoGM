@@ -552,10 +552,11 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               </div>
             </div>
             <div className="mb-4 py-4">
-              <label className="block text-sm font-medium mb-1">
+              <label htmlFor="match-description" className="block text-sm font-medium mb-1">
                 Descripción del Partido
               </label>
               <textarea
+                id="match-description"
                 value={matchDescription}
                 onChange={(e) => setMatchDescription(e.target.value)}
                 placeholder="Ej: Salió la ficha del partido, puntajes duros pero justos. El MVP..."

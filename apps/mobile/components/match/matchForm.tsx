@@ -8,6 +8,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 import { AutoGenerateButton } from './matchForm/autoGenerateButton'
 import { DateField } from './matchForm/dateField'
+import { DescriptionField } from './matchForm/descriptionField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { buildMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
@@ -23,7 +24,6 @@ import { usePool } from './matchForm/usePool'
 import { useScores } from './matchForm/useScores'
 import { pickShirtsResponsible, useShirts } from './matchForm/useShirts'
 import { useTeams } from './matchForm/useTeams'
-import { DescriptionField } from './matchForm/descriptionField'
 
 export type MatchFormProps = {
   mode: 'create' | 'edit'
@@ -191,10 +191,7 @@ export function MatchForm({
 
       <DateField value={matchDate} onChange={setMatchDate} />
 
-      <DescriptionField value={matchDescription}
-        onChange={(v) => {
-          setMatchDescription(v)
-        }}/>
+      <DescriptionField value={matchDescription} onChange={setMatchDescription} />
 
       <TypeSelector value={matchType} onChange={handleTypeChange} />
 

@@ -22,6 +22,7 @@ import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 import { Pagination } from "../shared/Pagination";
 import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
+import { MatchDescription } from "./matchDescription";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
@@ -387,32 +388,7 @@ export default function HistoryClient() {
                       )}
                     </div>
                     {m.description && (
-                      <div className="mt-3 flex flex-wrap pb-4 items-start gap-3">
-                        <button
-                          type="button"
-                          onClick={() => toggleDescription(m.id)}
-                          aria-expanded={expandedDescriptions.has(m.id)}
-                          aria-label={
-                            expandedDescriptions.has(m.id)
-                              ? "Contraer descripción"
-                              : "Expandir descripción"
-                          }
-                          className="flex flex-1 min-w-0 items-start gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
-                        >
-                          <p
-                            className={`flex-1 min-w-0 text-sm font-light text-gray-700 ${
-                              expandedDescriptions.has(m.id) ? "" : "truncate"
-                            }`}
-                          >
-                            {m.description}
-                          </p>
-                          <FiChevronDown
-                            className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ${
-                              expandedDescriptions.has(m.id) ? "rotate-180" : ""
-                            }`}
-                          />
-                        </button>
-                      </div>
+                      <MatchDescription text={m.description}/>
                     )}
                     <div className="flex justify-end gap-3 shrink-0 ml-auto">
                       <button
