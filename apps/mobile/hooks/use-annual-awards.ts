@@ -1,4 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
+import { calculateAllLongestWinStreaks } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
 import { usePlayerStatRows, type PlayerStatRow } from '@/hooks/use-player-stat-rows'
@@ -7,7 +8,9 @@ export type AwardAccent = 'brand' | 'secondary' | 'muted'
 
 export type AwardIcon =
   | { lib: 'ionicons'; name: 'ribbon' | 'star' }
-  | { lib: 'mci'; name: 'run' | 'emoticon-sad-outline' | 'washing-machine' }
+  | { lib: 'mci'; name: 'run' | 'emoticon-sad-outline' | 'washing-machine' | 'fire' }
+
+export type StatRowWithStreak = PlayerStatRow & { streak: number }
 
 export type AwardDef = {
   key: string
@@ -16,12 +19,12 @@ export type AwardDef = {
   unitLabel: string
   icon: AwardIcon
   accent: AwardAccent
-  getValue: (row: PlayerStatRow) => number
+  getValue: (row: StatRowWithStreak) => number
 }
 
 export type AwardWinner = {
   def: AwardDef
-  row: PlayerStatRow
+  row: StatRowWithStreak
   value: number
 }
 
@@ -71,10 +74,19 @@ const AWARD_DEFS: AwardDef[] = [
     accent: 'brand',
     getValue: (row) => row.mvps,
   },
+  {
+    key: 'streak',
+    title: 'Racha Ganadora',
+    subtitle: 'On Fire',
+    unitLabel: 'VICTORIAS SEGUIDAS',
+    icon: { lib: 'mci', name: 'fire' },
+    accent: 'secondary',
+    getValue: (row) => row.streak,
+  },
 ]
 
-function pickWinner(stats: PlayerStatRow[], def: AwardDef): AwardWinner | null {
-  let top: PlayerStatRow | undefined
+function pickWinner(stats: StatRowWithStreak[], def: AwardDef): AwardWinner | null {
+  let top: StatRowWithStreak | undefined
   for (const row of stats) {
     if (!top) {
       top = row
@@ -109,9 +121,14 @@ export function useAnnualAwards(players: Player[], matches: Match[]) {
 
   const stats = usePlayerStatRows(players, yearMatches)
 
+  const statsWithStreak = useMemo(() => {
+    const streaks = calculateAllLongestWinStreaks(yearMatches)
+    return stats.map((row) => ({ ...row, streak: streaks[row.id] ?? 0 }))
+  }, [stats, yearMatches])
+
   const winners = useMemo(
-    () => AWARD_DEFS.map((def) => pickWinner(stats, def)).filter((w): w is AwardWinner => w !== null),
-    [stats],
+    () => AWARD_DEFS.map((def) => pickWinner(statsWithStreak, def)).filter((w): w is AwardWinner => w !== null),
+    [statsWithStreak],
   )
 
   return {
