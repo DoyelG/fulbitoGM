@@ -210,6 +210,28 @@ If the project still does not synchronize correctly:
 
 > **Important:** Do not select an arbitrary Gradle version simply because it is considered stable. The Gradle version must be compatible with the Android Gradle Plugin used by the project, in this case, Homebrew 17.0.17 works.
 
+> **Note:** If the Gradle configuration does not appear as shown in the previous image, Android Studio may display it in the following format:
+>
+> ![Alternative Android Studio Gradle configuration](../images/google/08.1-App-Android-Studio-Configuration.png)
+>
+> And, if Android Studio does not allow you to update the Gradle JDK from the settings, check whether the following file exists:
+>
+> ```text
+> android/gradle/gradle-daemon-jvm.properties
+> ```
+>
+> ![gradle-daemon-jvm.properties](../images/google/08.2-App-Android-Studio-Configuration.png)
+>
+> This file controls the Java/JVM version used by the Gradle daemon. Update its configuration to use **Java 17** if that is the version required by the project.
+>
+> > **Important:** This changes the Java version used to run Gradle, not the Gradle version itself. In our project, the required Java version is **17**.
+>
+> After making the change, synchronize the project again by selecting:
+>
+> **File → Sync Project with Gradle Files**
+>
+> **End of Note**
+
 ## 4. Generate a signed Android build
 
 After the project synchronizes successfully, Android Studio will provide the option to generate a signed APK or Android App Bundle.
