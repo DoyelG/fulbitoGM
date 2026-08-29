@@ -1,8 +1,40 @@
 'use client'
 
 import type { Match, Player } from '@fulbito/types'
-import { computePlayerStatRows, pickAwardWinners } from '@fulbito/utils'
+import { calculateAllCurrentStreaks, computePlayerStatRows, pickAwardWinners } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
+
+const CHAMPIONSHIP_THRESHOLD = 7
+
+export type ChampionshipProgress = {
+  playerId: string
+  playerName: string
+  playerPhotoUrl?: string
+  streak: number
+  isChampion: boolean
+} | null
+
+export function pickChampionshipProgress(players: Player[], matches: Match[]): ChampionshipProgress {
+  const streaks = calculateAllCurrentStreaks(matches)
+  let best: { player: Player; streak: number } | null = null
+
+  for (const p of players) {
+    const s = streaks[p.id]
+    if (s?.kind !== 'win' || s.count <= 0) continue
+    if (!best || s.count > best.streak || (s.count === best.streak && p.name.localeCompare(best.player.name) < 0)) {
+      best = { player: p, streak: s.count }
+    }
+  }
+
+  if (!best) return null
+  return {
+    playerId: best.player.id,
+    playerName: best.player.name,
+    playerPhotoUrl: best.player.photoUrl,
+    streak: best.streak,
+    isChampion: best.streak >= CHAMPIONSHIP_THRESHOLD,
+  }
+}
 
 export function useAnnualAwards(players: Player[], matches: Match[]) {
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())
@@ -23,10 +55,16 @@ export function useAnnualAwards(players: Player[], matches: Match[]) {
     [players, yearMatches],
   )
 
+  const championship = useMemo(
+    () => pickChampionshipProgress(players, yearMatches),
+    [players, yearMatches],
+  )
+
   return {
     currentYear: selectedYear,
     availableYears,
     onSelectYear: setSelectedYear,
     winners,
+    championship,
   }
 }
