@@ -9,6 +9,7 @@ import { styles } from '@/components/statistics/styles/statics.styles'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import type { AwardWinner } from '@/hooks/use-annual-awards'
+import { AWARD_ICONS } from '@/constants/award-icons'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
@@ -59,7 +60,7 @@ export function AwardsList({
             <AwardCard
               title={item.def.title}
               subtitle={item.def.subtitle}
-              icon={item.def.icon}
+              icon={AWARD_ICONS[item.def.key]}
               accent={item.def.accent}
               winnerName={item.row.name}
               winnerPhotoUrl={item.row.photoUrl}
