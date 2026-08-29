@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChartBarIcon, UserGroupIcon, PlayIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { ChartBarIcon, UserGroupIcon, PlayIcon, ClockIcon, TrophyIcon } from '@heroicons/react/24/outline'
 
 const cards = [
   {
@@ -29,6 +29,13 @@ const cards = [
     desc: 'Ver historial de partidos',
     Icon: ClockIcon,
     color: 'from-violet-500/20 to-pink-500/20'
+  },
+  {
+    href: '/awards',
+    title: 'Premios',
+    desc: 'Mirá los premios del año',
+    Icon: TrophyIcon,
+    color: 'from-yellow-500/20 to-amber-500/20'
   }
 ]
 
