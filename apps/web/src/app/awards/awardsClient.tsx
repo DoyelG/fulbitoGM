@@ -11,7 +11,7 @@ export function AwardsClient({ players, matches }: Props) {
   const { currentYear, availableYears, onSelectYear, winners } = useAnnualAwards(players, matches)
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-10">
+    <div className="max-w-5xl mx-auto px-6 py-10">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <h1 className="text-3xl font-extrabold tracking-tight">Premios del Año</h1>
         <div className="flex items-center gap-2">
@@ -53,6 +53,6 @@ export function AwardsClient({ players, matches }: Props) {
           ))}
         </div>
       )}
-    </main>
+    </div>
   )
 }

@@ -1,14 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-
-type Accent = 'brand' | 'secondary' | 'muted'
+import type { AwardAccent } from '@fulbito/utils'
 
 type Props = {
   title: string
   subtitle: string
   Icon: ComponentType<{ className?: string }>
-  accent: Accent
+  accent: AwardAccent
   winnerName: string
   winnerPhotoUrl?: string
   value: number
@@ -16,10 +15,10 @@ type Props = {
   href: string
 }
 
-const ACCENT_BG: Record<Accent, string> = {
+const ACCENT_BG: Record<AwardAccent, string> = {
   brand: 'bg-[var(--color-brand)]',
   secondary: 'bg-[var(--color-accent)]',
-  muted: 'bg-gray-300',
+  muted: 'bg-gray-500',
 }
 
 export function AwardCard({ title, subtitle, Icon, accent, winnerName, winnerPhotoUrl, value, unitLabel, href }: Props) {
