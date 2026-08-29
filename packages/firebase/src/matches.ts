@@ -13,10 +13,17 @@ import type { Match, MatchInput, MatchPlayer } from '@fulbito/types'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
 
+// Duck-typed rather than `instanceof Timestamp`: docToMatchScalars is also called
+// with documents read via the `firebase/firestore/lite` SDK (see server.ts), whose
+// `Timestamp` class is a distinct instance from this file's import.
+function isTimestampLike(value: unknown): value is { toDate(): Date } {
+  return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
+}
+
 // Groups every matchPlayers doc by its matchId in a single pass, so each match
 // resolves its teams with an O(1) Map lookup instead of re-scanning the whole
 // collection per match.
-function groupTeamsByMatch(
+export function groupTeamsByMatch(
   mpDocs: Array<{ id: string; data: () => Record<string, unknown> }>,
   playerNames: Map<string, string>,
 ): Map<string, Teams> {
@@ -40,7 +47,7 @@ function groupTeamsByMatch(
   return byMatch
 }
 
-function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Match, 'teamA' | 'teamB'> {
+export function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Match, 'teamA' | 'teamB'> {
   return {
     id,
     date: data['date'] instanceof Timestamp ? data['date'].toDate().toISOString() : (data['date'] as string),

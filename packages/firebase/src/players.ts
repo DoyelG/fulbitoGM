@@ -5,7 +5,14 @@ import {
 } from 'firebase/firestore'
 import type { Player } from '@fulbito/types'
 
-function docToPlayer(id: string, data: Record<string, any>): Player {
+// Duck-typed rather than `instanceof Timestamp`: this is also called with documents
+// read via the `firebase/firestore/lite` SDK (see server.ts), whose `Timestamp` class
+// is a distinct instance from this file's import, so `instanceof` would silently fail.
+function isTimestampLike(value: unknown): value is { toDate(): Date } {
+  return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
+}
+
+export function docToPlayer(id: string, data: Record<string, any>): Player {
   return {
     id,
     name: data.name,
@@ -14,8 +21,8 @@ function docToPlayer(id: string, data: Record<string, any>): Player {
     skills: data.skills,
     photoUrl: data.photoUrl,
     goalkeeping: data.goalkeeping ?? undefined,
-    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
-    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
+    createdAt: isTimestampLike(data.createdAt) ? data.createdAt.toDate() : new Date(data.createdAt),
+    updatedAt: isTimestampLike(data.updatedAt) ? data.updatedAt.toDate() : new Date(data.updatedAt),
   }
 }
 
