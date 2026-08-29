@@ -1,109 +1,12 @@
 import type { Match, Player } from '@fulbito/types'
-import { calculateAllLongestWinStreaks } from '@fulbito/utils'
+import { computePlayerStatRows, pickAwardWinners, type AwardAccent, type AwardWinner } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
-import { usePlayerStatRows, type PlayerStatRow } from '@/hooks/use-player-stat-rows'
-
-export type AwardAccent = 'brand' | 'secondary' | 'muted'
+export type { AwardAccent, AwardWinner }
 
 export type AwardIcon =
   | { lib: 'ionicons'; name: 'ribbon' | 'star' }
   | { lib: 'mci'; name: 'run' | 'emoticon-sad-outline' | 'washing-machine' | 'fire' }
-
-export type StatRowWithStreak = PlayerStatRow & { streak: number }
-
-export type AwardDef = {
-  key: string
-  title: string
-  subtitle: string
-  unitLabel: string
-  icon: AwardIcon
-  accent: AwardAccent
-  getValue: (row: StatRowWithStreak) => number
-}
-
-export type AwardWinner = {
-  def: AwardDef
-  row: StatRowWithStreak
-  value: number
-}
-
-const AWARD_DEFS: AwardDef[] = [
-  {
-    key: 'matches',
-    title: 'Most Matches Played',
-    subtitle: 'The Iron Man',
-    unitLabel: 'MATCHES',
-    icon: { lib: 'mci', name: 'run' },
-    accent: 'brand',
-    getValue: (row) => row.matches,
-  },
-  {
-    key: 'wins',
-    title: 'Most Wins',
-    subtitle: 'The Ultimate Winner',
-    unitLabel: 'WINS',
-    icon: { lib: 'ionicons', name: 'ribbon' },
-    accent: 'brand',
-    getValue: (row) => row.wins,
-  },
-  {
-    key: 'losses',
-    title: 'Fighting Spirit',
-    subtitle: 'Most Losses (We still love you)',
-    unitLabel: 'LOSSES',
-    icon: { lib: 'mci', name: 'emoticon-sad-outline' },
-    accent: 'muted',
-    getValue: (row) => row.losses,
-  },
-  {
-    key: 'shirts',
-    title: 'Kit Washer of the Year',
-    subtitle: 'Unsung Hero',
-    unitLabel: 'WASHES',
-    icon: { lib: 'mci', name: 'washing-machine' },
-    accent: 'secondary',
-    getValue: (row) => row.shirts,
-  },
-  {
-    key: 'mvps',
-    title: 'Most MVPs',
-    subtitle: 'The undeniable star of the pitch this season.',
-    unitLabel: 'MVPS',
-    icon: { lib: 'ionicons', name: 'star' },
-    accent: 'brand',
-    getValue: (row) => row.mvps,
-  },
-  {
-    key: 'streak',
-    title: 'Racha Ganadora',
-    subtitle: 'On Fire',
-    unitLabel: 'VICTORIAS SEGUIDAS',
-    icon: { lib: 'mci', name: 'fire' },
-    accent: 'secondary',
-    getValue: (row) => row.streak,
-  },
-]
-
-function pickWinner(stats: StatRowWithStreak[], def: AwardDef): AwardWinner | null {
-  let top: StatRowWithStreak | undefined
-  for (const row of stats) {
-    if (!top) {
-      top = row
-      continue
-    }
-    const diff = def.getValue(row) - def.getValue(top)
-    if (diff > 0 || (diff === 0 && row.name.localeCompare(top.name) < 0)) {
-      top = row
-    }
-  }
-  if (!top) return null
-
-  const value = def.getValue(top)
-  if (value <= 0) return null
-
-  return { def, row: top, value }
-}
 
 export function useAnnualAwards(players: Player[], matches: Match[]) {
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())
@@ -119,16 +22,9 @@ export function useAnnualAwards(players: Player[], matches: Match[]) {
     [matches, selectedYear],
   )
 
-  const stats = usePlayerStatRows(players, yearMatches)
-
-  const statsWithStreak = useMemo(() => {
-    const streaks = calculateAllLongestWinStreaks(yearMatches)
-    return stats.map((row) => ({ ...row, streak: streaks[row.id] ?? 0 }))
-  }, [stats, yearMatches])
-
   const winners = useMemo(
-    () => AWARD_DEFS.map((def) => pickWinner(statsWithStreak, def)).filter((w): w is AwardWinner => w !== null),
-    [statsWithStreak],
+    () => pickAwardWinners(computePlayerStatRows(players, yearMatches)),
+    [players, yearMatches],
   )
 
   return {
