@@ -2,6 +2,8 @@
 
 import type { Match, Player } from '@fulbito/types'
 import { useAnnualAwards } from '@/hooks/use-annual-awards'
+import { AwardCard } from '@/components/AwardCard'
+import { AWARD_ICONS } from '@/constants/award-icons'
 
 type Props = { players: Player[]; matches: Match[] }
 
@@ -31,7 +33,26 @@ export function AwardsClient({ players, matches }: Props) {
         </div>
       </div>
 
-      <p className="text-gray-600">{winners.length} premios este año.</p>
+      {winners.length === 0 ? (
+        <p className="text-gray-600 text-center py-16">Todavía no hay premios este año.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {winners.map((winner) => (
+            <AwardCard
+              key={winner.def.key}
+              title={winner.def.title}
+              subtitle={winner.def.subtitle}
+              Icon={AWARD_ICONS[winner.def.key]}
+              accent={winner.def.accent}
+              winnerName={winner.row.name}
+              winnerPhotoUrl={winner.row.photoUrl}
+              value={winner.value}
+              unitLabel={winner.def.unitLabel}
+              href={`/players/${winner.row.id}`}
+            />
+          ))}
+        </div>
+      )}
     </main>
   )
 }
