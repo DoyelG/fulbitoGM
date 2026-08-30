@@ -4,8 +4,6 @@ import { useId, type ComponentType } from 'react'
 import type { AwardAccent } from '@fulbito/utils'
 
 type Props = {
-  title: string
-  subtitle: string
   Icon: ComponentType<{ className?: string }>
   accent: AwardAccent
   winnerName: string
@@ -49,7 +47,7 @@ const RING_COLOR: Record<AwardAccent, string> = {
   muted: '#9ca3af',
 }
 
-export function AwardCard({ title, subtitle, Icon, accent, winnerName, winnerPhotoUrl, value, unitLabel, href }: Props) {
+export function AwardCard({ Icon, accent, winnerName, winnerPhotoUrl, value, unitLabel, href }: Props) {
   // Unique per rendered instance (not derived from props) so multiple AwardCards
   // on the same page never collide on SVG gradient/clip ids.
   const uid = useId()
@@ -158,13 +156,8 @@ export function AwardCard({ title, subtitle, Icon, accent, winnerName, winnerPho
             />
           </div>
 
-          <div className="mt-3 w-full max-w-[85%] truncate rounded-full bg-black/10 px-3 py-1 text-sm font-black italic tracking-wide">
+          <div className="mt-4 w-full max-w-[85%] truncate rounded-full bg-black/10 px-3 py-1 text-sm font-black italic tracking-wide">
             {winnerName}
-          </div>
-
-          <div className="mt-3 w-full border-t border-white/60 pt-2">
-            <div className="text-sm font-semibold">{title}</div>
-            <div className="text-xs text-gray-700">{subtitle}</div>
           </div>
         </div>
       </div>

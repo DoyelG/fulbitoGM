@@ -7,5 +7,4 @@ export const AWARD_ICONS: Record<AwardKey, AwardIcon> = {
   lossStreak: { lib: 'mci', name: 'emoticon-sad-outline' },
   shirts: { lib: 'mci', name: 'washing-machine' },
   mvps: { lib: 'ionicons', name: 'star' },
-  streak: { lib: 'mci', name: 'fire' },
 }

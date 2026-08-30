@@ -9,13 +9,8 @@ import { useAnnualAwards } from '@/hooks/use-annual-awards'
 
 type Props = { players: Player[]; matches: Match[] }
 
-const gridVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-}
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 12 },
+const sectionVariants = {
+  hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0 },
 }
 
@@ -59,28 +54,36 @@ export function AwardsClient({ players, matches }: Props) {
             {winners.length === 0 ? (
               <p className="text-gray-600 text-center py-16">Todavía no hay premios este año.</p>
             ) : (
-              <motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-                variants={gridVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {winners.map((winner) => (
-                  <motion.div key={winner.def.key} variants={cardVariants}>
-                    <AwardCard
-                      title={winner.def.title}
-                      subtitle={winner.def.subtitle}
-                      Icon={AWARD_ICONS[winner.def.key]}
-                      accent={winner.def.accent}
-                      winnerName={winner.row.name}
-                      winnerPhotoUrl={winner.row.photoUrl}
-                      value={winner.value}
-                      unitLabel={winner.def.unitLabel}
-                      href={`/players/${winner.row.id}`}
-                    />
+              <div className="flex flex-col gap-16">
+                {winners.map((winner, index) => (
+                  <motion.div
+                    key={winner.def.key}
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: '-80px' }}
+                    className={`flex flex-col items-center gap-8 border-b border-gray-100 pb-16 last:border-b-0 last:pb-0 sm:gap-10 ${
+                      index % 2 === 1 ? 'sm:flex-row-reverse' : 'sm:flex-row'
+                    }`}
+                  >
+                    <div className="flex-1 text-center sm:text-left">
+                      <h2 className="text-2xl font-black italic tracking-tight">{winner.def.title}</h2>
+                      <p className="mt-2 text-gray-600">{winner.def.subtitle}</p>
+                    </div>
+                    <div className="shrink-0">
+                      <AwardCard
+                        Icon={AWARD_ICONS[winner.def.key]}
+                        accent={winner.def.accent}
+                        winnerName={winner.row.name}
+                        winnerPhotoUrl={winner.row.photoUrl}
+                        value={winner.value}
+                        unitLabel={winner.def.unitLabel}
+                        href={`/players/${winner.row.id}`}
+                      />
+                    </div>
                   </motion.div>
                 ))}
-              </motion.div>
+              </div>
             )}
           </motion.div>
         </AnimatePresence>

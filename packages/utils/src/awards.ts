@@ -1,7 +1,7 @@
 import type { Match, Player } from '@fulbito/types'
 import { getMvpCountsByPlayerId } from './mvp'
 import { getShirtDutiesByPlayerId } from './shirtDuty'
-import { calculateAllLongestWinStreaks, calculateAllLongestLossStreaks } from './playerStats'
+import { calculateAllLongestLossStreaks } from './playerStats'
 
 export type PlayerStatRow = {
   id: string
@@ -15,7 +15,6 @@ export type PlayerStatRow = {
   draws: number
   shirts: number
   mvps: number
-  streak: number
   lossStreak: number
 }
 
@@ -23,7 +22,6 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
   const map: Record<string, PlayerStatRow> = {}
   const shirtCountById = getShirtDutiesByPlayerId(matches)
   const mvpCountById = getMvpCountsByPlayerId(matches)
-  const streakById = calculateAllLongestWinStreaks(matches)
   const lossStreakById = calculateAllLongestLossStreaks(matches)
   const photoById = new Map(players.map((p) => [p.id, p.photoUrl ?? undefined]))
 
@@ -44,7 +42,6 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
             draws: 0,
             shirts: shirtCountById.get(p.id) ?? 0,
             mvps: mvpCountById.get(p.id) ?? 0,
-            streak: streakById[p.id] ?? 0,
             lossStreak: lossStreakById[p.id] ?? 0,
           }
         }
@@ -78,7 +75,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
 }
 
 export type AwardAccent = 'brand' | 'secondary' | 'muted'
-export type AwardKey = 'matches' | 'goals' | 'lossStreak' | 'shirts' | 'mvps' | 'streak'
+export type AwardKey = 'matches' | 'goals' | 'lossStreak' | 'shirts' | 'mvps'
 
 export type AwardDef = {
   key: AwardKey
@@ -129,14 +126,6 @@ export const AWARD_DEFS: AwardDef[] = [
     unitLabel: 'MVPS',
     accent: 'brand',
     getValue: (row) => row.mvps,
-  },
-  {
-    key: 'streak',
-    title: 'Racha Ganadora',
-    subtitle: 'On Fire',
-    unitLabel: 'VICTORIAS SEGUIDAS',
-    accent: 'secondary',
-    getValue: (row) => row.streak,
   },
 ]
 
