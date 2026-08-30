@@ -15,10 +15,10 @@ type Props = {
   href: string
 }
 
-// Same shield shape as apps/web/src/components/PlayerCard.tsx, reused so award
-// cards read as "the same visual family" as the FIFA-style player cards.
-const SHIELD_PATH =
-  'M120 6 C160 6 188 12 207 26 C224 38 232 56 236 75 L236 255 C236 292 205 321 120 354 C35 321 4 292 4 255 L4 75 C8 56 16 38 33 26 C52 12 80 6 120 6 Z'
+// A faceted, chamfered-rectangle silhouette (flat top/bottom edges, 45° corner
+// cuts) — the recognizable trading-card contour, rather than a soft rounded
+// shield. Corner cut size is 40 on a 240x360 canvas.
+const CARD_PATH = 'M40 0 L200 0 L240 40 L240 320 L200 360 L40 360 L0 320 L0 40 Z'
 
 const ACCENT_GRADIENTS: Record<AwardAccent, { fill: [string, string, string]; border: [string, string, string] }> = {
   brand: {
@@ -41,8 +41,8 @@ const ICON_TEXT: Record<AwardAccent, string> = {
   muted: 'text-gray-700',
 }
 
-// The inner double-line and the avatar's outer ring both read as "gold band"
-// echoes of the border gradient's saturated mid-stop.
+// The inset second frame line and the avatar's outer ring both echo the
+// border gradient's saturated mid-stop.
 const RING_COLOR: Record<AwardAccent, string> = {
   brand: 'var(--color-brand)',
   secondary: 'var(--color-accent)',
@@ -78,12 +78,12 @@ export function AwardCard({ title, subtitle, Icon, accent, winnerName, winnerPho
               <stop offset="50%" stopColor={borderMid} />
               <stop offset="100%" stopColor={borderDark} />
             </linearGradient>
-            <radialGradient id={shineId} cx="50%" cy="18%" r="60%">
+            <radialGradient id={shineId} cx="50%" cy="15%" r="65%">
               <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
               <stop offset="60%" stopColor="rgba(255,255,255,0)" />
             </radialGradient>
-            {/* Diagonal foil sheen: a soft light band swept across the shield, clipped
-                to the exact card shape so it never spills past the border. */}
+            {/* Diagonal foil sheen: a soft light band swept across the card, clipped to
+                the exact silhouette so it never spills past the frame. */}
             <linearGradient id={foilId} x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="rgba(255,255,255,0)" />
               <stop offset="45%" stopColor="rgba(255,255,255,0)" />
@@ -92,12 +92,12 @@ export function AwardCard({ title, subtitle, Icon, accent, winnerName, winnerPho
               <stop offset="100%" stopColor="rgba(255,255,255,0)" />
             </linearGradient>
             <clipPath id={clipId}>
-              <path d={SHIELD_PATH} />
+              <path d={CARD_PATH} />
             </clipPath>
           </defs>
 
-          <path d={SHIELD_PATH} fill={`url(#${fillId})`} />
-          <path d={SHIELD_PATH} fill={`url(#${shineId})`} opacity="0.35" />
+          <path d={CARD_PATH} fill={`url(#${fillId})`} />
+          <path d={CARD_PATH} fill={`url(#${shineId})`} opacity="0.35" />
 
           <g clipPath={`url(#${clipId})`}>
             <rect x="-40" y="-40" width="320" height="440" fill={`url(#${foilId})`} />
@@ -116,12 +116,28 @@ export function AwardCard({ title, subtitle, Icon, accent, winnerName, winnerPho
             </text>
           </g>
 
-          {/* Double gold band: thick outer stroke + thin inner line, both riding the same path */}
-          <path d={SHIELD_PATH} fill="none" stroke={`url(#${borderId})`} strokeWidth="7" />
-          <path d={SHIELD_PATH} fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
+          {/* Frame: thick outer band on the true edge, plus a separate inset line
+              (drawn on a scaled-down copy of the same path) so the two bands sit
+              apart with a visible gap, like a real card's double border. */}
+          <path d={CARD_PATH} fill="none" stroke={`url(#${borderId})`} strokeWidth="8" />
+          <g transform="translate(120 180) scale(0.93) translate(-120 -180)">
+            <path d={CARD_PATH} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2" />
+          </g>
+
+          {/* Small medallion straddling the flat top edge */}
+          <rect
+            x="106"
+            y="-8"
+            width="28"
+            height="28"
+            transform="rotate(45 120 6)"
+            fill={`url(#${borderId})`}
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth="1.5"
+          />
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center px-5 pt-7 text-center text-gray-900">
+        <div className="absolute inset-0 flex flex-col items-center px-6 pt-9 text-center text-gray-900">
           <div className="text-4xl font-black italic leading-none drop-shadow-sm">{value}</div>
           <div className="mt-1 text-[11px] font-bold tracking-[0.15em]">{unitLabel}</div>
 
@@ -130,14 +146,14 @@ export function AwardCard({ title, subtitle, Icon, accent, winnerName, winnerPho
           </div>
 
           <div
-            className="mt-3 h-[72px] w-[72px] overflow-hidden rounded-full bg-white shadow-lg ring-2 ring-white"
+            className="mt-3 h-[68px] w-[68px] overflow-hidden rounded-full bg-white shadow-lg ring-2 ring-white"
             style={{ boxShadow: `0 0 0 4px ${ringColor}` }}
           >
             <Image
               src={winnerPhotoUrl ?? '/silhouette.svg'}
               alt={winnerName}
-              width={72}
-              height={72}
+              width={68}
+              height={68}
               className="h-full w-full object-cover"
             />
           </div>
