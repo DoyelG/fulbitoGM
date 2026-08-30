@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { animate, motion, useReducedMotion } from 'framer-motion'
 import type { ChampionshipProgress } from '@/hooks/use-annual-awards'
 
@@ -40,22 +41,34 @@ export function ChampionshipHero({ championship }: Props) {
         {championship === null ? (
           <p className="text-white/90">Todavía nadie está en racha ganadora este año.</p>
         ) : (
-          <>
-            <p className="text-xs tracking-[0.2em] text-white/90 mb-2">CAMINO AL CAMPEONATO</p>
-            <div className="overflow-hidden">
-              <motion.h2
-                className="text-5xl font-black italic leading-none"
-                initial={reducedMotion ? false : { y: '100%' }}
-                animate={{ y: '0%' }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-              >
-                {championship.playerName}
-              </motion.h2>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full shadow-xl ring-4 ring-white/30">
+              <Image
+                src={championship.playerPhotoUrl ?? '/silhouette.svg'}
+                alt={championship.playerName}
+                width={96}
+                height={96}
+                className="h-full w-full object-cover"
+              />
             </div>
-            <p className="mt-4 text-lg font-semibold">
-              {championship.isChampion ? '🏆 CAMPEÓN' : `${displayedStreak}/${THRESHOLD} VICTORIAS SEGUIDAS AHORA`}
-            </p>
-          </>
+
+            <div>
+              <p className="text-xs tracking-[0.2em] text-white/90 mb-2">CAMINO AL CAMPEONATO</p>
+              <div className="overflow-hidden">
+                <motion.h2
+                  className="text-5xl font-black italic leading-none"
+                  initial={reducedMotion ? false : { y: '100%' }}
+                  animate={{ y: '0%' }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                >
+                  {championship.playerName}
+                </motion.h2>
+              </div>
+              <p className="mt-4 text-lg font-semibold">
+                {championship.isChampion ? '🏆 CAMPEÓN' : `${displayedStreak}/${THRESHOLD} VICTORIAS SEGUIDAS AHORA`}
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </section>
