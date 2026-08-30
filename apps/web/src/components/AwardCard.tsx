@@ -99,19 +99,6 @@ export function AwardCard({ Icon, accent, winnerName, winnerPhotoUrl, value, uni
 
           <g clipPath={`url(#${clipId})`}>
             <rect x="-40" y="-40" width="320" height="440" fill={`url(#${foilId})`} />
-            {/* Watermark, sits under the content layer (a plain HTML div) which paints over it */}
-            <text
-              x="120"
-              y="230"
-              textAnchor="middle"
-              transform="rotate(-24 120 230)"
-              fontSize="46"
-              fontWeight="900"
-              fill="rgba(0,0,0,0.05)"
-              letterSpacing="2"
-            >
-              FULBITO
-            </text>
           </g>
 
           {/* Frame: thick outer band on the true edge, plus a separate inset line

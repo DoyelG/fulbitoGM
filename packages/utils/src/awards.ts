@@ -89,9 +89,10 @@ export type AwardDef = {
 export const AWARD_DEFS: AwardDef[] = [
   {
     key: 'matches',
-    title: 'Most Matches Played',
-    subtitle: 'The Iron Man',
-    unitLabel: 'MATCHES',
+    title: 'El Jugador Más Fiel',
+    subtitle:
+      'Este premio es otorgado al jugador con mejor asistencia de la temporada, el que siempre está anotado en la lista.',
+    unitLabel: 'PARTIDOS',
     accent: 'brand',
     getValue: (row) => row.matches,
   },
@@ -113,16 +114,16 @@ export const AWARD_DEFS: AwardDef[] = [
   },
   {
     key: 'shirts',
-    title: 'Kit Washer of the Year',
-    subtitle: 'Unsung Hero',
-    unitLabel: 'WASHES',
+    title: 'El Lavaropas del Año',
+    subtitle: 'El héroe anónimo del equipo',
+    unitLabel: 'LAVADAS',
     accent: 'secondary',
     getValue: (row) => row.shirts,
   },
   {
     key: 'mvps',
-    title: 'Most MVPs',
-    subtitle: 'The undeniable star of the pitch this season.',
+    title: 'Máximo MVP',
+    subtitle: 'La estrella indiscutida de la cancha esta temporada',
     unitLabel: 'MVPS',
     accent: 'brand',
     getValue: (row) => row.mvps,
