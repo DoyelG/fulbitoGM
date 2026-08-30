@@ -55,9 +55,12 @@ export function useAnnualAwards(players: Player[], matches: Match[]) {
     [players, yearMatches],
   )
 
+  // Deliberately NOT scoped to yearMatches/selectedYear: this reflects the live,
+  // right-now streak state, independent of whatever season the awards grid below
+  // is browsing — switching "Temporada" must not change it.
   const championship = useMemo(
-    () => pickChampionshipProgress(players, yearMatches),
-    [players, yearMatches],
+    () => pickChampionshipProgress(players, matches),
+    [players, matches],
   )
 
   return {
