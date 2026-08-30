@@ -5,8 +5,8 @@ import { useMemo, useState } from 'react'
 export type { AwardAccent, AwardWinner }
 
 export type AwardIcon =
-  | { lib: 'ionicons'; name: 'ribbon' | 'star' }
-  | { lib: 'mci'; name: 'run' | 'emoticon-sad-outline' | 'washing-machine' | 'fire' }
+  | { lib: 'ionicons'; name: 'star' }
+  | { lib: 'mci'; name: 'run' | 'emoticon-sad-outline' | 'washing-machine' | 'fire' | 'soccer' }
 
 export function useAnnualAwards(players: Player[], matches: Match[]) {
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())

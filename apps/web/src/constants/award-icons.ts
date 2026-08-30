@@ -1,13 +1,13 @@
-import { FaceFrownIcon, FireIcon, StarIcon, TrophyIcon } from '@heroicons/react/24/outline'
+import { FaceFrownIcon, FireIcon, StarIcon } from '@heroicons/react/24/outline'
 import { FaRunning } from 'react-icons/fa'
-import { GiWashingMachine } from 'react-icons/gi'
+import { GiSoccerBall, GiWashingMachine } from 'react-icons/gi'
 import type { AwardKey } from '@fulbito/utils'
 import type { ComponentType } from 'react'
 
 export const AWARD_ICONS: Record<AwardKey, ComponentType<{ className?: string }>> = {
   matches: FaRunning,
-  wins: TrophyIcon,
-  losses: FaceFrownIcon,
+  goals: GiSoccerBall,
+  lossStreak: FaceFrownIcon,
   shirts: GiWashingMachine,
   mvps: StarIcon,
   streak: FireIcon,

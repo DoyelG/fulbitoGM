@@ -1,7 +1,7 @@
 import type { Match, Player } from '@fulbito/types'
 import { getMvpCountsByPlayerId } from './mvp'
 import { getShirtDutiesByPlayerId } from './shirtDuty'
-import { calculateAllLongestWinStreaks } from './playerStats'
+import { calculateAllLongestWinStreaks, calculateAllLongestLossStreaks } from './playerStats'
 
 export type PlayerStatRow = {
   id: string
@@ -16,6 +16,7 @@ export type PlayerStatRow = {
   shirts: number
   mvps: number
   streak: number
+  lossStreak: number
 }
 
 export function computePlayerStatRows(players: Player[], matches: Match[]): PlayerStatRow[] {
@@ -23,6 +24,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
   const shirtCountById = getShirtDutiesByPlayerId(matches)
   const mvpCountById = getMvpCountsByPlayerId(matches)
   const streakById = calculateAllLongestWinStreaks(matches)
+  const lossStreakById = calculateAllLongestLossStreaks(matches)
   const photoById = new Map(players.map((p) => [p.id, p.photoUrl ?? undefined]))
 
   for (const m of matches) {
@@ -43,6 +45,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
             shirts: shirtCountById.get(p.id) ?? 0,
             mvps: mvpCountById.get(p.id) ?? 0,
             streak: streakById[p.id] ?? 0,
+            lossStreak: lossStreakById[p.id] ?? 0,
           }
         }
 
@@ -75,7 +78,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
 }
 
 export type AwardAccent = 'brand' | 'secondary' | 'muted'
-export type AwardKey = 'matches' | 'wins' | 'losses' | 'shirts' | 'mvps' | 'streak'
+export type AwardKey = 'matches' | 'goals' | 'lossStreak' | 'shirts' | 'mvps' | 'streak'
 
 export type AwardDef = {
   key: AwardKey
@@ -96,20 +99,20 @@ export const AWARD_DEFS: AwardDef[] = [
     getValue: (row) => row.matches,
   },
   {
-    key: 'wins',
-    title: 'Most Wins',
-    subtitle: 'The Ultimate Winner',
-    unitLabel: 'WINS',
+    key: 'goals',
+    title: 'Máximo Goleador',
+    subtitle: 'El francotirador del torneo',
+    unitLabel: 'GOLES',
     accent: 'brand',
-    getValue: (row) => row.wins,
+    getValue: (row) => row.goals,
   },
   {
-    key: 'losses',
-    title: 'Fighting Spirit',
-    subtitle: 'Most Losses (We still love you)',
-    unitLabel: 'LOSSES',
+    key: 'lossStreak',
+    title: 'Racha Negra',
+    subtitle: 'Peor racha de derrotas seguidas (te bancamos igual)',
+    unitLabel: 'DERROTAS SEGUIDAS',
     accent: 'muted',
-    getValue: (row) => row.losses,
+    getValue: (row) => row.lossStreak,
   },
   {
     key: 'shirts',
