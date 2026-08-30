@@ -1,6 +1,6 @@
 'use client'
 
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import type { Match, Player } from '@fulbito/types'
 import { AwardCard } from '@/components/AwardCard'
 import { ChampionshipHero } from '@/components/ChampionshipHero'
@@ -23,7 +23,7 @@ export function AwardsClient({ players, matches }: Props) {
   const { currentYear, availableYears, onSelectYear, winners, championship } = useAnnualAwards(players, matches)
 
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <ChampionshipHero championship={championship} />
 
       <div className="max-w-5xl mx-auto px-6 py-10">
@@ -85,6 +85,6 @@ export function AwardsClient({ players, matches }: Props) {
           </motion.div>
         </AnimatePresence>
       </div>
-    </>
+    </MotionConfig>
   )
 }
