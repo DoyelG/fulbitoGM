@@ -70,7 +70,7 @@ export function AwardsClient({ players, matches }: Props) {
                       <h2 className="text-2xl font-black italic tracking-tight">{winner.def.title}</h2>
                       <p className="mt-2 text-gray-600">{winner.def.subtitle}</p>
                     </div>
-                    <div className="shrink-0">
+                    <div className="w-full max-w-[220px] shrink-0">
                       <AwardCard
                         Icon={AWARD_ICONS[winner.def.key]}
                         accent={winner.def.accent}
