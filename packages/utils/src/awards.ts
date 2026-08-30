@@ -89,7 +89,7 @@ export type AwardDef = {
 export const AWARD_DEFS: AwardDef[] = [
   {
     key: 'matches',
-    title: 'El Jugador Más Fiel',
+    title: 'El jugador más constante',
     subtitle:
       'Este premio es otorgado al jugador con mejor asistencia de la temporada, el que siempre está anotado en la lista.',
     unitLabel: 'PARTIDOS',
@@ -99,23 +99,23 @@ export const AWARD_DEFS: AwardDef[] = [
   {
     key: 'goals',
     title: 'Máximo Goleador',
-    subtitle: 'El francotirador del torneo',
+    subtitle: 'El francotirador del torneo, el mayor artillero de la temporada',
     unitLabel: 'GOLES',
     accent: 'brand',
     getValue: (row) => row.goals,
   },
   {
     key: 'lossStreak',
-    title: 'Racha Negra',
-    subtitle: 'Peor racha de derrotas seguidas (te bancamos igual)',
+    title: 'La piedra del equipo',
+    subtitle: 'Peor racha de derrotas seguidas, el que nadie quiere tener en su equipo',
     unitLabel: 'DERROTAS SEGUIDAS',
     accent: 'muted',
     getValue: (row) => row.lossStreak,
   },
   {
     key: 'shirts',
-    title: 'El Lavaropas del Año',
-    subtitle: 'El héroe anónimo del equipo',
+    title: 'El lavarropas del año',
+    subtitle: 'El terror del lavadero, el que más veces se llevó las casacas a lavar',
     unitLabel: 'LAVADAS',
     accent: 'secondary',
     getValue: (row) => row.shirts,

@@ -65,7 +65,7 @@ export function ChampionshipHero({ championship }: Props) {
                 </motion.h2>
               </div>
               <p className="mt-4 text-lg font-semibold">
-                {championship.isChampion ? '🏆 CAMPEÓN' : `${displayedStreak}/${THRESHOLD} VICTORIAS SEGUIDAS AHORA`}
+                {championship.isChampion ? '🏆 CAMPEÓN' : `${displayedStreak} de ${THRESHOLD} VICTORIAS AL DIA DE LA FECHA`}
               </p>
             </div>
           </div>
