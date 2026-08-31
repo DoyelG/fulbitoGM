@@ -15,11 +15,11 @@ export function DescriptionField({ value, onChange }: Props) {
 
   return (
     <>
-      <FormLabel text="Descripción" />
+      <FormLabel text="Crónica" />
       <TextInput
         value={value}
         onChangeText={onChange}
-        placeholder="Ej: Salió la ficha del partido, puntajes duros pero justos. El MVP..."
+        placeholder="Escribí la crónica del partido"
         placeholderTextColor={colors.muted}
         style={[fieldStyles.textInput, { borderColor: colors.border, borderRadius: radii.sm, color: colors.text }]}
       />

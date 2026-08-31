@@ -932,12 +932,12 @@ function RecordModal({
 
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">
-            Descripción del Partido
+            Crónica
           </label>
           <textarea
             value={matchDescription}
             onChange={(e) => setMatchDescription(e.target.value)}
-            placeholder="Ej: Salió la ficha del partido, puntajes duros pero justos. El MVP..."
+            placeholder="Escribí la crónica del partido"
             className="border min-w-full rounded px-3 py-2 w-full"
           />
         </div>
