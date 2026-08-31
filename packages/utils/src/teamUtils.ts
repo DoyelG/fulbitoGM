@@ -22,6 +22,20 @@ function sumPhysical(team: PlayerInfo[]) {
 }
 
 /**
+ * A stable, label-independent identity for a team (sorted player ids). Used to break ties
+ * without favoring "team A" just because of its literal array position — otherwise, manually
+ * pinning the same two players to opposite sides (A vs B) can produce different results
+ * depending purely on which side they were dropped on.
+ */
+function teamKey(team: PlayerInfo[]): string {
+  return team.length === 0 ? '' : [...team.map(p => p.id)].sort().join(',')
+}
+
+function swapCandidateKey(a: PlayerInfo, b: PlayerInfo): string {
+  return [a.id, b.id].sort().join(',')
+}
+
+/**
  * True unless one team is behind in BOTH skill and physical at once — a team should lose
  * at most one of the two, never both.
  */
@@ -38,27 +52,34 @@ function noDoubleAdvantage(teamA: PlayerInfo[], teamB: PlayerInfo[]): boolean {
  * a team should lose at most one of the two dimensions, never both. Searches every possible
  * swap each iteration (not just one heuristic candidate) and takes whichever one fixes the
  * invariant while keeping skill/physical as close as possible. Not always achievable (e.g. skill
- * and physical are perfectly correlated across the whole pool), but this finds a fix whenever one exists.
+ * and physical are perfectly correlated across the whole pool), but this finds a fix whenever one
+ * exists. `lockedA`/`lockedB` exclude the first N players of each team (manually pinned or
+ * otherwise pre-seeded) from ever being swap candidates.
  */
 function applyPhysicalCompensation(
   teamA: PlayerInfo[],
-  teamB: PlayerInfo[]
+  teamB: PlayerInfo[],
+  lockedA = 0,
+  lockedB = 0
 ): { skillA: number; skillB: number; physicalA: number; physicalB: number } {
   const maxIterations = teamA.length * teamB.length + 1
 
   for (let iter = 0; iter < maxIterations; iter++) {
     if (noDoubleAdvantage(teamA, teamB)) break
 
-    let bestSwap: { i: number; j: number; score: number } | null = null
-    for (let i = 0; i < teamA.length; i++) {
-      for (let j = 0; j < teamB.length; j++) {
+    let bestSwap: { i: number; j: number; score: number; key: string } | null = null
+    for (let i = lockedA; i < teamA.length; i++) {
+      for (let j = lockedB; j < teamB.length; j++) {
         const nextA = [...teamA]
         const nextB = [...teamB]
         ;[nextA[i], nextB[j]] = [nextB[j], nextA[i]]
         if (!noDoubleAdvantage(nextA, nextB)) continue
 
         const score = Math.abs(sumSkill(nextA) - sumSkill(nextB)) + Math.abs(sumPhysical(nextA) - sumPhysical(nextB))
-        if (!bestSwap || score < bestSwap.score) bestSwap = { i, j, score }
+        const key = swapCandidateKey(teamA[i], teamB[j])
+        if (!bestSwap || score < bestSwap.score - 1e-9 || (Math.abs(score - bestSwap.score) < 1e-9 && key < bestSwap.key)) {
+          bestSwap = { i, j, score, key }
+        }
       }
     }
     if (!bestSwap) break
@@ -76,12 +97,15 @@ function applyPhysicalCompensation(
 /**
  * Tries player-for-player swaps that shrink `gapOf` between teams, keeping every swap
  * within `isWithinGuards` so later, softer criteria never undo earlier, more important ones.
+ * `lockedA`/`lockedB` exclude pre-seeded players from being swap candidates (see above).
  */
 function optimizeBySwap(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
   gapOf: (a: PlayerInfo[], b: PlayerInfo[]) => number,
-  isWithinGuards: (a: PlayerInfo[], b: PlayerInfo[]) => boolean
+  isWithinGuards: (a: PlayerInfo[], b: PlayerInfo[]) => boolean,
+  lockedA = 0,
+  lockedB = 0
 ): void {
   const maxIterations = teamA.length * teamB.length
 
@@ -89,17 +113,21 @@ function optimizeBySwap(
     const gap = gapOf(teamA, teamB)
     if (gap < 0.01) break
 
-    let bestSwap: { i: number; j: number; newGap: number } | null = null
-    for (let i = 0; i < teamA.length; i++) {
-      for (let j = 0; j < teamB.length; j++) {
+    let bestSwap: { i: number; j: number; newGap: number; key: string } | null = null
+    for (let i = lockedA; i < teamA.length; i++) {
+      for (let j = lockedB; j < teamB.length; j++) {
         const nextA = [...teamA]
         const nextB = [...teamB]
         ;[nextA[i], nextB[j]] = [nextB[j], nextA[i]]
         if (!isWithinGuards(nextA, nextB)) continue
 
         const newGap = gapOf(nextA, nextB)
-        if (newGap < gap - 0.001 && (!bestSwap || newGap < bestSwap.newGap)) {
-          bestSwap = { i, j, newGap }
+        const key = swapCandidateKey(teamA[i], teamB[j])
+        if (
+          newGap < gap - 0.001 &&
+          (!bestSwap || newGap < bestSwap.newGap - 1e-9 || (Math.abs(newGap - bestSwap.newGap) < 1e-9 && key < bestSwap.key))
+        ) {
+          bestSwap = { i, j, newGap, key }
         }
       }
     }
@@ -125,13 +153,16 @@ function withinTolerance(
 /**
  * Chemistry, MVP and position are "soft" signals: worth balancing, but never worth undoing
  * the skill/physical balance for. Each runs its own swap search in priority order, guarded by
- * the same fixed skill/physical tolerance captured once before any of them start.
+ * the same fixed skill/physical tolerance captured once before any of them start. `lockedA`/
+ * `lockedB` exclude pre-seeded players from being swap candidates (see applyPhysicalCompensation).
  */
 function applySoftBalancing(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
   chemistry: ChemistryMatrix | undefined,
-  mvpCounts: Map<string, number> | undefined
+  mvpCounts: Map<string, number> | undefined,
+  lockedA = 0,
+  lockedB = 0
 ): void {
   const guard = withinTolerance(
     Math.abs(sumSkill(teamA) - sumSkill(teamB)) + SOFT_BALANCE_TOLERANCE,
@@ -149,7 +180,7 @@ function applySoftBalancing(
   }
   metrics.push(computePositionImbalance)
 
-  for (const gapOf of metrics) optimizeBySwap(teamA, teamB, gapOf, guard)
+  for (const gapOf of metrics) optimizeBySwap(teamA, teamB, gapOf, guard, lockedA, lockedB)
 }
 
 function toTeamResults(
@@ -177,10 +208,12 @@ function finalizeTeams(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
   chemistry: ChemistryMatrix | undefined,
-  mvpCounts: Map<string, number> | undefined
+  mvpCounts: Map<string, number> | undefined,
+  lockedA = 0,
+  lockedB = 0
 ): { teamA: TeamResult; teamB: TeamResult } {
-  applyPhysicalCompensation(teamA, teamB)
-  applySoftBalancing(teamA, teamB, chemistry, mvpCounts)
+  applyPhysicalCompensation(teamA, teamB, lockedA, lockedB)
+  applySoftBalancing(teamA, teamB, chemistry, mvpCounts, lockedA, lockedB)
 
   return toTeamResults(teamA, teamB, chemistry)
 }
@@ -268,6 +301,12 @@ export function balanceRemainingPlayers(
   let physicalA = teamA.reduce((s, p) => s + normPhysical(p), 0)
   let physicalB = teamB.reduce((s, p) => s + normPhysical(p), 0)
 
+  // On an exact physical tie, prefer whichever pre-seeded team has the "smaller" identity
+  // (not literally "team A") — otherwise the fill always favors team A on ties, so manually
+  // pinning the same two players to opposite sides gives a different result purely depending
+  // on which literal side ("A" or "B") each one was dropped on.
+  const preferAOnTie = teamKey(preTeamA) <= teamKey(preTeamB)
+
   const sortedUnassigned = unassigned
     .map(p => ({ ...p, balanceSkill: norm(p.skill), balancePhysical: normPhysical(p) }))
     .sort((a, b) => b.balanceSkill - a.balanceSkill)
@@ -278,9 +317,11 @@ export function balanceRemainingPlayers(
     const spotsB = playersPerTeam - teamB.length
     if (spotsA === 0) { teamB.push(p); physicalB += phys; continue }
     if (spotsB === 0) { teamA.push(p); physicalA += phys; continue }
-    if (physicalA <= physicalB) { teamA.push(p); physicalA += phys }
+    if (physicalA < physicalB || (physicalA === physicalB && preferAOnTie)) { teamA.push(p); physicalA += phys }
     else { teamB.push(p); physicalB += phys }
   }
 
-  return finalizeTeams(teamA, teamB, chemistry, mvpCounts)
+  // Pre-seeded players (manually pinned, designated goalkeepers, streak-separated) must stay
+  // exactly where the caller put them — only players pulled from `unassigned` are up for swaps.
+  return finalizeTeams(teamA, teamB, chemistry, mvpCounts, preTeamA.length, preTeamB.length)
 }
