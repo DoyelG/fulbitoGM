@@ -353,7 +353,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           <select
             value={matchType}
             onChange={e => setMatchType(e.target.value as MatchType)}
-            className="border rounded px-4 py-1 text-center appearance-none cursor-pointer"
+            className="h-10 border rounded px-4 text-center appearance-none cursor-pointer"
           >
             {MATCH_TYPES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
@@ -565,7 +565,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     type="date"
                     value={draftDate}
                     onChange={(e) => setDraftDate(e.target.value)}
-                    className="border rounded px-3 py-2 w-full"
+                    className="h-10 border rounded px-3 w-full"
                   />
                 </div>
                 <div>
@@ -576,18 +576,19 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     value={draftName}
                     onChange={(e) => setDraftName(e.target.value)}
                     placeholder="Ej: Partido del miércoles"
-                    className="border rounded px-3 py-2 w-full"
+                    className="h-10 border rounded px-3 w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mb-1">Tipo de partido</label>
+                  <label htmlFor="friendly-match" className="block text-sm mb-1">Tipo de partido</label>
                   <button
+                    id='friendly-match'
                     type="button"
                     role="switch"
                     aria-checked={isFriendly}
                     aria-label="Partido amistoso"
                     onClick={() => setIsFriendly((v) => !v)}
-                    className={`relative inline-flex h-9 w-28 shrink-0 my-1 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                    className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
                       isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
                     }`}
                   >
@@ -618,7 +619,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   type="button"
                   onClick={createDraft}
                   disabled={isCreatingDraft}
-                  className={`w-full sm:w-auto px-4 py-2 rounded text-white ${
+                  className={`h-10 w-full sm:w-auto px-4 flex items-center justify-center rounded text-white ${
                     isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
                   }`}
                 >

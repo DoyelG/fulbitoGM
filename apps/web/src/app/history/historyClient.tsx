@@ -850,7 +850,7 @@ function RecordModal({
               type="date"
               value={matchDate}
               onChange={(e) => setMatchDate(e.target.value)}
-              className="border rounded px-3 py-2 w-full"
+              className="h-10 border rounded px-3 w-full"
             />
           </div>
           <div>
@@ -864,7 +864,7 @@ function RecordModal({
                 setTeamB([]);
                 setMatchType(e.target.value as MatchType);
               }}
-              className="border rounded px-3 py-2 w-full"
+              className="h-10 border rounded px-3 w-full"
             >
               {MATCH_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -874,16 +874,17 @@ function RecordModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="fiendly-match" className="block text-sm font-medium mb-1">
               Tipo de partido
             </label>
             <button
+              id="fiendly-match"
               type="button"
               role="switch"
               aria-checked={isFriendly}
               aria-label="Partido amistoso"
               onClick={() => setIsFriendly((v) => !v)}
-              className={`relative inline-flex h-9 w-28 shrink-0 items-center overflow-hidden rounded-full px-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+              className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
                 isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
               }`}
             >
