@@ -18,9 +18,16 @@ function colorForSkill(skill: number) {
   }
 }
 
-export default function SkillBadge({ skill }: { skill: number | 'unknown' }) {
+export default function SkillBadge({ skill, muted = false }: { skill: number | 'unknown'; muted?: boolean }) {
   if (skill === 'unknown') {
     return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-200 text-gray-800">Unknown</span>
+  }
+  if (muted) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-200 text-gray-500">
+        Lv {skill}
+      </span>
+    )
   }
   const bg = colorForSkill(skill)
   return (

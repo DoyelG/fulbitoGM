@@ -20,7 +20,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
     physical: '5',
     technical: '5',
     tactical: '5',
-    psychological: '5'
+    psychological: '5',
+    inactive: false,
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -39,7 +40,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
           physical: String(p.skills?.physical ?? base),
           technical: String(p.skills?.technical ?? base),
           tactical: String(p.skills?.tactical ?? base),
-          psychological: String(p.skills?.psychological ?? base)
+          psychological: String(p.skills?.psychological ?? base),
+          inactive: p.inactive ?? false,
         })
         setPhotoPreview(p.photoUrl ?? null)
         setGoalkeeping(String(getGoalkeeping(p)))
@@ -72,9 +74,9 @@ export default function PlayerForm({ mode, playerId }: Props) {
     }
 
     if (mode === 'create') {
-      await addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+      await addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, inactive: formData.inactive, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
     } else if (playerId) {
-      await updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+      await updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, inactive: formData.inactive, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
     }
     router.push('/players')
   }
@@ -171,6 +173,19 @@ export default function PlayerForm({ mode, playerId }: Props) {
           <option value="MID">Mediocampista</option>
           <option value="FWD">Delantero</option>
           <option value="PLAYER">Cualquier posición</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="inactive" className="block text-sm font-medium text-black">Estado</label>
+        <select
+          id="inactive"
+          value={formData.inactive ? 'inactive' : 'active'}
+          onChange={(e) => setFormData({ ...formData, inactive: e.target.value === 'inactive' })}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
+        >
+          <option value="active">Activo</option>
+          <option value="inactive">Inactivo</option>
         </select>
       </div>
 

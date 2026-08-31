@@ -55,9 +55,11 @@ export default function PlayerDetailPage() {
     tactical: "5",
     psychological: "5",
     goalkeeping: "5",
+    inactive: false,
   });
 
   useEffect(() => {
+    console.log(player)
     if (player) {
       const base = player.skill ?? 5;
       setForm({
@@ -68,6 +70,7 @@ export default function PlayerDetailPage() {
         tactical: String(player.skills?.tactical ?? base),
         psychological: String(player.skills?.psychological ?? base),
         goalkeeping: String(getGoalkeeping(player)),
+        inactive: player.inactive ?? false,
       });
       setGkTouched(player.goalkeeping != null);
     }
@@ -187,6 +190,7 @@ export default function PlayerDetailPage() {
       skills,
       skill: avg,
       goalkeeping,
+      inactive: form.inactive,
     });
     setEditMode(false);
   };
@@ -390,8 +394,7 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div className="sm:col-span-3 text-sm text-gray-800">
-            General (promedio):{" "}
-            <span className="font-semibold">Lv {avgPreview}</span>
+            General (promedio): <span className="font-semibold">Lv {avgPreview}</span>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Posición</label>
@@ -405,6 +408,18 @@ export default function PlayerDetailPage() {
               <option value="MID">Mediocampista</option>
               <option value="FWD">Delantero</option>
               <option value="PLAYER">Cualquier posición</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="inactive-quick-edit" className="block text-sm font-medium mb-1">Estado</label>
+            <select
+              id="inactive-quick-edit"
+              value={form.inactive ? 'inactive' : 'active'}
+              onChange={(e) => setForm({ ...form, inactive: e.target.value === 'inactive' })}
+              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+            >
+              <option value="active">Activo</option>
+              <option value="inactive">Inactivo</option>
             </select>
           </div>
           <div className="sm:col-span-3 flex justify-end gap-2">

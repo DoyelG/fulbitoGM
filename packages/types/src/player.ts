@@ -15,6 +15,7 @@ export type Player = {
   skills?: Skills
   photoUrl?: string
   goalkeeping?: number
+  inactive?: boolean
   createdAt: Date
   updatedAt: Date
 }

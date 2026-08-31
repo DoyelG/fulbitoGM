@@ -6,6 +6,8 @@ export type { Player }
 
 type PlayerStore = {
   players: Player[]
+  activePlayer: Player[]
+  inactivePlayer: Player[]
   playersInit: 'idle' | 'loading' | 'loaded' | 'error'
   initLoad: () => Promise<void>
   hydratePlayers: (players: Player[]) => void
@@ -18,6 +20,8 @@ type PlayerStore = {
 
 export const usePlayerStore = create<PlayerStore>()((set, get) => ({
   players: [],
+  activePlayer: [],
+  inactivePlayer: [],
   playersInit: 'idle',
   initLoad: async () => {
     const state = get().playersInit
@@ -49,6 +53,7 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
   getPlayer: (id) => get().players.find(p => p.id === id),
   resetAndReload: async () => {
     const data = await getPlayers()
-    set({ players: data, playersInit: 'loaded' })
+    const activePlayer = data.filter((p) => !p.inactive)
+    set({ players: data, activePlayer, playersInit: 'loaded' })
   },
 }))
