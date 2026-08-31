@@ -210,10 +210,18 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     }
 
     const pinnedIds = new Set([...manualA, ...manualB].map(p => p.id))
+    // If the manual pins were edited (someone re-pinned to the other side, added, or removed)
+    // since the current teams were built, they're no longer reflected in `autoTeams` — a plain
+    // perturbation can't fix that (it only prevents locked players from moving, it doesn't move
+    // them to where a *new* pin says they belong), so that case needs a full rebuild instead.
+    const pinsMatchCurrentTeams =
+      !!autoTeams &&
+      manualA.every(p => autoTeams.teamA.players.some(q => q.id === p.id)) &&
+      manualB.every(p => autoTeams.teamB.players.some(q => q.id === p.id))
 
     let teams: { teamA: TeamResult; teamB: TeamResult }
     let hadStreak = streakSeparated
-    if (autoTeams) {
+    if (autoTeams && pinsMatchCurrentTeams) {
       // Regenerate: perturb the CURRENT lineup with a random valid swap. Recomputing from
       // scratch converges back to the same optimum almost every time (the balancer sorts by
       // skill regardless of input order), which made "regenerate" look like it did nothing.
