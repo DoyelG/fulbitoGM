@@ -53,14 +53,13 @@ function noDoubleAdvantage(teamA: PlayerInfo[], teamB: PlayerInfo[]): boolean {
  * swap each iteration (not just one heuristic candidate) and takes whichever one fixes the
  * invariant while keeping skill/physical as close as possible. Not always achievable (e.g. skill
  * and physical are perfectly correlated across the whole pool), but this finds a fix whenever one
- * exists. `lockedA`/`lockedB` exclude the first N players of each team (manually pinned or
- * otherwise pre-seeded) from ever being swap candidates.
+ * exists. Players whose id is in `lockedIds` (manually pinned, or otherwise pre-seeded) are never
+ * swap candidates — identity-based, not position-based, so a lock survives repeated regenerations.
  */
 function applyPhysicalCompensation(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
-  lockedA = 0,
-  lockedB = 0
+  lockedIds: Set<string> = new Set()
 ): { skillA: number; skillB: number; physicalA: number; physicalB: number } {
   const maxIterations = teamA.length * teamB.length + 1
 
@@ -68,8 +67,10 @@ function applyPhysicalCompensation(
     if (noDoubleAdvantage(teamA, teamB)) break
 
     let bestSwap: { i: number; j: number; score: number; key: string } | null = null
-    for (let i = lockedA; i < teamA.length; i++) {
-      for (let j = lockedB; j < teamB.length; j++) {
+    for (let i = 0; i < teamA.length; i++) {
+      if (lockedIds.has(teamA[i].id)) continue
+      for (let j = 0; j < teamB.length; j++) {
+        if (lockedIds.has(teamB[j].id)) continue
         const nextA = [...teamA]
         const nextB = [...teamB]
         ;[nextA[i], nextB[j]] = [nextB[j], nextA[i]]
@@ -97,15 +98,14 @@ function applyPhysicalCompensation(
 /**
  * Tries player-for-player swaps that shrink `gapOf` between teams, keeping every swap
  * within `isWithinGuards` so later, softer criteria never undo earlier, more important ones.
- * `lockedA`/`lockedB` exclude pre-seeded players from being swap candidates (see above).
+ * Players in `lockedIds` are never swap candidates (see applyPhysicalCompensation above).
  */
 function optimizeBySwap(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
   gapOf: (a: PlayerInfo[], b: PlayerInfo[]) => number,
   isWithinGuards: (a: PlayerInfo[], b: PlayerInfo[]) => boolean,
-  lockedA = 0,
-  lockedB = 0
+  lockedIds: Set<string> = new Set()
 ): void {
   const maxIterations = teamA.length * teamB.length
 
@@ -114,8 +114,10 @@ function optimizeBySwap(
     if (gap < 0.01) break
 
     let bestSwap: { i: number; j: number; newGap: number; key: string } | null = null
-    for (let i = lockedA; i < teamA.length; i++) {
-      for (let j = lockedB; j < teamB.length; j++) {
+    for (let i = 0; i < teamA.length; i++) {
+      if (lockedIds.has(teamA[i].id)) continue
+      for (let j = 0; j < teamB.length; j++) {
+        if (lockedIds.has(teamB[j].id)) continue
         const nextA = [...teamA]
         const nextB = [...teamB]
         ;[nextA[i], nextB[j]] = [nextB[j], nextA[i]]
@@ -153,16 +155,15 @@ function withinTolerance(
 /**
  * Chemistry, MVP and position are "soft" signals: worth balancing, but never worth undoing
  * the skill/physical balance for. Each runs its own swap search in priority order, guarded by
- * the same fixed skill/physical tolerance captured once before any of them start. `lockedA`/
- * `lockedB` exclude pre-seeded players from being swap candidates (see applyPhysicalCompensation).
+ * the same fixed skill/physical tolerance captured once before any of them start. Players in
+ * `lockedIds` are excluded from being swap candidates (see applyPhysicalCompensation above).
  */
 function applySoftBalancing(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
   chemistry: ChemistryMatrix | undefined,
   mvpCounts: Map<string, number> | undefined,
-  lockedA = 0,
-  lockedB = 0
+  lockedIds: Set<string> = new Set()
 ): void {
   const guard = withinTolerance(
     Math.abs(sumSkill(teamA) - sumSkill(teamB)) + SOFT_BALANCE_TOLERANCE,
@@ -180,7 +181,7 @@ function applySoftBalancing(
   }
   metrics.push(computePositionImbalance)
 
-  for (const gapOf of metrics) optimizeBySwap(teamA, teamB, gapOf, guard, lockedA, lockedB)
+  for (const gapOf of metrics) optimizeBySwap(teamA, teamB, gapOf, guard, lockedIds)
 }
 
 function toTeamResults(
@@ -209,11 +210,10 @@ function finalizeTeams(
   teamB: PlayerInfo[],
   chemistry: ChemistryMatrix | undefined,
   mvpCounts: Map<string, number> | undefined,
-  lockedA = 0,
-  lockedB = 0
+  lockedIds: Set<string> = new Set()
 ): { teamA: TeamResult; teamB: TeamResult } {
-  applyPhysicalCompensation(teamA, teamB, lockedA, lockedB)
-  applySoftBalancing(teamA, teamB, chemistry, mvpCounts, lockedA, lockedB)
+  applyPhysicalCompensation(teamA, teamB, lockedIds)
+  applySoftBalancing(teamA, teamB, chemistry, mvpCounts, lockedIds)
 
   return toTeamResults(teamA, teamB, chemistry)
 }
@@ -223,12 +223,14 @@ function finalizeTeams(
  * scratch — re-running the full balance search tends to converge back to the same (or an
  * equivalent) optimum, which makes "regenerate" a no-op in practice. Only swaps that keep the
  * skill/physical invariant already achieved are considered, so the result is always a
- * different lineup that is still fair.
+ * different lineup that is still fair. Players in `lockedIds` (e.g. manually pinned to a side)
+ * are never swap candidates, so a lock survives repeated regenerations.
  */
 export function shuffleTeams(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
-  chemistry?: ChemistryMatrix
+  chemistry?: ChemistryMatrix,
+  lockedIds: Set<string> = new Set()
 ): { teamA: TeamResult; teamB: TeamResult } {
   const nextA = [...teamA]
   const nextB = [...teamB]
@@ -239,7 +241,9 @@ export function shuffleTeams(
 
   const candidates: Array<[number, number]> = []
   for (let i = 0; i < nextA.length; i++) {
+    if (lockedIds.has(nextA[i].id)) continue
     for (let j = 0; j < nextB.length; j++) {
+      if (lockedIds.has(nextB[j].id)) continue
       const swappedA = [...nextA]
       const swappedB = [...nextB]
       ;[swappedA[i], swappedB[j]] = [swappedB[j], swappedA[i]]
@@ -323,5 +327,6 @@ export function balanceRemainingPlayers(
 
   // Pre-seeded players (manually pinned, designated goalkeepers, streak-separated) must stay
   // exactly where the caller put them — only players pulled from `unassigned` are up for swaps.
-  return finalizeTeams(teamA, teamB, chemistry, mvpCounts, preTeamA.length, preTeamB.length)
+  const lockedIds = new Set([...preTeamA, ...preTeamB].map(p => p.id))
+  return finalizeTeams(teamA, teamB, chemistry, mvpCounts, lockedIds)
 }

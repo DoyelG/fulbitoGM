@@ -209,13 +209,25 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       return
     }
 
+    const pinnedIds = new Set([...manualA, ...manualB].map(p => p.id))
+
     let teams: { teamA: TeamResult; teamB: TeamResult }
     let hadStreak = streakSeparated
     if (autoTeams) {
       // Regenerate: perturb the CURRENT lineup with a random valid swap. Recomputing from
       // scratch converges back to the same optimum almost every time (the balancer sorts by
       // skill regardless of input order), which made "regenerate" look like it did nothing.
-      teams = shuffleTeams(autoTeams.teamA.players, autoTeams.teamB.players, chemistry)
+      teams = shuffleTeams(autoTeams.teamA.players, autoTeams.teamB.players, chemistry, pinnedIds)
+    } else if (pinnedIds.size > 0) {
+      const unassigned = enrichedPlayers.filter(p => !pinnedIds.has(p.id))
+      teams = balanceRemainingPlayers(
+        [...unassigned].sort(() => Math.random() - 0.5),
+        manualA,
+        manualB,
+        playersPerTeam,
+        chemistry,
+        mvpCounts
+      )
     } else {
       const streaks = calculateAllCurrentStreaks(finalMatches)
       const built = buildTeams([...enrichedPlayers].sort(() => Math.random() - 0.5), streaks)
