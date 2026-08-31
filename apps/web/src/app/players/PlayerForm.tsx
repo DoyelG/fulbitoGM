@@ -197,6 +197,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
           {mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
         </button>
       </div>
+
+      
     </form>
   )
 }

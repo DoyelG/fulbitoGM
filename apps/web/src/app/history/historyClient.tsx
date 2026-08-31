@@ -21,6 +21,7 @@ import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 import { Pagination } from "../shared/Pagination";
 import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
+import { Backdrop } from "@/components/Backdrop";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
@@ -445,36 +446,35 @@ export default function HistoryClient() {
           className="mb-10"
         />
       )}
-      <dialog
-        open={showModal}
-        className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
-      >
-        <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            Confirmar eliminación
-          </h2>
+      {showModal && (
+        <Backdrop onClose={() => setShowModal(false)} title="Confirmar eliminación">
+          <div className="bg-white p-6 rounded-xl max-w-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirmar eliminación
+            </h2>
 
-          <p className="text-gray-600 mb-6">
-            ¿Estás seguro de que querés eliminar este partido?
-          </p>
+            <p className="text-gray-600 mb-6">
+              ¿Estás seguro de que querés eliminar este partido?
+            </p>
 
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setShowModal(false)}
-              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
-              Cancelar
-            </button>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
 
-            <button
-              onClick={() => handleConfirmDelete()}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
-              Eliminar
-            </button>
+              <button
+                onClick={() => handleConfirmDelete()}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
-        </div>
-      </dialog>
+        </Backdrop>
+      )}
 
       <Modal
         open={videoUploadMatch !== null}
@@ -825,8 +825,9 @@ function RecordModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
+    <Backdrop onClose={onClose} title='Registrar Resultado del Partido'>
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h2 className="text-xl font-semibold">
             Registrar Resultado del Partido
@@ -1222,7 +1223,7 @@ function RecordModal({
           </button>
         </div>
       </div>
-    </div>
+    </Backdrop>
   );
 }
 
