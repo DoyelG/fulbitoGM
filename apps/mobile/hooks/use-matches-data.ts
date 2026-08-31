@@ -1,4 +1,4 @@
-import type { Match, Player } from '@fulbito/types'
+import type { Match, MatchInput, Player } from '@fulbito/types'
 import { useCallback, useEffect, useState } from 'react'
 import { getMatches, getPlayers, createMatch, updateMatch, deleteMatch } from '@fulbito/firebase'
 import { shapeStorePlayers } from '@/lib/shape'
@@ -20,8 +20,8 @@ export type MatchesDataState = {
   reload: () => Promise<void>
   refresh: () => Promise<void>
   deleteMatch: (id: string) => Promise<void>
-  addMatch: (m: Omit<Match, 'id'>) => Promise<void>
-  updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
+  addMatch: (m: MatchInput) => Promise<void>
+  updateMatch: (id: string, m: MatchInput) => Promise<void>
 }
 
 export function useMatchesData(): MatchesDataState {
@@ -59,7 +59,7 @@ export function useMatchesData(): MatchesDataState {
   )
 
   const handleAddMatch = useCallback(
-    async (m: Omit<Match, 'id'>) => {
+    async (m: MatchInput) => {
       await createMatch(m)
       await reload()
     },
@@ -67,7 +67,7 @@ export function useMatchesData(): MatchesDataState {
   )
 
   const handleUpdateMatch = useCallback(
-    async (id: string, m: Omit<Match, 'id'>) => {
+    async (id: string, m: MatchInput) => {
       await updateMatch(id, m)
       await reload()
     },

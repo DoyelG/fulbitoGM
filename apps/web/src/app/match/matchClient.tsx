@@ -9,7 +9,7 @@ import { balanceRemainingPlayers, balanceTeams, PlayerInfo, TeamResult } from '@
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
 import { onlyFinalMatches } from '@fulbito/utils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
-import type { Match } from '@fulbito/types'
+import type { MatchInput } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
@@ -282,7 +282,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     if (isCreatingDraft) return
     setIsCreatingDraft(true)
     try {
-      const draft: Omit<Match, 'id'> = {
+      const draft: MatchInput = {
         date: draftDate,
         type: matchType,
         status: 'draft',
