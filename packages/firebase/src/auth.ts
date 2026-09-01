@@ -68,7 +68,10 @@ export async function signOut(): Promise<void> {
 export function onAuthStateChanged(callback: (user: AppUser | null) => void): () => void {
   const auth = getAuth()
   return firebaseOnAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-    if (!firebaseUser) { callback(null); return }
+    if (!firebaseUser) {
+      callback(null)
+      return
+    }
     const role = await getUserRole(firebaseUser.uid)
     callback({ uid: firebaseUser.uid, email: firebaseUser.email!, role })
   })
