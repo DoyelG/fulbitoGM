@@ -1,4 +1,4 @@
-import type { Match, Player } from '@fulbito/types'
+import type { MatchInput, Player } from '@fulbito/types'
 
 import type { MatchType, RecordingPlayer } from './types'
 
@@ -71,7 +71,7 @@ export type BuildPayloadInput = {
   isMatchFriendly?: boolean
 }
 
-export function buildMatchPayload(input: BuildPayloadInput): Omit<Match, 'id'> {
+export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
   const buildTeamPlayers = (
     team: RecordingPlayer[],
     goals: Record<string, string>,

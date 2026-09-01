@@ -9,7 +9,7 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore'
-import type { Match, MatchPlayer } from '@fulbito/types'
+import type { Match, MatchInput, MatchPlayer } from '@fulbito/types'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
 
@@ -44,6 +44,10 @@ function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Matc
   return {
     id,
     date: data['date'] instanceof Timestamp ? data['date'].toDate().toISOString() : (data['date'] as string),
+    createdAt: data['createdAt'] instanceof Timestamp ? data['createdAt'].toDate().toISOString() : ((data['createdAt'] as string | undefined) ??
+        (data['date'] instanceof Timestamp ? data['date'].toDate().toISOString() : (data['date'] as string))),
+    updatedAt: data['updatedAt'] instanceof Timestamp ? data['updatedAt'].toDate().toISOString() : ((data['updatedAt'] as string | undefined) ??
+        (data['date'] instanceof Timestamp ? data['date'].toDate().toISOString() : (data['date'] as string))),
     type: data['type'] as string,
     status: data['status'] === 'draft' ? 'draft' : 'final',
     name: (data['name'] as string | undefined) ?? undefined,
@@ -71,10 +75,17 @@ export async function getMatches(): Promise<Match[]> {
   const mpDocs = mpSnap.docs.map(d => ({ id: d.id, data: () => d.data() as Record<string, unknown> }))
   const teamsByMatch = groupTeamsByMatch(mpDocs, playerNames)
 
-  return matchSnap.docs.map(d => {
+  const matches = matchSnap.docs.map(d => {
     const scalars = docToMatchScalars(d.id, d.data() as Record<string, unknown>)
     const teams = teamsByMatch.get(d.id) ?? { A: [], B: [] }
     return { ...scalars, teamA: teams.A, teamB: teams.B }
+  })
+
+  return matches.sort((a, b) => {
+    const dayA = a.date.slice(0, 10)
+    const dayB = b.date.slice(0, 10)
+    if (dayA !== dayB) return dayB.localeCompare(dayA)
+    return b.createdAt.localeCompare(a.createdAt)
   })
 }
 
@@ -98,7 +109,7 @@ export async function getMatch(id: string): Promise<Match | null> {
   return { ...scalars, teamA: teams.A, teamB: teams.B }
 }
 
-export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
+export async function createMatch(data: MatchInput): Promise<string> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
 
@@ -135,7 +146,7 @@ export async function createMatch(data: Omit<Match, 'id'>): Promise<string> {
   return matchRef.id
 }
 
-export async function updateMatch(id: string, data: Omit<Match, 'id'>): Promise<void> {
+export async function updateMatch(id: string, data: MatchInput): Promise<void> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
 

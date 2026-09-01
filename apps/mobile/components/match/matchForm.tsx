@@ -1,4 +1,4 @@
-import type { Match, Player } from '@fulbito/types'
+import type { Match, MatchInput, Player } from '@fulbito/types'
 import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
@@ -31,7 +31,7 @@ export type MatchFormProps = {
   players: Player[]
   allMatches: Match[]
   saving: boolean
-  onSave: (m: Omit<Match, 'id'>) => Promise<void>
+  onSave: (m: MatchInput) => Promise<void>
   onCancel: () => void
   onTitleChange?: (title: string) => void
 }

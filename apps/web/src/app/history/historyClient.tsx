@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import type { Match } from "@fulbito/types";
+import type { Match, MatchInput } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
 import Modal from "@/components/Modal";
@@ -21,6 +21,7 @@ import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 import { Pagination } from "../shared/Pagination";
 import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
+import { Backdrop } from "@/components/Backdrop";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
@@ -126,22 +127,6 @@ export default function HistoryClient() {
     resetKey: `${fromDate}|${toDate}|${searchQuery}`,
   });
 
-  if (open) {
-    return (
-      <RecordModal
-        mode={open.mode}
-        initial={open.mode === "edit" ? open.match : undefined}
-        onClose={() => setOpen(false)}
-        onSave={async (m) => {
-          if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, m);
-          } else {
-            await addMatch(m);
-          }
-        }}
-      />
-    );
-  }
   const handleDelete = (matchId: string) => {
     setShowModal(true);
     setSelectedMatchId(matchId);
@@ -450,36 +435,48 @@ export default function HistoryClient() {
           className="mb-10"
         />
       )}
-      <dialog
-        open={showModal}
-        className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
-      >
-        <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            Confirmar eliminación
-          </h2>
+      {showModal && (
+        <Backdrop onClose={() => setShowModal(false)} title="Confirmar eliminación">
+          <div className="bg-white p-6 rounded-xl max-w-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirmar eliminación
+            </h2>
 
-          <p className="text-gray-600 mb-6">
-            ¿Estás seguro de que querés eliminar este partido?
-          </p>
+            <p className="text-gray-600 mb-6">
+              ¿Estás seguro de que querés eliminar este partido?
+            </p>
 
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setShowModal(false)}
-              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
-              Cancelar
-            </button>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
 
-            <button
-              onClick={() => handleConfirmDelete()}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
-              Eliminar
-            </button>
+              <button
+                onClick={() => handleConfirmDelete()}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
-        </div>
-      </dialog>
+        </Backdrop>
+      )}
+
+      {open && <RecordModal
+        mode={open.mode}
+        initial={open.mode === "edit" ? open.match : undefined}
+        onClose={() => setOpen(false)}
+        onSave={async (m) => {
+          if (open.mode === "edit" && open.match) {
+            await updateMatch(open.match.id, m);
+          } else {
+            await addMatch(m);
+          }
+        }}
+      />}
 
       <Modal
         open={videoUploadMatch !== null}
@@ -587,7 +584,7 @@ function RecordModal({
   mode?: "create" | "edit";
   initial?: Match;
   onClose: () => void;
-  onSave: (m: Omit<Match, "id">) => void;
+  onSave: (m: MatchInput) => void;
 }) {
   const { players } = usePlayerStore();
   const { matches: allMatches } = useMatchStore();
@@ -606,6 +603,7 @@ function RecordModal({
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
   );
+
   const [matchType, setMatchType] = useState<MatchType>(
     (initial?.type as MatchType) || "5v5",
   );
@@ -774,7 +772,7 @@ function RecordModal({
   // Saving a draft only needs full teams — it hasn't been played yet.
   const canUpdateDraft = teamsComplete;
 
-  const buildPayload = (status: "draft" | "final"): Omit<Match, "id"> => {
+  const buildPayload = (status: "draft" | "final"): MatchInput => {
     const isFinal = status === "final";
     const pool = selectedPlayersForDuty.pool;
     const chosen =
@@ -832,8 +830,9 @@ function RecordModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
+    <Backdrop onClose={onClose} title='Registrar Resultado del Partido'>
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h2 className="text-xl font-semibold">
             Registrar Resultado del Partido
@@ -1269,7 +1268,7 @@ function RecordModal({
           </button>
         </div>
       </div>
-    </div>
+    </Backdrop>
   );
 }
 

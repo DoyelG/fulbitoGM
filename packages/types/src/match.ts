@@ -21,8 +21,11 @@ export type Match = {
   mvpId?: string | null
   goalkeeperIds?: string[]
   isFriendly?: boolean
+  createdAt: string
+  updatedAt: string
 }
-// To show in history who are friendly matches
+
+export type MatchInput = Omit<Match, 'id' | 'createdAt' | 'updatedAt'>
 
 /** Minimal match shape used by streak-calculation algorithms */
 export type MatchLike = {
