@@ -1,4 +1,5 @@
 import type { Player } from '@fulbito/types'
+import { normalizeForSearch } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
 import type { PositionFilter } from '@/components/players/position-filter-row'
@@ -23,10 +24,10 @@ export function usePlayerFilters(players: Player[]): Filters {
   }, [players])
 
   const filteredPlayers = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = normalizeForSearch(query.trim())
     return players.filter((p) => {
       if (position && p.position !== position) return false
-      if (q && !p.name.toLowerCase().includes(q)) return false
+      if (q && !normalizeForSearch(p.name).includes(q)) return false
       return true
     })
   }, [players, query, position])
