@@ -20,6 +20,7 @@ export type Match = {
   shirtsResponsibleId?: string | null
   mvpId?: string | null
   goalkeeperIds?: string[]
+  isFriendly?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -33,6 +34,7 @@ export type MatchLike = {
   teamBScore: number
   teamA: { id: string }[]
   teamB: { id: string }[]
+  isFriendly?: boolean
 }
 
 export function isDraft(m: Pick<Match, 'status'>): boolean {

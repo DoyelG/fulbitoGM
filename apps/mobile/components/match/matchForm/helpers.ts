@@ -68,6 +68,7 @@ export type BuildPayloadInput = {
   shirtsResponsibleId: string | null
   goalkeeperIds?: string[]
   mvpId?: string | null
+  isMatchFriendly?: boolean
 }
 
 export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
@@ -94,5 +95,6 @@ export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
     shirtsResponsibleId: input.shirtsResponsibleId,
     goalkeeperIds: input.goalkeeperIds ?? [],
     mvpId: input.mvpId ?? null,
+    isFriendly: input.isMatchFriendly ?? false,
   }
 }
