@@ -5,6 +5,9 @@ type Props = {
   text: string,
 }
 
+const PADDING = 5
+const LINE_HEIGHT = 20 + PADDING
+
 export function MatchDescription({ text }: Props) {
   const [isExpanded, setExpanded] = useState<boolean>(false)
   const [textHeight, setTextHeight] = useState(0)
@@ -16,8 +19,6 @@ export function MatchDescription({ text }: Props) {
     }
   }, [])
 
-  const PADDING = 5
-  const LINE_HEIGHT = 20 + PADDING
   const isTruncatable = textHeight > LINE_HEIGHT
 
   return (

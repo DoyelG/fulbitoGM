@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FiChevronDown } from "react-icons/fi";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 import type { Match } from "@fulbito/types";
@@ -98,8 +97,6 @@ export default function HistoryClient() {
   const [toDate, setToDate] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
-
   const isLoadingMatches = matchesInit === "idle" || matchesInit === "loading";
 
   const filteredMatches = storeMatches.filter((match) => {
@@ -158,18 +155,6 @@ export default function HistoryClient() {
     } finally {
       setShowModal(false);
     }
-  };
-
-  const toggleDescription = (matchId: string) => {
-    setExpandedDescriptions((prev) => {
-      const next = new Set(prev);
-      if (next.has(matchId)) {
-        next.delete(matchId);
-      } else {
-        next.add(matchId);
-      }
-      return next;
-    });
   };
 
   return (
@@ -404,7 +389,6 @@ export default function HistoryClient() {
                           </span>
                         )}
                       </button>
-                      
                       {isAdmin && (
                         <>
                           {isDraft ? (
