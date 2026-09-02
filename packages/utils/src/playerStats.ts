@@ -10,7 +10,7 @@ export function getGoalkeeping(player: Pick<Player, 'goalkeeping' | 'skill'>): n
 
 function relevantSorted(matches: MatchLike[], playerId: string) {
   return matches
-    .filter(m => m.teamA.some(p => p.id === playerId) || m.teamB.some(p => p.id === playerId))
+    .filter(m => (m.teamA.some(p => p.id === playerId) || m.teamB.some(p => p.id === playerId)) && !m.isFriendly)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
