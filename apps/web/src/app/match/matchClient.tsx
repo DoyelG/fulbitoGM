@@ -409,6 +409,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {players
+              .filter(p => !p.inactive)
               .filter(p => {
                 const q = playerQuery.trim().toLowerCase()
                 if (!q) return true
