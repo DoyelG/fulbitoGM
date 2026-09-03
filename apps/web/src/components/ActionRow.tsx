@@ -55,9 +55,9 @@ export default function ActionRow({ actions, children, className = '', tooltipPo
           {actions.map((action, i) => {
             const cls = `p-1.5 rounded-md transition-colors ${variantStyles[action.variant]}`
             const element = action.href ? (
-              <Link key={i} href={action.href} className={cls}>{action.icon}</Link>
+              <Link key={i} href={action.href} className={cls} aria-label={action.tooltip}>{action.icon}</Link>
             ) : (
-              <button key={i} onClick={action.onClick} className={cls}>{action.icon}</button>
+              <button key={i} onClick={action.onClick} className={cls} aria-label={action.tooltip}>{action.icon}</button>
             )
             return action.tooltip ? (
               <Tooltip key={i} label={action.tooltip} position={tooltipPosition} variant={action.variant}>{element}</Tooltip>
