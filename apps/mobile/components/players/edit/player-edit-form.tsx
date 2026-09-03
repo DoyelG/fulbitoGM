@@ -22,6 +22,7 @@ export type PlayerEditFormValues = {
   tactical: number
   psychological: number
   goalkeeping: number
+  inactive: boolean
 }
 
 type Props = {
@@ -87,7 +88,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
 
   const canSave = values.name.trim().length >= 2 && !saving
 
-  const set = (key: keyof PlayerEditFormValues, val: string | number) =>
+  const set = (key: keyof PlayerEditFormValues, val: string | number | boolean) =>
     onChange({ ...values, [key]: val })
 
   return (
@@ -184,6 +185,37 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           />
         </View>
 
+        {/* ── Estado ───────────────────────────────────────── */}
+        <ThemedText style={[styles.label, { color: colors.muted }]}>Estado</ThemedText>
+        <View
+          style={[styles.segmented, { borderColor: colors.border, borderRadius: radii.sm }]}
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Estado del jugador">
+          {[
+            { value: false, label: 'Activo' },
+            { value: true, label: 'Inactivo' },
+          ].map((opt, i) => {
+            const active = values.inactive === opt.value
+            const selectedColor = opt.value ? '#6b7280' : colors.brand
+            return (
+              <TouchableOpacity
+                key={opt.label}
+                onPress={() => set('inactive', opt.value)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+                style={[
+                  styles.segmentBtn,
+                  i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border },
+                  { backgroundColor: active ? selectedColor : 'transparent' },
+                ]}>
+                <ThemedText style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
+                  {opt.label}
+                </ThemedText>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
         {/* ── Acciones ─────────────────────────────────────── */}
         <View style={styles.actions}>
           <TouchableOpacity
@@ -254,6 +286,19 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.semiBold,
   },
 
+  segmented: {
+    flexDirection: 'row',
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  segmentBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs + 2,
+    width: 80,
+    alignItems: 'center',
+  },
+
   skillsCard: {
     borderWidth: 1,
     paddingVertical: Spacing.xs,
@@ -310,6 +355,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts.extraBold,
   },
+
 
   actions: {
     flexDirection: 'row',

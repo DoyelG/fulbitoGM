@@ -1,8 +1,9 @@
+import { Feather } from '@expo/vector-icons'
 import type { Player } from '@fulbito/types'
 import { calculateAllCurrentStreaks } from '@fulbito/utils'
 import { useRouter } from 'expo-router'
-import { useCallback, useMemo } from 'react'
-import { Alert, FlatList, RefreshControl, StyleSheet } from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PlayerCard } from '@/components/players/player-card'
@@ -10,6 +11,7 @@ import { PlayersEmpty } from '@/components/players/players-empty'
 import { PlayersError } from '@/components/players/players-error'
 import { PlayersListHeader } from '@/components/players/players-list-header'
 import { PlayersLoading } from '@/components/players/players-loading'
+import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { Spacing } from '@/constants/theme'
 import { useIsAdmin } from '@/hooks/use-is-admin'
@@ -24,7 +26,7 @@ export default function PlayersScreen() {
   const { colors } = useAppTheme()
 
   const {
-    players,
+    players: allPlayers,
     matches,
     loading,
     refreshing,
@@ -34,6 +36,8 @@ export default function PlayersScreen() {
     deletePlayer,
   } = usePlayersData()
 
+  const [showInactive, setShowInactive] = useState(false)
+
   const streaks = useMemo(() => calculateAllCurrentStreaks(matches), [matches])
   const {
     query,
@@ -42,8 +46,11 @@ export default function PlayersScreen() {
     setPosition,
     positions,
     filteredPlayers,
-  } = usePlayerFilters(players)
-  const { sortedPlayers } = usePlayerSort(filteredPlayers, streaks, 'skill')
+  } = usePlayerFilters(allPlayers)
+  const { sortedPlayers: sortedAllPlayers } = usePlayerSort(filteredPlayers, streaks, 'skill')
+
+  const sortedPlayers = useMemo(() => sortedAllPlayers.filter((p) => !p.inactive), [sortedAllPlayers])
+  const sortedInactivePlayers = useMemo(() => sortedAllPlayers.filter((p) => p.inactive), [sortedAllPlayers])
 
   const confirmDelete = useCallback(
     (player: Player) => {
@@ -135,6 +142,45 @@ export default function PlayersScreen() {
               onLongPress={isAdmin ? () => openAdminActions(player) : undefined}
             />
           )}
+          ListFooterComponent={
+            isAdmin ? (
+              <View style={styles.inactiveSection}>
+                <TouchableOpacity
+                  style={styles.inactiveHeader}
+                  onPress={() => setShowInactive((v) => !v)}
+                  activeOpacity={0.8}
+                >
+                  <ThemedText type="defaultSemiBold">
+                    Inactivos ({sortedInactivePlayers.length})
+                  </ThemedText>
+                  <Feather
+                    name={showInactive ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={colors.muted}
+                  />
+                </TouchableOpacity>
+                {showInactive && (
+                  <View style={styles.inactiveList}>
+                    {sortedInactivePlayers.length === 0 ? (
+                      <ThemedText style={{ color: colors.muted }}>
+                        No hay jugadores inactivos.
+                      </ThemedText>
+                    ) : (
+                      sortedInactivePlayers.map((player) => (
+                        <PlayerCard
+                          key={player.id}
+                          player={player}
+                          streak={streaks[player.id] ?? { kind: null, count: 0 }}
+                          onPress={() => router.push(`/(tabs)/players/${player.id}`)}
+                          onLongPress={() => openAdminActions(player)}
+                        />
+                      ))
+                    )}
+                  </View>
+                )}
+              </View>
+            ) : null
+          }
         />
       </ThemedView>
     </SafeAreaView>
@@ -155,6 +201,19 @@ const styles = StyleSheet.create({
   },
   emptyList: {
     flexGrow: 1,
-    justifyContent: 'center',
+    // justifyContent: 'center',
+  },
+  inactiveSection: {
+    marginTop: Spacing.lg,
+  },
+  inactiveHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.sm,
+  },
+  inactiveList: {
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
   },
 })
