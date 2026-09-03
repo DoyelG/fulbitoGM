@@ -8,9 +8,9 @@ import type { Match, Player } from '@fulbito/types'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { FiChevronDown } from 'react-icons/fi'
+import { FiChevronDown, FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
 import PlayersTable, { type PlayerRow } from './PlayersTable'
-import { Backdrop } from '@/components/Backdrop'
+import Modal from '@/components/Modal'
 
 export default function PlayersClient({
   players: initialPlayers,
@@ -23,8 +23,12 @@ export default function PlayersClient({
   const [showModal, setShowModal] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [showInactiveTable, setShowInactiveTable] = useState(false)
+  const [showToggleModal, setShowToggleModal] = useState(false)
+  const [toggleTarget, setToggleTarget] = useState<{ playerId: string; inactive: boolean } | null>(null)
   const { deletePlayer, updatePlayer, hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
   const { hydrateMatches, matches: storeMatches, resetAndReload: resetMatches } = useMatchStore()
+  const [globalFilter, setGlobalFilter] = useState('')
+
 
   const initialized = useRef(false)
   useEffect(() => {
@@ -58,6 +62,11 @@ export default function PlayersClient({
     [storePlayers, selectedPlayerId],
   )
 
+  const toggleTargetPlayer = useMemo(
+    () => storePlayers.find((p) => p.id === toggleTarget?.playerId) ?? null,
+    [storePlayers, toggleTarget],
+  )
+
   const handleDelete = useCallback((playerId: string) => {
     setShowModal(true)
     setSelectedPlayerId(playerId)
@@ -69,8 +78,16 @@ export default function PlayersClient({
   }, [deletePlayer, selectedPlayerId])
 
   const handleToggleActive = useCallback((playerId: string, inactive: boolean) => {
-    updatePlayer(playerId, { inactive })
-  }, [updatePlayer])
+    setToggleTarget({ playerId, inactive })
+    setShowToggleModal(true)
+  }, [])
+
+  const handleConfirmToggle = useCallback(() => {
+    if (!toggleTarget) return
+    updatePlayer(toggleTarget.playerId, { inactive: toggleTarget.inactive })
+    setShowToggleModal(false)
+    setToggleTarget(null)
+  }, [updatePlayer, toggleTarget])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -84,14 +101,24 @@ export default function PlayersClient({
       </div>
 
       <div className="mb-6">
+
+          <input
+          type="text"
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder="Buscar por nombre..."
+          className="w-full sm:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        />
+      </div>
         <PlayersTable
           players={activePlayers}
           isAdmin={isAdmin}
+          globalFilter={globalFilter}
+          setGlobalFilter={setGlobalFilter}
           onDelete={handleDelete}
           onToggleActive={handleToggleActive}
           emptyMessage="No hay jugadores activos aún."
         />
-      </div>
 {isAdmin && (
       <div className="bg-white rounded-lg border border-gray-200">
         <button
@@ -113,6 +140,8 @@ export default function PlayersClient({
               isAdmin={isAdmin}
               onDelete={handleDelete}
               onToggleActive={handleToggleActive}
+              globalFilter={globalFilter}
+              setGlobalFilter={setGlobalFilter}
               emptyMessage="No hay jugadores inactivos."
             />
           </div>
@@ -121,28 +150,75 @@ export default function PlayersClient({
       )}
 
 
-      {showModal && (
-        <Backdrop onClose={() => setShowModal(false)} title="Confirmar eliminación">
-          <div className="bg-white p-6 rounded-xl max-w-md">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
-            <p className="text-gray-600 mb-6">¿Estás seguro de que querés eliminar a {selectedPlayer?.name}?</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-              >
-                Eliminar
-              </button>
-            </div>
+      <Modal
+        title="Confirmar eliminación"
+        open={showModal}
+        onClose={() => setShowModal(false)}>
+        <div className="p-2 text-center">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
+            <FiTrash2 className="text-red-600" size={20} />
           </div>
-        </Backdrop>
-      )}
+          <p className="text-gray-600">
+            ¿Estás seguro de que querés eliminar a{' '}
+            <span className="font-medium text-gray-900">{selectedPlayer?.name}</span>?
+          </p>
+          <div className="flex justify-center gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              className="flex-1 px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        title="Confirmar cambio de estado"
+        open={showToggleModal}
+        onClose={() => setShowToggleModal(false)}>
+        <div className="p-2 text-center">
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${
+              toggleTarget?.inactive ? 'bg-red-100' : 'bg-brand/10'
+            }`}
+          >
+            {toggleTarget?.inactive ? (
+              <FiUserX className="text-red-600" size={20} />
+            ) : (
+              <FiUserCheck className="text-brand" size={20} />
+            )}
+          </div>
+          <p className="text-gray-600">
+            ¿Estás seguro de que querés {toggleTarget?.inactive ? 'desactivar' : 'activar'} a{' '}
+            <span className="font-medium text-gray-900">{toggleTargetPlayer?.name}</span>?
+          </p>
+          <div className="flex justify-center gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowToggleModal(false)}
+              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmToggle}
+              className="flex-1 px-5 py-2 rounded-lg bg-brand text-white hover:bg-brand/90 transition"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

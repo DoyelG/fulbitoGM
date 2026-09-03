@@ -57,12 +57,12 @@ export default function PlayerDetailPage() {
     goalkeeping: "5",
     inactive: false,
   });
+  const [originalForm, setOriginalForm] = useState(form);
 
   useEffect(() => {
-    console.log(player)
     if (player) {
       const base = player.skill ?? 5;
-      setForm({
+      const loaded = {
         name: player.name,
         position: player.position,
         physical: String(player.skills?.physical ?? base),
@@ -71,10 +71,22 @@ export default function PlayerDetailPage() {
         psychological: String(player.skills?.psychological ?? base),
         goalkeeping: String(getGoalkeeping(player)),
         inactive: player.inactive ?? false,
-      });
+      };
+      setForm(loaded);
+      setOriginalForm(loaded);
       setGkTouched(player.goalkeeping != null);
     }
   }, [player]);
+
+  const canSubmitQuick =
+    form.name.trim() !== originalForm.name.trim() ||
+    form.position !== originalForm.position ||
+    form.physical !== originalForm.physical ||
+    form.technical !== originalForm.technical ||
+    form.tactical !== originalForm.tactical ||
+    form.psychological !== originalForm.psychological ||
+    form.goalkeeping !== originalForm.goalkeeping ||
+    form.inactive !== originalForm.inactive;
 
   const stats = useMemo(() => {
     const res = {
@@ -231,6 +243,11 @@ export default function PlayerDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700">General:</span>
                 <SkillBadge skill={overallAvg} />
+              {player.inactive && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-600">
+                  Inactivo
+                </span>
+              )}
               </div>
               <span className="text-sm">Posición: {player.position}</span>
             </div>
@@ -240,13 +257,7 @@ export default function PlayerDetailPage() {
           <button
             type="button"
             className="px-3 py-2 rounded border hover:bg-gray-50"
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) {
-                router.back()
-              } else {
-                router.push('/players')
-              }
-            }}
+            onClick={() => router.push('/players')}
           >
             Volver
           </button>
@@ -411,16 +422,33 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="inactive-quick-edit" className="block text-sm font-medium mb-1">Estado</label>
-            <select
-              id="inactive-quick-edit"
-              value={form.inactive ? 'inactive' : 'active'}
-              onChange={(e) => setForm({ ...form, inactive: e.target.value === 'inactive' })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+            <label className="block text-sm font-medium mb-1">Estado</label>
+            <div
+              role="group"
+              aria-label="Estado del jugador"
+              className="flex w-full rounded border border-gray-300 overflow-hidden"
             >
-              <option value="active">Activo</option>
-              <option value="inactive">Inactivo</option>
-            </select>
+              <button
+                type="button"
+                aria-pressed={!form.inactive}
+                onClick={() => setForm({ ...form, inactive: false })}
+                className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+                  !form.inactive ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Activo
+              </button>
+              <button
+                type="button"
+                aria-pressed={form.inactive}
+                onClick={() => setForm({ ...form, inactive: true })}
+                className={`flex-1 px-3 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+                  form.inactive ? 'bg-gray-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Inactivo
+              </button>
+            </div>
           </div>
           <div className="sm:col-span-3 flex justify-end gap-2">
             <button
@@ -432,7 +460,10 @@ export default function PlayerDetailPage() {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-brand text-white hover:bg-brand/90"
+              disabled={!canSubmitQuick}
+              className={`px-4 py-2 rounded ${
+                canSubmitQuick ? 'bg-brand text-white hover:bg-brand/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               Guardar
             </button>

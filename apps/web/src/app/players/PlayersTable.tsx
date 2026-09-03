@@ -31,13 +31,14 @@ type Props = {
   isAdmin: boolean
   onDelete: (playerId: string) => void
   onToggleActive: (playerId: string, inactive: boolean) => void
-  emptyMessage: string
+  emptyMessage: string,
+  globalFilter: string,
+  setGlobalFilter: (value: string) => void
 }
 
-export default function PlayersTable({ players, isAdmin, onDelete, onToggleActive, emptyMessage }: Props) {
+export default function PlayersTable({ players, isAdmin, onDelete, onToggleActive, emptyMessage ,globalFilter , setGlobalFilter}: Props) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'skill', desc: true }])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
 
   const columns = useMemo(
     () => [
@@ -149,15 +150,6 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
   return (
     <div>
       <div className="mb-4">
-        <input
-          type="text"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Buscar por nombre..."
-          className="w-full sm:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-        />
-      </div>
-
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full table-auto">
@@ -226,6 +218,7 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
               )}
             </tbody>
           </table>
+        </div>
         </div>
       </div>
     </div>
