@@ -5,6 +5,7 @@ export const AWARD_ICONS: Record<AwardKey, AwardIcon> = {
   matches: { lib: 'mci', name: 'run' },
   goals: { lib: 'mci', name: 'soccer' },
   lossStreak: { lib: 'mci', name: 'emoticon-sad-outline' },
+  lostFinals: { lib: 'mci', name: 'trophy-broken' },
   shirts: { lib: 'mci', name: 'washing-machine' },
   mvps: { lib: 'ionicons', name: 'star' },
 }

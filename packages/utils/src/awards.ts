@@ -1,7 +1,9 @@
 import type { Match, Player } from '@fulbito/types'
 import { getMvpCountsByPlayerId } from './mvp'
 import { getShirtDutiesByPlayerId } from './shirtDuty'
-import { calculateAllLongestLossStreaks, calculateAllLongestWinStreaks } from './playerStats'
+import { calculateAllLongestLossStreaks, calculateAllLongestWinStreaks, countAllLostFinals } from './playerStats'
+
+export const CHAMPIONSHIP_THRESHOLD = 7
 
 export type PlayerStatRow = {
   id: string
@@ -16,6 +18,7 @@ export type PlayerStatRow = {
   shirts: number
   mvps: number
   lossStreak: number
+  lostFinals: number
 }
 
 export function computePlayerStatRows(players: Player[], matches: Match[]): PlayerStatRow[] {
@@ -23,6 +26,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
   const shirtCountById = getShirtDutiesByPlayerId(matches)
   const mvpCountById = getMvpCountsByPlayerId(matches)
   const lossStreakById = calculateAllLongestLossStreaks(matches)
+  const lostFinalsById = countAllLostFinals(matches, CHAMPIONSHIP_THRESHOLD)
   const photoById = new Map(players.map((p) => [p.id, p.photoUrl ?? undefined]))
 
   for (const m of matches) {
@@ -43,6 +47,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
             shirts: shirtCountById.get(p.id) ?? 0,
             mvps: mvpCountById.get(p.id) ?? 0,
             lossStreak: lossStreakById[p.id] ?? 0,
+            lostFinals: lostFinalsById[p.id] ?? 0,
           }
         }
 
@@ -75,7 +80,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
 }
 
 export type AwardAccent = 'brand' | 'secondary' | 'muted'
-export type AwardKey = 'matches' | 'goals' | 'lossStreak' | 'shirts' | 'mvps'
+export type AwardKey = 'matches' | 'goals' | 'lossStreak' | 'lostFinals' | 'shirts' | 'mvps'
 
 export type AwardDef = {
   key: AwardKey
@@ -111,6 +116,14 @@ export const AWARD_DEFS: AwardDef[] = [
     unitLabel: 'DERROTAS SEGUIDAS',
     accent: 'muted',
     getValue: (row) => row.lossStreak,
+  },
+  {
+    key: 'lostFinals',
+    title: 'El eterno subcampeón',
+    subtitle: `Llegó a ${CHAMPIONSHIP_THRESHOLD - 1} victorias seguidas y perdió la final. Tan cerca de la gloria, tan lejos.`,
+    unitLabel: 'FINALES PERDIDAS',
+    accent: 'secondary',
+    getValue: (row) => row.lostFinals,
   },
   {
     key: 'shirts',
@@ -173,8 +186,6 @@ export function pickAwardPodiums(rows: PlayerStatRow[]): AwardPodium[] {
     return winner ? { def, winner, runnersUp } : null
   }).filter((p): p is AwardPodium => p !== null)
 }
-
-export const CHAMPIONSHIP_THRESHOLD = 7
 
 export type SeasonChampion = {
   playerId: string

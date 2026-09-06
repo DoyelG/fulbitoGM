@@ -90,6 +90,39 @@ export function calculateAllLongestWinStreaks(matches: MatchLike[]): Record<stri
   return out
 }
 
+// A "lost final" is a run of exactly `threshold - 1` wins broken by a loss:
+// the player was one win away from the crown and blew it. A run that actually
+// reaches `threshold` is a title, not a lost final, so it never counts here.
+export function countLostFinals(matches: MatchLike[], playerId: string, threshold = 7): number {
+  const chronological = relevantSorted(matches, playerId).slice().reverse()
+  let lostFinals = 0
+  let current = 0
+
+  for (const m of chronological) {
+    const r = resultForPlayer(m, playerId)
+    if (r === 'draw') continue
+    if (r === 'win') {
+      current++
+    } else {
+      if (current === threshold - 1) lostFinals++
+      current = 0
+    }
+  }
+
+  return lostFinals
+}
+
+export function countAllLostFinals(matches: MatchLike[], threshold = 7): Record<string, number> {
+  const ids = new Set<string>()
+  for (const m of matches) {
+    m.teamA.forEach(p => ids.add(p.id))
+    m.teamB.forEach(p => ids.add(p.id))
+  }
+  const out: Record<string, number> = {}
+  ids.forEach(id => { out[id] = countLostFinals(matches, id, threshold) })
+  return out
+}
+
 export function calculateLongestLossStreak(matches: MatchLike[], playerId: string): number {
   const chronological = relevantSorted(matches, playerId).slice().reverse()
   let longest = 0

@@ -6,7 +6,7 @@ export type { AwardAccent, AwardWinner }
 
 export type AwardIcon =
   | { lib: 'ionicons'; name: 'star' }
-  | { lib: 'mci'; name: 'run' | 'emoticon-sad-outline' | 'washing-machine' | 'soccer' }
+  | { lib: 'mci'; name: 'run' | 'emoticon-sad-outline' | 'washing-machine' | 'soccer' | 'trophy-broken' }
 
 export function useAnnualAwards(players: Player[], matches: Match[]) {
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())
