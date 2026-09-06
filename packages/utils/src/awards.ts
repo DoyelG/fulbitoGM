@@ -109,7 +109,7 @@ export const AWARD_DEFS: AwardDef[] = [
     title: 'Máximo Goleador',
     subtitle: 'El francotirador del torneo, el mayor artillero de la temporada',
     unitLabel: 'GOLES',
-    accent: 'brand',
+    accent: 'secondary',
     getValue: (row) => row.goals,
   },
   {
@@ -133,7 +133,7 @@ export const AWARD_DEFS: AwardDef[] = [
     title: 'El lavarropas del año',
     subtitle: 'El terror del lavadero, el que más veces se llevó las casacas a lavar',
     unitLabel: 'LAVADAS',
-    accent: 'secondary',
+    accent: 'muted',
     getValue: (row) => row.shirts,
   },
   {

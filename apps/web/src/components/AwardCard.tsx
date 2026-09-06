@@ -122,7 +122,7 @@ export function AwardCard({ Icon, accent, winnerName, winnerPhotoUrl, value, uni
           />
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center px-6 pt-9 text-center text-gray-900">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 py-8 text-center text-gray-900">
           <div className="text-4xl font-black italic leading-none drop-shadow-sm">{value}</div>
           <div className="mt-1 text-[11px] font-bold tracking-[0.15em]">{unitLabel}</div>
 

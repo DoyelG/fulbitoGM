@@ -41,10 +41,10 @@ export function ChampionsSection({ championship, champions, seasonYear }: Props)
       aria-label="Campeones"
       className="w-full border-t border-white/10 bg-gradient-to-br from-violet-950 via-brand-dark to-violet-950 text-white"
     >
-      <div className="mx-auto max-w-5xl px-6 py-14">
+      <div className="mx-auto max-w-4xl px-6 py-14">
         {seasonYear !== null && (
           <>
-            <p className="mb-5 text-xs font-bold tracking-[0.2em] text-amber-300">CAMPEONES {seasonYear}</p>
+            <h2 className="mb-5 text-xs font-bold tracking-[0.2em] text-amber-300">CAMPEONES {seasonYear}</h2>
 
             {champions.length === 0 ? (
               <p className="text-lg text-white/80">Nadie pudo coronarse y alcanzar la gloria esta temporada.</p>
@@ -76,7 +76,7 @@ export function ChampionsSection({ championship, champions, seasonYear }: Props)
           </>
         )}
 
-        <p className="mb-4 text-xs font-bold tracking-[0.2em] text-white/70">CAMINO AL CAMPEONATO</p>
+        <h2 className="mb-4 text-xs font-bold tracking-[0.2em] text-white/70">CAMINO AL CAMPEONATO</h2>
 
         {championship === null ? (
           <p className="text-white/80">Todavía nadie está en racha ganadora.</p>

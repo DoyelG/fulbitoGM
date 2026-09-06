@@ -24,6 +24,14 @@ const ACCENT_BAR: Record<AwardAccent, string> = {
   muted: 'bg-gray-400',
 }
 
+// Darker shades for the divider chip, which carries a white icon: the plain
+// accent orange (~2.8:1) and gray-400 (~2.6:1) are too washed out behind it.
+const ACCENT_CHIP: Record<AwardAccent, string> = {
+  brand: 'bg-[var(--color-brand)]',
+  secondary: 'bg-orange-700',
+  muted: 'bg-gray-600',
+}
+
 // A soft, distinct wash per award identity — replaces flat alternating
 // white/gray bands so each section reads as its own colored "chapter".
 const ACCENT_WASH: Record<AwardAccent, string> = {
@@ -46,7 +54,9 @@ export function AwardsClient({ players, matches }: Props) {
 
       <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-          <h1 className="text-2xl font-extrabold tracking-tight">Premios del Año</h1>
+          <h1 className="text-3xl font-black italic tracking-tight">
+            {isHallOfFame ? 'Hall of Fame' : 'Premios del Año'}
+          </h1>
           <div className="flex items-center gap-2">
             <label htmlFor="award-season" className="text-sm font-medium">
               Temporada
@@ -79,21 +89,26 @@ export function AwardsClient({ players, matches }: Props) {
           {isHallOfFame ? (
             <HallOfFame entries={hallOfFame} />
           ) : podiums.length === 0 ? (
-            <p className="py-16 text-center text-gray-600">Todavía no hay premios este año.</p>
+            <div className="mx-auto max-w-4xl px-6 py-16">
+              <p className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-600">
+                Todavía no hay premios este año.
+              </p>
+            </div>
           ) : (
             podiums.map((podium, index) => {
               const Icon = AWARD_ICONS[podium.def.key]
               return (
                 <Fragment key={podium.def.key}>
-                  <motion.section
-                    variants={sectionVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: '-100px' }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className={ACCENT_WASH[podium.def.accent]}
-                  >
-                    <div
+                  <section className={ACCENT_WASH[podium.def.accent]}>
+                    {/* The entrance animation rides the inner content, never the
+                        full-bleed band: scaling the band pulls its edges away
+                        from the viewport and exposes the page behind it. */}
+                    <motion.div
+                      variants={sectionVariants}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, margin: '-100px' }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
                       className={`mx-auto flex max-w-4xl flex-col items-center gap-8 px-6 py-12 sm:items-start sm:gap-10 ${
                         index % 2 === 1 ? 'sm:flex-row-reverse' : 'sm:flex-row'
                       }`}
@@ -115,15 +130,15 @@ export function AwardsClient({ players, matches }: Props) {
                           href={`/players/${podium.winner.row.id}`}
                         />
                       </div>
-                    </div>
-                  </motion.section>
+                    </motion.div>
+                  </section>
 
                   {index < podiums.length - 1 && (
                     <div className="bg-white">
                       <div className="mx-auto flex max-w-4xl items-center gap-4 px-6 py-4">
                         <div className="h-px flex-1 bg-gray-200" />
                         <div
-                          className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md ${ACCENT_BAR[podium.def.accent]}`}
+                          className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md ${ACCENT_CHIP[podium.def.accent]}`}
                         >
                           <Icon className="h-4 w-4 text-white" />
                         </div>
