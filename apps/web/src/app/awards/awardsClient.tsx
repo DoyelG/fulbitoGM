@@ -5,9 +5,11 @@ import { Fragment } from 'react'
 import type { Match, Player } from '@fulbito/types'
 import type { AwardAccent } from '@fulbito/utils'
 import { AwardCard } from '@/components/AwardCard'
-import { ChampionshipHero } from '@/components/ChampionshipHero'
+import { AwardRunnersUp } from '@/components/AwardRunnersUp'
+import { ChampionsSection } from '@/components/ChampionsSection'
+import { HallOfFame } from '@/components/HallOfFame'
 import { AWARD_ICONS } from '@/constants/award-icons'
-import { useAnnualAwards } from '@/hooks/use-annual-awards'
+import { HALL_OF_FAME, useAnnualAwards } from '@/hooks/use-annual-awards'
 
 type Props = { players: Player[]; matches: Match[] }
 
@@ -31,30 +33,36 @@ const ACCENT_WASH: Record<AwardAccent, string> = {
 }
 
 export function AwardsClient({ players, matches }: Props) {
-  const { currentYear, availableYears, onSelectYear, winners, championship } = useAnnualAwards(players, matches)
+  const { selection, isHallOfFame, availableYears, onSelectSeason, podiums, seasonChampions, hallOfFame, championship } =
+    useAnnualAwards(players, matches)
 
   return (
     <MotionConfig reducedMotion="user">
-      <ChampionshipHero championship={championship} />
+      <ChampionsSection
+        championship={championship}
+        champions={seasonChampions}
+        seasonYear={isHallOfFame ? null : (selection as number)}
+      />
 
-      <div className="max-w-5xl mx-auto px-6 pt-10 pb-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h1 className="text-3xl font-extrabold tracking-tight">Premios del Año</h1>
+      <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+          <h1 className="text-2xl font-extrabold tracking-tight">Premios del Año</h1>
           <div className="flex items-center gap-2">
-            <label htmlFor="award-year" className="text-sm font-medium">
+            <label htmlFor="award-season" className="text-sm font-medium">
               Temporada
             </label>
             <select
-              id="award-year"
-              value={currentYear}
-              onChange={(e) => onSelectYear(Number(e.target.value))}
-              className="border rounded px-3 py-2"
+              id="award-season"
+              value={selection}
+              onChange={(e) => onSelectSeason(e.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(e.target.value))}
+              className="rounded border px-3 py-2"
             >
               {availableYears.map((y) => (
                 <option key={y} value={y}>
                   {y}
                 </option>
               ))}
+              <option value={HALL_OF_FAME}>🏆 Hall of Fame</option>
             </select>
           </div>
         </div>
@@ -62,57 +70,60 @@ export function AwardsClient({ players, matches }: Props) {
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentYear}
+          key={String(selection)}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
-          {winners.length === 0 ? (
-            <p className="text-gray-600 text-center py-16">Todavía no hay premios este año.</p>
+          {isHallOfFame ? (
+            <HallOfFame entries={hallOfFame} />
+          ) : podiums.length === 0 ? (
+            <p className="py-16 text-center text-gray-600">Todavía no hay premios este año.</p>
           ) : (
-            winners.map((winner, index) => {
-              const Icon = AWARD_ICONS[winner.def.key]
+            podiums.map((podium, index) => {
+              const Icon = AWARD_ICONS[podium.def.key]
               return (
-                <Fragment key={winner.def.key}>
+                <Fragment key={podium.def.key}>
                   <motion.section
                     variants={sectionVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, margin: '-100px' }}
                     transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className={ACCENT_WASH[winner.def.accent]}
+                    className={ACCENT_WASH[podium.def.accent]}
                   >
                     <div
-                      className={`max-w-5xl mx-auto flex flex-col items-center gap-8 px-6 py-16 sm:gap-12 ${
+                      className={`mx-auto flex max-w-4xl flex-col items-center gap-8 px-6 py-12 sm:items-start sm:gap-10 ${
                         index % 2 === 1 ? 'sm:flex-row-reverse' : 'sm:flex-row'
                       }`}
                     >
                       <div className="flex-1 text-center sm:text-left">
-                        <span className={`mb-3 inline-block h-1.5 w-10 rounded-full ${ACCENT_BAR[winner.def.accent]}`} />
-                        <h2 className="text-2xl font-black italic tracking-tight">{winner.def.title}</h2>
-                        <p className="mt-2 text-gray-700">{winner.def.subtitle}</p>
+                        <span className={`mb-3 inline-block h-1.5 w-10 rounded-full ${ACCENT_BAR[podium.def.accent]}`} />
+                        <h2 className="text-2xl font-black italic tracking-tight">{podium.def.title}</h2>
+                        <p className="mt-2 text-gray-700">{podium.def.subtitle}</p>
+                        <AwardRunnersUp entries={podium.runnersUp} unitLabel={podium.def.unitLabel} />
                       </div>
                       <div className="w-full max-w-[220px] shrink-0">
                         <AwardCard
                           Icon={Icon}
-                          accent={winner.def.accent}
-                          winnerName={winner.row.name}
-                          winnerPhotoUrl={winner.row.photoUrl}
-                          value={winner.value}
-                          unitLabel={winner.def.unitLabel}
-                          href={`/players/${winner.row.id}`}
+                          accent={podium.def.accent}
+                          winnerName={podium.winner.row.name}
+                          winnerPhotoUrl={podium.winner.row.photoUrl}
+                          value={podium.winner.value}
+                          unitLabel={podium.def.unitLabel}
+                          href={`/players/${podium.winner.row.id}`}
                         />
                       </div>
                     </div>
                   </motion.section>
 
-                  {index < winners.length - 1 && (
+                  {index < podiums.length - 1 && (
                     <div className="bg-white">
-                      <div className="mx-auto flex max-w-5xl items-center gap-4 px-6 py-4">
+                      <div className="mx-auto flex max-w-4xl items-center gap-4 px-6 py-4">
                         <div className="h-px flex-1 bg-gray-200" />
                         <div
-                          className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md ${ACCENT_BAR[winner.def.accent]}`}
+                          className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md ${ACCENT_BAR[podium.def.accent]}`}
                         >
                           <Icon className="h-4 w-4 text-white" />
                         </div>

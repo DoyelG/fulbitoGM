@@ -1,7 +1,7 @@
 import type { Match, Player } from '@fulbito/types'
 import { getMvpCountsByPlayerId } from './mvp'
 import { getShirtDutiesByPlayerId } from './shirtDuty'
-import { calculateAllLongestLossStreaks } from './playerStats'
+import { calculateAllLongestLossStreaks, calculateAllLongestWinStreaks } from './playerStats'
 
 export type PlayerStatRow = {
   id: string
@@ -154,4 +154,48 @@ function pickWinner(stats: PlayerStatRow[], def: AwardDef): AwardWinner | null {
 
 export function pickAwardWinners(rows: PlayerStatRow[]): AwardWinner[] {
   return AWARD_DEFS.map((def) => pickWinner(rows, def)).filter((w): w is AwardWinner => w !== null)
+}
+
+export type AwardEntry = { row: PlayerStatRow; value: number }
+export type AwardPodium = { def: AwardDef; winner: AwardEntry; runnersUp: AwardEntry[] }
+
+const PODIUM_SIZE = 3
+
+export function pickAwardPodiums(rows: PlayerStatRow[]): AwardPodium[] {
+  return AWARD_DEFS.map((def) => {
+    const ranked = rows
+      .map((row) => ({ row, value: def.getValue(row) }))
+      .filter((entry) => entry.value > 0)
+      .sort((a, b) => b.value - a.value || a.row.name.localeCompare(b.row.name))
+      .slice(0, PODIUM_SIZE)
+
+    const [winner, ...runnersUp] = ranked
+    return winner ? { def, winner, runnersUp } : null
+  }).filter((p): p is AwardPodium => p !== null)
+}
+
+export const CHAMPIONSHIP_THRESHOLD = 7
+
+export type SeasonChampion = {
+  playerId: string
+  playerName: string
+  playerPhotoUrl?: string
+  streak: number
+}
+
+// A champion is any player who strung together CHAMPIONSHIP_THRESHOLD wins in a
+// row within the given matches. Callers scope the season by passing only that
+// year's matches, so a streak never carries across year boundaries.
+export function pickSeasonChampions(players: Player[], matches: Match[]): SeasonChampion[] {
+  const streaks = calculateAllLongestWinStreaks(matches)
+
+  return players
+    .map((p) => ({
+      playerId: p.id,
+      playerName: p.name,
+      playerPhotoUrl: p.photoUrl,
+      streak: streaks[p.id] ?? 0,
+    }))
+    .filter((c) => c.streak >= CHAMPIONSHIP_THRESHOLD)
+    .sort((a, b) => b.streak - a.streak || a.playerName.localeCompare(b.playerName))
 }

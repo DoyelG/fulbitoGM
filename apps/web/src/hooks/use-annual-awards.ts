@@ -1,10 +1,18 @@
 'use client'
 
 import type { Match, Player } from '@fulbito/types'
-import { calculateAllCurrentStreaks, computePlayerStatRows, pickAwardWinners } from '@fulbito/utils'
+import {
+  CHAMPIONSHIP_THRESHOLD,
+  calculateAllCurrentStreaks,
+  computePlayerStatRows,
+  pickAwardPodiums,
+  pickSeasonChampions,
+  type SeasonChampion,
+} from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
-const CHAMPIONSHIP_THRESHOLD = 7
+export const HALL_OF_FAME = 'hall-of-fame'
+export type SeasonSelection = number | typeof HALL_OF_FAME
 
 export type ChampionshipProgress = {
   playerId: string
@@ -13,6 +21,8 @@ export type ChampionshipProgress = {
   streak: number
   isChampion: boolean
 } | null
+
+export type HallOfFameEntry = { year: number; champions: SeasonChampion[] }
 
 export function pickChampionshipProgress(players: Player[], matches: Match[]): ChampionshipProgress {
   const streaks = calculateAllCurrentStreaks(matches)
@@ -36,8 +46,13 @@ export function pickChampionshipProgress(players: Player[], matches: Match[]): C
   }
 }
 
+function matchesOfYear(matches: Match[], year: number): Match[] {
+  return matches.filter((m) => new Date(m.date).getFullYear() === year)
+}
+
 export function useAnnualAwards(players: Player[], matches: Match[]) {
-  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())
+  const [selection, setSelection] = useState<SeasonSelection>(() => new Date().getFullYear())
+  const isHallOfFame = selection === HALL_OF_FAME
 
   const availableYears = useMemo(() => {
     const years = new Set(matches.map((m) => new Date(m.date).getFullYear()))
@@ -46,28 +61,37 @@ export function useAnnualAwards(players: Player[], matches: Match[]) {
   }, [matches])
 
   const yearMatches = useMemo(
-    () => matches.filter((m) => new Date(m.date).getFullYear() === selectedYear),
-    [matches, selectedYear],
+    () => (isHallOfFame ? [] : matchesOfYear(matches, selection as number)),
+    [matches, selection, isHallOfFame],
   )
 
-  const winners = useMemo(
-    () => pickAwardWinners(computePlayerStatRows(players, yearMatches)),
+  const podiums = useMemo(
+    () => pickAwardPodiums(computePlayerStatRows(players, yearMatches)),
     [players, yearMatches],
   )
 
-  // Deliberately NOT scoped to yearMatches/selectedYear: this reflects the live,
-  // right-now streak state, independent of whatever season the awards grid below
-  // is browsing — switching "Temporada" must not change it.
-  const championship = useMemo(
-    () => pickChampionshipProgress(players, matches),
-    [players, matches],
+  const seasonChampions = useMemo(() => pickSeasonChampions(players, yearMatches), [players, yearMatches])
+
+  const hallOfFame = useMemo<HallOfFameEntry[]>(
+    () =>
+      availableYears
+        .map((year) => ({ year, champions: pickSeasonChampions(players, matchesOfYear(matches, year)) }))
+        .filter((entry) => entry.champions.length > 0),
+    [availableYears, players, matches],
   )
 
+  // Deliberately NOT scoped to yearMatches/selection: this reflects the live,
+  // right-now streak state, independent of whatever season the page is browsing.
+  const championship = useMemo(() => pickChampionshipProgress(players, matches), [players, matches])
+
   return {
-    currentYear: selectedYear,
+    selection,
+    isHallOfFame,
     availableYears,
-    onSelectYear: setSelectedYear,
-    winners,
+    onSelectSeason: setSelection,
+    podiums,
+    seasonChampions,
+    hallOfFame,
     championship,
   }
 }

@@ -60,6 +60,36 @@ export function calculateAllCurrentStreaks(
   return out
 }
 
+export function calculateLongestWinStreak(matches: MatchLike[], playerId: string): number {
+  const chronological = relevantSorted(matches, playerId).slice().reverse()
+  let longest = 0
+  let current = 0
+
+  for (const m of chronological) {
+    const r = resultForPlayer(m, playerId)
+    if (r === 'draw') continue
+    if (r === 'win') {
+      current++
+      longest = Math.max(longest, current)
+    } else {
+      current = 0
+    }
+  }
+
+  return longest
+}
+
+export function calculateAllLongestWinStreaks(matches: MatchLike[]): Record<string, number> {
+  const ids = new Set<string>()
+  for (const m of matches) {
+    m.teamA.forEach(p => ids.add(p.id))
+    m.teamB.forEach(p => ids.add(p.id))
+  }
+  const out: Record<string, number> = {}
+  ids.forEach(id => { out[id] = calculateLongestWinStreak(matches, id) })
+  return out
+}
+
 export function calculateLongestLossStreak(matches: MatchLike[], playerId: string): number {
   const chronological = relevantSorted(matches, playerId).slice().reverse()
   let longest = 0
