@@ -60,9 +60,20 @@ export function calculateAllCurrentStreaks(
   return out
 }
 
-export function calculateLongestWinStreak(matches: MatchLike[], playerId: string): number {
+/**
+ * A title is reached when a run hits `threshold` wins; a lost final is a run of
+ * exactly `threshold - 1` wins broken by a loss — one win short of the crown.
+ *
+ * Runs are never cut at the year boundary: pass every match the player has, and
+ * each event carries the date of the match that decided it, so callers can
+ * attribute it to whichever season that match belongs to.
+ */
+export type StreakEventKind = 'title' | 'lostFinal'
+export type StreakEvent = { date: string; kind: StreakEventKind }
+
+export function findStreakEvents(matches: MatchLike[], playerId: string, threshold = 7): StreakEvent[] {
   const chronological = relevantSorted(matches, playerId).slice().reverse()
-  let longest = 0
+  const events: StreakEvent[] = []
   let current = 0
 
   for (const m of chronological) {
@@ -70,57 +81,33 @@ export function calculateLongestWinStreak(matches: MatchLike[], playerId: string
     if (r === 'draw') continue
     if (r === 'win') {
       current++
-      longest = Math.max(longest, current)
+      if (current === threshold) events.push({ date: m.date, kind: 'title' })
     } else {
+      if (current === threshold - 1) events.push({ date: m.date, kind: 'lostFinal' })
       current = 0
     }
   }
 
-  return longest
+  return events
 }
 
-export function calculateAllLongestWinStreaks(matches: MatchLike[]): Record<string, number> {
+function playerIdsIn(matches: MatchLike[]): Set<string> {
   const ids = new Set<string>()
   for (const m of matches) {
     m.teamA.forEach(p => ids.add(p.id))
     m.teamB.forEach(p => ids.add(p.id))
   }
-  const out: Record<string, number> = {}
-  ids.forEach(id => { out[id] = calculateLongestWinStreak(matches, id) })
+  return ids
+}
+
+export function findAllStreakEvents(matches: MatchLike[], threshold = 7): Record<string, StreakEvent[]> {
+  const out: Record<string, StreakEvent[]> = {}
+  playerIdsIn(matches).forEach(id => { out[id] = findStreakEvents(matches, id, threshold) })
   return out
 }
 
-// A "lost final" is a run of exactly `threshold - 1` wins broken by a loss:
-// the player was one win away from the crown and blew it. A run that actually
-// reaches `threshold` is a title, not a lost final, so it never counts here.
-export function countLostFinals(matches: MatchLike[], playerId: string, threshold = 7): number {
-  const chronological = relevantSorted(matches, playerId).slice().reverse()
-  let lostFinals = 0
-  let current = 0
-
-  for (const m of chronological) {
-    const r = resultForPlayer(m, playerId)
-    if (r === 'draw') continue
-    if (r === 'win') {
-      current++
-    } else {
-      if (current === threshold - 1) lostFinals++
-      current = 0
-    }
-  }
-
-  return lostFinals
-}
-
-export function countAllLostFinals(matches: MatchLike[], threshold = 7): Record<string, number> {
-  const ids = new Set<string>()
-  for (const m of matches) {
-    m.teamA.forEach(p => ids.add(p.id))
-    m.teamB.forEach(p => ids.add(p.id))
-  }
-  const out: Record<string, number> = {}
-  ids.forEach(id => { out[id] = countLostFinals(matches, id, threshold) })
-  return out
+export function eventYear(event: StreakEvent): number {
+  return new Date(event.date).getFullYear()
 }
 
 export function calculateLongestLossStreak(matches: MatchLike[], playerId: string): number {

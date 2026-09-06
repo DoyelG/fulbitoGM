@@ -1,5 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
-import { computePlayerStatRows, pickAwardWinners, type AwardAccent, type AwardWinner } from '@fulbito/utils'
+import { computeSeasonStatRows, pickAwardWinners, type AwardAccent, type AwardWinner } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
 export type { AwardAccent, AwardWinner }
@@ -17,14 +17,11 @@ export function useAnnualAwards(players: Player[], matches: Match[]) {
     return Array.from(years).sort((a, b) => b - a)
   }, [matches])
 
-  const yearMatches = useMemo(
-    () => matches.filter((m) => new Date(m.date).getFullYear() === selectedYear),
-    [matches, selectedYear],
-  )
-
+  // Every match, not just the season's: streak awards count runs across seasons
+  // and credit them to the year of the deciding match.
   const winners = useMemo(
-    () => pickAwardWinners(computePlayerStatRows(players, yearMatches)),
-    [players, yearMatches],
+    () => pickAwardWinners(computeSeasonStatRows(players, matches, selectedYear)),
+    [players, matches, selectedYear],
   )
 
   return {

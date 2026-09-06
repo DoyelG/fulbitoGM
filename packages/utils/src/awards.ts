@@ -1,7 +1,7 @@
 import type { Match, Player } from '@fulbito/types'
 import { getMvpCountsByPlayerId } from './mvp'
 import { getShirtDutiesByPlayerId } from './shirtDuty'
-import { calculateAllLongestLossStreaks, calculateAllLongestWinStreaks, countAllLostFinals } from './playerStats'
+import { calculateAllLongestLossStreaks, eventYear, findAllStreakEvents } from './playerStats'
 
 export const CHAMPIONSHIP_THRESHOLD = 7
 
@@ -26,7 +26,10 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
   const shirtCountById = getShirtDutiesByPlayerId(matches)
   const mvpCountById = getMvpCountsByPlayerId(matches)
   const lossStreakById = calculateAllLongestLossStreaks(matches)
-  const lostFinalsById = countAllLostFinals(matches, CHAMPIONSHIP_THRESHOLD)
+  // Lost finals within the matches given. Runs are cut at this scope's edges, so
+  // season-scoped award rows should come from computeSeasonStatRows() instead,
+  // which counts runs across seasons and credits them to the deciding year.
+  const streakEventsById = findAllStreakEvents(matches, CHAMPIONSHIP_THRESHOLD)
   const photoById = new Map(players.map((p) => [p.id, p.photoUrl ?? undefined]))
 
   for (const m of matches) {
@@ -47,7 +50,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
             shirts: shirtCountById.get(p.id) ?? 0,
             mvps: mvpCountById.get(p.id) ?? 0,
             lossStreak: lossStreakById[p.id] ?? 0,
-            lostFinals: lostFinalsById[p.id] ?? 0,
+            lostFinals: (streakEventsById[p.id] ?? []).filter((e) => e.kind === 'lostFinal').length,
           }
         }
 
@@ -194,19 +197,38 @@ export type SeasonChampion = {
   streak: number
 }
 
-// A champion is any player who strung together CHAMPIONSHIP_THRESHOLD wins in a
-// row within the given matches. Callers scope the season by passing only that
-// year's matches, so a streak never carries across year boundaries.
-export function pickSeasonChampions(players: Player[], matches: Match[]): SeasonChampion[] {
-  const streaks = calculateAllLongestWinStreaks(matches)
+/**
+ * Champions of `year`: players whose winning run reached CHAMPIONSHIP_THRESHOLD,
+ * counting the run across seasons and crediting the title to the year of the
+ * deciding win. Pass every match, not just the season's — a run that starts in
+ * October and is crowned in February belongs to February's season.
+ */
+export function pickSeasonChampions(players: Player[], allMatches: Match[], year: number): SeasonChampion[] {
+  const eventsById = findAllStreakEvents(allMatches, CHAMPIONSHIP_THRESHOLD)
 
   return players
+    .filter((p) => (eventsById[p.id] ?? []).some((e) => e.kind === 'title' && eventYear(e) === year))
     .map((p) => ({
       playerId: p.id,
       playerName: p.name,
       playerPhotoUrl: p.photoUrl,
-      streak: streaks[p.id] ?? 0,
+      streak: CHAMPIONSHIP_THRESHOLD,
     }))
-    .filter((c) => c.streak >= CHAMPIONSHIP_THRESHOLD)
-    .sort((a, b) => b.streak - a.streak || a.playerName.localeCompare(b.playerName))
+    .sort((a, b) => a.playerName.localeCompare(b.playerName))
+}
+
+/**
+ * Per-season award rows. Season aggregates (matches, goals, MVPs, ...) come from
+ * that year's matches, but lost finals are streak events counted across seasons
+ * and credited to the year of the deciding loss — so a run built in one year and
+ * broken in the next counts for the year it was broken.
+ */
+export function computeSeasonStatRows(players: Player[], allMatches: Match[], year: number): PlayerStatRow[] {
+  const seasonMatches = allMatches.filter((m) => new Date(m.date).getFullYear() === year)
+  const eventsById = findAllStreakEvents(allMatches, CHAMPIONSHIP_THRESHOLD)
+
+  return computePlayerStatRows(players, seasonMatches).map((row) => ({
+    ...row,
+    lostFinals: (eventsById[row.id] ?? []).filter((e) => e.kind === 'lostFinal' && eventYear(e) === year).length,
+  }))
 }

@@ -4,7 +4,7 @@ import type { Match, Player } from '@fulbito/types'
 import {
   CHAMPIONSHIP_THRESHOLD,
   calculateAllCurrentStreaks,
-  computePlayerStatRows,
+  computeSeasonStatRows,
   pickAwardPodiums,
   pickSeasonChampions,
   type SeasonChampion,
@@ -46,10 +46,6 @@ export function pickChampionshipProgress(players: Player[], matches: Match[]): C
   }
 }
 
-function matchesOfYear(matches: Match[], year: number): Match[] {
-  return matches.filter((m) => new Date(m.date).getFullYear() === year)
-}
-
 export function useAnnualAwards(players: Player[], matches: Match[]) {
   const [selection, setSelection] = useState<SeasonSelection>(() => new Date().getFullYear())
   const isHallOfFame = selection === HALL_OF_FAME
@@ -60,22 +56,22 @@ export function useAnnualAwards(players: Player[], matches: Match[]) {
     return Array.from(years).sort((a, b) => b - a)
   }, [matches])
 
-  const yearMatches = useMemo(
-    () => (isHallOfFame ? [] : matchesOfYear(matches, selection as number)),
-    [matches, selection, isHallOfFame],
-  )
-
+  // Streak-based awards need every match, not just the season's: a run that
+  // starts in one year and is decided in the next belongs to the deciding year.
   const podiums = useMemo(
-    () => pickAwardPodiums(computePlayerStatRows(players, yearMatches)),
-    [players, yearMatches],
+    () => (isHallOfFame ? [] : pickAwardPodiums(computeSeasonStatRows(players, matches, selection as number))),
+    [players, matches, selection, isHallOfFame],
   )
 
-  const seasonChampions = useMemo(() => pickSeasonChampions(players, yearMatches), [players, yearMatches])
+  const seasonChampions = useMemo(
+    () => (isHallOfFame ? [] : pickSeasonChampions(players, matches, selection as number)),
+    [players, matches, selection, isHallOfFame],
+  )
 
   const hallOfFame = useMemo<HallOfFameEntry[]>(
     () =>
       availableYears
-        .map((year) => ({ year, champions: pickSeasonChampions(players, matchesOfYear(matches, year)) }))
+        .map((year) => ({ year, champions: pickSeasonChampions(players, matches, year) }))
         .filter((entry) => entry.champions.length > 0),
     [availableYears, players, matches],
   )
