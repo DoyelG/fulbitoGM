@@ -1,72 +1,102 @@
 import { ReactElement } from 'react'
 import { FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import type { AwardPodium, ChampionshipProgress, HallOfFameEntry, SeasonChampion } from '@fulbito/utils'
 
 import { AwardCard } from '@/components/awards/award-card'
+import { ChampionsSection } from '@/components/awards/champions-section'
+import { HallOfFame } from '@/components/awards/hall-of-fame'
 import { BottomSheet } from '@/components/match/matchForm/bottomSheet'
 import { sheetStyles } from '@/components/match/matchForm/sharedStyles'
 import { styles } from '@/components/statistics/styles/statics.styles'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
-import type { AwardWinner } from '@/hooks/use-annual-awards'
+import { HALL_OF_FAME, type SeasonSelection } from '@/hooks/use-annual-awards'
 import { AWARD_ICONS } from '@/constants/award-icons'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
-  winners: AwardWinner[]
+  podiums: AwardPodium[]
+  championship: ChampionshipProgress
+  seasonChampions: SeasonChampion[]
+  hallOfFame: HallOfFameEntry[]
+  isHallOfFame: boolean
   header: ReactElement
   refreshing: boolean
   onRefresh: () => Promise<void>
   availableYears: number[]
-  currentYear: number
-  onSelectYear: (year: number) => void
+  selection: SeasonSelection
+  onSelectSeason: (selection: SeasonSelection) => void
   onPressPlayer: (playerId: string) => void
   yearPickerOpen: boolean
   onCloseYearPicker: () => void
 }
 
 export function AwardsList({
-  winners,
+  podiums,
+  championship,
+  seasonChampions,
+  hallOfFame,
+  isHallOfFame,
   header,
   refreshing,
   onRefresh,
   availableYears,
-  currentYear,
-  onSelectYear,
+  selection,
+  onSelectSeason,
   onPressPlayer,
   yearPickerOpen,
   onCloseYearPicker,
 }: Props) {
   const { colors } = useAppTheme()
 
+  const listHeader = (
+    <>
+      {header}
+      <ChampionsSection
+        championship={championship}
+        champions={seasonChampions}
+        seasonYear={isHallOfFame ? null : (selection as number)}
+        onPressPlayer={onPressPlayer}
+      />
+      {isHallOfFame && <HallOfFame entries={hallOfFame} onPressPlayer={onPressPlayer} />}
+    </>
+  )
+
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ThemedView style={styles.screen}>
         <FlatList
-          data={winners}
+          // The Hall of Fame replaces the award podiums entirely; it renders in
+          // the header so the season sheet and pull-to-refresh keep working.
+          data={isHallOfFame ? [] : podiums}
           keyExtractor={(item) => item.def.key}
-          ListHeaderComponent={header}
+          ListHeaderComponent={listHeader}
           ListEmptyComponent={
-            <ThemedText style={[styles.stateText, { color: colors.muted }]}>
-              No awards available yet this year.
-            </ThemedText>
+            isHallOfFame ? null : (
+              <ThemedText style={[styles.stateText, { color: colors.muted }]}>
+                Todavía no hay premios este año.
+              </ThemedText>
+            )
           }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} tintColor={colors.brand} />
           }
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          contentContainerStyle={winners.length === 0 ? styles.emptyContent : styles.content}
+          contentContainerStyle={podiums.length === 0 && !isHallOfFame ? styles.emptyContent : styles.content}
           renderItem={({ item }) => (
             <AwardCard
               title={item.def.title}
               subtitle={item.def.subtitle}
               icon={AWARD_ICONS[item.def.key]}
               accent={item.def.accent}
-              winnerName={item.row.name}
-              winnerPhotoUrl={item.row.photoUrl}
-              value={item.value}
+              winnerName={item.winner.row.name}
+              winnerPhotoUrl={item.winner.row.photoUrl}
+              value={item.winner.value}
               unitLabel={item.def.unitLabel}
-              onPress={() => onPressPlayer(item.row.id)}
+              runnersUp={item.runnersUp}
+              onPress={() => onPressPlayer(item.winner.row.id)}
+              onPressPlayer={onPressPlayer}
             />
           )}
         />
@@ -74,29 +104,45 @@ export function AwardsList({
 
       <BottomSheet
         visible={yearPickerOpen}
-        title="Select season"
+        title="Elegí la temporada"
         onConfirm={onCloseYearPicker}
         containerStyle={styles.yearSheet}>
         <ScrollView>
-          {availableYears.map((y, index) => {
-            const selected = y === currentYear
-            const isLast = index === availableYears.length - 1
+          {availableYears.map((y) => {
+            const selected = y === selection
             return (
               <Pressable
                 key={y}
-                style={[sheetStyles.option, { borderBottomColor: colors.border }, isLast && { borderBottomWidth: 0 }]}
+                style={[sheetStyles.option, { borderBottomColor: colors.border }]}
                 onPress={() => {
-                  onSelectYear(y)
+                  onSelectSeason(y)
                   onCloseYearPicker()
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`Season ${y}`}
+                accessibilityLabel={`Temporada ${y}`}
                 accessibilityState={{ selected }}>
-                <ThemedText style={[sheetStyles.optionText, { color: colors.text }]}>SEASON {y}</ThemedText>
-                {selected && <ThemedText style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</ThemedText>}
+                <ThemedText style={[sheetStyles.optionText, { color: colors.text }]}>TEMPORADA {y}</ThemedText>
+                {selected && (
+                  <ThemedText style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</ThemedText>
+                )}
               </Pressable>
             )
           })}
+
+          <Pressable
+            style={[sheetStyles.option, { borderBottomWidth: 0 }]}
+            onPress={() => {
+              onSelectSeason(HALL_OF_FAME)
+              onCloseYearPicker()
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Hall of Fame"
+            accessibilityState={{ selected: isHallOfFame }}>
+            <ThemedText style={[sheetStyles.optionText, { color: colors.text }]}>🏆 HALL OF FAME</ThemedText>
+            {isHallOfFame && (
+              <ThemedText style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</ThemedText>
+            )}
+          </Pressable>
         </ScrollView>
       </BottomSheet>
     </SafeAreaView>

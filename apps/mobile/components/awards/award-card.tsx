@@ -2,9 +2,11 @@ import { Pressable, View } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 
+import { AwardRunnersUp } from '@/components/awards/award-runners-up'
 import { ThemedText } from '@/components/themed-text'
 import { PlayerAvatar } from '@/components/players/player-avatar'
 import { useAppTheme } from '@/hooks/use-theme'
+import type { AwardEntry } from '@fulbito/utils'
 import type { AwardAccent, AwardIcon } from '@/hooks/use-annual-awards'
 import { styles } from './award-card.styles'
 
@@ -17,7 +19,9 @@ type Props = {
   winnerPhotoUrl?: string
   value: number
   unitLabel: string
+  runnersUp: AwardEntry[]
   onPress: () => void
+  onPressPlayer: (playerId: string) => void
 }
 
 export function AwardCard({
@@ -29,7 +33,9 @@ export function AwardCard({
   winnerPhotoUrl,
   value,
   unitLabel,
+  runnersUp,
   onPress,
+  onPressPlayer,
 }: Props) {
   const { colors, radii, isDark, shadows } = useAppTheme()
 
@@ -37,12 +43,10 @@ export function AwardCard({
   const iconColor = accent === 'muted' ? colors.muted : '#ffffff'
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${title}, winner ${winnerName}, ${value} ${unitLabel}`}
-      accessibilityHint="Opens the player's profile"
-      style={({ pressed }) => [
+    // Card chrome lives on a plain View so the runners-up rows can be their own
+    // pressables: nesting them inside the winner's Pressable swallows their taps.
+    <View
+      style={[
         styles.card,
         {
           backgroundColor: colors.surface,
@@ -50,41 +54,45 @@ export function AwardCard({
           borderRadius: radii.xl,
         },
         shadows.card(isDark) as object,
-        pressed && { opacity: 0.92 },
       ]}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerText}>
-          <ThemedText style={[styles.title, { color: colors.text }]}>{title}</ThemedText>
-          <ThemedText style={[styles.subtitle, { color: colors.muted }]}>{subtitle}</ThemedText>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${title}, ganador ${winnerName}, ${value} ${unitLabel}`}
+        accessibilityHint="Abre el perfil del jugador"
+        style={({ pressed }) => pressed && { opacity: 0.92 }}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <ThemedText style={[styles.title, { color: colors.text }]}>{title}</ThemedText>
+            <ThemedText style={[styles.subtitle, { color: colors.muted }]}>{subtitle}</ThemedText>
+          </View>
+
+          <View style={[styles.iconBadge, { backgroundColor: badgeBg, borderRadius: radii.md }]}>
+            {icon.lib === 'ionicons' ? (
+              <Ionicons name={icon.name} size={22} color={iconColor} />
+            ) : (
+              <MaterialCommunityIcons name={icon.name} size={22} color={iconColor} />
+            )}
+          </View>
         </View>
 
-        <View style={[styles.iconBadge, { backgroundColor: badgeBg, borderRadius: radii.md }]}>
-          {icon.lib === 'ionicons' ? (
-            <Ionicons name={icon.name} size={22} color={iconColor} />
-          ) : (
-            <MaterialCommunityIcons name={icon.name} size={22} color={iconColor} />
-          )}
+        <View style={[styles.separator, { backgroundColor: colors.border }]} />
+
+        <View style={styles.winnerRow}>
+          <PlayerAvatar name={winnerName} photoUrl={winnerPhotoUrl} size={44} />
+
+          <ThemedText numberOfLines={1} style={styles.name}>
+            {winnerName}
+          </ThemedText>
+
+          <View style={styles.value}>
+            <ThemedText style={[styles.valueText, { color: colors.secondary }]}>{value}</ThemedText>
+            <ThemedText style={[styles.valueLabel, { color: colors.muted }]}>{unitLabel}</ThemedText>
+          </View>
         </View>
-      </View>
+      </Pressable>
 
-      <View style={[styles.separator, { backgroundColor: colors.border }]} />
-
-      <View style={styles.winnerRow}>
-        <PlayerAvatar
-          name={winnerName}
-          photoUrl={winnerPhotoUrl}
-          size={44}
-        />
-
-        <ThemedText numberOfLines={1} style={styles.name}>
-          {winnerName}
-        </ThemedText>
-
-        <View style={styles.value}>
-          <ThemedText style={[styles.valueText, { color: colors.secondary }]}>{value}</ThemedText>
-          <ThemedText style={[styles.valueLabel, { color: colors.muted }]}>{unitLabel}</ThemedText>
-        </View>
-      </View>
-    </Pressable>
+      <AwardRunnersUp entries={runnersUp} unitLabel={unitLabel} onPressPlayer={onPressPlayer} />
+    </View>
   )
 }

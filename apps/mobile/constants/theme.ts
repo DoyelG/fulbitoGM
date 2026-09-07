@@ -91,6 +91,18 @@ export const CardColors = {
   statLabel: '#6f6a5c',
 } as const
 
+// Fixed dark palette for the champions hero and the Hall of Fame: these
+// surfaces must read the same in light and dark mode, so gold stays gold.
+export const ChampionColors = {
+  heroGradient: ['#2e1065', '#4c1d95', '#2e1065'],
+  onHero: '#ffffff',
+  onHeroMuted: 'rgba(255,255,255,0.8)',
+  onHeroDim: 'rgba(255,255,255,0.7)',
+  heroRing: 'rgba(255,255,255,0.3)',
+  heroDivider: 'rgba(255,255,255,0.15)',
+  goldSoft: 'rgba(201,162,39,0.12)',
+} as const
+
 export const Radii = {
   xs: 4,
   sm: 8,

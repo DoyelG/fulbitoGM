@@ -1,7 +1,7 @@
 import type { Match, Player } from '@fulbito/types'
 import { getMvpCountsByPlayerId } from './mvp'
 import { getShirtDutiesByPlayerId } from './shirtDuty'
-import { calculateAllLongestLossStreaks, eventYear, findAllStreakEvents } from './playerStats'
+import { calculateAllCurrentStreaks, calculateAllLongestLossStreaks, eventYear, findAllStreakEvents } from './playerStats'
 
 export const CHAMPIONSHIP_THRESHOLD = 7
 
@@ -146,32 +146,6 @@ export const AWARD_DEFS: AwardDef[] = [
   },
 ]
 
-export type AwardWinner = { def: AwardDef; row: PlayerStatRow; value: number }
-
-function pickWinner(stats: PlayerStatRow[], def: AwardDef): AwardWinner | null {
-  let top: PlayerStatRow | undefined
-  for (const row of stats) {
-    if (!top) {
-      top = row
-      continue
-    }
-    const diff = def.getValue(row) - def.getValue(top)
-    if (diff > 0 || (diff === 0 && row.name.localeCompare(top.name) < 0)) {
-      top = row
-    }
-  }
-  if (!top) return null
-
-  const value = def.getValue(top)
-  if (value <= 0) return null
-
-  return { def, row: top, value }
-}
-
-export function pickAwardWinners(rows: PlayerStatRow[]): AwardWinner[] {
-  return AWARD_DEFS.map((def) => pickWinner(rows, def)).filter((w): w is AwardWinner => w !== null)
-}
-
 export type AwardEntry = { row: PlayerStatRow; value: number }
 export type AwardPodium = { def: AwardDef; winner: AwardEntry; runnersUp: AwardEntry[] }
 
@@ -231,4 +205,55 @@ export function computeSeasonStatRows(players: Player[], allMatches: Match[], ye
     ...row,
     lostFinals: (eventsById[row.id] ?? []).filter((e) => e.kind === 'lostFinal' && eventYear(e) === year).length,
   }))
+}
+
+export type ChampionshipProgress = {
+  playerId: string
+  playerName: string
+  playerPhotoUrl?: string
+  streak: number
+  isChampion: boolean
+} | null
+
+/**
+ * The player currently closest to the title: the longest *active* winning run
+ * right now. Deliberately unscoped by season — it reflects live state, not a
+ * historical period, so callers should pass every match.
+ */
+export function pickChampionshipProgress(players: Player[], matches: Match[]): ChampionshipProgress {
+  const streaks = calculateAllCurrentStreaks(matches)
+  let best: { player: Player; streak: number } | null = null
+
+  for (const p of players) {
+    const s = streaks[p.id]
+    if (s?.kind !== 'win' || s.count <= 0) continue
+    if (!best || s.count > best.streak || (s.count === best.streak && p.name.localeCompare(best.player.name) < 0)) {
+      best = { player: p, streak: s.count }
+    }
+  }
+
+  if (!best) return null
+  return {
+    playerId: best.player.id,
+    playerName: best.player.name,
+    playerPhotoUrl: best.player.photoUrl,
+    streak: best.streak,
+    isChampion: best.streak >= CHAMPIONSHIP_THRESHOLD,
+  }
+}
+
+export type HallOfFameEntry = { year: number; champions: SeasonChampion[] }
+
+/** Every season that produced at least one champion, newest first. */
+export function pickHallOfFame(players: Player[], allMatches: Match[], years: number[]): HallOfFameEntry[] {
+  return years
+    .map((year) => ({ year, champions: pickSeasonChampions(players, allMatches, year) }))
+    .filter((entry) => entry.champions.length > 0)
+}
+
+/** Seasons that have at least one match, newest first, always including the current year. */
+export function listAvailableSeasons(matches: Match[]): number[] {
+  const years = new Set(matches.map((m) => new Date(m.date).getFullYear()))
+  years.add(new Date().getFullYear())
+  return Array.from(years).sort((a, b) => b - a)
 }

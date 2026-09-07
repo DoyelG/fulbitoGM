@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { animate, motion, useReducedMotion } from 'framer-motion'
-import { CHAMPIONSHIP_THRESHOLD, type SeasonChampion } from '@fulbito/utils'
-import type { ChampionshipProgress } from '@/hooks/use-annual-awards'
+import { CHAMPIONSHIP_THRESHOLD, type ChampionshipProgress, type SeasonChampion } from '@fulbito/utils'
 
 type Props = {
   championship: ChampionshipProgress

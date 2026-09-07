@@ -25,7 +25,16 @@ export default function StatisticsScreen() {
   const [yearPickerOpen, setYearPickerOpen] = useState(false)
   const { players, matches, loading, refreshing, error, refresh, reload } = usePlayersData()
   const { activeTab, setActiveTab, sortedStats } = usePlayerStatistics(players, matches)
-  const { currentYear, availableYears, onSelectYear, winners } = useAnnualAwards(players, matches)
+  const {
+    selection,
+    isHallOfFame,
+    availableYears,
+    onSelectSeason,
+    podiums,
+    seasonChampions,
+    hallOfFame,
+    championship,
+  } = useAnnualAwards(players, matches)
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -45,7 +54,7 @@ export default function StatisticsScreen() {
                 onPress={() => setView(key)}
                 style={[styles.viewTab, selected && { borderColor: colors.brand }]}>
                 <ThemedText style={[styles.viewTabText, { color: selected ? colors.brand : colors.muted }]}>
-                  {key === 'ranking' ? 'RANKING' : 'AWARDS'}
+                  {key === 'ranking' ? 'RANKING' : 'PREMIOS'}
                 </ThemedText>
               </Pressable>
             )
@@ -58,15 +67,17 @@ export default function StatisticsScreen() {
             onPress={() => setYearPickerOpen(true)}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={`Season ${currentYear}`}
-            accessibilityHint="Opens the list of seasons to pick another year"
+            accessibilityLabel={isHallOfFame ? 'Hall of Fame' : `Temporada ${selection}`}
+            accessibilityHint="Abre la lista de temporadas para elegir otra"
             style={[styles.yearBadge, { backgroundColor: colors.secondary }]}>
-            <ThemedText style={styles.yearBadgeText}>SEASON {currentYear} ▾</ThemedText>
+            <ThemedText style={styles.yearBadgeText}>
+              {isHallOfFame ? '🏆 HALL OF FAME ▾' : `TEMPORADA ${selection} ▾`}
+            </ThemedText>
           </Pressable>
         )}
       </>
     ),
-    [view, activeTab, setActiveTab, colors.brand, colors.muted, colors.secondary, currentYear],
+    [view, activeTab, setActiveTab, colors.brand, colors.muted, colors.secondary, selection, isHallOfFame],
   )
 
   if (loading) {
@@ -99,13 +110,17 @@ export default function StatisticsScreen() {
   if (view === 'awards') {
     return (
       <AwardsList
-        winners={winners}
+        podiums={podiums}
+        championship={championship}
+        seasonChampions={seasonChampions}
+        hallOfFame={hallOfFame}
+        isHallOfFame={isHallOfFame}
         header={header}
         refreshing={refreshing}
         onRefresh={refresh}
         availableYears={availableYears}
-        currentYear={currentYear}
-        onSelectYear={onSelectYear}
+        selection={selection}
+        onSelectSeason={onSelectSeason}
         onPressPlayer={(playerId) => router.push(`/(tabs)/players/${playerId}`)}
         yearPickerOpen={yearPickerOpen}
         onCloseYearPicker={() => setYearPickerOpen(false)}

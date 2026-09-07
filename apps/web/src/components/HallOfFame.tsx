@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import type { HallOfFameEntry } from '@/hooks/use-annual-awards'
+import type { HallOfFameEntry } from '@fulbito/utils'
 
 type Props = { entries: HallOfFameEntry[] }
 
