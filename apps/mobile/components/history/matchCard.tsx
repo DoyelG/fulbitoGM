@@ -1,7 +1,8 @@
 import type { Match, Player } from '@fulbito/types'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { useState } from 'react'
 
 type MatchPlayer = Match['teamA'][number]
 
@@ -37,6 +38,12 @@ export function MatchCard({
   const shirtName = m.shirtsResponsibleId
     ? (players.find((p) => p.id === m.shirtsResponsibleId)?.name ?? '—')
     : null
+
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const toggleExtended = () => {
+    setIsExpanded((e) => !e)
+  }
 
   return (
     <TouchableOpacity
@@ -99,6 +106,34 @@ export function MatchCard({
           spacing={spacing}
         />
       </View>
+
+      {/* Description */}
+      {m.description ? (
+        <Pressable
+          onPress={toggleExtended}
+          onStartShouldSetResponderCapture={() => true}
+          style={styles.descriptionRow}
+          accessibilityRole="button"
+          accessibilityLabel={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
+          accessibilityState={{ expanded: isExpanded }}
+        >
+          <Text
+            style={[styles.description, { color: colors.muted }]}
+            numberOfLines={isExpanded ? undefined : 2}
+          >
+            {m.description}
+          </Text>
+          <Text
+            style={[
+              styles.chevron,
+              { color: colors.brandAccent },
+              { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] },
+            ]}
+          >
+            ^
+          </Text>
+        </Pressable>
+      ) : null}
 
       {/* Shirts + Admin actions */}
       <View style={styles.footer}>
@@ -259,6 +294,22 @@ const styles = StyleSheet.create({
   },
   shirts: {
     fontSize: 12,
+  },
+  descriptionRow: {
+    gap: 6,
+    marginTop: 6,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  description: {
+    flex: 1,
+    flexShrink: 1,
+    fontSize: 12,
+  },
+  chevron: {
+    fontSize: 12,
+    fontWeight: '700',
+    alignSelf: 'flex-end',
   },
   actions: {
     flexDirection: 'row',
