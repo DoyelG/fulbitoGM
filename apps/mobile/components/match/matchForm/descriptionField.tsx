@@ -21,6 +21,10 @@ export function DescriptionField({ value, onChange }: Props) {
         onChangeText={onChange}
         placeholder="Escribí la crónica del partido"
         placeholderTextColor={colors.muted}
+        multiline
+        numberOfLines={4}
+        textAlignVertical="top"
+        accessibilityLabel="Crónica del partido"
         style={[fieldStyles.textInput, { borderColor: colors.border, borderRadius: radii.sm, color: colors.text }]}
       />
     </>

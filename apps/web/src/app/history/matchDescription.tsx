@@ -33,7 +33,7 @@ export function MatchDescription({ text }: Props) {
       >
         <p
           ref={textRef}
-          className={`flex-1 min-w-0 text-sm font-light text-gray-700 break-words ${
+          className={`flex-1 min-w-0 text-sm font-light text-gray-700 break-words whitespace-pre-wrap ${
             isExpanded ? '' : 'line-clamp-1'
           }`}
         >
@@ -41,6 +41,7 @@ export function MatchDescription({ text }: Props) {
         </p>
         {isTruncatable && (
           <FiChevronDown
+            aria-hidden="true"
             className={`h-4 w-4 shrink-0 cursor-pointer text-gray-400 transition-transform duration-200 ${
               isExpanded ? 'rotate-180' : ''
             }`}

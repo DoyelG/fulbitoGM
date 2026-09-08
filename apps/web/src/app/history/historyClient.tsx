@@ -961,10 +961,11 @@ function RecordModal({
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
+          <label htmlFor="match-description-history" className="block text-sm font-medium mb-1">
             Crónica
           </label>
           <textarea
+            id="match-description-history"
             value={matchDescription}
             onChange={(e) => setMatchDescription(e.target.value)}
             placeholder="Escribí la crónica del partido"

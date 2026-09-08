@@ -1,5 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 import { useState } from 'react'
@@ -109,31 +109,30 @@ export function MatchCard({
 
       {/* Description */}
       {m.description ? (
-        <View>
-          <TouchableOpacity
-            onPress={toggleExtended}
-            style={styles.descriptionRow}
-            accessibilityRole="button"
-            accessibilityLabel={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
-            accessibilityState={{ expanded: isExpanded }}
+        <Pressable
+          onPress={toggleExtended}
+          onStartShouldSetResponderCapture={() => true}
+          style={styles.descriptionRow}
+          accessibilityRole="button"
+          accessibilityLabel={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
+          accessibilityState={{ expanded: isExpanded }}
+        >
+          <Text
+            style={[styles.description, { color: colors.muted }]}
+            numberOfLines={isExpanded ? undefined : 2}
           >
-            <Text
-              style={[styles.description, { color: colors.muted }]}
-              numberOfLines={isExpanded ? undefined : 2}
-            >
-              {m.description}
-            </Text>
-            <Text
-              style={[
-                styles.chevron,
-                { color: colors.brandAccent },
-                { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] },
-              ]}
-            >
-              ^
-            </Text>
-          </TouchableOpacity>
-        </View>
+            {m.description}
+          </Text>
+          <Text
+            style={[
+              styles.chevron,
+              { color: colors.brandAccent },
+              { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] },
+            ]}
+          >
+            ^
+          </Text>
+        </Pressable>
       ) : null}
 
       {/* Shirts + Admin actions */}
@@ -299,6 +298,8 @@ const styles = StyleSheet.create({
   descriptionRow: {
     gap: 6,
     marginTop: 6,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   description: {
     flex: 1,
