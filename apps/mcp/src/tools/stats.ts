@@ -5,9 +5,6 @@ import { calculateAllCurrentStreaks, getShirtDutiesByPlayerId, onlyFinalMatches 
 import { withFirebase } from '../firebase'
 import { jsonResult } from '../tool-result'
 
-// Names come from the rosters getMatches() already returns (hydrated from the
-// current players collection), avoiding a second players read. Players deleted
-// from the roster have no recoverable name and fall back to their id.
 function rosterNamesById(matches: Match[]): Map<string, string> {
   const names = new Map<string, string>()
   for (const m of matches) {

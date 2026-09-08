@@ -3,9 +3,6 @@ import type { Match, MatchInput, MatchPlayer } from '@fulbito/types'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
 
-// Groups every matchPlayers doc by its matchId in a single pass, so each match
-// resolves its teams with an O(1) Map lookup instead of re-scanning the whole
-// collection per match.
 function groupTeamsByMatch(
   mpDocs: Array<{ id: string; data: () => Record<string, unknown> }>,
   playerNames: Map<string, string>,
@@ -53,8 +50,6 @@ function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Matc
 
 export async function getMatches(): Promise<Match[]> {
   const db = getFirestore()
-  // Sorted client-side: a Firestore orderBy('date') would silently drop docs
-  // that lack the date field entirely (legacy/hand-created matches).
   const [matchSnap, mpSnap, playerSnap] = await Promise.all([
     getDocs(collection(db, 'matches')),
     getDocs(collection(db, 'matchPlayers')),
@@ -72,6 +67,10 @@ export async function getMatches(): Promise<Match[]> {
     return { ...scalars, teamA: teams.A, teamB: teams.B }
   })
 
+  return sortMatchesByDateDescending(matches)
+}
+
+function sortMatchesByDateDescending(matches: Match[]): Match[] {
   return matches.sort((a, b) => {
     const dayA = a.date.slice(0, 10)
     const dayB = b.date.slice(0, 10)
@@ -102,8 +101,6 @@ export async function createMatch(data: MatchInput): Promise<string> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
 
-  // Write the match and all its matchPlayers atomically: either every doc lands
-  // or none does, so the caller never observes a half-created match.
   const batch = writeBatch(db)
   const matchRef = doc(collection(db, 'matches'))
   batch.set(matchRef, {
@@ -140,12 +137,9 @@ export async function updateMatch(id: string, data: MatchInput): Promise<void> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
 
-  // Reads can't be part of a batch, so resolve the old matchPlayers first.
   const mpSnap = await getDocs(query(collection(db, 'matchPlayers'), where('matchId', '==', id)))
   const toDelete = mpSnap.docs
 
-  // Atomically update the match, drop its old matchPlayers, and re-insert the
-  // new set — a partial failure would otherwise leave stale/duplicated rosters.
   const batch = writeBatch(db)
   batch.update(doc(db, 'matches', id), {
     ...scalars,
@@ -177,11 +171,9 @@ export async function updateMatch(id: string, data: MatchInput): Promise<void> {
 export async function deleteMatch(id: string): Promise<void> {
   const db = getFirestore()
 
-  // Reads can't be part of a batch, so resolve the matchPlayers first.
   const mpSnap = await getDocs(query(collection(db, 'matchPlayers'), where('matchId', '==', id)))
   const toDelete = mpSnap.docs
 
-  // Atomically remove the match and cascade-delete all its matchPlayers.
   const batch = writeBatch(db)
   batch.delete(doc(db, 'matches', id))
   for (const d of toDelete) batch.delete(d.ref)

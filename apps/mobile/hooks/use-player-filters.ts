@@ -13,7 +13,6 @@ type Filters = {
   filteredPlayers: Player[]
 }
 
-/** Filtro combinado por nombre + posición. Expone además las posiciones disponibles. */
 export function usePlayerFilters(players: Player[]): Filters {
   const [query, setQuery] = useState('')
   const [position, setPosition] = useState<PositionFilter>(null)

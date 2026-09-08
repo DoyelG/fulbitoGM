@@ -14,7 +14,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err: unknown) => {
-  // stdout carries the MCP protocol; fatal startup errors go to stderr.
   console.error(err instanceof Error ? err.message : String(err))
   process.exit(1)
 })

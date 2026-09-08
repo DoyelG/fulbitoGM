@@ -6,7 +6,6 @@ type Props = {
   skill: number | null
 }
 
-/** Muestra el skill como número grande con el sufijo `lv`. Si es null, un pill "—". */
 export function SkillBig({ skill }: Props) {
   const { colors, isDark } = useAppTheme()
 

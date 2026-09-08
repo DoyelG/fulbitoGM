@@ -17,9 +17,6 @@ function toDate(value: unknown): Date {
   return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed
 }
 
-// Firestore docs are unvalidated (rules only check auth), so every field gets a
-// runtime-honest default here rather than in every consumer: createPlayer writes
-// null for absent optionals, and legacy docs may lack fields or hold wrong types.
 function docToPlayer(id: string, data: Record<string, unknown>): Player {
   return {
     id,
@@ -36,8 +33,6 @@ function docToPlayer(id: string, data: Record<string, unknown>): Player {
 
 export async function getPlayers(): Promise<Player[]> {
   const db = getFirestore()
-  // Sorted client-side: a Firestore orderBy('skill') would silently drop docs
-  // that lack the skill field entirely (legacy/hand-created players).
   const snap = await getDocs(collection(db, 'players'))
   return snap.docs
     .map((d) => docToPlayer(d.id, d.data()))

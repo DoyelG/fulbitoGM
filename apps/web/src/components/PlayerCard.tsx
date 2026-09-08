@@ -6,7 +6,6 @@ import type { SkillValue } from '@fulbito/types'
 export type PlayerCardProps = {
   overall: number
   photoUrl?: string
-  // category skills 1-10; we map them into -like six stats
   skills: { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
   goalkeeping?: number
   className?: string
@@ -18,7 +17,6 @@ export default function PlayerCard({ overall, photoUrl, skills, goalkeeping, cla
 
   return (
     <div className={`relative ${className ?? ''}`}>
-      {/* Decorative SVG background with shield-like FIFA shape */}
       <svg className="absolute inset-0" viewBox="0 0 240 360" preserveAspectRatio="none" aria-hidden>
         <defs>
           <linearGradient id="cardFill" x1="0" y1="0" x2="0" y2="1">
@@ -37,19 +35,12 @@ export default function PlayerCard({ overall, photoUrl, skills, goalkeeping, cla
           </radialGradient>
         </defs>
 
-        {/* Base */}
         <path d={pathD} fill="url(#cardFill)" />
-        {/* Border */}
         <path d={pathD} fill="none" stroke="url(#borderGrad)" strokeWidth="6" />
-        {/* Inner highlight */}
         <path d={pathD} fill="url(#shine)" opacity="0.35" />
-
-        {/* Subtle inner border */}
         <path d={pathD} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" />
-
       </svg>
 
-      {/* Content */}
       <div className="relative min-h-[320px] h-full flex flex-col items-center pt-6 px-6">
         <div className="flex items-baseline gap-2">
           <div className="text-5xl font-extrabold leading-none drop-shadow-sm">{overall}</div>

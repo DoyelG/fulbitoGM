@@ -10,7 +10,6 @@ type Props = {
   size?: number
 }
 
-/** Avatar circular. Muestra la foto ajustada al círculo o la inicial como fallback. */
 export function PlayerAvatar({ name, photoUrl, size = 48 }: Props) {
   const { colors } = useAppTheme()
   const initial = name.trim().charAt(0).toUpperCase() || '?'

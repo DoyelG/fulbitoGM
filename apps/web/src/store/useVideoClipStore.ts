@@ -35,11 +35,7 @@ async function fetchVideoClips(): Promise<VideoClip[]> {
 
 async function deleteVideoClipFile(clipId: string): Promise<void> {
   const storage = getStorage(getApp())
-  try {
-    await deleteObject(ref(storage, `videoClips/${clipId}`))
-  } catch {
-    // ignore if file doesn't exist
-  }
+  await deleteObject(ref(storage, `videoClips/${clipId}`)).catch(() => undefined)
 }
 
 type VideoClipStore = {
