@@ -10,7 +10,6 @@ type Props = {
   width?: number
 }
 
-/** Mini barra horizontal + etiqueta `X/max obj` alineada a la derecha. */
 export function GoalMiniBar({ winCount, max = 7, width = 80 }: Props) {
   const { colors, isDark } = useAppTheme()
   const capped = Math.max(0, Math.min(max, winCount))

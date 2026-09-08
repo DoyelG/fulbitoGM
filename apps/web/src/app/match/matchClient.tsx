@@ -55,12 +55,10 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
   const [matchDescription, setMatchDescription] = useState<string>('')
 
-  // manual builder
   const [manualOpen, setManualOpen] = useState(false)
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
-  // search in player selection
   const [playerQuery, setPlayerQuery] = useState('')
 
   const MAX_GOALKEEPERS = 2
@@ -75,7 +73,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       .map(p => ({
         id: p.id,
         name: p.name,
-        // Designated goalkeepers are balanced by their goalkeeping level, not their overall skill.
         skill: goalkeeperIds.has(p.id)
           ? getGoalkeeping(p)
           : ((p.skill ?? 'unknown') as number | 'unknown'),
@@ -189,8 +186,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }
 
   const buildTeams = (pool: PlayerInfo[], streaks: Record<string, { kind: 'win' | 'loss' | null; count: number }>) => {
-    // Designated goalkeepers take precedence: seed one per team so they end up split,
-    // then balance the rest around them (keepers already carry their goalkeeping level as skill).
     const keepers = pool.filter(p => goalkeeperIds.has(p.id))
     if (keepers.length > 0) {
       const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)

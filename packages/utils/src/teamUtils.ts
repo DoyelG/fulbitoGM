@@ -2,8 +2,7 @@ import type { SkillValue, PlayerInfo, TeamResult } from '@fulbito/types'
 
 const norm = (s: SkillValue) => (s === 'unknown' ? 5 : s)
 
-const normPhysical = (p: PlayerInfo) =>
-  p.physical === undefined || p.physical === 'unknown' ? 5 : p.physical
+const normPhysical = (p: PlayerInfo) => (p.physical === undefined || p.physical === 'unknown' ? 5 : p.physical)
 
 function sumSkill(team: PlayerInfo[]) {
   return team.reduce((s, p) => s + norm(p.skill), 0)
@@ -13,13 +12,9 @@ function sumPhysical(team: PlayerInfo[]) {
   return team.reduce((s, p) => s + normPhysical(p), 0)
 }
 
-/**
- * Ensures that the team with less skill has >= physical than the other team.
- * Swaps players until the invariant is met.
- */
-function applyPhysicalCompensation(
+function compensatePhysicalForWeakerTeam(
   teamA: PlayerInfo[],
-  teamB: PlayerInfo[]
+  teamB: PlayerInfo[],
 ): { skillA: number; skillB: number; physicalA: number; physicalB: number } {
   const getPhys = (p: PlayerInfo) => normPhysical(p)
   const maxIterations = teamA.length * teamB.length + 1
@@ -30,9 +25,7 @@ function applyPhysicalCompensation(
     const physicalA = sumPhysical(teamA)
     const physicalB = sumPhysical(teamB)
 
-    const invariantOk =
-      !(skillA < skillB && physicalA < physicalB) &&
-      !(skillB < skillA && physicalB < physicalA)
+    const invariantOk = !(skillA < skillB && physicalA < physicalB) && !(skillB < skillA && physicalB < physicalA)
     if (invariantOk) break
 
     let swapped = false
@@ -74,9 +67,9 @@ function applyPhysicalCompensation(
 
 export function balanceTeams(
   selectedPlayers: PlayerInfo[],
-  playersPerTeam: number
+  playersPerTeam: number,
 ): { teamA: TeamResult; teamB: TeamResult } {
-  const withBalance = selectedPlayers.map(p => ({
+  const withBalance = selectedPlayers.map((p) => ({
     ...p,
     balanceSkill: norm(p.skill),
     balancePhysical: normPhysical(p),
@@ -94,13 +87,26 @@ export function balanceTeams(
 
   for (const p of sorted) {
     const phys = p.balancePhysical!
-    if (teamA.length === playersPerTeam) { teamB.push(p); physicalB += phys; continue }
-    if (teamB.length === playersPerTeam) { teamA.push(p); physicalA += phys; continue }
-    if (physicalA <= physicalB) { teamA.push(p); physicalA += phys }
-    else { teamB.push(p); physicalB += phys }
+    if (teamA.length === playersPerTeam) {
+      teamB.push(p)
+      physicalB += phys
+      continue
+    }
+    if (teamB.length === playersPerTeam) {
+      teamA.push(p)
+      physicalA += phys
+      continue
+    }
+    if (physicalA <= physicalB) {
+      teamA.push(p)
+      physicalA += phys
+    } else {
+      teamB.push(p)
+      physicalB += phys
+    }
   }
 
-  const compensated = applyPhysicalCompensation(teamA, teamB)
+  const compensated = compensatePhysicalForWeakerTeam(teamA, teamB)
   return {
     teamA: { players: teamA, totalSkill: compensated.skillA, totalPhysical: compensated.physicalA },
     teamB: { players: teamB, totalSkill: compensated.skillB, totalPhysical: compensated.physicalB },
@@ -111,7 +117,7 @@ export function balanceRemainingPlayers(
   unassigned: PlayerInfo[],
   preTeamA: PlayerInfo[],
   preTeamB: PlayerInfo[],
-  playersPerTeam: number
+  playersPerTeam: number,
 ): { teamA: TeamResult; teamB: TeamResult } {
   const teamA = [...preTeamA]
   const teamB = [...preTeamB]
@@ -119,20 +125,33 @@ export function balanceRemainingPlayers(
   let physicalB = teamB.reduce((s, p) => s + normPhysical(p), 0)
 
   const sortedUnassigned = unassigned
-    .map(p => ({ ...p, balanceSkill: norm(p.skill), balancePhysical: normPhysical(p) }))
+    .map((p) => ({ ...p, balanceSkill: norm(p.skill), balancePhysical: normPhysical(p) }))
     .sort((a, b) => b.balanceSkill - a.balanceSkill)
 
   for (const p of sortedUnassigned) {
     const phys = p.balancePhysical!
     const spotsA = playersPerTeam - teamA.length
     const spotsB = playersPerTeam - teamB.length
-    if (spotsA === 0) { teamB.push(p); physicalB += phys; continue }
-    if (spotsB === 0) { teamA.push(p); physicalA += phys; continue }
-    if (physicalA <= physicalB) { teamA.push(p); physicalA += phys }
-    else { teamB.push(p); physicalB += phys }
+    if (spotsA === 0) {
+      teamB.push(p)
+      physicalB += phys
+      continue
+    }
+    if (spotsB === 0) {
+      teamA.push(p)
+      physicalA += phys
+      continue
+    }
+    if (physicalA <= physicalB) {
+      teamA.push(p)
+      physicalA += phys
+    } else {
+      teamB.push(p)
+      physicalB += phys
+    }
   }
 
-  const compensated = applyPhysicalCompensation(teamA, teamB)
+  const compensated = compensatePhysicalForWeakerTeam(teamA, teamB)
   return {
     teamA: { players: teamA, totalSkill: compensated.skillA, totalPhysical: compensated.physicalA },
     teamB: { players: teamB, totalSkill: compensated.skillB, totalPhysical: compensated.physicalB },

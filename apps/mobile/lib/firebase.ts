@@ -13,13 +13,9 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Initializes the default Firebase app at module load time.
-// Imported as a side effect from FirebaseAuthContext and data hooks via _layout.tsx.
 const alreadyInitialized = getApps().length > 0
 const app = initFirebase(firebaseConfig)
 
-// Must run before any @fulbito/firebase call (e.g. getAuth()) so auth persists
-// across app restarts on React Native instead of defaulting to in-memory only.
 if (app && !alreadyInitialized) {
   initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),

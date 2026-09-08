@@ -28,7 +28,6 @@ export type Match = {
 
 export type MatchInput = Omit<Match, 'id' | 'createdAt' | 'updatedAt'>
 
-/** Minimal match shape used by streak-calculation algorithms */
 export type MatchLike = {
   date: string
   teamAScore: number

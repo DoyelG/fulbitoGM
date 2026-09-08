@@ -9,7 +9,6 @@ type Props = {
   placeholder?: string
 }
 
-/** Input redondeado con icono de búsqueda y botón de limpiar. */
 export function PlayersSearchBar({ value, onChange, placeholder = 'Buscar jugador...' }: Props) {
   const { colors, isDark } = useAppTheme()
   const bg = isDark ? colors.chipBg : '#f3f4f6'

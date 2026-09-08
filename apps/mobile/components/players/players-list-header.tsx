@@ -14,7 +14,6 @@ type Props = {
   onAdd: () => void
 }
 
-/** Cabecera de la lista: acción de agregar (admin) + buscador + filtro por posición. */
 export function PlayersListHeader({
   query,
   onQueryChange,

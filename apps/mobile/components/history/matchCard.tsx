@@ -58,7 +58,6 @@ export function MatchCard({
         shadows.card(isDark),
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           {m.name ? (
@@ -81,7 +80,6 @@ export function MatchCard({
         </Text>
       </View>
 
-      {/* Teams */}
       <View style={styles.teamsRow}>
         <TeamColumn
           label="Equipo A"
@@ -107,7 +105,6 @@ export function MatchCard({
         />
       </View>
 
-      {/* Description */}
       {m.description ? (
         <Pressable
           onPress={toggleExtended}
@@ -135,7 +132,6 @@ export function MatchCard({
         </Pressable>
       ) : null}
 
-      {/* Shirts + Admin actions */}
       <View style={styles.footer}>
         {shirtName ? (
           <Text style={[styles.shirts, { color: colors.muted }]}>

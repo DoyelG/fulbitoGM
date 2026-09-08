@@ -18,7 +18,6 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Read .env.local
 const envPath = path.join(__dirname, '../.env.local')
 const env = Object.fromEntries(
   fs.readFileSync(envPath, 'utf8')
@@ -44,7 +43,6 @@ const auth = getAuth(app)
 const PHOTOS_DIR = path.join(__dirname, '../public/players')
 
 const players = [
-  // Boca Juniors — Intercontinental 2000
   { name: 'Óscar Córdoba',       position: 'GK',     skill: 8.5, photo: 'oscar-cordoba.jpg',         skills: { physical: 8, technical: 4, tactical: 9, psychological: 7 } },
   { name: 'Hugo Ibarra',         position: 'DEF',    skill: 7.5, photo: null,                         skills: { physical: 8, technical: 6, tactical: 8, psychological: 7 } },
   { name: 'Jorge Bermúdez',      position: 'DEF',    skill: 8.0, photo: null,                         skills: { physical: 9, technical: 5, tactical: 9, psychological: 8 } },
@@ -56,7 +54,6 @@ const players = [
   { name: 'Juan Román Riquelme', position: 'MID',    skill: 9.5, photo: 'juan-roman-riquelme.jpg',   skills: { physical: 6, technical: 10, tactical: 9, psychological: 9 } },
   { name: 'Marcelo Delgado',     position: 'FWD',    skill: 7.5, photo: null,                         skills: { physical: 7, technical: 7, tactical: 6, psychological: 7 } },
   { name: 'Martín Palermo',      position: 'FWD',    skill: 9.0, photo: 'martin-palermo.jpg',         skills: { physical: 8, technical: 8, tactical: 7, psychological: 9 } },
-  // Resto
   { name: 'Ariel',    position: 'MID',  skill: 7.5, photo: null, skills: { physical: 7, technical: 8, tactical: 7, psychological: 8 } },
   { name: 'Lucas',    position: 'FWD',  skill: 8.0, photo: null, skills: { physical: 7, technical: 8, tactical: 6, psychological: 8 } },
   { name: 'Matías',   position: 'DEF',  skill: 7.0, photo: null, skills: { physical: 8, technical: 5, tactical: 8, psychological: 7 } },
@@ -85,7 +82,6 @@ async function clearCollection(name) {
 }
 
 async function main() {
-  // Auth required to write to Firestore (adjust if rules allow unauthenticated writes)
   const email = process.env.SEED_EMAIL
   const password = process.env.SEED_PASSWORD
   if (email && password) {
