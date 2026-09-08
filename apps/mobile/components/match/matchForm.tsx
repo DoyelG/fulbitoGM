@@ -50,7 +50,6 @@ export function MatchForm({
   const { colors, spacing } = useAppTheme()
   const isAdmin = useIsAdmin()
 
-  // ── Basic info ──────────────────────────────────────────────────────────────
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   )
@@ -65,13 +64,11 @@ export function MatchForm({
   const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null)
   const [isMatchFriendly, setIsMatchFriendly] = useState<boolean>(initial?.isFriendly ?? false)
 
-  // ── State hooks ─────────────────────────────────────────────────────────────
   const pool = usePool(players, initial)
   const teams = useTeams(initial)
   const scores = useScores(initial)
   const shirts = useShirts(allMatches, teams.teamA, teams.teamB, initial)
 
-  // ── Derived ─────────────────────────────────────────────────────────────────
   const teamStats = useMemo(
     () => computeTeamStats(teams.teamA, teams.teamB, pool.poolPlayers),
     [teams.teamA, teams.teamB, pool.poolPlayers],
@@ -87,14 +84,11 @@ export function MatchForm({
     scoreA === scores.totalGoalsA &&
     scoreB === scores.totalGoalsB
 
-  // Si el MVP elegido deja de estar en los equipos, lo limpiamos
   useEffect(() => {
-    if (!mvpId) return
-    const inTeams = [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
-    if (!inTeams) setMvpId(null)
+    const mvpStillInTeams = !mvpId || [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
+    if (!mvpStillInTeams) setMvpId(null)
   }, [teams.teamA, teams.teamB, mvpId])
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
   const handlePoolChange = (ids: Set<string>) => {
     pool.setPoolIds(ids)
     teams.filterByPool(ids)
@@ -177,7 +171,6 @@ export function MatchForm({
     }
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}

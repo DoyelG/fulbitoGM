@@ -55,12 +55,10 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
   const [matchDescription, setMatchDescription] = useState<string>('')
 
-  // manual builder
   const [manualOpen, setManualOpen] = useState(false)
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
-  // search in player selection
   const [playerQuery, setPlayerQuery] = useState('')
 
   const MAX_GOALKEEPERS = 2

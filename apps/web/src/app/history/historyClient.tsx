@@ -771,12 +771,10 @@ function RecordModal({
 
   const teamsComplete =
     teamA.length === playersPerTeam && teamB.length === playersPerTeam;
-  // Confirming a match (status 'final') needs a complete, consistent result.
   const canConfirm =
     (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
     (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
     teamsComplete;
-  // Saving a draft only needs full teams — it hasn't been played yet.
   const canUpdateDraft = teamsComplete;
 
   const buildPayload = (status: "draft" | "final"): MatchInput => {

@@ -12,11 +12,7 @@ function sumPhysical(team: PlayerInfo[]) {
   return team.reduce((s, p) => s + normPhysical(p), 0)
 }
 
-/**
- * Ensures that the team with less skill has >= physical than the other team.
- * Swaps players until the invariant is met.
- */
-function applyPhysicalCompensation(
+function compensatePhysicalForWeakerTeam(
   teamA: PlayerInfo[],
   teamB: PlayerInfo[],
 ): { skillA: number; skillB: number; physicalA: number; physicalB: number } {
@@ -110,7 +106,7 @@ export function balanceTeams(
     }
   }
 
-  const compensated = applyPhysicalCompensation(teamA, teamB)
+  const compensated = compensatePhysicalForWeakerTeam(teamA, teamB)
   return {
     teamA: { players: teamA, totalSkill: compensated.skillA, totalPhysical: compensated.physicalA },
     teamB: { players: teamB, totalSkill: compensated.skillB, totalPhysical: compensated.physicalB },
@@ -155,7 +151,7 @@ export function balanceRemainingPlayers(
     }
   }
 
-  const compensated = applyPhysicalCompensation(teamA, teamB)
+  const compensated = compensatePhysicalForWeakerTeam(teamA, teamB)
   return {
     teamA: { players: teamA, totalSkill: compensated.skillA, totalPhysical: compensated.physicalA },
     teamB: { players: teamB, totalSkill: compensated.skillB, totalPhysical: compensated.physicalB },
