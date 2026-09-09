@@ -43,8 +43,6 @@ export function AwardCard({
   const iconColor = accent === 'muted' ? colors.muted : '#ffffff'
 
   return (
-    // Card chrome lives on a plain View so the runners-up rows can be their own
-    // pressables: nesting them inside the winner's Pressable swallows their taps.
     <View
       style={[
         styles.card,

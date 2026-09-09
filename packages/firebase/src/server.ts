@@ -1,15 +1,3 @@
-// Read-only Firestore access for use from a Node.js server context (e.g. a Next.js
-// Server Component) — NOT for client-side/browser code (use players.ts/matches.ts
-// there instead).
-//
-// Why this file exists: `firebase/firestore` resolves, in a Node.js runtime, to a
-// gRPC-native build (`@firebase/firestore/dist/index.node.mjs`, backed by
-// `@grpc/grpc-js`). That build fails to connect when run inside a webpack-bundled
-// Next.js Server Component — bundling breaks `@grpc/grpc-js`'s Node internals — and
-// logs "Could not reach Cloud Firestore backend" regardless of real network
-// connectivity. `firebase/firestore/lite` is REST-based (plain `fetch`, no gRPC, no
-// native Node addons) and was verified to work correctly from the same Server
-// Component context.
 import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore/lite'
 import type { Match, Player } from '@fulbito/types'
 import { docToPlayer } from './players'

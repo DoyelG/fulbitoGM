@@ -12,7 +12,6 @@ export const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
   },
   content: {
-    // Clears the tab bar so the last card is fully scrollable into view.
     paddingBottom: 32,
     gap: 12,
   },

@@ -10,7 +10,6 @@ import { styles } from './champions-section.styles'
 type Props = {
   championship: ChampionshipProgress
   champions: SeasonChampion[]
-  /** null while browsing the Hall of Fame, where no single season is selected. */
   seasonYear: number | null
   onPressPlayer: (playerId: string) => void
 }

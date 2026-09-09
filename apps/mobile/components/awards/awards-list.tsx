@@ -67,8 +67,6 @@ export function AwardsList({
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <ThemedView style={styles.screen}>
         <FlatList
-          // The Hall of Fame replaces the award podiums entirely; it renders in
-          // the header so the season sheet and pull-to-refresh keep working.
           data={isHallOfFame ? [] : podiums}
           keyExtractor={(item) => item.def.key}
           ListHeaderComponent={listHeader}

@@ -13,9 +13,6 @@ type Props = {
   href: string
 }
 
-// A faceted, chamfered-rectangle silhouette (flat top/bottom edges, 45° corner
-// cuts) — the recognizable trading-card contour, rather than a soft rounded
-// shield. Corner cut size is 40 on a 240x360 canvas.
 const CARD_PATH = 'M40 0 L200 0 L240 40 L240 320 L200 360 L40 360 L0 320 L0 40 Z'
 
 const ACCENT_GRADIENTS: Record<AwardAccent, { fill: [string, string, string]; border: [string, string, string] }> = {
@@ -39,8 +36,6 @@ const ICON_TEXT: Record<AwardAccent, string> = {
   muted: 'text-gray-700',
 }
 
-// The inset second frame line and the avatar's outer ring both echo the
-// border gradient's saturated mid-stop.
 const RING_COLOR: Record<AwardAccent, string> = {
   brand: 'var(--color-brand)',
   secondary: 'var(--color-accent)',
@@ -48,8 +43,6 @@ const RING_COLOR: Record<AwardAccent, string> = {
 }
 
 export function AwardCard({ Icon, accent, winnerName, winnerPhotoUrl, value, unitLabel, href }: Props) {
-  // Unique per rendered instance (not derived from props) so multiple AwardCards
-  // on the same page never collide on SVG gradient/clip ids.
   const uid = useId()
   const fillId = `${uid}-fill`
   const borderId = `${uid}-border`
@@ -80,8 +73,6 @@ export function AwardCard({ Icon, accent, winnerName, winnerPhotoUrl, value, uni
               <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
               <stop offset="60%" stopColor="rgba(255,255,255,0)" />
             </radialGradient>
-            {/* Diagonal foil sheen: a soft light band swept across the card, clipped to
-                the exact silhouette so it never spills past the frame. */}
             <linearGradient id={foilId} x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="rgba(255,255,255,0)" />
               <stop offset="45%" stopColor="rgba(255,255,255,0)" />
@@ -101,15 +92,11 @@ export function AwardCard({ Icon, accent, winnerName, winnerPhotoUrl, value, uni
             <rect x="-40" y="-40" width="320" height="440" fill={`url(#${foilId})`} />
           </g>
 
-          {/* Frame: thick outer band on the true edge, plus a separate inset line
-              (drawn on a scaled-down copy of the same path) so the two bands sit
-              apart with a visible gap, like a real card's double border. */}
           <path d={CARD_PATH} fill="none" stroke={`url(#${borderId})`} strokeWidth="8" />
           <g transform="translate(120 180) scale(0.93) translate(-120 -180)">
             <path d={CARD_PATH} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2" />
           </g>
 
-          {/* Small medallion straddling the flat top edge */}
           <rect
             x="106"
             y="-8"

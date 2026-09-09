@@ -62,14 +62,6 @@ export function calculateAllCurrentStreaks(
   return out
 }
 
-/**
- * A title is reached when a run hits `threshold` wins; a lost final is a run of
- * exactly `threshold - 1` wins broken by a loss — one win short of the crown.
- *
- * Runs are never cut at the year boundary: pass every match the player has, and
- * each event carries the date of the match that decided it, so callers can
- * attribute it to whichever season that match belongs to.
- */
 export type StreakEventKind = 'title' | 'lostFinal'
 export type StreakEvent = { date: string; kind: StreakEventKind }
 

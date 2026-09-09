@@ -24,16 +24,12 @@ const ACCENT_BAR: Record<AwardAccent, string> = {
   muted: 'bg-gray-400',
 }
 
-// Darker shades for the divider chip, which carries a white icon: the plain
-// accent orange (~2.8:1) and gray-400 (~2.6:1) are too washed out behind it.
 const ACCENT_CHIP: Record<AwardAccent, string> = {
   brand: 'bg-[var(--color-brand)]',
   secondary: 'bg-orange-700',
   muted: 'bg-gray-600',
 }
 
-// A soft, distinct wash per award identity — replaces flat alternating
-// white/gray bands so each section reads as its own colored "chapter".
 const ACCENT_WASH: Record<AwardAccent, string> = {
   brand: 'bg-gradient-to-b from-violet-100 via-violet-50 to-white',
   secondary: 'bg-gradient-to-b from-orange-100 via-orange-50 to-white',
@@ -100,9 +96,6 @@ export function AwardsClient({ players, matches }: Props) {
               return (
                 <Fragment key={podium.def.key}>
                   <section className={ACCENT_WASH[podium.def.accent]}>
-                    {/* The entrance animation rides the inner content, never the
-                        full-bleed band: scaling the band pulls its edges away
-                        from the viewport and exposes the page behind it. */}
                     <motion.div
                       variants={sectionVariants}
                       initial="hidden"

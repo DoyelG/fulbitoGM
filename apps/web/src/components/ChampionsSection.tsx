@@ -8,7 +8,6 @@ import { CHAMPIONSHIP_THRESHOLD, type ChampionshipProgress, type SeasonChampion 
 type Props = {
   championship: ChampionshipProgress
   champions: SeasonChampion[]
-  /** null while browsing the Hall of Fame, where no single season is selected. */
   seasonYear: number | null
 }
 

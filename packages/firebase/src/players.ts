@@ -11,10 +11,6 @@ import {
 } from 'firebase/firestore'
 import type { Player } from '@fulbito/types'
 
-// Duck-typed rather than `instanceof Timestamp`: docToPlayer is also called with
-// documents read via the `firebase/firestore/lite` SDK (see server.ts), whose
-// `Timestamp` class is a distinct instance from this file's import, so
-// `instanceof` would silently fail and leak raw Timestamps to the caller.
 function isTimestampLike(value: unknown): value is { toDate(): Date } {
   return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
 }

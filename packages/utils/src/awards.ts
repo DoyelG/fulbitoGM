@@ -26,9 +26,6 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
   const shirtCountById = getShirtDutiesByPlayerId(matches)
   const mvpCountById = getMvpCountsByPlayerId(matches)
   const lossStreakById = calculateAllLongestLossStreaks(matches)
-  // Lost finals within the matches given. Runs are cut at this scope's edges, so
-  // season-scoped award rows should come from computeSeasonStatRows() instead,
-  // which counts runs across seasons and credits them to the deciding year.
   const streakEventsById = findAllStreakEvents(matches, CHAMPIONSHIP_THRESHOLD)
   const photoById = new Map(players.map((p) => [p.id, p.photoUrl ?? undefined]))
 
@@ -171,12 +168,6 @@ export type SeasonChampion = {
   streak: number
 }
 
-/**
- * Champions of `year`: players whose winning run reached CHAMPIONSHIP_THRESHOLD,
- * counting the run across seasons and crediting the title to the year of the
- * deciding win. Pass every match, not just the season's — a run that starts in
- * October and is crowned in February belongs to February's season.
- */
 export function pickSeasonChampions(players: Player[], allMatches: Match[], year: number): SeasonChampion[] {
   const eventsById = findAllStreakEvents(allMatches, CHAMPIONSHIP_THRESHOLD)
 
@@ -191,12 +182,6 @@ export function pickSeasonChampions(players: Player[], allMatches: Match[], year
     .sort((a, b) => a.playerName.localeCompare(b.playerName))
 }
 
-/**
- * Per-season award rows. Season aggregates (matches, goals, MVPs, ...) come from
- * that year's matches, but lost finals are streak events counted across seasons
- * and credited to the year of the deciding loss — so a run built in one year and
- * broken in the next counts for the year it was broken.
- */
 export function computeSeasonStatRows(players: Player[], allMatches: Match[], year: number): PlayerStatRow[] {
   const seasonMatches = allMatches.filter((m) => new Date(m.date).getFullYear() === year)
   const eventsById = findAllStreakEvents(allMatches, CHAMPIONSHIP_THRESHOLD)
@@ -215,11 +200,6 @@ export type ChampionshipProgress = {
   isChampion: boolean
 } | null
 
-/**
- * The player currently closest to the title: the longest *active* winning run
- * right now. Deliberately unscoped by season — it reflects live state, not a
- * historical period, so callers should pass every match.
- */
 export function pickChampionshipProgress(players: Player[], matches: Match[]): ChampionshipProgress {
   const streaks = calculateAllCurrentStreaks(matches)
   let best: { player: Player; streak: number } | null = null
@@ -244,14 +224,12 @@ export function pickChampionshipProgress(players: Player[], matches: Match[]): C
 
 export type HallOfFameEntry = { year: number; champions: SeasonChampion[] }
 
-/** Every season that produced at least one champion, newest first. */
 export function pickHallOfFame(players: Player[], allMatches: Match[], years: number[]): HallOfFameEntry[] {
   return years
     .map((year) => ({ year, champions: pickSeasonChampions(players, allMatches, year) }))
     .filter((entry) => entry.champions.length > 0)
 }
 
-/** Seasons that have at least one match, newest first, always including the current year. */
 export function listAvailableSeasons(matches: Match[]): number[] {
   const years = new Set(matches.map((m) => new Date(m.date).getFullYear()))
   years.add(new Date().getFullYear())
