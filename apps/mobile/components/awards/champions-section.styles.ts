@@ -6,6 +6,7 @@ export const styles = StyleSheet.create({
   section: {
     borderRadius: Radii.lg,
     padding: Spacing.xl,
+    marginTop: Spacing.lg,
     marginBottom: Spacing.md,
     overflow: 'hidden',
   },
