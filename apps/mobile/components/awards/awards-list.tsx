@@ -64,7 +64,7 @@ export function AwardsList({
   )
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <ThemedView style={styles.screen}>
         <FlatList
           // The Hall of Fame replaces the award podiums entirely; it renders in
