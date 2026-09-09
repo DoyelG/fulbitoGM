@@ -8,6 +8,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 import { AutoGenerateButton } from './matchForm/autoGenerateButton'
 import { DateField } from './matchForm/dateField'
+import { DescriptionField } from './matchForm/descriptionField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { buildMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
@@ -49,10 +50,10 @@ export function MatchForm({
   const { colors, spacing } = useAppTheme()
   const isAdmin = useIsAdmin()
 
-  // ── Basic info ──────────────────────────────────────────────────────────────
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   )
+  const [matchDescription, setMatchDescription] = useState<string>(initial?.description ?? '')
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) ?? '5v5')
   const [matchName, setMatchName] = useState(initial?.name ?? '')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
@@ -63,13 +64,11 @@ export function MatchForm({
   const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null)
   const [isMatchFriendly, setIsMatchFriendly] = useState<boolean>(initial?.isFriendly ?? false)
 
-  // ── State hooks ─────────────────────────────────────────────────────────────
   const pool = usePool(players, initial)
   const teams = useTeams(initial)
   const scores = useScores(initial)
   const shirts = useShirts(allMatches, teams.teamA, teams.teamB, initial)
 
-  // ── Derived ─────────────────────────────────────────────────────────────────
   const teamStats = useMemo(
     () => computeTeamStats(teams.teamA, teams.teamB, pool.poolPlayers),
     [teams.teamA, teams.teamB, pool.poolPlayers],
@@ -85,14 +84,11 @@ export function MatchForm({
     scoreA === scores.totalGoalsA &&
     scoreB === scores.totalGoalsB
 
-  // Si el MVP elegido deja de estar en los equipos, lo limpiamos
   useEffect(() => {
-    if (!mvpId) return
-    const inTeams = [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
-    if (!inTeams) setMvpId(null)
+    const mvpStillInTeams = !mvpId || [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
+    if (!mvpStillInTeams) setMvpId(null)
   }, [teams.teamA, teams.teamB, mvpId])
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
   const handlePoolChange = (ids: Set<string>) => {
     pool.setPoolIds(ids)
     teams.filterByPool(ids)
@@ -155,6 +151,7 @@ export function MatchForm({
         matchDate,
         matchType,
         matchName,
+        matchDescription,
         teamA: teams.teamA,
         teamB: teams.teamB,
         teamAScore: scoreA,
@@ -174,7 +171,6 @@ export function MatchForm({
     }
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -191,6 +187,7 @@ export function MatchForm({
 
       <DateField value={matchDate} onChange={setMatchDate} />
 
+      <DescriptionField value={matchDescription} onChange={setMatchDescription} />
       <ToggleFriendlyMatch isMatchFriendly={isMatchFriendly} setIsMatchFriendly={setIsMatchFriendly} />
 
       <TypeSelector value={matchType} onChange={handleTypeChange} />

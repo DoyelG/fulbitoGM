@@ -9,9 +9,7 @@ type Props = {
   visible: boolean
   title: string
   closeLabel?: string
-  /** Llamado al tocar el botón Listo del header */
   onConfirm: () => void
-  /** Llamado al tocar el backdrop. Si no se provee, usa onConfirm */
   onDismiss?: () => void
   children: ReactNode
   containerStyle?: StyleProp<ViewStyle>

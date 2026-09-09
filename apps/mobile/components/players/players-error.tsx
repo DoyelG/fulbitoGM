@@ -10,7 +10,6 @@ type Props = {
   onRetry: () => void
 }
 
-/** Estado de error con botón de reintento. */
 export function PlayersError({ message, onRetry }: Props) {
   const { colors, shadows } = useAppTheme()
 

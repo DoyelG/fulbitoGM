@@ -31,7 +31,6 @@ export function MvpSection({ teamA, teamB, mvpId, onChange, goalsA, goalsB, perf
     perf: parseFloat(perfA[id] ?? perfB[id] ?? '0') || 0,
   })
 
-  // Sugerencia: jugador con mejor rendimiento del partido
   const suggestedId = current.reduce<{ id: string; perf: number } | null>((best, p) => {
     const { perf } = statsFor(p.id)
     if (perf > 0 && (!best || perf > best.perf)) return { id: p.id, perf }

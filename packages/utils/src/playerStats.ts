@@ -10,12 +10,12 @@ export function getGoalkeeping(player: Pick<Player, 'goalkeeping' | 'skill'>): n
 
 function relevantSorted(matches: MatchLike[], playerId: string) {
   return matches
-    .filter(m => (m.teamA.some(p => p.id === playerId) || m.teamB.some(p => p.id === playerId)) && !m.isFriendly)
+    .filter((m) => (m.teamA.some((p) => p.id === playerId) || m.teamB.some((p) => p.id === playerId)) && !m.isFriendly)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
 function resultForPlayer(m: MatchLike, playerId: string): 'win' | 'loss' | 'draw' {
-  const inA = m.teamA.some(p => p.id === playerId)
+  const inA = m.teamA.some((p) => p.id === playerId)
   const a = m.teamAScore
   const b = m.teamBScore
   if (a === b) return 'draw'
@@ -25,7 +25,7 @@ function resultForPlayer(m: MatchLike, playerId: string): 'win' | 'loss' | 'draw
 
 export function calculateCurrentStreakForPlayer(
   matches: MatchLike[],
-  playerId: string
+  playerId: string,
 ): { kind: 'win' | 'loss' | null; count: number } {
   const arr = relevantSorted(matches, playerId)
   let kind: 'win' | 'loss' | null = null
@@ -48,15 +48,17 @@ export function calculateCurrentStreakForPlayer(
 }
 
 export function calculateAllCurrentStreaks(
-  matches: MatchLike[]
+  matches: MatchLike[],
 ): Record<string, { kind: 'win' | 'loss' | null; count: number }> {
   const ids = new Set<string>()
   for (const m of matches) {
-    m.teamA.forEach(p => ids.add(p.id))
-    m.teamB.forEach(p => ids.add(p.id))
+    m.teamA.forEach((p) => ids.add(p.id))
+    m.teamB.forEach((p) => ids.add(p.id))
   }
   const out: Record<string, { kind: 'win' | 'loss' | null; count: number }> = {}
-  ids.forEach(id => { out[id] = calculateCurrentStreakForPlayer(matches, id) })
+  ids.forEach((id) => {
+    out[id] = calculateCurrentStreakForPlayer(matches, id)
+  })
   return out
 }
 

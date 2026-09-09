@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@fulbito/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "20.19.24",
     "@types/react": "^19",

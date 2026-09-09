@@ -53,13 +53,12 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [streakSeparated, setStreakSeparated] = useState(false)
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
   const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
+  const [matchDescription, setMatchDescription] = useState<string>('')
 
-  // manual builder
   const [manualOpen, setManualOpen] = useState(false)
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
-  // search in player selection
   const [playerQuery, setPlayerQuery] = useState('')
 
   const MAX_GOALKEEPERS = 2
@@ -74,7 +73,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       .map(p => ({
         id: p.id,
         name: p.name,
-        // Designated goalkeepers are balanced by their goalkeeping level, not their overall skill.
         skill: goalkeeperIds.has(p.id)
           ? getGoalkeeping(p)
           : ((p.skill ?? 'unknown') as number | 'unknown'),
@@ -188,8 +186,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }
 
   const buildTeams = (pool: PlayerInfo[], streaks: Record<string, { kind: 'win' | 'loss' | null; count: number }>) => {
-    // Designated goalkeepers take precedence: seed one per team so they end up split,
-    // then balance the rest around them (keepers already carry their goalkeeping level as skill).
     const keepers = pool.filter(p => goalkeeperIds.has(p.id))
     if (keepers.length > 0) {
       const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
@@ -303,6 +299,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         })),
         name: draftName.trim() || undefined,
         shirtsResponsibleId: shirtsResponsibleId ?? null,
+        description: matchDescription.trim() || undefined,
         mvpId: null,
         isFriendly,
       }
@@ -551,6 +548,18 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   🎲 Elegir aleatorio
                 </button>
               </div>
+            </div>
+            <div className="mb-4 py-4">
+              <label htmlFor="match-description" className="block text-sm font-medium mb-1">
+                Crónica
+              </label>
+              <textarea
+                id="match-description"
+                value={matchDescription}
+                onChange={(e) => setMatchDescription(e.target.value)}
+                placeholder="Escribí la crónica del partido"
+                className="border rounded px-3 py-2 w-full"
+              />
             </div>
           </div>
 

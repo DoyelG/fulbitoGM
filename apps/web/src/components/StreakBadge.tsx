@@ -2,19 +2,18 @@
 
 type Kind = 'win' | 'loss' | null
 
-// Fixed hues; vary only intensity (lightness) and a touch of saturation by count
 function colorForStreak(kind: Kind, count: number) {
   const c = Math.max(0, Math.min(10, count))
-  const t = c / 10 // 0..1
+  const intensity = c / 10
   if (kind === 'win') {
     const h = 270
-    const s = 70 + 10 * t // 70%→80%
-    const l = 52 - 16 * t // 52%→36% darker with more wins
+    const s = 70 + 10 * intensity
+    const l = 52 - 16 * intensity
     return `hsl(${h}deg ${s}% ${l}%)`
   } else {
     const h = 24
-    const s = 80 + 5 * t // 80%→85%
-    const l = 50 - 12 * t // 50%→38% darker with more losses
+    const s = 80 + 5 * intensity
+    const l = 50 - 12 * intensity
     return `hsl(${h}deg ${s}% ${l}%)`
   }
 }
