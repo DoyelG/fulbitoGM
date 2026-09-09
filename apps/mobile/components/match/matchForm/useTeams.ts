@@ -55,6 +55,8 @@ export function useTeams(initial?: Match): TeamsState {
   const filterByPool = (poolIds: Set<string>) => {
     setTeamA((prev) => prev.filter((p) => poolIds.has(p.id)))
     setTeamB((prev) => prev.filter((p) => poolIds.has(p.id)))
+    setPinnedA((prev) => new Set([...prev].filter((id) => poolIds.has(id))))
+    setPinnedB((prev) => new Set([...prev].filter((id) => poolIds.has(id))))
   }
 
   const reset = () => {

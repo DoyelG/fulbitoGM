@@ -1,5 +1,12 @@
 import type { Match, MatchInput, Player } from '@fulbito/types'
-import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
+import {
+  balanceRemainingPlayers,
+  calculateAllCurrentStreaks,
+  getGoalkeeping,
+  getHotStreakIds,
+  onlyFinalMatches,
+  seedPriorityPlayers,
+} from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
 
@@ -118,28 +125,27 @@ export function MatchForm({
       const info = toPlayerInfo(p)
       return goalkeeperIds.has(p.id) ? { ...info, skill: getGoalkeeping(p) } : info
     }
-    const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
-    const pinnedIds = new Set([...teams.pinnedA, ...teams.pinnedB])
 
-    const seedA = pool.poolPlayers.filter((p) => teams.pinnedA.has(p.id)).map(toInfo)
-    const seedB = pool.poolPlayers.filter((p) => teams.pinnedB.has(p.id)).map(toInfo)
+    const poolInfos = pool.poolPlayers.map(toInfo)
+    const pinnedSeedA = poolInfos.filter((p) => teams.pinnedA.has(p.id))
+    const pinnedSeedB = poolInfos.filter((p) => teams.pinnedB.has(p.id))
+    const streaks = calculateAllCurrentStreaks(onlyFinalMatches(allMatches))
 
-    const unpinnedKeepers = pool.poolPlayers
-      .filter((p) => goalkeeperIds.has(p.id) && !pinnedIds.has(p.id))
-      .map(toInfo)
-      .sort((a, b) => normSkill(b.skill) - normSkill(a.skill))
-    const keeperSeededIds = new Set<string>()
-    for (const k of unpinnedKeepers) {
-      if (seedA.length <= seedB.length) seedA.push(k)
-      else seedB.push(k)
-      keeperSeededIds.add(k.id)
-    }
+    const { seedA, seedB, rest } = seedPriorityPlayers(poolInfos, playersPerTeam, {
+      goalkeeperIds,
+      streaks,
+      initialSeedA: pinnedSeedA,
+      initialSeedB: pinnedSeedB,
+    })
 
-    const unassigned = pool.poolPlayers
-      .filter((p) => !pinnedIds.has(p.id) && !keeperSeededIds.has(p.id))
-      .map(toInfo)
-      .sort(() => Math.random() - 0.5)
-    const result = balanceRemainingPlayers(unassigned, seedA, seedB, playersPerTeam)
+    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map((p) => p.id))
+    const hotStreakIds = getHotStreakIds(poolInfos, streaks)
+    const shuffledRest = [...rest].sort(() => Math.random() - 0.5)
+    const result = balanceRemainingPlayers(shuffledRest, seedA, seedB, playersPerTeam, {
+      hardLockedIds,
+      goalkeeperIds,
+      hotStreakIds,
+    })
     teams.setTeamA(result.teamA.players.map((p) => ({ id: p.id, name: p.name })))
     teams.setTeamB(result.teamB.players.map((p) => ({ id: p.id, name: p.name })))
   }
@@ -224,6 +230,7 @@ export function MatchForm({
         <AutoGenerateButton
           poolSize={pool.poolIds.size}
           playersPerTeam={playersPerTeam}
+          hasTeams={teams.teamA.length > 0 || teams.teamB.length > 0}
           onPress={generateRemainingTeams}
         />
       ) : null}
