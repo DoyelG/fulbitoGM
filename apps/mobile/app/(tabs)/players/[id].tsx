@@ -80,7 +80,7 @@ export default function PlayerDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ActivityIndicator color={colors.brand} size="large" />
       </SafeAreaView>
     )
@@ -88,7 +88,7 @@ export default function PlayerDetailScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ThemedText style={styles.errorText}>{error}</ThemedText>
         <Pressable onPress={() => void reload()} style={[styles.retryBtn, { backgroundColor: colors.brand }]}>
           <ThemedText style={styles.retryText}>Reintentar</ThemedText>
@@ -99,7 +99,7 @@ export default function PlayerDetailScreen() {
 
   if (!player) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ThemedText style={styles.errorText}>Jugador no encontrado.</ThemedText>
         <Pressable onPress={() => router.back()} style={[styles.retryBtn, { backgroundColor: colors.brand }]}>
           <ThemedText style={styles.retryText}>Volver</ThemedText>
@@ -111,7 +111,7 @@ export default function PlayerDetailScreen() {
   const recentSlice = stats.recent.slice(0, RECENT_MAX)
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <ThemedView style={styles.screen}>
         <ScrollView
           showsVerticalScrollIndicator={false}
