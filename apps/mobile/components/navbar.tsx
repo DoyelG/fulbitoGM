@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Text, Image, Pressable } from 'react-native';
+import { Text, Pressable } from 'react-native';
 import { styles } from '@/components/navbar.styles';
 import {
   useSharedValue,
@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { DrawerMenu } from '@/components/drawer-menu';
+import { UserAvatar } from '@/components/user-avatar';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import type { User } from '@/constants/auth';
 
@@ -61,11 +62,8 @@ export function Navbar() {
         <Text style={styles.logo}>FULBITOAPP</Text>
 
         {user ? (
-          <Pressable onPress={toggle} hitSlop={12} style={styles.avatar}>
-            <Image
-              source={user.image ? { uri: user.image } : require('@/assets/images/user-placeholder.png')}
-              style={styles.avatarImg}
-            />
+          <Pressable onPress={toggle} hitSlop={12}>
+            <UserAvatar imageUrl={user.image} size={34} ringColor="rgba(255,255,255,0.5)" />
           </Pressable>
         ) : (
           <Pressable onPress={() => router.push('/login')} style={styles.enterBtn}>

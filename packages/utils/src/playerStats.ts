@@ -61,3 +61,75 @@ export function calculateAllCurrentStreaks(
   })
   return out
 }
+
+export type StreakEventKind = 'title' | 'lostFinal'
+export type StreakEvent = { date: string; kind: StreakEventKind }
+
+export function findStreakEvents(matches: MatchLike[], playerId: string, threshold = 7): StreakEvent[] {
+  const chronological = relevantSorted(matches, playerId).slice().reverse()
+  const events: StreakEvent[] = []
+  let current = 0
+
+  for (const m of chronological) {
+    const r = resultForPlayer(m, playerId)
+    if (r === 'draw') continue
+    if (r === 'win') {
+      current++
+      if (current === threshold) events.push({ date: m.date, kind: 'title' })
+    } else {
+      if (current === threshold - 1) events.push({ date: m.date, kind: 'lostFinal' })
+      current = 0
+    }
+  }
+
+  return events
+}
+
+function playerIdsIn(matches: MatchLike[]): Set<string> {
+  const ids = new Set<string>()
+  for (const m of matches) {
+    m.teamA.forEach(p => ids.add(p.id))
+    m.teamB.forEach(p => ids.add(p.id))
+  }
+  return ids
+}
+
+export function findAllStreakEvents(matches: MatchLike[], threshold = 7): Record<string, StreakEvent[]> {
+  const out: Record<string, StreakEvent[]> = {}
+  playerIdsIn(matches).forEach(id => { out[id] = findStreakEvents(matches, id, threshold) })
+  return out
+}
+
+export function eventYear(event: StreakEvent): number {
+  return new Date(event.date).getFullYear()
+}
+
+export function calculateLongestLossStreak(matches: MatchLike[], playerId: string): number {
+  const chronological = relevantSorted(matches, playerId).slice().reverse()
+  let longest = 0
+  let current = 0
+
+  for (const m of chronological) {
+    const r = resultForPlayer(m, playerId)
+    if (r === 'draw') continue
+    if (r === 'loss') {
+      current++
+      longest = Math.max(longest, current)
+    } else {
+      current = 0
+    }
+  }
+
+  return longest
+}
+
+export function calculateAllLongestLossStreaks(matches: MatchLike[]): Record<string, number> {
+  const ids = new Set<string>()
+  for (const m of matches) {
+    m.teamA.forEach(p => ids.add(p.id))
+    m.teamB.forEach(p => ids.add(p.id))
+  }
+  const out: Record<string, number> = {}
+  ids.forEach(id => { out[id] = calculateLongestLossStreak(matches, id) })
+  return out
+}

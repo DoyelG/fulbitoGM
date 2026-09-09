@@ -3,7 +3,11 @@ import type { Match, MatchInput, MatchPlayer } from '@fulbito/types'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
 
-function groupTeamsByMatch(
+function isTimestampLike(value: unknown): value is { toDate(): Date } {
+  return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
+}
+
+export function groupTeamsByMatch(
   mpDocs: Array<{ id: string; data: () => Record<string, unknown> }>,
   playerNames: Map<string, string>,
 ): Map<string, Teams> {
@@ -27,14 +31,19 @@ function groupTeamsByMatch(
   return byMatch
 }
 
-function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Match, 'teamA' | 'teamB'> {
+function toIsoString(value: unknown): string | undefined {
+  if (isTimestampLike(value)) return value.toDate().toISOString()
+  return typeof value === 'string' ? value : undefined
+}
+
+export function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Match, 'teamA' | 'teamB'> {
+  const date = toIsoString(data['date']) ?? (data['date'] as string)
+
   return {
     id,
-    date: data['date'] instanceof Timestamp ? data['date'].toDate().toISOString() : (data['date'] as string),
-    createdAt: data['createdAt'] instanceof Timestamp ? data['createdAt'].toDate().toISOString() : ((data['createdAt'] as string | undefined) ??
-        (data['date'] instanceof Timestamp ? data['date'].toDate().toISOString() : (data['date'] as string))),
-    updatedAt: data['updatedAt'] instanceof Timestamp ? data['updatedAt'].toDate().toISOString() : ((data['updatedAt'] as string | undefined) ??
-        (data['date'] instanceof Timestamp ? data['date'].toDate().toISOString() : (data['date'] as string))),
+    date,
+    createdAt: toIsoString(data['createdAt']) ?? date,
+    updatedAt: toIsoString(data['updatedAt']) ?? date,
     type: data['type'] as string,
     status: data['status'] === 'draft' ? 'draft' : 'final',
     name: (data['name'] as string | undefined) ?? undefined,

@@ -11,13 +11,17 @@ import {
 } from 'firebase/firestore'
 import type { Player } from '@fulbito/types'
 
+function isTimestampLike(value: unknown): value is { toDate(): Date } {
+  return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
+}
+
 function toDate(value: unknown): Date {
-  if (value instanceof Timestamp) return value.toDate()
+  if (isTimestampLike(value)) return value.toDate()
   const parsed = new Date(value as string)
   return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed
 }
 
-function docToPlayer(id: string, data: Record<string, unknown>): Player {
+export function docToPlayer(id: string, data: Record<string, unknown>): Player {
   return {
     id,
     name: typeof data['name'] === 'string' ? data['name'] : '',
