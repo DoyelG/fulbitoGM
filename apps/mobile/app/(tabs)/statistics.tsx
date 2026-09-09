@@ -82,7 +82,7 @@ export default function StatisticsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
         <ThemedView style={styles.screen}>
           {header}
           <ThemedText style={[styles.stateText, { color: colors.muted }]}>
@@ -95,7 +95,7 @@ export default function StatisticsScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
         <ThemedView style={styles.screen}>
           {header}
           <ThemedText style={styles.errorText}>{error}</ThemedText>
@@ -129,7 +129,7 @@ export default function StatisticsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ThemedView style={styles.screen}>
         <FlatList
           data={sortedStats}
