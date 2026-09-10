@@ -186,6 +186,16 @@ Or in the device we can go to Configuration -> General -> information -> SEID.
 
 # 3. Xcode Configuration
 
+Before opening the project in Xcode, if you want remove the default Expo logo and splash screen configuration, or if you updated the ios build version number, you need to run this command:
+
+```bash
+npx expo prebuild --platform ios --clean
+```
+
+> **Note:** The `--clean` flag regenerates the native iOS project. Make sure any required native changes are already reflected in your Expo configuration before running this command.
+
+After running the command, follow step 3.1
+
 ## 3.1 Open the iOS Project
 
 Open the project's `ios` directory in Xcode.
