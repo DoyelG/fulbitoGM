@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import type { Match } from "@fulbito/types";
+import type { Match, MatchInput } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
 import Modal from "@/components/Modal";
@@ -21,6 +21,7 @@ import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 import { Pagination } from "../shared/Pagination";
 import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
+import { MatchDescription } from "./matchDescription";
 import { Backdrop } from "@/components/Backdrop";
 import { FiTrash2 } from "react-icons/fi";
 
@@ -133,22 +134,6 @@ export default function HistoryClient() {
     resetKey: `${fromDate}|${toDate}|${searchQuery}`,
   });
 
-  if (open) {
-    return (
-      <RecordModal
-        mode={open.mode}
-        initial={open.mode === "edit" ? open.match : undefined}
-        onClose={() => setOpen(false)}
-        onSave={async (m) => {
-          if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, m);
-          } else {
-            await addMatch(m);
-          }
-        }}
-      />
-    );
-  }
   const handleDelete = (matchId: string) => {
     setShowModal(true);
     setSelectedMatchId(matchId);
@@ -260,7 +245,7 @@ export default function HistoryClient() {
               return (
                 <div
                   key={m.id}
-                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : "border-indigo-500"}`}
+                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : m.isFriendly ? "border-green-400" : "border-indigo-500"}`}
                 >
                   <div className="flex justify-between items-center mb-3">
                     <div>
@@ -279,6 +264,11 @@ export default function HistoryClient() {
                       {isDraft && (
                         <span className="ml-2 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded">
                           Borrador
+                        </span>
+                      )}
+                      {m.isFriendly && (
+                        <span className="ml-2 inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">
+                          Amistoso
                         </span>
                       )}
                     </div>
@@ -366,7 +356,7 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className={m.description ? "" : "flex py-2"}>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                       {m.shirtsResponsibleId && (
                         <div className="text-gray-700">
@@ -379,7 +369,10 @@ export default function HistoryClient() {
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-end gap-3">
+                    {m.description && (
+                      <MatchDescription text={m.description}/>
+                    )}
+                    <div className="flex justify-end gap-3 shrink-0 ml-auto">
                       <button
                         type="button"
                         className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
@@ -484,6 +477,19 @@ export default function HistoryClient() {
           </div>
           </div>
       </Modal>
+
+      {open && <RecordModal
+        mode={open.mode}
+        initial={open.mode === "edit" ? open.match : undefined}
+        onClose={() => setOpen(false)}
+        onSave={async (m) => {
+          if (open.mode === "edit" && open.match) {
+            await updateMatch(open.match.id, m);
+          } else {
+            await addMatch(m);
+          }
+        }}
+      />}
 
       <Modal
         open={videoUploadMatch !== null}
@@ -591,7 +597,7 @@ function RecordModal({
   mode?: "create" | "edit";
   initial?: Match;
   onClose: () => void;
-  onSave: (m: Omit<Match, "id">) => void;
+  onSave: (m: MatchInput) => void;
 }) {
   const { players } = usePlayerStore();
   const { matches: allMatches } = useMatchStore();
@@ -610,6 +616,7 @@ function RecordModal({
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
   );
+
   const [matchType, setMatchType] = useState<MatchType>(
     (initial?.type as MatchType) || "5v5",
   );
@@ -648,6 +655,10 @@ function RecordModal({
     typeof initial?.teamBScore === "number" ? initial.teamBScore : "",
   );
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const [matchDescription, setMatchDescription] = useState<string>(
+    initial?.description || "",
+  );
+  const [isFriendly, setIsFriendly] = useState<boolean>(initial?.isFriendly ?? false);
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB];
     const teamIds = all.map((p) => p.id);
@@ -769,15 +780,13 @@ function RecordModal({
 
   const teamsComplete =
     teamA.length === playersPerTeam && teamB.length === playersPerTeam;
-  // Confirming a match (status 'final') needs a complete, consistent result.
   const canConfirm =
     (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
     (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
     teamsComplete;
-  // Saving a draft only needs full teams — it hasn't been played yet.
   const canUpdateDraft = teamsComplete;
 
-  const buildPayload = (status: "draft" | "final"): Omit<Match, "id"> => {
+  const buildPayload = (status: "draft" | "final"): MatchInput => {
     const isFinal = status === "final";
     const pool = selectedPlayersForDuty.pool;
     const chosen =
@@ -805,9 +814,11 @@ function RecordModal({
         performance: isFinal ? perfB[p.id] || 5 : 0,
       })),
       name: matchName.trim() || undefined,
+      description: matchDescription.trim() || undefined,
       shirtsResponsibleId: chosen ?? null,
       mvpId: isFinal ? mvpId : null,
       goalkeeperIds,
+      isFriendly,
     };
   };
 
@@ -846,19 +857,19 @@ function RecordModal({
           </button>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+        <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 mb-3">
           <div>
             <label className="block text-sm font-medium mb-1">Fecha</label>
             <input
               type="date"
               value={matchDate}
               onChange={(e) => setMatchDate(e.target.value)}
-              className="border rounded px-3 py-2 w-full"
+              className="h-10 border rounded px-3 w-full"
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              Tipo de Partido
+              Modo de Partido
             </label>
             <select
               value={matchType}
@@ -867,7 +878,7 @@ function RecordModal({
                 setTeamB([]);
                 setMatchType(e.target.value as MatchType);
               }}
-              className="border rounded px-3 py-2 w-full"
+              className="h-10 border rounded px-3 w-full"
             >
               {MATCH_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -877,6 +888,46 @@ function RecordModal({
             </select>
           </div>
           <div>
+            <label htmlFor="fiendly-match" className="block text-sm font-medium mb-1">
+              Tipo de partido
+            </label>
+            <button
+              id="fiendly-match"
+              type="button"
+              role="switch"
+              aria-checked={isFriendly}
+              aria-label="Partido amistoso"
+              onClick={() => setIsFriendly((v) => !v)}
+              className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
+              }`}
+            >
+              <span
+                className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Competitivo
+              </span>
+
+              <span
+                className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Amistoso
+              </span>
+
+              <span
+                className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                <span className="text-md">{isFriendly ? "🤝" : "⚔️"}</span>
+              </span>
+            </button>
+          </div>
+          <div className="sm:col-span-3">
             <label className="block text-lg font-medium mb-1">
               Nombre del Partido
             </label>
@@ -914,6 +965,19 @@ function RecordModal({
               <Draggable key={p.id} p={p} />
             ))}
           </DropColumn>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="match-description-history" className="block text-sm font-medium mb-1">
+            Crónica
+          </label>
+          <textarea
+            id="match-description-history"
+            value={matchDescription}
+            onChange={(e) => setMatchDescription(e.target.value)}
+            placeholder="Escribí la crónica del partido"
+            className="border min-w-full rounded px-3 py-2 w-full"
+          />
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">

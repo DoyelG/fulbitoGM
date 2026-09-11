@@ -32,21 +32,6 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 1.5,
   },
-  avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarImg: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-  },
   enterBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,

@@ -100,7 +100,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
 
-        {/* ── Nombre ──────────────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Nombre</ThemedText>
         <TextInput
           value={values.name}
@@ -120,7 +119,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           ]}
         />
 
-        {/* ── Posición ─────────────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Posición</ThemedText>
         <View style={styles.chips}>
           {POSITIONS.map((p) => {
@@ -146,7 +144,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           })}
         </View>
 
-        {/* ── Habilidades ──────────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Habilidades</ThemedText>
         <View
           style={[
@@ -163,7 +160,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           ))}
         </View>
 
-        {/* ── Promedio ─────────────────────────────────────── */}
         <View style={[styles.avgRow, { borderColor: colors.border, borderRadius: radii.sm }]}>
           <ThemedText style={[styles.avgLabel, { color: colors.muted }]}>General (promedio)</ThemedText>
           <ThemedText style={[styles.avgValue, { color: colors.brand }]}>
@@ -171,7 +167,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           </ThemedText>
         </View>
 
-        {/* ── Nivel de arquero ─────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Nivel de arquero</ThemedText>
         <View
           style={[
@@ -355,7 +350,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts.extraBold,
   },
-
 
   actions: {
     flexDirection: 'row',

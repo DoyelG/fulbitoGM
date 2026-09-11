@@ -10,12 +10,12 @@ export function getGoalkeeping(player: Pick<Player, 'goalkeeping' | 'skill'>): n
 
 function relevantSorted(matches: MatchLike[], playerId: string) {
   return matches
-    .filter(m => m.teamA.some(p => p.id === playerId) || m.teamB.some(p => p.id === playerId))
+    .filter((m) => (m.teamA.some((p) => p.id === playerId) || m.teamB.some((p) => p.id === playerId)) && !m.isFriendly)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
 function resultForPlayer(m: MatchLike, playerId: string): 'win' | 'loss' | 'draw' {
-  const inA = m.teamA.some(p => p.id === playerId)
+  const inA = m.teamA.some((p) => p.id === playerId)
   const a = m.teamAScore
   const b = m.teamBScore
   if (a === b) return 'draw'
@@ -25,7 +25,7 @@ function resultForPlayer(m: MatchLike, playerId: string): 'win' | 'loss' | 'draw
 
 export function calculateCurrentStreakForPlayer(
   matches: MatchLike[],
-  playerId: string
+  playerId: string,
 ): { kind: 'win' | 'loss' | null; count: number } {
   const arr = relevantSorted(matches, playerId)
   let kind: 'win' | 'loss' | null = null
@@ -48,14 +48,88 @@ export function calculateCurrentStreakForPlayer(
 }
 
 export function calculateAllCurrentStreaks(
-  matches: MatchLike[]
+  matches: MatchLike[],
 ): Record<string, { kind: 'win' | 'loss' | null; count: number }> {
+  const ids = new Set<string>()
+  for (const m of matches) {
+    m.teamA.forEach((p) => ids.add(p.id))
+    m.teamB.forEach((p) => ids.add(p.id))
+  }
+  const out: Record<string, { kind: 'win' | 'loss' | null; count: number }> = {}
+  ids.forEach((id) => {
+    out[id] = calculateCurrentStreakForPlayer(matches, id)
+  })
+  return out
+}
+
+export type StreakEventKind = 'title' | 'lostFinal'
+export type StreakEvent = { date: string; kind: StreakEventKind }
+
+export function findStreakEvents(matches: MatchLike[], playerId: string, threshold = 7): StreakEvent[] {
+  const chronological = relevantSorted(matches, playerId).slice().reverse()
+  const events: StreakEvent[] = []
+  let current = 0
+
+  for (const m of chronological) {
+    const r = resultForPlayer(m, playerId)
+    if (r === 'draw') continue
+    if (r === 'win') {
+      current++
+      if (current === threshold) events.push({ date: m.date, kind: 'title' })
+    } else {
+      if (current === threshold - 1) events.push({ date: m.date, kind: 'lostFinal' })
+      current = 0
+    }
+  }
+
+  return events
+}
+
+function playerIdsIn(matches: MatchLike[]): Set<string> {
   const ids = new Set<string>()
   for (const m of matches) {
     m.teamA.forEach(p => ids.add(p.id))
     m.teamB.forEach(p => ids.add(p.id))
   }
-  const out: Record<string, { kind: 'win' | 'loss' | null; count: number }> = {}
-  ids.forEach(id => { out[id] = calculateCurrentStreakForPlayer(matches, id) })
+  return ids
+}
+
+export function findAllStreakEvents(matches: MatchLike[], threshold = 7): Record<string, StreakEvent[]> {
+  const out: Record<string, StreakEvent[]> = {}
+  playerIdsIn(matches).forEach(id => { out[id] = findStreakEvents(matches, id, threshold) })
+  return out
+}
+
+export function eventYear(event: StreakEvent): number {
+  return new Date(event.date).getFullYear()
+}
+
+export function calculateLongestLossStreak(matches: MatchLike[], playerId: string): number {
+  const chronological = relevantSorted(matches, playerId).slice().reverse()
+  let longest = 0
+  let current = 0
+
+  for (const m of chronological) {
+    const r = resultForPlayer(m, playerId)
+    if (r === 'draw') continue
+    if (r === 'loss') {
+      current++
+      longest = Math.max(longest, current)
+    } else {
+      current = 0
+    }
+  }
+
+  return longest
+}
+
+export function calculateAllLongestLossStreaks(matches: MatchLike[]): Record<string, number> {
+  const ids = new Set<string>()
+  for (const m of matches) {
+    m.teamA.forEach(p => ids.add(p.id))
+    m.teamB.forEach(p => ids.add(p.id))
+  }
+  const out: Record<string, number> = {}
+  ids.forEach(id => { out[id] = calculateLongestLossStreak(matches, id) })
   return out
 }

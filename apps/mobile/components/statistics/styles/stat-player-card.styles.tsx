@@ -17,26 +17,12 @@ export const styles = StyleSheet.create({
     fontSize: 18,            
     fontWeight: '700',       
     textAlign: 'center',
-  },
-  avatar: {
-    width: 48,               
-    height: 48,              
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    overflow: 'hidden',
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-  initials: {
-    fontSize: 18,            
-    letterSpacing: 0.4,
+    
   },
   mainInfo: {
     flex: 1,
     minWidth: 0,
+    
   },
   name: {
     fontSize: 20,             

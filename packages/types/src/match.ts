@@ -17,18 +17,24 @@ export type Match = {
   teamA: MatchPlayer[]
   teamB: MatchPlayer[]
   name?: string
+  description?: string
   shirtsResponsibleId?: string | null
   mvpId?: string | null
   goalkeeperIds?: string[]
+  isFriendly?: boolean
+  createdAt: string
+  updatedAt: string
 }
 
-/** Minimal match shape used by streak-calculation algorithms */
+export type MatchInput = Omit<Match, 'id' | 'createdAt' | 'updatedAt'>
+
 export type MatchLike = {
   date: string
   teamAScore: number
   teamBScore: number
   teamA: { id: string }[]
   teamB: { id: string }[]
+  isFriendly?: boolean
 }
 
 export function isDraft(m: Pick<Match, 'status'>): boolean {

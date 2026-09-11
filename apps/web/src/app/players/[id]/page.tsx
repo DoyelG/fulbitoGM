@@ -109,6 +109,7 @@ export default function PlayerDetailPage() {
         performance: number;
         score: string;
         result: "W" | "L" | "D";
+        isFriendly: boolean;
       }>,
     };
 
@@ -151,6 +152,7 @@ export default function PlayerDetailPage() {
           : b < a
           ? "L"
           : "D") as "W" | "L" | "D",
+        isFriendly: m.isFriendly ?? false,
       });
     }
 
@@ -531,7 +533,6 @@ export default function PlayerDetailPage() {
         </div>
       </div>
 
-      {/* Recent matches card remains the same */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-4 py-3 border-b">
           <h2 className="text-lg font-semibold">Partidos recientes</h2>
@@ -563,6 +564,15 @@ export default function PlayerDetailPage() {
                       <span className="ml-2 inline-block bg-accent text-white text-xs px-2 py-0.5 rounded">
                         {rm.type}
                       </span>
+                      {rm.isFriendly && (
+                        <span
+                          className="ml-1 inline-block bg-green-600 text-white text-xs px-2 py-0.5 rounded"
+                          title="Partido amistoso"
+                          aria-label="Partido amistoso"
+                        >
+                          A
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

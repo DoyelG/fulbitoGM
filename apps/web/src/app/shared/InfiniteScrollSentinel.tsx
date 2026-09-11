@@ -1,5 +1,4 @@
 type InfiniteScrollSentinelProps = {
-  /** Callback ref provisto por usePagination. */
   sentinelRef: (node: HTMLElement | null) => void;
   label?: string;
   className?: string;
