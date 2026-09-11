@@ -14,6 +14,14 @@ type Props = {
   playerId?: string
 }
 
+const positionLabels: Record<string, string> = {
+  GK: 'Arquero',
+  DEF: 'Defensor',
+  MID: 'Mediocampista',
+  FWD: 'Delantero',
+  PLAYER: 'Cualquier posición',
+}
+
 export default function PlayerForm({ mode, playerId }: Props) {
   const router = useRouter()
   const { addPlayer, updatePlayer, getPlayer } = usePlayerStore()
@@ -74,14 +82,6 @@ export default function PlayerForm({ mode, playerId }: Props) {
   ), [formData])
 
   const gkValue = gkTouched ? goalkeeping : String(Math.round(avgPreview))
-
-  const positionLabels: Record<string, string> = {
-    GK: 'Arquero',
-    DEF: 'Defensor',
-    MID: 'Mediocampista',
-    FWD: 'Delantero',
-    PLAYER: 'Cualquier posición',
-  }
 
   const photoChanged = photoPreview !== originalPhotoUrl
 
