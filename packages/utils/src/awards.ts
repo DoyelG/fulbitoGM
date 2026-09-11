@@ -164,7 +164,7 @@ export function pickAwardPodiums(rows: PlayerStatRow[]): AwardPodium[] {
 export type SeasonChampion = {
   playerId: string
   playerName: string
-  playerPhotoUrl?: string
+  playerPhotoUrl?: string | null
   streak: number
 }
 
@@ -195,7 +195,7 @@ export function computeSeasonStatRows(players: Player[], allMatches: Match[], ye
 export type ChampionshipProgress = {
   playerId: string
   playerName: string
-  playerPhotoUrl?: string
+  playerPhotoUrl?: string | null
   streak: number
   isChampion: boolean
 } | null

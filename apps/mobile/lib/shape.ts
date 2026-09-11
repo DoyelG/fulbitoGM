@@ -10,6 +10,7 @@ type RawPlayer = {
   goalkeeping?: number
   createdAt: Date | string
   updatedAt: Date | string
+  inactive?: boolean
 }
 
 export function shapeStorePlayers(players: RawPlayer[]): Player[] {
@@ -19,6 +20,7 @@ export function shapeStorePlayers(players: RawPlayer[]): Player[] {
     position: p.position,
     skill: p.skill ?? null,
     skills: p.skills as Player['skills'],
+    inactive: p.inactive ?? false,
     photoUrl: p.photoUrl ?? undefined,
     goalkeeping: p.goalkeeping ?? undefined,
     createdAt: p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt),

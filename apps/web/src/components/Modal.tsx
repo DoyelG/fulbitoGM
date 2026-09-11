@@ -30,7 +30,7 @@ export default function Modal({ open, onClose, title, children, size = 'default'
           size === 'large' ? 'max-w-4xl' : 'max-w-lg'
         }`}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b">
+        <div className="flex items-center justify-between p-4 py-3 border-b border-gray-200">
           <h2 className="text-lg font-semibold">{title}</h2>
           <button
             type="button"
@@ -41,7 +41,7 @@ export default function Modal({ open, onClose, title, children, size = 'default'
             ✕
           </button>
         </div>
-        <div className="p-4">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </Backdrop>
   )

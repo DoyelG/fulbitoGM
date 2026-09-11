@@ -2,17 +2,21 @@
 
 import Image from 'next/image'
 import type { SkillValue } from '@fulbito/types'
+import { FiTrash2 } from 'react-icons/fi'
+import Tooltip from '@/components/Tooltip'
 
 export type PlayerCardProps = {
   overall: number
-  photoUrl?: string
+  photoUrl?: string | null
   skills: { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
   goalkeeping?: number
   className?: string
   onAvatarClick?: () => void
+  editMode?: boolean
+  deletePhoto?: () => void
 }
 
-export default function PlayerCard({ overall, photoUrl, skills, goalkeeping, className, onAvatarClick }: PlayerCardProps) {
+export default function PlayerCard({ overall, photoUrl, skills, goalkeeping, className, onAvatarClick, editMode = false, deletePhoto }: PlayerCardProps) {
   const pathD = "M120 6 C160 6 188 12 207 26 C224 38 232 56 236 75 L236 255 C236 292 205 321 120 354 C35 321 4 292 4 255 L4 75 C8 56 16 38 33 26 C52 12 80 6 120 6 Z";
 
   return (
@@ -46,11 +50,41 @@ export default function PlayerCard({ overall, photoUrl, skills, goalkeeping, cla
           <div className="text-5xl font-extrabold leading-none drop-shadow-sm">{overall}</div>
         </div>
 
-        <div className={`mt-3 w-24 h-24 rounded-full overflow-hidden ring-2 ring-yellow-300 bg-white shadow ${onAvatarClick ? 'cursor-pointer' : ''}`} onClick={onAvatarClick}>
-          {photoUrl ? (
-            <Image src={photoUrl} alt="player photo" width={96} height={96} className="object-cover w-full h-full" />
-          ) : (
-            <Image src="/silhouette.svg" alt="player placeholder" width={96} height={96} className="object-cover w-full h-full" />
+        <div className="relative mt-3">
+          <div
+            className={`w-24 h-24 rounded-full overflow-hidden ring-2 ring-yellow-300 bg-white shadow ${onAvatarClick && editMode ? 'cursor-pointer' : ''}`}
+            onClick={onAvatarClick}
+            {...(onAvatarClick && editMode
+              ? {
+                  role: 'button' as const,
+                  tabIndex: 0,
+                  'aria-label': 'Cambiar foto',
+                  onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') onAvatarClick()
+                  },
+                }
+              : {})}
+          >
+            {photoUrl ? (
+              <Image src={photoUrl} alt="player photo" width={96} height={96} className="object-cover w-full h-full" />
+            ) : (
+              <Image src="/silhouette.svg" alt="player placeholder" width={96} height={96} className="object-cover w-full h-full" />
+            )}
+          </div>
+
+          {editMode && photoUrl && (
+            <div className="absolute -top-1 -right-1">
+              <Tooltip label="Eliminar foto" variant="danger" position="top">
+                <button
+                  type="button"
+                  aria-label="Eliminar foto"
+                  onClick={deletePhoto}
+                  className="w-6 h-6 rounded-full bg-white ring-1 ring-gray-300 shadow flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                >
+                  <FiTrash2 size={14} />
+                </button>
+              </Tooltip>
+            </div>
           )}
         </div>
 

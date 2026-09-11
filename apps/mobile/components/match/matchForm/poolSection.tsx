@@ -75,7 +75,9 @@ export function PoolSection({ players, poolPlayers, poolIds, maxSize, onConfirm 
         onDismiss={() => setOpen(false)}
       >
         <ScrollView keyboardShouldPersistTaps="handled">
-          {players.map((p) => {
+          {players
+            .filter((p) => !p.inactive)
+            .map((p) => {
             const selected = draftIds.has(p.id)
             return (
               <TouchableOpacity

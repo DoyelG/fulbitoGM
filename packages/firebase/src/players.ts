@@ -29,6 +29,7 @@ export function docToPlayer(id: string, data: Record<string, unknown>): Player {
     skill: (data['skill'] as number | null) ?? null,
     skills: (data['skills'] as Player['skills'] | null) ?? undefined,
     photoUrl: (data['photoUrl'] as string | null) ?? undefined,
+    inactive: (data['inactive'] as boolean | null) ?? false,
     goalkeeping: (data['goalkeeping'] as number | null) ?? undefined,
     createdAt: toDate(data['createdAt']),
     updatedAt: toDate(data['updatedAt']),
@@ -59,6 +60,7 @@ export async function createPlayer(data: Omit<Player, 'id' | 'createdAt' | 'upda
     skills: data.skills ?? null,
     photoUrl: data.photoUrl ?? null,
     goalkeeping: data.goalkeeping ?? null,
+    inactive: data.inactive ?? false,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   })

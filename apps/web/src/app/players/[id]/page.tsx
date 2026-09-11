@@ -26,16 +26,15 @@ export default function PlayerDetailPage() {
   const playersInit = usePlayerStore((s) => s.playersInit);
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
   const fileRef = useRef<HTMLInputElement | null>(null)
-  const onAvatarClick = () => {
-    if (!isAdmin) return
-    if (!player?.photoUrl) fileRef.current?.click()
-  }
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     if (!isAdmin) return
     const f = e.target.files?.[0]
     if (!f) return
-    const url = await uploadPlayerPhoto(f, player!.id)
-    await updatePlayer(player!.id, { photoUrl: url })
+    setForm(prev => ({ ...prev, photo: f, photoUrl: URL.createObjectURL(f) }))
+  }
+  const deletePhoto = () => {
+    setForm(prev => ({ ...prev, photo: null, photoUrl: null }))
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const player = usePlayerStore((s) => s.players.find((p) => p.id === (id as string)));
@@ -55,12 +54,16 @@ export default function PlayerDetailPage() {
     tactical: "5",
     psychological: "5",
     goalkeeping: "5",
+    inactive: false,
+    photo: null as File | null,
+    photoUrl: null as string | null,
   });
+  const [originalForm, setOriginalForm] = useState(form);
 
   useEffect(() => {
     if (player) {
       const base = player.skill ?? 5;
-      setForm({
+      const loaded = {
         name: player.name,
         position: player.position,
         physical: String(player.skills?.physical ?? base),
@@ -68,10 +71,27 @@ export default function PlayerDetailPage() {
         tactical: String(player.skills?.tactical ?? base),
         psychological: String(player.skills?.psychological ?? base),
         goalkeeping: String(getGoalkeeping(player)),
-      });
+        inactive: player.inactive ?? false,
+        photo: null,
+        photoUrl: player.photoUrl ?? null,
+      };
+      setForm(loaded);
+      setOriginalForm(loaded);
       setGkTouched(player.goalkeeping != null);
     }
   }, [player]);
+
+  const canSubmitQuick =
+    form.name.trim() !== originalForm.name.trim() ||
+    form.position !== originalForm.position ||
+    form.physical !== originalForm.physical ||
+    form.technical !== originalForm.technical ||
+    form.tactical !== originalForm.tactical ||
+    form.psychological !== originalForm.psychological ||
+    form.goalkeeping !== originalForm.goalkeeping ||
+    form.inactive !== originalForm.inactive ||
+    form.photo !== originalForm.photo ||
+    form.photoUrl !== originalForm.photoUrl;
 
   const stats = useMemo(() => {
     const res = {
@@ -168,7 +188,7 @@ export default function PlayerDetailPage() {
     );
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const skills = {
       physical: parseInt(form.physical, 10),
@@ -183,12 +203,21 @@ export default function PlayerDetailPage() {
         skills.psychological) /
       4;
     const goalkeeping = gkTouched ? parseInt(form.goalkeeping, 10) : Math.round(avg);
-    updatePlayer(player.id, {
+
+    let uploadedUrl: string | undefined
+    if (form.photo) {
+      uploadedUrl = await uploadPlayerPhoto(form.photo, player.id)
+    }
+    const photoChanged = form.photoUrl !== originalForm.photoUrl
+
+    await updatePlayer(player.id, {
       name: form.name.trim(),
       position: form.position,
       skills,
       skill: avg,
       goalkeeping,
+      inactive: form.inactive,
+      ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}),
     });
     setEditMode(false);
   };
@@ -229,6 +258,11 @@ export default function PlayerDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700">General:</span>
                 <SkillBadge skill={overallAvg} />
+              {player.inactive && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-600">
+                  Inactivo
+                </span>
+              )}
               </div>
               <span className="text-sm">Posición: {player.position}</span>
             </div>
@@ -238,13 +272,7 @@ export default function PlayerDetailPage() {
           <button
             type="button"
             className="px-3 py-2 rounded border hover:bg-gray-50"
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) {
-                router.back()
-              } else {
-                router.push('/players')
-              }
-            }}
+            onClick={() => router.push('/players')}
           >
             Volver
           </button>
@@ -284,12 +312,14 @@ export default function PlayerDetailPage() {
           <div className="relative">
             <PlayerCard
               overall={overallAvg}
-              photoUrl={player.photoUrl}
+              photoUrl={form.photoUrl}
               skills={catSkills}
               goalkeeping={getGoalkeeping(player)}
-              onAvatarClick={onAvatarClick}
+              onAvatarClick={() => fileRef.current?.click()}
+              editMode={editMode}
+              deletePhoto={deletePhoto}
             />
-            {isAdmin && (
+            {editMode && isAdmin && (
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
             )}
           </div>
@@ -392,8 +422,7 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div className="sm:col-span-3 text-sm text-gray-800">
-            General (promedio):{" "}
-            <span className="font-semibold">Lv {avgPreview}</span>
+            General (promedio): <span className="font-semibold">Lv {avgPreview}</span>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Posición</label>
@@ -409,6 +438,35 @@ export default function PlayerDetailPage() {
               <option value="PLAYER">Cualquier posición</option>
             </select>
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Estado</label>
+            <div
+              role="group"
+              aria-label="Estado del jugador"
+              className="flex w-full rounded border border-gray-300 overflow-hidden"
+            >
+              <button
+                type="button"
+                aria-pressed={!form.inactive}
+                onClick={() => setForm({ ...form, inactive: false })}
+                className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+                  !form.inactive ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Activo
+              </button>
+              <button
+                type="button"
+                aria-pressed={form.inactive}
+                onClick={() => setForm({ ...form, inactive: true })}
+                className={`flex-1 px-3 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+                  form.inactive ? 'bg-gray-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Inactivo
+              </button>
+            </div>
+          </div>
           <div className="sm:col-span-3 flex justify-end gap-2">
             <button
               type="button"
@@ -419,7 +477,10 @@ export default function PlayerDetailPage() {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-brand text-white hover:bg-brand/90"
+              disabled={!canSubmitQuick}
+              className={`px-4 py-2 rounded ${
+                canSubmitQuick ? 'bg-brand text-white hover:bg-brand/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               Guardar
             </button>

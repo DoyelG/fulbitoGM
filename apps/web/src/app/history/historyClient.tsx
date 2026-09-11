@@ -23,6 +23,7 @@ import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
 import { MatchDescription } from "./matchDescription";
 import { Backdrop } from "@/components/Backdrop";
+import { FiTrash2 } from "react-icons/fi";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
@@ -81,6 +82,11 @@ export default function HistoryClient() {
     }
   };
 
+  const selectedMatch = useMemo(
+    () => storeMatches.find((p) => p.id === selectedMatchId) ?? null,
+    [storeMatches, selectedMatchId],
+  )
+
   const handleVideoUpload = async (data: NewVideoClipData, file: File) => {
     setVideoUploadError(null);
     try {
@@ -132,6 +138,7 @@ export default function HistoryClient() {
     setShowModal(true);
     setSelectedMatchId(matchId);
   };
+
   const handleConfirmDelete = async () => {
     try {
       await deleteMatch(selectedMatchId as string);
@@ -439,35 +446,37 @@ export default function HistoryClient() {
           className="mb-10"
         />
       )}
-      {showModal && (
-        <Backdrop onClose={() => setShowModal(false)} title="Confirmar eliminación">
-          <div className="bg-white p-6 rounded-xl max-w-md">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Confirmar eliminación
-            </h2>
 
-            <p className="text-gray-600 mb-6">
-              ¿Estás seguro de que querés eliminar este partido?
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={() => handleConfirmDelete()}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-              >
-                Eliminar
-              </button>
+      <Modal 
+        title="Confirmar eliminación"
+        open={showModal}
+        onClose={() => setShowModal(false)}>
+          <div className="p-2 text-center">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
+              <FiTrash2 className="text-red-600" size={20} />
             </div>
+              <p className="text-gray-600">
+                ¿Estás seguro de que querés eliminar al partido: {' '}
+                <span className="font-medium text-gray-900">{selectedMatch?.name}</span>?
+              </p>
+            <div className="flex justify-center gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              className="flex-1 px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+            >
+              Eliminar
+            </button>
           </div>
-        </Backdrop>
-      )}
+          </div>
+      </Modal>
 
       {open && <RecordModal
         mode={open.mode}
@@ -635,7 +644,7 @@ function RecordModal({
   const unassigned = useMemo(() => {
     const ids = new Set([...teamA, ...teamB].map((p) => p.id));
     return players
-      .filter((p) => !ids.has(p.id))
+      .filter((p) => !ids.has(p.id) && !p.inactive)
       .map((p) => ({ id: p.id, name: p.name }));
   }, [players, teamA, teamB]);
 
