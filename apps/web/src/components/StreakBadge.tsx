@@ -19,9 +19,15 @@ function colorForStreak(kind: Kind, count: number) {
   }
 }
 
-export default function StreakBadge({ kind, count }: { kind: Kind, count: number }) {
-  if (!count || count <= 0) return <span className="text-sm text-gray-800">—</span>
-  const bg = colorForStreak(kind, count)
+export default function StreakBadge({ kind, count, muted = false }: { kind: Kind, count: number, muted?: boolean }) {
+  if (!count || count <= 0) return <span className={`text-sm ${muted ? 'text-gray-400' : 'text-gray-800'}`}>—</span>
   const label = kind === 'win' ? `W${count}` : `L${count}`
-  return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs text-white" style={{ backgroundColor: bg }}>{label}</span>
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${muted ? 'bg-gray-200 text-gray-500' : 'text-white'}`}
+      style={muted ? undefined : { backgroundColor: colorForStreak(kind, count) }}
+    >
+      {label}
+    </span>
+  )
 }

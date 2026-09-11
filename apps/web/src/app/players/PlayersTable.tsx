@@ -52,7 +52,7 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
             alt={row.original.name}
             width={32}
             height={32}
-            className="object-cover w-full h-full max-w-8 max-h-8 rounded-full"
+            className={`object-cover w-full h-full max-w-8 max-h-8 rounded-full ${row.original.inactive ? 'filter grayscale' : ''}`}
           />
         ),
       }),
@@ -88,25 +88,20 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
         id: 'streak',
         header: 'Racha',
         enableSorting: true,
-        cell: ({ row }) => {
-          const st = row.original.streak
-          return st.kind ? (
-            <StreakBadge kind={st.kind} count={st.count} />
-          ) : (
-            <span className={`text-sm ${row.original.inactive ? 'text-gray-400' : 'text-gray-800'}`}>—</span>
-          )
-        },
+        cell: ({ row }) => (
+          <StreakBadge kind={row.original.streak.kind} count={row.original.streak.count} muted={row.original.inactive} />
+        ),
       }),
       columnHelper.accessor('winGoalProgress', {
         id: 'goal7',
         header: 'Objetivo (7W)',
         enableSorting: true,
-        cell: ({ getValue }) => {
+        cell: ({ getValue, row }) => {
           const v = getValue()
           return v >= 7 ? (
             <span
-              className="inline-flex items-center px-2 py-0.5 rounded text-xs text-white"
-              style={{ backgroundColor: 'hsl(270deg 80% 36%)' }}
+              className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${row.original.inactive ? 'bg-gray-200 text-gray-500' : 'text-white'}`}
+              style={row.original.inactive ? undefined : { backgroundColor: 'hsl(270deg 80% 36%)' }}
             >
               Objetivo ✓
             </span>
@@ -118,8 +113,11 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
               </div>
               <div className="h-1.5 bg-gray-200 rounded">
                 <div
-                  className="h-1.5 rounded"
-                  style={{ width: `${(Math.min(7, v) / 7) * 100}%`, backgroundColor: 'hsl(270deg 75% 45%)' }}
+                  className={`h-1.5 rounded ${row.original.inactive ? 'bg-gray-400' : ''}`}
+                  style={{
+                    width: `${(Math.min(7, v) / 7) * 100}%`,
+                    backgroundColor: row.original.inactive ? undefined : 'hsl(270deg 75% 45%)',
+                  }}
                 />
               </div>
             </div>
