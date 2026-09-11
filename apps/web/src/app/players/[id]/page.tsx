@@ -26,16 +26,15 @@ export default function PlayerDetailPage() {
   const playersInit = usePlayerStore((s) => s.playersInit);
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
   const fileRef = useRef<HTMLInputElement | null>(null)
-  const onAvatarClick = () => {
-    if (!isAdmin) return
-    if (!player?.photoUrl) fileRef.current?.click()
-  }
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     if (!isAdmin) return
     const f = e.target.files?.[0]
     if (!f) return
-    const url = await uploadPlayerPhoto(f, player!.id)
-    await updatePlayer(player!.id, { photoUrl: url })
+    setForm(prev => ({ ...prev, photo: f, photoUrl: URL.createObjectURL(f) }))
+  }
+  const deletePhoto = () => {
+    setForm(prev => ({ ...prev, photo: null, photoUrl: null }))
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const player = usePlayerStore((s) => s.players.find((p) => p.id === (id as string)));
@@ -56,6 +55,8 @@ export default function PlayerDetailPage() {
     psychological: "5",
     goalkeeping: "5",
     inactive: false,
+    photo: null as File | null,
+    photoUrl: null as string | null,
   });
   const [originalForm, setOriginalForm] = useState(form);
 
@@ -71,6 +72,8 @@ export default function PlayerDetailPage() {
         psychological: String(player.skills?.psychological ?? base),
         goalkeeping: String(getGoalkeeping(player)),
         inactive: player.inactive ?? false,
+        photo: null,
+        photoUrl: player.photoUrl ?? null,
       };
       setForm(loaded);
       setOriginalForm(loaded);
@@ -86,7 +89,9 @@ export default function PlayerDetailPage() {
     form.tactical !== originalForm.tactical ||
     form.psychological !== originalForm.psychological ||
     form.goalkeeping !== originalForm.goalkeeping ||
-    form.inactive !== originalForm.inactive;
+    form.inactive !== originalForm.inactive ||
+    form.photo !== originalForm.photo ||
+    form.photoUrl !== originalForm.photoUrl;
 
   const stats = useMemo(() => {
     const res = {
@@ -181,7 +186,7 @@ export default function PlayerDetailPage() {
     );
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const skills = {
       physical: parseInt(form.physical, 10),
@@ -196,13 +201,21 @@ export default function PlayerDetailPage() {
         skills.psychological) /
       4;
     const goalkeeping = gkTouched ? parseInt(form.goalkeeping, 10) : Math.round(avg);
-    updatePlayer(player.id, {
+
+    let uploadedUrl: string | undefined
+    if (form.photo) {
+      uploadedUrl = await uploadPlayerPhoto(form.photo, player.id)
+    }
+    const photoChanged = form.photoUrl !== originalForm.photoUrl
+
+    await updatePlayer(player.id, {
       name: form.name.trim(),
       position: form.position,
       skills,
       skill: avg,
       goalkeeping,
       inactive: form.inactive,
+      ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}),
     });
     setEditMode(false);
   };
@@ -297,12 +310,14 @@ export default function PlayerDetailPage() {
           <div className="relative">
             <PlayerCard
               overall={overallAvg}
-              photoUrl={player.photoUrl}
+              photoUrl={form.photoUrl}
               skills={catSkills}
               goalkeeping={getGoalkeeping(player)}
-              onAvatarClick={onAvatarClick}
+              onAvatarClick={() => fileRef.current?.click()}
+              editMode={editMode}
+              deletePhoto={deletePhoto}
             />
-            {isAdmin && (
+            {editMode && isAdmin && (
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
             )}
           </div>
