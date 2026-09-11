@@ -1,6 +1,7 @@
-import { Image, Pressable, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
+import { PlayerAvatar } from '@/components/players/player-avatar'
 import { useAppTheme } from '@/hooks/use-theme'
 import type { PlayerStatRow, SortTabKey } from '@/hooks/use-player-statistics'
 import { styles } from './styles/stat-player-card.styles'
@@ -10,11 +11,6 @@ type Props = {
   rank: number
   activeTab: SortTabKey
   onPress: () => void
-}
-
-function getInitials(name: string): string {
-  const [first = '', second = ''] = name.trim().split(/\s+/)
-  return `${first.charAt(0)}${second.charAt(0)}`.toUpperCase()
 }
 
 function getFeaturedValue(stat: PlayerStatRow, activeTab: SortTabKey): { value: string; label: string } {
@@ -44,6 +40,9 @@ export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${stat.name}, puesto ${rank}, ${featured.value} ${featured.label}`}
+      accessibilityHint="Abre el perfil del jugador"
       style={({ pressed }) => [
         styles.card,
         {
@@ -58,23 +57,11 @@ export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
           {rank}
         </ThemedText>
 
-        <View
-          style={[
-            styles.avatar,
-            {
-              borderRadius: radii.pill,
-              backgroundColor: 'rgba(255,255,255,0.08)',
-              borderColor: isFirst ? '#f59e0b' : 'transparent',
-            },
-          ]}>
-          {stat.photoUrl ? (
-            <Image source={{ uri: stat.photoUrl }} style={styles.avatarImage} />
-          ) : (
-            <ThemedText type="defaultSemiBold" style={styles.initials}>
-              {getInitials(stat.name)}
-            </ThemedText>
-          )}
-        </View>
+        <PlayerAvatar
+          name={stat.name}
+          photoUrl={stat.photoUrl}
+          size={48}
+        />
 
         <View style={styles.mainInfo}>
           <ThemedText numberOfLines={1} style={styles.name}>

@@ -1,5 +1,12 @@
-import type { Match, Player } from '@fulbito/types'
-import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
+import type { Match, MatchInput, Player } from '@fulbito/types'
+import {
+  balanceRemainingPlayers,
+  calculateAllCurrentStreaks,
+  getGoalkeeping,
+  getHotStreakIds,
+  onlyFinalMatches,
+  seedPriorityPlayers,
+} from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
 
@@ -8,6 +15,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 import { AutoGenerateButton } from './matchForm/autoGenerateButton'
 import { DateField } from './matchForm/dateField'
+import { DescriptionField } from './matchForm/descriptionField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { buildMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
@@ -17,6 +25,7 @@ import { PoolSection } from './matchForm/poolSection'
 import { ShirtsSection } from './matchForm/shirtsSection'
 import { TeamAssignmentSection } from './matchForm/teamAssignmentSection'
 import { TeamScoreSection } from './matchForm/teamScoreSection'
+import { ToggleFriendlyMatch } from './matchForm/toggleFriendlyMatch'
 import type { MatchType } from './matchForm/types'
 import { TypeSelector } from './matchForm/typeSelector'
 import { usePool } from './matchForm/usePool'
@@ -30,7 +39,7 @@ export type MatchFormProps = {
   players: Player[]
   allMatches: Match[]
   saving: boolean
-  onSave: (m: Omit<Match, 'id'>) => Promise<void>
+  onSave: (m: MatchInput) => Promise<void>
   onCancel: () => void
   onTitleChange?: (title: string) => void
 }
@@ -48,10 +57,10 @@ export function MatchForm({
   const { colors, spacing } = useAppTheme()
   const isAdmin = useIsAdmin()
 
-  // ── Basic info ──────────────────────────────────────────────────────────────
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   )
+  const [matchDescription, setMatchDescription] = useState<string>(initial?.description ?? '')
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) ?? '5v5')
   const [matchName, setMatchName] = useState(initial?.name ?? '')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
@@ -60,14 +69,13 @@ export function MatchForm({
     () => new Set(initial?.goalkeeperIds ?? []),
   )
   const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null)
+  const [isMatchFriendly, setIsMatchFriendly] = useState<boolean>(initial?.isFriendly ?? false)
 
-  // ── State hooks ─────────────────────────────────────────────────────────────
   const pool = usePool(players, initial)
   const teams = useTeams(initial)
   const scores = useScores(initial)
   const shirts = useShirts(allMatches, teams.teamA, teams.teamB, initial)
 
-  // ── Derived ─────────────────────────────────────────────────────────────────
   const teamStats = useMemo(
     () => computeTeamStats(teams.teamA, teams.teamB, pool.poolPlayers),
     [teams.teamA, teams.teamB, pool.poolPlayers],
@@ -83,14 +91,11 @@ export function MatchForm({
     scoreA === scores.totalGoalsA &&
     scoreB === scores.totalGoalsB
 
-  // Si el MVP elegido deja de estar en los equipos, lo limpiamos
   useEffect(() => {
-    if (!mvpId) return
-    const inTeams = [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
-    if (!inTeams) setMvpId(null)
+    const mvpStillInTeams = !mvpId || [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
+    if (!mvpStillInTeams) setMvpId(null)
   }, [teams.teamA, teams.teamB, mvpId])
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
   const handlePoolChange = (ids: Set<string>) => {
     pool.setPoolIds(ids)
     teams.filterByPool(ids)
@@ -120,28 +125,27 @@ export function MatchForm({
       const info = toPlayerInfo(p)
       return goalkeeperIds.has(p.id) ? { ...info, skill: getGoalkeeping(p) } : info
     }
-    const normSkill = (s: number | 'unknown') => (s === 'unknown' ? 5 : s)
-    const pinnedIds = new Set([...teams.pinnedA, ...teams.pinnedB])
 
-    const seedA = pool.poolPlayers.filter((p) => teams.pinnedA.has(p.id)).map(toInfo)
-    const seedB = pool.poolPlayers.filter((p) => teams.pinnedB.has(p.id)).map(toInfo)
+    const poolInfos = pool.poolPlayers.map(toInfo)
+    const pinnedSeedA = poolInfos.filter((p) => teams.pinnedA.has(p.id))
+    const pinnedSeedB = poolInfos.filter((p) => teams.pinnedB.has(p.id))
+    const streaks = calculateAllCurrentStreaks(onlyFinalMatches(allMatches))
 
-    const unpinnedKeepers = pool.poolPlayers
-      .filter((p) => goalkeeperIds.has(p.id) && !pinnedIds.has(p.id))
-      .map(toInfo)
-      .sort((a, b) => normSkill(b.skill) - normSkill(a.skill))
-    const keeperSeededIds = new Set<string>()
-    for (const k of unpinnedKeepers) {
-      if (seedA.length <= seedB.length) seedA.push(k)
-      else seedB.push(k)
-      keeperSeededIds.add(k.id)
-    }
+    const { seedA, seedB, rest } = seedPriorityPlayers(poolInfos, playersPerTeam, {
+      goalkeeperIds,
+      streaks,
+      initialSeedA: pinnedSeedA,
+      initialSeedB: pinnedSeedB,
+    })
 
-    const unassigned = pool.poolPlayers
-      .filter((p) => !pinnedIds.has(p.id) && !keeperSeededIds.has(p.id))
-      .map(toInfo)
-      .sort(() => Math.random() - 0.5)
-    const result = balanceRemainingPlayers(unassigned, seedA, seedB, playersPerTeam)
+    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map((p) => p.id))
+    const hotStreakIds = getHotStreakIds(poolInfos, streaks)
+    const shuffledRest = [...rest].sort(() => Math.random() - 0.5)
+    const result = balanceRemainingPlayers(shuffledRest, seedA, seedB, playersPerTeam, {
+      hardLockedIds,
+      goalkeeperIds,
+      hotStreakIds,
+    })
     teams.setTeamA(result.teamA.players.map((p) => ({ id: p.id, name: p.name })))
     teams.setTeamB(result.teamB.players.map((p) => ({ id: p.id, name: p.name })))
   }
@@ -153,6 +157,7 @@ export function MatchForm({
         matchDate,
         matchType,
         matchName,
+        matchDescription,
         teamA: teams.teamA,
         teamB: teams.teamB,
         teamAScore: scoreA,
@@ -164,6 +169,7 @@ export function MatchForm({
         shirtsResponsibleId: pickShirtsResponsible(shirts.shirtsResponsibleId, shirts.dutyPoolIds),
         goalkeeperIds: [...goalkeeperIds],
         mvpId,
+        isMatchFriendly,
       })
       await onSave(payload)
     } catch (e) {
@@ -171,7 +177,6 @@ export function MatchForm({
     }
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -187,6 +192,9 @@ export function MatchForm({
       />
 
       <DateField value={matchDate} onChange={setMatchDate} />
+
+      <DescriptionField value={matchDescription} onChange={setMatchDescription} />
+      <ToggleFriendlyMatch isMatchFriendly={isMatchFriendly} setIsMatchFriendly={setIsMatchFriendly} />
 
       <TypeSelector value={matchType} onChange={handleTypeChange} />
 
@@ -222,6 +230,7 @@ export function MatchForm({
         <AutoGenerateButton
           poolSize={pool.poolIds.size}
           playersPerTeam={playersPerTeam}
+          hasTeams={teams.teamA.length > 0 || teams.teamB.length > 0}
           onPress={generateRemainingTeams}
         />
       ) : null}

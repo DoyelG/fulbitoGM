@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useLayoutEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -81,7 +81,7 @@ export default function PlayerDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ActivityIndicator color={colors.brand} size="large" />
       </SafeAreaView>
     )
@@ -89,7 +89,7 @@ export default function PlayerDetailScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ThemedText style={styles.errorText}>{error}</ThemedText>
         <Pressable onPress={() => void reload()} style={[styles.retryBtn, { backgroundColor: colors.brand }]}>
           <ThemedText style={styles.retryText}>Reintentar</ThemedText>
@@ -100,7 +100,7 @@ export default function PlayerDetailScreen() {
 
   if (!player) {
     return (
-      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ThemedText style={styles.errorText}>Jugador no encontrado.</ThemedText>
         <Pressable onPress={() => router.back()} style={[styles.retryBtn, { backgroundColor: colors.brand }]}>
           <ThemedText style={styles.retryText}>Volver</ThemedText>
@@ -112,7 +112,7 @@ export default function PlayerDetailScreen() {
   const recentSlice = stats.recent.slice(0, RECENT_MAX)
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <ThemedView style={styles.screen}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -125,13 +125,11 @@ export default function PlayerDetailScreen() {
             />
           }>
 
-          {/* ── Hero ─────────────────────────────────────────── */}
           <LinearGradient
             colors={['#7C3AED', '#F97316']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.hero}>
-            {/* Izquierda: avatar + nombre + posición + racha */}
             <View style={styles.heroLeft}>
               <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={AVATAR_SIZE} />
               <View style={styles.heroInfo}>
@@ -145,7 +143,6 @@ export default function PlayerDetailScreen() {
                 </View>
               </View>
             </View>
-            {/* Derecha: skill overall + editar */}
             <View style={styles.heroRight}>
               <View style={styles.skillPill}>
                 <Text style={styles.skillPillLabel}>OVERALL</Text>
@@ -163,11 +160,9 @@ export default function PlayerDetailScreen() {
             </View>
           </LinearGradient>
 
-          {/* ── Stats ────────────────────────────────────────── */}
           <SectionTitle title="Estadísticas" />
           <PlayerStatsGrid stats={stats} />
 
-          {/* ── Habilidades ──────────────────────────────────── */}
           <SectionTitle title="Habilidades" />
           <View
             style={[
@@ -178,7 +173,6 @@ export default function PlayerDetailScreen() {
             <PlayerSkillBars skills={catSkills} goalkeeping={getGoalkeeping(player)} />
           </View>
 
-          {/* ── Últimos partidos ─────────────────────────────── */}
           {recentSlice.length > 0 ? (
             <>
               <SectionTitle title={`Últimos partidos (${stats.matches})`} />
@@ -210,7 +204,6 @@ export default function PlayerDetailScreen() {
             </>
           )}
 
-          {/* ── Clips ────────────────────────────────────────── */}
           <SectionTitle title="Clips" />
           <View style={styles.clipFilterRow}>
             <Pressable
@@ -320,8 +313,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.xxxl,
   },
-
-  /* Hero */
   hero: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -381,8 +372,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.black,
     letterSpacing: 0.2,
   },
-
-  /* Section title */
   sectionTitle: {
     fontFamily: Fonts.blackItalic,
     fontSize: 13,
@@ -390,8 +379,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     marginTop: Spacing.xs,
   },
-
-  /* Generic card */
   card: {
     borderWidth: 1,
     borderRadius: Radii.lg,
@@ -402,8 +389,6 @@ const styles = StyleSheet.create({
     padding: 0,
     overflow: 'hidden',
   },
-
-  /* Empty state */
   emptyCard: {
     borderWidth: 1,
     borderRadius: Radii.lg,
@@ -416,8 +401,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.medium,
   },
-
-  /* Error / retry */
   errorText: {
     fontSize: 15,
     textAlign: 'center',
@@ -451,8 +434,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
   },
-
-  /* Clips */
   clipFilterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

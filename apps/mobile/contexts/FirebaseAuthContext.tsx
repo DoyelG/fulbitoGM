@@ -1,4 +1,3 @@
-// Side-effect import: runs initFirebase before any @fulbito/firebase calls in this tree
 import '@/lib/firebase'
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'

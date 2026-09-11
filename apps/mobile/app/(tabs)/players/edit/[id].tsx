@@ -91,7 +91,7 @@ export default function EditPlayerScreen() {
   return (
     <SafeAreaView
       style={[styles.safe, { backgroundColor: colors.background }]}
-      edges={['bottom']}>
+      edges={[]}>
       <PlayerEditForm
         values={values}
         onChange={setValues}

@@ -40,10 +40,7 @@ export default function PlayersClient({
     resetMatches()
   }, [hydratePlayers, initialPlayers, hydrateMatches, initialMatches, resetPlayers, resetMatches])
 
-  const streaks = useMemo(
-    () => calculateAllCurrentStreaks(onlyFinalMatches(storeMatches)),
-    [storeMatches],
-  )
+  const streaks = useMemo(() => calculateAllCurrentStreaks(onlyFinalMatches(storeMatches)), [storeMatches])
 
   const tableData: PlayerRow[] = useMemo(
     () =>

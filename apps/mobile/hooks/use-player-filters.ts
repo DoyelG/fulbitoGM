@@ -1,4 +1,5 @@
 import type { Player } from '@fulbito/types'
+import { normalizeForSearch } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 
 import type { PositionFilter } from '@/components/players/position-filter-row'
@@ -12,7 +13,6 @@ type Filters = {
   filteredPlayers: Player[]
 }
 
-/** Filtro combinado por nombre + posición. Expone además las posiciones disponibles. */
 export function usePlayerFilters(players: Player[]): Filters {
   const [query, setQuery] = useState('')
   const [position, setPosition] = useState<PositionFilter>(null)
@@ -23,10 +23,10 @@ export function usePlayerFilters(players: Player[]): Filters {
   }, [players])
 
   const filteredPlayers = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = normalizeForSearch(query.trim())
     return players.filter((p) => {
       if (position && p.position !== position) return false
-      if (q && !p.name.toLowerCase().includes(q)) return false
+      if (q && !normalizeForSearch(p.name).includes(q)) return false
       return true
     })
   }, [players, query, position])

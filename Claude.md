@@ -12,6 +12,7 @@ If the user is on `master`, recommend creating a new feature branch before makin
 apps/
   web/       → Next.js (App Router) — Tailwind CSS, Zustand, Firebase
   mobile/    → Expo + React Native — Expo Router, StyleSheet API, Firebase
+  mcp/       → MCP server (read-only tools over Firestore, for Claude clients)
 packages/
   firebase/  → Shared Firebase SDK wrapper (auth, firestore, storage)
   types/     → Shared domain types (Player, Match, Team, Skills)
