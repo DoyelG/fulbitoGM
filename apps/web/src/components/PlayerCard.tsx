@@ -8,7 +8,6 @@ import Tooltip from '@/components/Tooltip'
 export type PlayerCardProps = {
   overall: number
   photoUrl?: string | null
-  // category skills 1-10; we map them into -like six stats
   skills: { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
   goalkeeping?: number
   className?: string
