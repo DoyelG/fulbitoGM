@@ -180,7 +180,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           />
         </View>
 
-        {/* ── Estado ───────────────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Estado</ThemedText>
         <View
           style={[styles.segmented, { borderColor: colors.border, borderRadius: radii.sm }]}
@@ -211,7 +210,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           })}
         </View>
 
-        {/* ── Acciones ─────────────────────────────────────── */}
         <View style={styles.actions}>
           <TouchableOpacity
             onPress={onCancel}

@@ -102,7 +102,7 @@ export default function PlayersScreen() {
   if (error) return <PlayersError message={error} onRetry={() => void reload()} />
 
   return (
-    <SafeAreaView style={styles.safe} edges={[]}>
+    <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ThemedView style={styles.screen}>
         <FlatList
           data={sortedPlayers}
@@ -201,7 +201,6 @@ const styles = StyleSheet.create({
   },
   emptyList: {
     flexGrow: 1,
-    // justifyContent: 'center',
   },
   inactiveSection: {
     marginTop: Spacing.lg,
