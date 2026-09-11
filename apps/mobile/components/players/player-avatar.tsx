@@ -6,7 +6,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
   name: string
-  photoUrl?: string
+  photoUrl?: string | null
   size?: number
 }
 
