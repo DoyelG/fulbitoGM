@@ -352,7 +352,7 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className={m.description ? "" : "flex py-2"}>
+                  <div className={`py-2 ${!m.description ? "flex" : ""}`}>
                     <div className="grid gap-y-2 text-sm">
                       {m.shirtsResponsibleId && (
                         <div className="text-gray-700">
@@ -373,7 +373,7 @@ export default function HistoryClient() {
                     {m.description && (
                       <MatchDescription text={m.description}/>
                     )}
-                    <div className="flex justify-end gap-3 shrink-0 ml-auto">
+                    <div className="flex justify-end items-center gap-3 shrink-0 ml-auto self-end">
                       <button
                         type="button"
                         className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
