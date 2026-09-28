@@ -9,7 +9,7 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore'
-import type { Match, MatchInput, MatchPlayer } from '@fulbito/types'
+import type { Match, MatchInput, MatchLocation, MatchPlayer } from '@fulbito/types'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
 
@@ -40,6 +40,16 @@ function groupTeamsByMatch(
   return byMatch
 }
 
+function parseLocation(raw: unknown): MatchLocation | null {
+  if (!raw || typeof raw !== 'object') return null
+  const data = raw as Record<string, unknown>
+  return {
+    name: data['name'] as string,
+    street: data['street'] as string,
+    addressId: data['addressId'] as string,
+  }
+}
+
 function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Match, 'teamA' | 'teamB'> {
   return {
     id,
@@ -51,6 +61,7 @@ function docToMatchScalars(id: string, data: Record<string, unknown>): Omit<Matc
     type: data['type'] as string,
     status: data['status'] === 'draft' ? 'draft' : 'final',
     name: (data['name'] as string | undefined) ?? undefined,
+    location: parseLocation(data['location']),
     teamAScore: data['teamAScore'] as number,
     teamBScore: data['teamBScore'] as number,
     shirtsResponsibleId: (data['shirtsResponsibleId'] as string | null) ?? null,
@@ -122,6 +133,7 @@ export async function createMatch(data: MatchInput): Promise<string> {
     date: Timestamp.fromDate(new Date(data.date)),
     status: data.status ?? 'final',
     name: data.name ?? null,
+    location: data.location ?? null,
     mvpId: mvpId ?? null,
     goalkeeperIds: goalkeeperIds ?? [],
     createdAt: Timestamp.now(),
