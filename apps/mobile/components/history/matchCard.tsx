@@ -1,5 +1,6 @@
 import type { Match, Player } from '@fulbito/types'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { matchLocationMapsUrl } from '@fulbito/utils'
+import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 
@@ -106,6 +107,22 @@ export function MatchCard({
           <Text style={[styles.shirts, { color: colors.muted }]}>
             Camisetas: <Text style={{ fontWeight: '600', color: colors.text }}>{shirtName}</Text>
           </Text>
+        ) : null}
+
+        {m.location?.name ? (
+          <TouchableOpacity
+            onPress={() => m.location && Linking.openURL(matchLocationMapsUrl(m.location))}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel={`Ubicación: ${m.location.name}, ${m.location.street}`}
+            accessibilityHint="Abre la cancha en Google Maps"
+            style={styles.location}
+          >
+            <Text style={[styles.shirts, { color: colors.muted }]}>
+              Ubicación:{' '}
+              <Text style={{ fontWeight: '600', color: colors.brand }}>{m.location.name}</Text>
+            </Text>
+          </TouchableOpacity>
         ) : null}
 
         <View style={styles.actions}>
@@ -259,6 +276,9 @@ const styles = StyleSheet.create({
   },
   shirts: {
     fontSize: 12,
+  },
+  location: {
+    alignSelf: 'flex-start',
   },
   actions: {
     flexDirection: 'row',
