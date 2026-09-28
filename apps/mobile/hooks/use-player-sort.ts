@@ -15,7 +15,6 @@ function streakScore(streak: StreakInfo): number {
   return 0
 }
 
-/** Maneja criterio y dirección de orden + calcula la lista ordenada. */
 export function usePlayerSort(
   players: Player[],
   streaks: Record<string, StreakInfo>,

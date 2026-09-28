@@ -32,6 +32,11 @@ const navigation = [
     location: "/history",
     color: "from-violet-500/20 to-pink-500/20",
   },
+  {
+    name: "Premios",
+    location: "/awards",
+    color: "from-yellow-500/20 to-amber-500/20",
+  },
 ]
 
 export default function NavBar() {

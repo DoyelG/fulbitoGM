@@ -21,7 +21,6 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
-// Read .env.local
 const envPath = path.join(__dirname, '../.env.local')
 const env = Object.fromEntries(
   fs.readFileSync(envPath, 'utf8')
@@ -47,7 +46,6 @@ const db = getFirestore(app)
 const storage = getStorage(app)
 const auth = getAuth(app)
 
-// Resolve Prisma client path
 const prismaClientPath = path.resolve(
   __dirname,
   '../../../node_modules/.pnpm/@prisma+client@6.19.2_prisma@6.19.2_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client'
@@ -61,7 +59,6 @@ async function clearCollection(name) {
   console.log(`  Cleared ${snap.size} existing docs from "${name}"`)
 }
 
-/** Upload a base64 data URI to Firebase Storage; returns the download URL or null. */
 async function uploadDataUri(playerId, dataUri) {
   const match = dataUri.match(/^data:(image\/\w+);base64,(.+)$/)
   if (!match) return null
@@ -78,7 +75,6 @@ async function resolvePhotoUrl(playerId, rawPhotoUrl) {
   if (rawPhotoUrl.startsWith('data:')) {
     return uploadDataUri(playerId, rawPhotoUrl)
   }
-  // Already a regular URL (Firebase Storage or other)
   return rawPhotoUrl
 }
 
@@ -111,7 +107,6 @@ async function main() {
     ])
     console.log(`  Players: ${players.length}, Matches: ${matches.length}, MatchPlayers: ${matchPlayers.length}`)
 
-    // --- Players ---
     console.log('\nMigrating players (uploading photos to Storage)...')
     await clearCollection('players')
     for (const p of players) {
@@ -132,7 +127,6 @@ async function main() {
     }
     console.log(`  Done — ${players.length} players written`)
 
-    // --- Matches ---
     console.log('\nMigrating matches...')
     await clearCollection('matches')
     for (const m of matches) {
@@ -151,7 +145,6 @@ async function main() {
     }
     console.log(`\n  ✓ ${matches.length} matches written`)
 
-    // --- MatchPlayers ---
     console.log('\nMigrating match players...')
     await clearCollection('matchPlayers')
     for (const mp of matchPlayers) {

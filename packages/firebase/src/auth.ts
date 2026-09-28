@@ -23,6 +23,15 @@ async function getUserRole(uid: string): Promise<Role> {
   return (snap.data()?.role as Role) ?? 'USER'
 }
 
+async function ensureUserDoc(uid: string, email: string): Promise<void> {
+  const db = getFirestore()
+  const userRef = doc(db, 'users', uid)
+  const snap = await getDoc(userRef)
+  if (!snap.exists()) {
+    await setDoc(userRef, { email, role: 'USER', createdAt: Timestamp.now() })
+  }
+}
+
 export async function signIn(email: string, password: string): Promise<AppUser> {
   const auth = getAuth()
   const cred = await signInWithEmailAndPassword(auth, email, password)
@@ -44,20 +53,13 @@ export async function register(email: string, password: string, role: Role = 'US
 
 export async function signInWithGoogle(): Promise<AppUser> {
   const auth = getAuth()
-  const db = getFirestore()
   const provider = new GoogleAuthProvider()
   const cred = await signInWithPopup(auth, provider)
   const uid = cred.user.uid
   const email = cred.user.email!
 
-  // Create user doc if first time signing in with Google
-  const userRef = doc(db, 'users', uid)
-  const snap = await getDoc(userRef)
-  if (!snap.exists()) {
-    await setDoc(userRef, { email, role: 'USER', createdAt: Timestamp.now() })
-  }
-
-  const role = (snap.data()?.role as Role) ?? 'USER'
+  await ensureUserDoc(uid, email)
+  const role = await getUserRole(uid)
   return { uid, email, role }
 }
 
@@ -68,7 +70,10 @@ export async function signOut(): Promise<void> {
 export function onAuthStateChanged(callback: (user: AppUser | null) => void): () => void {
   const auth = getAuth()
   return firebaseOnAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-    if (!firebaseUser) { callback(null); return }
+    if (!firebaseUser) {
+      callback(null)
+      return
+    }
     const role = await getUserRole(firebaseUser.uid)
     callback({ uid: firebaseUser.uid, email: firebaseUser.email!, role })
   })

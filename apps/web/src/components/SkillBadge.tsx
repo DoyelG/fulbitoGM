@@ -1,19 +1,17 @@
 'use client'
 
-// Skill 1–5: orange (fixed hue ~24), vary intensity from darker → lighter
-// Skill 6–10: purple (fixed hue ~270), vary intensity from lighter → darker
 function colorForSkill(skill: number) {
   if (skill <= 5) {
-    const t = (Math.max(1, skill) - 1) / 4 // 0..1
+    const intensity = (Math.max(1, skill) - 1) / 4
     const h = 24
-    const s = 85 // keep hue stable; saturation fixed
-    const l = 38 + 14 * t // 38% → 52% (lighter as skill increases)
+    const s = 85
+    const l = 38 + 14 * intensity
     return `hsl(${h}deg ${s}% ${l}%)`
   } else {
-    const t = (Math.min(10, skill) - 6) / 4 // 0..1
+    const intensity = (Math.min(10, skill) - 6) / 4
     const h = 270
-    const s = 78 // fixed
-    const l = 50 - 14 * t // 50% → 36% (darker as skill increases)
+    const s = 78
+    const l = 50 - 14 * intensity
     return `hsl(${h}deg ${s}% ${l}%)`
   }
 }

@@ -13,6 +13,7 @@
 
   /* Brand */
   --color-brand: #7c3aed; /* purple */
+  --color-brand-dark: #4c1d95; /* deep purple, for gradients */
   --color-accent: #f97316; /* orange */
   --color-brand-contrast: #ffffff;
 }

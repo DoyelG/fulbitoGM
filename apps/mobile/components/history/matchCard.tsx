@@ -1,8 +1,9 @@
 import type { Match, Player } from '@fulbito/types'
 import { matchLocationMapsUrl } from '@fulbito/utils'
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Linking, StyleSheet, Text, TouchableOpacity, View, Pressable } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { useState } from 'react'
 
 type MatchPlayer = Match['teamA'][number]
 
@@ -39,6 +40,12 @@ export function MatchCard({
     ? (players.find((p) => p.id === m.shirtsResponsibleId)?.name ?? '—')
     : null
 
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const toggleExtended = () => {
+    setIsExpanded((e) => !e)
+  }
+
   return (
     <TouchableOpacity
       activeOpacity={isAdmin ? 0.85 : 1}
@@ -52,7 +59,6 @@ export function MatchCard({
         shadows.card(isDark),
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           {m.name ? (
@@ -75,7 +81,6 @@ export function MatchCard({
         </Text>
       </View>
 
-      {/* Teams */}
       <View style={styles.teamsRow}>
         <TeamColumn
           label="Equipo A"
@@ -101,7 +106,33 @@ export function MatchCard({
         />
       </View>
 
-      {/* Shirts + Admin actions */}
+      {m.description ? (
+        <Pressable
+          onPress={toggleExtended}
+          onStartShouldSetResponderCapture={() => true}
+          style={styles.descriptionRow}
+          accessibilityRole="button"
+          accessibilityLabel={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
+          accessibilityState={{ expanded: isExpanded }}
+        >
+          <Text
+            style={[styles.description, { color: colors.muted }]}
+            numberOfLines={isExpanded ? undefined : 2}
+          >
+            {m.description}
+          </Text>
+          <Text
+            style={[
+              styles.chevron,
+              { color: colors.brandAccent },
+              { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] },
+            ]}
+          >
+            ^
+          </Text>
+        </Pressable>
+      ) : null}
+
       <View style={styles.footer}>
         {shirtName ? (
           <Text style={[styles.shirts, { color: colors.muted }]}>
@@ -279,6 +310,22 @@ const styles = StyleSheet.create({
   },
   location: {
     alignSelf: 'flex-start',
+  },
+  descriptionRow: {
+    gap: 6,
+    marginTop: 6,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  description: {
+    flex: 1,
+    flexShrink: 1,
+    fontSize: 12,
+  },
+  chevron: {
+    fontSize: 12,
+    fontWeight: '700',
+    alignSelf: 'flex-end',
   },
   actions: {
     flexDirection: 'row',

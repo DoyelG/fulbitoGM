@@ -57,6 +57,7 @@ export type BuildPayloadInput = {
   matchDate: string
   matchType: MatchType
   matchName: string
+  matchDescription: string
   teamA: RecordingPlayer[]
   teamB: RecordingPlayer[]
   teamAScore: number
@@ -90,6 +91,7 @@ export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
     type: input.matchType,
     name: input.matchName.trim() || undefined,
     location: input.matchLocation ?? undefined,
+    description: input.matchDescription.trim() || undefined,
     teamAScore: input.teamAScore,
     teamBScore: input.teamBScore,
     teamA: buildTeamPlayers(input.teamA, input.goalsA, input.perfA),

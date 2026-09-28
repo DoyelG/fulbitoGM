@@ -5,7 +5,7 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import SkillBadge from '@/components/SkillBadge'
 import StreakBadge from '@/components/StreakBadge'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
-import { onlyFinalMatches } from '@fulbito/utils'
+import { normalizeForSearch, onlyFinalMatches } from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -55,10 +55,7 @@ export default function PlayersClient({
     resetMatches()
   }, [hydratePlayers, initialPlayers, hydrateMatches, initialMatches, resetPlayers, resetMatches])
 
-  const streaks = useMemo(
-    () => calculateAllCurrentStreaks(onlyFinalMatches(storeMatches)),
-    [storeMatches],
-  )
+  const streaks = useMemo(() => calculateAllCurrentStreaks(onlyFinalMatches(storeMatches)), [storeMatches])
 
   const tableData: PlayerRow[] = useMemo(
     () =>
@@ -109,18 +106,25 @@ export default function PlayersClient({
         enableSorting: true,
         cell: ({ getValue }) => <span className="text-gray-800">{getValue()}</span>,
       }),
-      columnHelper.accessor((row) => {
-        const st = row.streak
-        return st.kind === 'win' ? st.count : st.kind === 'loss' ? -st.count : 0
-      }, {
-        id: 'streak',
-        header: 'Racha',
-        enableSorting: true,
-        cell: ({ row }) => {
-          const st = row.original.streak
-          return st.kind ? <StreakBadge kind={st.kind} count={st.count} /> : <span className="text-sm text-gray-800">—</span>
+      columnHelper.accessor(
+        (row) => {
+          const st = row.streak
+          return st.kind === 'win' ? st.count : st.kind === 'loss' ? -st.count : 0
         },
-      }),
+        {
+          id: 'streak',
+          header: 'Racha',
+          enableSorting: true,
+          cell: ({ row }) => {
+            const st = row.original.streak
+            return st.kind ? (
+              <StreakBadge kind={st.kind} count={st.count} />
+            ) : (
+              <span className="text-sm text-gray-800">—</span>
+            )
+          },
+        },
+      ),
       columnHelper.accessor('winGoalProgress', {
         id: 'goal7',
         header: 'Objetivo (7W)',
@@ -161,11 +165,8 @@ export default function PlayersClient({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, _columnId, filterValue: string) => {
-      const normalize = (s: string) =>
-        s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-      return normalize(row.original.name).includes(normalize(filterValue))
-    },
+    globalFilterFn: (row, _columnId, filterValue: string) =>
+      normalizeForSearch(row.original.name).includes(normalizeForSearch(filterValue)),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -225,9 +226,7 @@ export default function PlayersClient({
                       {header.column.getIsSorted() === 'desc' && ' ▼'}
                     </th>
                   ))}
-                  {isAdmin && (
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>
-                  )}
+                  {isAdmin && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}
                 </tr>
               ))}
             </thead>
@@ -253,8 +252,18 @@ export default function PlayersClient({
                     { icon: <FiEye size={16} />, variant: 'primary', href: `/players/${player.id}`, tooltip: 'Ver' },
                     ...(isAdmin
                       ? [
-                          { icon: <FiEdit2 size={16} />, variant: 'primary' as const, href: `/players/edit/${player.id}`, tooltip: 'Editar' },
-                          { icon: <FiTrash2 size={16} />, variant: 'danger' as const, onClick: () => handleDelete(player.id), tooltip: 'Eliminar' },
+                          {
+                            icon: <FiEdit2 size={16} />,
+                            variant: 'primary' as const,
+                            href: `/players/edit/${player.id}`,
+                            tooltip: 'Editar',
+                          },
+                          {
+                            icon: <FiTrash2 size={16} />,
+                            variant: 'danger' as const,
+                            onClick: () => handleDelete(player.id),
+                            tooltip: 'Eliminar',
+                          },
                         ]
                       : []),
                   ]

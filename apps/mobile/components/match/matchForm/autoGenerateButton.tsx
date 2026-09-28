@@ -5,10 +5,11 @@ import { useAppTheme } from '@/hooks/use-theme'
 type Props = {
   poolSize: number
   playersPerTeam: number
+  hasTeams: boolean
   onPress: () => void
 }
 
-export function AutoGenerateButton({ poolSize, playersPerTeam, onPress }: Props) {
+export function AutoGenerateButton({ poolSize, playersPerTeam, hasTeams, onPress }: Props) {
   const { colors, radii } = useAppTheme()
   const enabled = poolSize >= playersPerTeam * 2
 
@@ -24,7 +25,7 @@ export function AutoGenerateButton({ poolSize, playersPerTeam, onPress }: Props)
         },
       ]}
     >
-      <Text style={styles.text}>Autocompletar</Text>
+      <Text style={styles.text}>{hasTeams ? 'Re-generar equipos' : 'Generar equipos'}</Text>
     </TouchableOpacity>
   )
 }

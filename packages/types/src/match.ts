@@ -23,6 +23,7 @@ export type Match = {
   teamA: MatchPlayer[]
   teamB: MatchPlayer[]
   name?: string
+  description?: string
   shirtsResponsibleId?: string | null
   mvpId?: string | null
   goalkeeperIds?: string[]
@@ -34,7 +35,6 @@ export type Match = {
 
 export type MatchInput = Omit<Match, 'id' | 'createdAt' | 'updatedAt'>
 
-/** Minimal match shape used by streak-calculation algorithms */
 export type MatchLike = {
   date: string
   teamAScore: number

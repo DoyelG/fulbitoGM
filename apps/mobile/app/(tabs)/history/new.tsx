@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function NewMatchScreen() {
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <Text style={styles.title}>/history/new</Text>
     </SafeAreaView>
   )

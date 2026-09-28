@@ -19,7 +19,6 @@ export type Player = {
   updatedAt: Date
 }
 
-/** Minimal player shape used by team-balancing algorithms */
 export type PlayerInfo = {
   id: string
   name: string

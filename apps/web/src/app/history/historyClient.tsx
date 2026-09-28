@@ -21,6 +21,7 @@ import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 import { Pagination } from "../shared/Pagination";
 import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
+import { MatchDescription } from "./matchDescription";
 import { Backdrop } from "@/components/Backdrop";
 import AddressPicker from "@/components/AddressPicker";
 import MatchLocationLink from "@/components/MatchLocationLink";
@@ -351,7 +352,7 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className={m.description ? "" : "flex py-2"}>
                     <div className="grid gap-y-2 text-sm">
                       {m.shirtsResponsibleId && (
                         <div className="text-gray-700">
@@ -369,7 +370,10 @@ export default function HistoryClient() {
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-end gap-3">
+                    {m.description && (
+                      <MatchDescription text={m.description}/>
+                    )}
+                    <div className="flex justify-end gap-3 shrink-0 ml-auto">
                       <button
                         type="button"
                         className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
@@ -388,7 +392,7 @@ export default function HistoryClient() {
                           {isDraft ? (
                             <>
                               <button
-                                className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
+                                className="text-sm px-3 py-1 rounded border hover:bg-gray-50 max-w-4"
                                 onClick={() =>
                                   setOpen({ mode: "edit", match: m })
                                 }
@@ -653,6 +657,9 @@ function RecordModal({
     typeof initial?.teamBScore === "number" ? initial.teamBScore : "",
   );
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const [matchDescription, setMatchDescription] = useState<string>(
+    initial?.description || "",
+  );
   const [isFriendly, setIsFriendly] = useState<boolean>(initial?.isFriendly ?? false);
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB];
@@ -774,12 +781,10 @@ function RecordModal({
 
   const teamsComplete =
     teamA.length === playersPerTeam && teamB.length === playersPerTeam;
-  // Confirming a match (status 'final') needs a complete, consistent result.
   const canConfirm =
     (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
     (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
     teamsComplete;
-  // Saving a draft only needs full teams — it hasn't been played yet.
   const canUpdateDraft = teamsComplete;
 
   const buildPayload = (status: "draft" | "final"): MatchInput => {
@@ -811,6 +816,7 @@ function RecordModal({
         performance: isFinal ? perfB[p.id] || 5 : 0,
       })),
       name: matchName.trim() || undefined,
+      description: matchDescription.trim() || undefined,
       shirtsResponsibleId: chosen ?? null,
       mvpId: isFinal ? mvpId : null,
       goalkeeperIds,
@@ -967,6 +973,19 @@ function RecordModal({
               <Draggable key={p.id} p={p} />
             ))}
           </DropColumn>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="match-description-history" className="block text-sm font-medium mb-1">
+            Crónica
+          </label>
+          <textarea
+            id="match-description-history"
+            value={matchDescription}
+            onChange={(e) => setMatchDescription(e.target.value)}
+            placeholder="Escribí la crónica del partido"
+            className="border min-w-full rounded px-3 py-2 w-full"
+          />
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
