@@ -8,7 +8,19 @@ type Props = {
   children: ReactNode
   position?: 'top' | 'bottom'
   delay?: number
-  variant?: "primary" | "danger"
+  variant?: "primary" | "danger" | "neutral"
+}
+
+const BUBBLE_STYLES = {
+  primary: 'text-brand-contrast bg-brand shadow-[0_4px_12px_rgba(124,58,237,0.35)]',
+  danger: 'text-red-600 bg-red-50 shadow-[0_4px_12px_rgba(124,58,237,0.35)]',
+  neutral: 'text-gray-800 bg-white border border-gray-200 shadow-md',
+}
+
+const ARROW_STYLES = {
+  primary: 'bg-brand',
+  danger: 'bg-red-50',
+  neutral: 'bg-white border-gray-200',
 }
 
 const GAP = 8
@@ -52,9 +64,8 @@ export default function Tooltip({ label, children, position = 'top', delay = 300
       style={coords ? { left: coords.x, top: coords.y } : undefined}
       className={[
         'fixed z-[9999] pointer-events-none',
-        'px-2.5 py-1 text-[11px] font-semibold tracking-wide',
-        variant === 'primary' ? 'text-brand-contrast bg-brand rounded-md' : 'text-red-600 bg-red-50 rounded-md',
-        'shadow-[0_4px_12px_rgba(124,58,237,0.35)]',
+        'px-2.5 py-1 text-[11px] font-semibold tracking-wide rounded-md',
+        BUBBLE_STYLES[variant],
         'whitespace-nowrap select-none',
         'transition-all duration-200 ease-out',
         isTop
@@ -69,7 +80,8 @@ export default function Tooltip({ label, children, position = 'top', delay = 300
       <span
         className={[
           'absolute left-1/2 -translate-x-1/2 size-2 rotate-45',
-          variant === 'primary' ? 'bg-brand' : 'bg-red-50',
+          ARROW_STYLES[variant],
+          variant === 'neutral' ? (isTop ? 'border-r border-b' : 'border-l border-t') : '',
           isTop ? '-bottom-1' : '-top-1',
         ].join(' ')}
       />
