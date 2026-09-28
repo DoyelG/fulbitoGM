@@ -1,4 +1,4 @@
-import type { Match, MatchInput, Player } from '@fulbito/types'
+import type { Match, MatchInput, MatchLocation, Player } from '@fulbito/types'
 import { balanceRemainingPlayers, getGoalkeeping } from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
@@ -24,6 +24,7 @@ import { usePool } from './matchForm/usePool'
 import { useScores } from './matchForm/useScores'
 import { pickShirtsResponsible, useShirts } from './matchForm/useShirts'
 import { useTeams } from './matchForm/useTeams'
+import { LocationField } from './matchForm/locationField'
 
 export type MatchFormProps = {
   mode: 'create' | 'edit'
@@ -53,6 +54,7 @@ export function MatchForm({
   const [matchDate, setMatchDate] = useState<string>(
     initial?.date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   )
+  const [matchLocation, setMatchLocation] = useState<MatchLocation | null>(initial?.location ?? null)
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) ?? '5v5')
   const [matchName, setMatchName] = useState(initial?.name ?? '')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
@@ -167,6 +169,7 @@ export function MatchForm({
         goalkeeperIds: [...goalkeeperIds],
         mvpId,
         isMatchFriendly,
+        matchLocation,
       })
       await onSave(payload)
     } catch (e) {
@@ -190,6 +193,8 @@ export function MatchForm({
       />
 
       <DateField value={matchDate} onChange={setMatchDate} />
+
+      <LocationField value={matchLocation} onChange={setMatchLocation} />
 
       <ToggleFriendlyMatch isMatchFriendly={isMatchFriendly} setIsMatchFriendly={setIsMatchFriendly} />
 
