@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { uploadPlayerPhoto } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { getGoalkeeping } from '@fulbito/utils'
+import Button from '@/components/Button'
 import Modal from '@/components/Modal'
 import Tooltip from '@/components/Tooltip'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
@@ -21,6 +23,42 @@ const positionLabels: Record<string, string> = {
   FWD: 'Delantero',
   PLAYER: 'Cualquier posición',
 }
+
+type PlayerFormValues = {
+  name: string
+  position: string
+  physical: string
+  technical: string
+  tactical: string
+  psychological: string
+  inactive: boolean
+}
+
+type OriginalPlayerData = PlayerFormValues & { goalkeeping: string }
+
+type SummaryRow = {
+  label: string
+  before?: string
+  after: string
+  beforeImg?: string | null
+  afterImg?: string | null
+}
+
+const skillLabels = {
+  physical: 'Físico',
+  technical: 'Técnico',
+  tactical: 'Táctico',
+  psychological: 'Mental',
+} as const
+
+type SkillKey = keyof typeof skillLabels
+
+const skillKeys = Object.keys(skillLabels) as SkillKey[]
+
+const statusLabel = (inactive: boolean) => (inactive ? 'Inactivo' : 'Activo')
+const photoStatusLabel = (photoUrl: string | null) => (photoUrl ? 'Con foto' : 'Sin foto')
+
+const positionLabel = (position: string) => positionLabels[position] ?? position
 
 export default function PlayerForm({ mode, playerId }: Props) {
   const router = useRouter()
@@ -41,38 +79,29 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const [gkTouched, setGkTouched] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
-  const [originalData, setOriginalData] = useState<{
-    name: string
-    position: string
-    physical: string
-    technical: string
-    tactical: string
-    psychological: string
-    inactive: boolean
-    goalkeeping: string
-  } | null>(null)
+  const [originalData, setOriginalData] = useState<OriginalPlayerData | null>(null)
 
   useEffect(() => {
     if (mode === 'edit' && playerId) {
-      const p = getPlayer(playerId)
-      if (p) {
-        const base = p.skill === null ? 5 : p.skill
-        const loaded = {
-          name: p.name,
-          position: p.position,
-          physical: String(p.skills?.physical ?? base),
-          technical: String(p.skills?.technical ?? base),
-          tactical: String(p.skills?.tactical ?? base),
-          psychological: String(p.skills?.psychological ?? base),
-          inactive: p.inactive ?? false,
+      const player = getPlayer(playerId)
+      if (player) {
+        const defaultSkill = player.skill === null ? 5 : player.skill
+        const loadedFormData = {
+          name: player.name,
+          position: player.position,
+          physical: String(player.skills?.physical ?? defaultSkill),
+          technical: String(player.skills?.technical ?? defaultSkill),
+          tactical: String(player.skills?.tactical ?? defaultSkill),
+          psychological: String(player.skills?.psychological ?? defaultSkill),
+          inactive: player.inactive ?? false,
         }
-        setFormData(loaded)
-        setPhotoPreview(p.photoUrl ?? null)
-        setOriginalPhotoUrl(p.photoUrl ?? null)
-        const loadedGoalkeeping = String(getGoalkeeping(p))
+        setFormData(loadedFormData)
+        setPhotoPreview(player.photoUrl ?? null)
+        setOriginalPhotoUrl(player.photoUrl ?? null)
+        const loadedGoalkeeping = String(getGoalkeeping(player))
         setGoalkeeping(loadedGoalkeeping)
-        setGkTouched(p.goalkeeping != null)
-        setOriginalData({ ...loaded, goalkeeping: loadedGoalkeeping })
+        setGkTouched(player.goalkeeping != null)
+        setOriginalData({ ...loadedFormData, goalkeeping: loadedGoalkeeping })
       }
     }
   }, [mode, playerId, getPlayer])
@@ -86,35 +115,47 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const photoChanged = photoPreview !== originalPhotoUrl
 
   const summaryRows = useMemo(() => {
-    const fields: { label: string; before?: string; after: string; beforeImg?: string | null; afterImg?: string | null }[] = [
-      { label: 'Nombre', before: originalData?.name, after: formData.name.trim() },
-      { label: 'Posición', before: originalData ? (positionLabels[originalData.position] ?? originalData.position) : undefined, after: positionLabels[formData.position] ?? formData.position },
-      { label: 'Físico', before: originalData?.physical, after: formData.physical },
-      { label: 'Técnico', before: originalData?.technical, after: formData.technical },
-      { label: 'Táctico', before: originalData?.tactical, after: formData.tactical },
-      { label: 'Mental', before: originalData?.psychological, after: formData.psychological },
-      { label: 'Nivel de arquero', before: originalData?.goalkeeping, after: gkValue },
-      { label: 'Estado', before: originalData ? (originalData.inactive ? 'Inactivo' : 'Activo') : undefined, after: formData.inactive ? 'Inactivo' : 'Activo' },
-    ]
-    const filtered = mode === 'create' ? fields : fields.filter((f) => f.before !== f.after)
+    const getOriginalValue = (selectValue: (original: OriginalPlayerData) => string) =>
+      originalData ? selectValue(originalData) : undefined
 
-    if (mode === 'create' ? !!photoPreview : photoChanged) {
-      filtered.push({
-        label: 'Foto',
-        before: originalData ? (originalPhotoUrl ? 'Con foto' : 'Sin foto') : undefined,
-        after: photoPreview ? 'Con foto' : 'Sin foto',
-        beforeImg: originalPhotoUrl,
-        afterImg: photoPreview,
-      })
+    const fieldRows: SummaryRow[] = [
+      { label: 'Nombre', before: getOriginalValue((original) => original.name), after: formData.name.trim() },
+      {
+        label: 'Posición',
+        before: getOriginalValue((original) => positionLabel(original.position)),
+        after: positionLabel(formData.position),
+      },
+      ...skillKeys.map((skillKey) => ({
+        label: skillLabels[skillKey],
+        before: getOriginalValue((original) => original[skillKey]),
+        after: formData[skillKey],
+      })),
+      { label: 'Nivel de arquero', before: getOriginalValue((original) => original.goalkeeping), after: gkValue },
+      {
+        label: 'Estado',
+        before: getOriginalValue((original) => statusLabel(original.inactive)),
+        after: statusLabel(formData.inactive),
+      },
+    ]
+
+    const photoRow: SummaryRow = {
+      label: 'Foto',
+      before: getOriginalValue(() => photoStatusLabel(originalPhotoUrl)),
+      after: photoStatusLabel(photoPreview),
+      beforeImg: originalPhotoUrl,
+      afterImg: photoPreview,
     }
 
-    return filtered
+    const visibleFieldRows = mode === 'create' ? fieldRows : fieldRows.filter((row) => row.before !== row.after)
+    const shouldShowPhotoRow = mode === 'create' ? !!photoPreview : photoChanged
+
+    return shouldShowPhotoRow ? [...visibleFieldRows, photoRow] : visibleFieldRows
   }, [mode, originalData, formData, gkValue, originalPhotoUrl, photoPreview, photoChanged])
 
   const canSubmit = mode === 'create' ? formData.name.trim().length > 0 : summaryRows.length > 0
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
     setModalOpen(true)
   }
 
@@ -152,7 +193,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
           id="name"
           required
           value={formData.name}
-          onChange={(e) => setFormData({...formData, name: e.target.value})}
+          onChange={(event) => setFormData({...formData, name: event.target.value})}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
         />
       </div>
@@ -168,7 +209,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
             <label className="block text-sm font-medium text-black">{cat.label}</label>
             <select
               value={(formData as unknown as { [key: string]: number | string })[cat.key]}
-              onChange={(e) => setFormData({ ...formData, [cat.key]: e.target.value })}
+              onChange={(event) => setFormData({ ...formData, [cat.key]: event.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
             >
               {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
@@ -180,19 +221,17 @@ export default function PlayerForm({ mode, playerId }: Props) {
       <div>
         <div className="relative mt-2 w-16 h-16">
           <div
-            className="w-16 h-16 rounded-full overflow-hidden ring-1 ring-gray-300 bg-white cursor-pointer"
+            className="relative w-16 h-16 rounded-full overflow-hidden ring-1 ring-gray-300 bg-white cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Subir foto"
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
+            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') fileInputRef.current?.click() }}
           >
             {photoPreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoPreview} alt="preview" className="object-cover w-full h-full" />
+              <Image src={photoPreview} alt="preview" fill unoptimized className="object-cover" />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src="/silhouette.svg" alt="placeholder" className="object-cover w-full h-full" />
+              <Image src="/silhouette.svg" alt="placeholder" fill unoptimized className="object-cover" />
             )}
           </div>
 
@@ -219,8 +258,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          onChange={(e) => {
-            const f = e.target.files?.[0] || null
+          onChange={(event) => {
+            const f = event.target.files?.[0] || null
             setPhotoFile(f)
             setPhotoPreview(f ? URL.createObjectURL(f) : photoPreview)
           }}
@@ -235,7 +274,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
         <select
           id="goalkeeping"
           value={gkValue}
-          onChange={(e) => { setGkTouched(true); setGoalkeeping(e.target.value) }}
+          onChange={(event) => { setGkTouched(true); setGoalkeeping(event.target.value) }}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
         >
           {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
@@ -248,7 +287,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
         <select
           id="position"
           value={formData.position}
-          onChange={(e) => setFormData({...formData, position: e.target.value})}
+          onChange={(event) => setFormData({...formData, position: event.target.value})}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
         >
           <option value="GK">Arquero</option>
@@ -290,18 +329,12 @@ export default function PlayerForm({ mode, playerId }: Props) {
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">
-        <button type="button" onClick={() => (mode === 'edit' && playerId ? router.back() : router.push("/players"))} className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-black shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2">
+        <Button type="button" variant="secondary" onClick={() => (mode === 'edit' && playerId ? router.back() : router.push("/players"))}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${
-            canSubmit ? 'bg-brand text-white hover:bg-brand/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
+        </Button>
+        <Button type="submit" disabled={!canSubmit}>
           {mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
-        </button>
+        </Button>
       </div>
 
       <Modal
@@ -323,13 +356,11 @@ export default function PlayerForm({ mode, playerId }: Props) {
                     <div key={row.label} className="flex items-center gap-2">
                       <span>{row.label}:</span>
                       {row.beforeImg && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={row.beforeImg} alt="Foto anterior" className="w-8 h-8 rounded-full object-cover ring-1 ring-gray-300 opacity-50" />
+                        <Image src={row.beforeImg} alt="Foto anterior" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-gray-300 opacity-50" />
                       )}
                       {row.beforeImg && <span className="text-gray-400">→</span>}
                       {row.afterImg ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={row.afterImg} alt="Foto nueva" className="w-8 h-8 rounded-full object-cover ring-1 ring-brand" />
+                        <Image src={row.afterImg} alt="Foto nueva" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-brand" />
                       ) : (
                         <span className="font-medium text-black">Sin foto</span>
                       )}
@@ -347,12 +378,12 @@ export default function PlayerForm({ mode, playerId }: Props) {
               </div>
             )}
             <div className="flex justify-center gap-3 mt-6">
-              <button type="button" onClick={() => setModalOpen(false)} className="flex-1 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-black shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2">
+              <Button type="button" variant="secondary" block onClick={() => setModalOpen(false)}>
                 Cancelar
-              </button>
-              <button type="button" onClick={savePlayer} className="flex-1 inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2">
+              </Button>
+              <Button type="button" block onClick={savePlayer}>
                 {mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>
