@@ -392,7 +392,7 @@ export default function HistoryClient() {
                           {isDraft ? (
                             <>
                               <button
-                                className="text-sm px-3 py-1 rounded border hover:bg-gray-50 max-w-4"
+                                className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
                                 onClick={() =>
                                   setOpen({ mode: "edit", match: m })
                                 }
