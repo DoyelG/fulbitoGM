@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Address } from '@fulbito/types'
+import '@/styles/buttons.css'
 import Modal from '@/components/Modal'
 import { Backdrop } from '@/components/Backdrop'
 import ActionRow from '@/components/ActionRow'
@@ -147,7 +148,7 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
             <button
               type="button"
               onClick={() => goTo({ kind: 'create' })}
-              className="inline-flex items-center gap-1.5 rounded-md border border-brand py-2 px-4 text-sm font-medium text-brand hover:bg-brand/10 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+              className="btn btn-secondary text-sm font-medium"
             >
               <PlusIcon aria-hidden="true" className="size-4" />
               Agregar cancha
@@ -155,7 +156,7 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
             <button
               type="button"
               onClick={handleClose}
-              className="rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+              className="btn btn-primary text-sm font-medium"
             >
               Listo
             </button>
@@ -177,14 +178,14 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
               <button
                 type="button"
                 onClick={() => setToDelete(null)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+                className="btn btn-ghost"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                className="btn btn-danger"
               >
                 Eliminar
               </button>
