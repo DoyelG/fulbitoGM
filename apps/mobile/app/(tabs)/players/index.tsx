@@ -49,8 +49,8 @@ export default function PlayersScreen() {
   } = usePlayerFilters(allPlayers)
   const { sortedPlayers: sortedAllPlayers } = usePlayerSort(filteredPlayers, streaks, 'skill')
 
-  const sortedPlayers = useMemo(() => sortedAllPlayers.filter((p) => !p.inactive), [sortedAllPlayers])
-  const sortedInactivePlayers = useMemo(() => sortedAllPlayers.filter((p) => p.inactive), [sortedAllPlayers])
+  const sortedPlayers = useMemo(() => sortedAllPlayers.filter((player) => !player.inactive), [sortedAllPlayers])
+  const sortedInactivePlayers = useMemo(() => sortedAllPlayers.filter((player) => player.inactive), [sortedAllPlayers])
 
   const confirmDelete = useCallback(
     (player: Player) => {
@@ -147,7 +147,7 @@ export default function PlayersScreen() {
               <View style={styles.inactiveSection}>
                 <TouchableOpacity
                   style={styles.inactiveHeader}
-                  onPress={() => setShowInactive((v) => !v)}
+                  onPress={() => setShowInactive((isOpen) => !isOpen)}
                   activeOpacity={0.8}
                 >
                   <ThemedText type="defaultSemiBold">

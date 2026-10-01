@@ -55,7 +55,7 @@ function SkillStepper({
 }: {
   label: string
   value: number
-  onChange: (v: number) => void
+  onChange: (nextValue: number) => void
 }) {
   const { colors, radii } = useAppTheme()
   return (
@@ -103,7 +103,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
         <ThemedText style={[styles.label, { color: colors.muted }]}>Nombre</ThemedText>
         <TextInput
           value={values.name}
-          onChangeText={(v) => set('name', v)}
+          onChangeText={(text) => set('name', text)}
           autoCapitalize="words"
           autoCorrect={false}
           placeholder="Nombre del jugador"
@@ -121,12 +121,12 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
 
         <ThemedText style={[styles.label, { color: colors.muted }]}>Posición</ThemedText>
         <View style={styles.chips}>
-          {POSITIONS.map((p) => {
-            const active = values.position === p.value
+          {POSITIONS.map((position) => {
+            const active = values.position === position.value
             return (
               <TouchableOpacity
-                key={p.value}
-                onPress={() => set('position', p.value)}
+                key={position.value}
+                onPress={() => set('position', position.value)}
                 style={[
                   styles.chip,
                   {
@@ -137,7 +137,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
                 ]}>
                 <ThemedText
                   style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
-                  {p.label}
+                  {position.label}
                 </ThemedText>
               </TouchableOpacity>
             )
@@ -155,7 +155,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
               key={key}
               label={label}
               value={values[key] as number}
-              onChange={(v) => set(key, v)}
+              onChange={(nextValue) => set(key, nextValue)}
             />
           ))}
         </View>
@@ -176,7 +176,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           <SkillStepper
             label="Arquero"
             value={values.goalkeeping}
-            onChange={(v) => set('goalkeeping', v)}
+            onChange={(nextValue) => set('goalkeeping', nextValue)}
           />
         </View>
 
@@ -188,22 +188,22 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           {[
             { value: false, label: 'Activo' },
             { value: true, label: 'Inactivo' },
-          ].map((opt, i) => {
-            const active = values.inactive === opt.value
-            const selectedColor = opt.value ? '#6b7280' : colors.brand
+          ].map((option, index) => {
+            const active = values.inactive === option.value
+            const selectedColor = option.value ? '#6b7280' : colors.brand
             return (
               <TouchableOpacity
-                key={opt.label}
-                onPress={() => set('inactive', opt.value)}
+                key={option.label}
+                onPress={() => set('inactive', option.value)}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: active }}
                 style={[
                   styles.segmentBtn,
-                  i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border },
+                  index > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border },
                   { backgroundColor: active ? selectedColor : 'transparent' },
                 ]}>
                 <ThemedText style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
-                  {opt.label}
+                  {option.label}
                 </ThemedText>
               </TouchableOpacity>
             )

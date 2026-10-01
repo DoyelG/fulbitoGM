@@ -45,11 +45,11 @@ export default function HistoryClient() {
   >(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const addVideoClip = useVideoClipStore((s) => s.addVideoClip);
-  const deleteVideoClip = useVideoClipStore((s) => s.deleteVideoClip);
-  const videoClips = useVideoClipStore((s) => s.videoClips);
-  const videoClipsInit = useVideoClipStore((s) => s.videoClipsInit);
-  const initVideoClipsLoad = useVideoClipStore((s) => s.initLoad);
+  const addVideoClip = useVideoClipStore((state) => state.addVideoClip);
+  const deleteVideoClip = useVideoClipStore((state) => state.deleteVideoClip);
+  const videoClips = useVideoClipStore((state) => state.videoClips);
+  const videoClipsInit = useVideoClipStore((state) => state.videoClipsInit);
+  const initVideoClipsLoad = useVideoClipStore((state) => state.initLoad);
   const [videoUploadMatch, setVideoUploadMatch] = useState<Match | null>(null);
   const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
   const [viewClipsMatch, setViewClipsMatch] = useState<Match | null>(null);
@@ -83,7 +83,7 @@ export default function HistoryClient() {
   };
 
   const selectedMatch = useMemo(
-    () => storeMatches.find((p) => p.id === selectedMatchId) ?? null,
+    () => storeMatches.find((match) => match.id === selectedMatchId) ?? null,
     [storeMatches, selectedMatchId],
   )
 
@@ -183,7 +183,7 @@ export default function HistoryClient() {
             type="text"
             placeholder="Buscar por título o jugador..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="border rounded pl-9 pr-3 py-2 w-full"
           />
         </div>
@@ -193,7 +193,7 @@ export default function HistoryClient() {
             <input
               type="date"
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
+              onChange={(event) => setFromDate(event.target.value)}
               className="border rounded px-3 py-2"
             />
           </div>
@@ -202,7 +202,7 @@ export default function HistoryClient() {
             <input
               type="date"
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
+              onChange={(event) => setToDate(event.target.value)}
               className="border rounded px-3 py-2"
             />
           </div>
@@ -240,33 +240,33 @@ export default function HistoryClient() {
           </div>
         ) : (
           displayedMatches
-            .map((m) => {
-              const isDraft = m.status === "draft";
+            .map((match) => {
+              const isDraft = match.status === "draft";
               return (
                 <div
-                  key={m.id}
-                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : m.isFriendly ? "border-green-400" : "border-indigo-500"}`}
+                  key={match.id}
+                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : match.isFriendly ? "border-green-400" : "border-indigo-500"}`}
                 >
                   <div className="flex justify-between items-center mb-3">
                     <div>
-                      {m.name && (
-                        <div className="text-lg mb-1 font-bold">{m.name}</div>
+                      {match.name && (
+                        <div className="text-lg mb-1 font-bold">{match.name}</div>
                       )}
                       <strong>
                         {(() => {
-                          const [yy, mm, dd] = m.date.slice(0, 10).split("-");
+                          const [yy, mm, dd] = match.date.slice(0, 10).split("-");
                           return `${dd}/${mm}/${yy}`;
                         })()}
                       </strong>
                       <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
-                        {m.type}
+                        {match.type}
                       </span>
                       {isDraft && (
                         <span className="ml-2 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded">
                           Borrador
                         </span>
                       )}
-                      {m.isFriendly && (
+                      {match.isFriendly && (
                         <span className="ml-2 inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">
                           Amistoso
                         </span>
@@ -274,7 +274,7 @@ export default function HistoryClient() {
                     </div>
                     {!isDraft && (
                       <div className="text-indigo-600 font-bold text-xl">
-                        {m.teamAScore} - {m.teamBScore}
+                        {match.teamAScore} - {match.teamBScore}
                       </div>
                     )}
                   </div>
@@ -283,34 +283,34 @@ export default function HistoryClient() {
                       className={`flex-1 min-w-0 ${
                         isDraft
                           ? "bg-gray-50"
-                          : m.teamAScore > m.teamBScore
+                          : match.teamAScore > match.teamBScore
                             ? "bg-green-50"
-                            : m.teamAScore < m.teamBScore
+                            : match.teamAScore < match.teamBScore
                               ? "bg-red-50"
                               : "bg-gray-50"
                       } rounded p-2`}
                     >
                       <h4 className="text-center font-semibold mb-2 text-sm">Equipo A</h4>
-                      {m.teamA.map((p: Match["teamA"][number]) => (
+                      {match.teamA.map((player: Match["teamA"][number]) => (
                         <div
-                          key={p.id}
+                          key={player.id}
                           className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                         >
-                          <span className="text-sm truncate">{p.name}</span>
+                          <span className="text-sm truncate">{player.name}</span>
                           <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
-                            {m.goalkeeperIds?.includes(p.id) && (
+                            {match.goalkeeperIds?.includes(player.id) && (
                               <span aria-label="Arquero" role="img">
                                 🧤
                               </span>
                             )}
                             {!isDraft && (
                               <>
-                                {m.mvpId === p.id && (
+                                {match.mvpId === player.id && (
                                   <span aria-label="MVP" role="img">
                                     🏆
                                   </span>
                                 )}
-                                {p.goals}⚽ {p.performance}★
+                                {player.goals}⚽ {player.performance}★
                               </>
                             )}
                           </span>
@@ -321,34 +321,34 @@ export default function HistoryClient() {
                       className={`flex-1 min-w-0 ${
                         isDraft
                           ? "bg-gray-50"
-                          : m.teamBScore > m.teamAScore
+                          : match.teamBScore > match.teamAScore
                             ? "bg-green-50"
-                            : m.teamBScore < m.teamAScore
+                            : match.teamBScore < match.teamAScore
                               ? "bg-red-50"
                               : "bg-gray-50"
                       } rounded p-2`}
                     >
                       <h4 className="text-center font-semibold mb-2 text-sm">Equipo B</h4>
-                      {m.teamB.map((p: Match["teamB"][number]) => (
+                      {match.teamB.map((player: Match["teamB"][number]) => (
                         <div
-                          key={p.id}
+                          key={player.id}
                           className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                         >
-                          <span className="text-sm truncate">{p.name}</span>
+                          <span className="text-sm truncate">{player.name}</span>
                           <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
-                            {m.goalkeeperIds?.includes(p.id) && (
+                            {match.goalkeeperIds?.includes(player.id) && (
                               <span aria-label="Arquero" role="img">
                                 🧤
                               </span>
                             )}
                             {!isDraft && (
                               <>
-                                {m.mvpId === p.id && (
+                                {match.mvpId === player.id && (
                                   <span aria-label="MVP" role="img">
                                     🏆
                                   </span>
                                 )}
-                                {p.goals}⚽ {p.performance}★
+                                {player.goals}⚽ {player.performance}★
                               </>
                             )}
                           </span>
@@ -356,33 +356,33 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className={m.description ? "" : "flex py-2"}>
+                  <div className={match.description ? "" : "flex py-2"}>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                      {m.shirtsResponsibleId && (
+                      {match.shirtsResponsibleId && (
                         <div className="text-gray-700">
                           🎽 Camisetas:{" "}
                           <span className="font-medium">
                             {storePlayers.find(
-                              (p) => p.id === m.shirtsResponsibleId,
+                              (player) => player.id === match.shirtsResponsibleId,
                             )?.name ?? "—"}
                           </span>
                         </div>
                       )}
                     </div>
-                    {m.description && (
-                      <MatchDescription text={m.description}/>
+                    {match.description && (
+                      <MatchDescription text={match.description}/>
                     )}
                     <div className="flex justify-end gap-3 shrink-0 ml-auto">
                       <button
                         type="button"
                         className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
-                        onClick={() => setViewClipsMatch(m)}
-                        aria-label={`Ver clips del partido${m.name ? `: ${m.name}` : ""}`}
+                        onClick={() => setViewClipsMatch(match)}
+                        aria-label={`Ver clips del partido${match.name ? `: ${match.name}` : ""}`}
                       >
                         <span aria-hidden="true">🎥</span>
-                        {videoClips.filter((c) => c.matchId === m.id).length > 0 && (
+                        {videoClips.filter((c) => c.matchId === match.id).length > 0 && (
                           <span className="text-xs bg-brand text-white rounded-full px-1.5">
-                            {videoClips.filter((c) => c.matchId === m.id).length}
+                            {videoClips.filter((c) => c.matchId === match.id).length}
                           </span>
                         )}
                       </button>
@@ -393,7 +393,7 @@ export default function HistoryClient() {
                               <button
                                 className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
                                 onClick={() =>
-                                  setOpen({ mode: "edit", match: m })
+                                  setOpen({ mode: "edit", match })
                                 }
                               >
                                 Editar
@@ -401,7 +401,7 @@ export default function HistoryClient() {
                               <button
                                 className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
                                 onClick={() =>
-                                  setOpen({ mode: "edit", match: m })
+                                  setOpen({ mode: "edit", match })
                                 }
                               >
                                 Completar resultado
@@ -410,14 +410,14 @@ export default function HistoryClient() {
                           ) : (
                             <button
                               className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                              onClick={() => setOpen({ mode: "edit", match: m })}
+                              onClick={() => setOpen({ mode: "edit", match })}
                             >
                               Editar
                             </button>
                           )}
                           <button
                             className="text-red-600 hover:text-red-800 text-sm"
-                            onClick={() => handleDelete(m.id)}
+                            onClick={() => handleDelete(match.id)}
                           >
                             Eliminar
                           </button>
@@ -482,11 +482,11 @@ export default function HistoryClient() {
         mode={open.mode}
         initial={open.mode === "edit" ? open.match : undefined}
         onClose={() => setOpen(false)}
-        onSave={async (m) => {
+        onSave={async (match) => {
           if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, m);
+            await updateMatch(open.match.id, match);
           } else {
-            await addMatch(m);
+            await addMatch(match);
           }
         }}
       />}
@@ -597,7 +597,7 @@ function RecordModal({
   mode?: "create" | "edit";
   initial?: Match;
   onClose: () => void;
-  onSave: (m: MatchInput) => void;
+  onSave: (match: MatchInput) => void;
 }) {
   const { players } = usePlayerStore();
   const { matches: allMatches } = useMatchStore();
@@ -629,23 +629,23 @@ function RecordModal({
   const isDraft = initial?.status === "draft";
 
   const [teamA, setTeamA] = useState<RecordingPlayer[]>(
-    initial?.teamA?.map((p: Match["teamA"][number]) => ({
-      id: p.id,
-      name: p.name,
+    initial?.teamA?.map((player: Match["teamA"][number]) => ({
+      id: player.id,
+      name: player.name,
     })) || [],
   );
   const [teamB, setTeamB] = useState<RecordingPlayer[]>(
-    initial?.teamB?.map((p: Match["teamB"][number]) => ({
-      id: p.id,
-      name: p.name,
+    initial?.teamB?.map((player: Match["teamB"][number]) => ({
+      id: player.id,
+      name: player.name,
     })) || [],
   );
 
   const unassigned = useMemo(() => {
-    const ids = new Set([...teamA, ...teamB].map((p) => p.id));
+    const ids = new Set([...teamA, ...teamB].map((player) => player.id));
     return players
-      .filter((p) => !ids.has(p.id) && !p.inactive)
-      .map((p) => ({ id: p.id, name: p.name }));
+      .filter((player) => !ids.has(player.id) && !player.inactive)
+      .map((player) => ({ id: player.id, name: player.name }));
   }, [players, teamA, teamB]);
 
   const [teamAScore, setTeamAScore] = useState<number | "">(
@@ -661,13 +661,13 @@ function RecordModal({
   const [isFriendly, setIsFriendly] = useState<boolean>(initial?.isFriendly ?? false);
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB];
-    const teamIds = all.map((p) => p.id);
+    const teamIds = all.map((player) => player.id);
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore);
     const { poolIds, min } = computeLeastAssignedPoolIds(
       consideredIds,
       dutiesById,
     );
-    const pool = all.filter((p) => poolIds.includes(p.id));
+    const pool = all.filter((player) => poolIds.includes(player.id));
     return { pool, min };
   }, [teamA, teamB, dutiesById, playedBefore]);
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(
@@ -681,12 +681,12 @@ function RecordModal({
 
   useEffect(() => {
     if (!mvpId) return;
-    const inTeams = [...teamA, ...teamB].some((p) => p.id === mvpId);
+    const inTeams = [...teamA, ...teamB].some((player) => player.id === mvpId);
     if (!inTeams) setMvpId(null);
   }, [teamA, teamB, mvpId]);
 
   useEffect(() => {
-    const ids = new Set([...teamA, ...teamB].map((p) => p.id));
+    const ids = new Set([...teamA, ...teamB].map((player) => player.id));
     setGoalkeeperIds((prev) => {
       const next = prev.filter((id) => ids.has(id));
       return next.length === prev.length ? prev : next;
@@ -704,76 +704,80 @@ function RecordModal({
 
   const [goalsA, setGoalsA] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamA || []).map((p: Match["teamA"][number]) => [
-        p.id,
-        p.goals,
+      (initial?.teamA || []).map((player: Match["teamA"][number]) => [
+        player.id,
+        player.goals,
       ]),
     ),
   );
   const [perfA, setPerfA] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamA || []).map((p: Match["teamA"][number]) => [
-        p.id,
-        p.performance || 5,
+      (initial?.teamA || []).map((player: Match["teamA"][number]) => [
+        player.id,
+        player.performance || 5,
       ]),
     ),
   );
   const [goalsB, setGoalsB] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamB || []).map((p: Match["teamB"][number]) => [
-        p.id,
-        p.goals,
+      (initial?.teamB || []).map((player: Match["teamB"][number]) => [
+        player.id,
+        player.goals,
       ]),
     ),
   );
   const [perfB, setPerfB] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamB || []).map((p: Match["teamB"][number]) => [
-        p.id,
-        p.performance || 5,
+      (initial?.teamB || []).map((player: Match["teamB"][number]) => [
+        player.id,
+        player.performance || 5,
       ]),
     ),
   );
 
   const totalGoalsA = useMemo(
-    () => Object.values(goalsA).reduce((s, n) => s + (n || 0), 0),
+    () => Object.values(goalsA).reduce((sum, n) => sum + (n || 0), 0),
     [goalsA],
   );
   const totalGoalsB = useMemo(
-    () => Object.values(goalsB).reduce((s, n) => s + (n || 0), 0),
+    () => Object.values(goalsB).reduce((sum, n) => sum + (n || 0), 0),
     [goalsB],
   );
 
-  const move = (p: RecordingPlayer, target: "unassigned" | "a" | "b") => {
-    setTeamA((prev) => prev.filter((x) => x.id !== p.id));
-    setTeamB((prev) => prev.filter((x) => x.id !== p.id));
+  const move = (player: RecordingPlayer, target: "unassigned" | "a" | "b") => {
+    setTeamA((prev) => prev.filter((x) => x.id !== player.id));
+    setTeamB((prev) => prev.filter((x) => x.id !== player.id));
     if (target === "a")
-      setTeamA((prev) => (prev.length >= playersPerTeam ? prev : [...prev, p]));
+      setTeamA((prev) =>
+        prev.length >= playersPerTeam ? prev : [...prev, player],
+      );
     if (target === "b")
-      setTeamB((prev) => (prev.length >= playersPerTeam ? prev : [...prev, p]));
+      setTeamB((prev) =>
+        prev.length >= playersPerTeam ? prev : [...prev, player],
+      );
   };
 
   const onDrop = (
-    e: React.DragEvent<HTMLDivElement>,
+    event: React.DragEvent<HTMLDivElement>,
     target: "unassigned" | "a" | "b",
   ) => {
-    const json = e.dataTransfer.getData("application/json");
+    const json = event.dataTransfer.getData("application/json");
     if (!json) return;
-    const p: RecordingPlayer = JSON.parse(json);
-    move(p, target);
+    const player: RecordingPlayer = JSON.parse(json);
+    move(player, target);
   };
 
-  const Draggable = ({ p }: { p: RecordingPlayer }) => (
+  const Draggable = ({ player }: { player: RecordingPlayer }) => (
     <DraggableItem
-      data={p}
-      label={p.name}
+      data={player}
+      label={player.name}
       onClick={() => {
         const choice = prompt(
-          `Move ${p.name} to:\n1. Unassigned\n2. Team A\n3. Team B\n\nEnter 1, 2, or 3:`,
+          `Move ${player.name} to:\n1. Unassigned\n2. Team A\n3. Team B\n\nEnter 1, 2, or 3:`,
         );
-        if (choice === "1") move(p, "unassigned");
-        if (choice === "2") move(p, "a");
-        if (choice === "3") move(p, "b");
+        if (choice === "1") move(player, "unassigned");
+        if (choice === "2") move(player, "a");
+        if (choice === "3") move(player, "b");
       }}
     />
   );
@@ -801,17 +805,17 @@ function RecordModal({
       status,
       teamAScore: isFinal ? (teamAScore as number) : 0,
       teamBScore: isFinal ? (teamBScore as number) : 0,
-      teamA: teamA.map((p) => ({
-        id: p.id,
-        name: p.name,
-        goals: isFinal ? goalsA[p.id] || 0 : 0,
-        performance: isFinal ? perfA[p.id] || 5 : 0,
+      teamA: teamA.map((player) => ({
+        id: player.id,
+        name: player.name,
+        goals: isFinal ? goalsA[player.id] || 0 : 0,
+        performance: isFinal ? perfA[player.id] || 5 : 0,
       })),
-      teamB: teamB.map((p) => ({
-        id: p.id,
-        name: p.name,
-        goals: isFinal ? goalsB[p.id] || 0 : 0,
-        performance: isFinal ? perfB[p.id] || 5 : 0,
+      teamB: teamB.map((player) => ({
+        id: player.id,
+        name: player.name,
+        goals: isFinal ? goalsB[player.id] || 0 : 0,
+        performance: isFinal ? perfB[player.id] || 5 : 0,
       })),
       name: matchName.trim() || undefined,
       description: matchDescription.trim() || undefined,
@@ -863,7 +867,7 @@ function RecordModal({
             <input
               type="date"
               value={matchDate}
-              onChange={(e) => setMatchDate(e.target.value)}
+              onChange={(event) => setMatchDate(event.target.value)}
               className="h-10 border rounded px-3 w-full"
             />
           </div>
@@ -873,16 +877,16 @@ function RecordModal({
             </label>
             <select
               value={matchType}
-              onChange={(e) => {
+              onChange={(event) => {
                 setTeamA([]);
                 setTeamB([]);
-                setMatchType(e.target.value as MatchType);
+                setMatchType(event.target.value as MatchType);
               }}
               className="h-10 border rounded px-3 w-full"
             >
-              {MATCH_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {MATCH_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
                 </option>
               ))}
             </select>
@@ -897,7 +901,7 @@ function RecordModal({
               role="switch"
               aria-checked={isFriendly}
               aria-label="Partido amistoso"
-              onClick={() => setIsFriendly((v) => !v)}
+              onClick={() => setIsFriendly((current) => !current)}
               className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
                 isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
               }`}
@@ -934,7 +938,7 @@ function RecordModal({
             <input
               type="text"
               value={matchName}
-              onChange={(e) => setMatchName(e.target.value)}
+              onChange={(event) => setMatchName(event.target.value)}
               className="border rounded px-3 py-2 w-full"
             />
           </div>
@@ -943,26 +947,26 @@ function RecordModal({
         <div className="grid md:grid-cols-3 gap-3 mb-4">
           <DropColumn
             title="Jugadores Disponibles"
-            onDrop={(e) => onDrop(e, "unassigned")}
+            onDrop={(event) => onDrop(event, "unassigned")}
           >
-            {unassigned.map((p) => (
-              <Draggable key={p.id} p={p} />
+            {unassigned.map((player) => (
+              <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
           <DropColumn
             title={`Equipo A (${teamA.length}/${playersPerTeam})`}
-            onDrop={(e) => onDrop(e, "a")}
+            onDrop={(event) => onDrop(event, "a")}
           >
-            {teamA.map((p) => (
-              <Draggable key={p.id} p={p} />
+            {teamA.map((player) => (
+              <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
           <DropColumn
             title={`Equipo B (${teamB.length}/${playersPerTeam})`}
-            onDrop={(e) => onDrop(e, "b")}
+            onDrop={(event) => onDrop(event, "b")}
           >
-            {teamB.map((p) => (
-              <Draggable key={p.id} p={p} />
+            {teamB.map((player) => (
+              <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
         </div>
@@ -974,7 +978,7 @@ function RecordModal({
           <textarea
             id="match-description-history"
             value={matchDescription}
-            onChange={(e) => setMatchDescription(e.target.value)}
+            onChange={(event) => setMatchDescription(event.target.value)}
             placeholder="Escribí la crónica del partido"
             className="border min-w-full rounded px-3 py-2 w-full"
           />
@@ -988,30 +992,30 @@ function RecordModal({
               min={0}
               placeholder="Goles del Equipo A"
               value={teamAScore}
-              onChange={(e) =>
+              onChange={(event) =>
                 setTeamAScore(
-                  e.target.value === "" ? "" : Number(e.target.value),
+                  event.target.value === "" ? "" : Number(event.target.value),
                 )
               }
               className="w-24 text-center border rounded px-2 py-1 mb-2"
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {teamA.map((p) => (
+              {teamA.map((player) => (
                 <div
-                  key={p.id}
+                  key={player.id}
                   className="flex items-center justify-between bg-white border rounded px-3 py-2"
                 >
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-medium">{player.name}</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       min={0}
                       max={20}
-                      value={goalsA[p.id] ?? 0}
-                      onChange={(e) =>
-                        setGoalsA((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 0),
+                      value={goalsA[player.id] ?? 0}
+                      onChange={(event) =>
+                        setGoalsA((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 0),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -1021,11 +1025,11 @@ function RecordModal({
                       min={1}
                       max={10}
                       step={0.1}
-                      value={perfA[p.id] ?? 5}
-                      onChange={(e) =>
-                        setPerfA((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 5),
+                      value={perfA[player.id] ?? 5}
+                      onChange={(event) =>
+                        setPerfA((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 5),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -1054,30 +1058,30 @@ function RecordModal({
               min={0}
               placeholder="Goles del Equipo B"
               value={teamBScore}
-              onChange={(e) =>
+              onChange={(event) =>
                 setTeamBScore(
-                  e.target.value === "" ? "" : Number(e.target.value),
+                  event.target.value === "" ? "" : Number(event.target.value),
                 )
               }
               className="w-24 text-center border rounded px-2 py-1 mb-2"
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {teamB.map((p) => (
+              {teamB.map((player) => (
                 <div
-                  key={p.id}
+                  key={player.id}
                   className="flex items-center justify-between bg-white border rounded px-3 py-2"
                 >
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-medium">{player.name}</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       min={0}
                       max={20}
-                      value={goalsB[p.id] ?? 0}
-                      onChange={(e) =>
-                        setGoalsB((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 0),
+                      value={goalsB[player.id] ?? 0}
+                      onChange={(event) =>
+                        setGoalsB((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 0),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -1087,11 +1091,11 @@ function RecordModal({
                       min={1}
                       max={10}
                       step={0.1}
-                      value={perfB[p.id] ?? 5}
-                      onChange={(e) =>
-                        setPerfB((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 5),
+                      value={perfB[player.id] ?? 5}
+                      onChange={(event) =>
+                        setPerfB((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 5),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -1119,7 +1123,7 @@ function RecordModal({
               <div className="text-gray-800">
                 {(() => {
                   const name = shirtsResponsibleId
-                    ? (players.find((p) => p.id === shirtsResponsibleId)
+                    ? (players.find((player) => player.id === shirtsResponsibleId)
                         ?.name ?? "—")
                     : "Seleccione un jugador";
                   return name;
@@ -1130,7 +1134,7 @@ function RecordModal({
               <select
                 className="border rounded px-3 py-2 w-full"
                 value={shirtsResponsibleId ?? ""}
-                onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
+                onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
               >
                 <option disabled={!!shirtsResponsibleId} value="">
                   Seleccione un Jugador
@@ -1140,14 +1144,14 @@ function RecordModal({
                   const eligibleExists = current.some((pp) =>
                     playedBefore.has(pp.id),
                   );
-                  return current.map((p) => (
+                  return current.map((player) => (
                     <option
-                      key={p.id}
-                      value={p.id}
-                      disabled={eligibleExists && !playedBefore.has(p.id)}
+                      key={player.id}
+                      value={player.id}
+                      disabled={eligibleExists && !playedBefore.has(player.id)}
                     >
-                      {p.name} (#{dutiesById.get(p.id) ?? 0})
-                      {eligibleExists && !playedBefore.has(p.id)
+                      {player.name} (#{dutiesById.get(player.id) ?? 0})
+                      {eligibleExists && !playedBefore.has(player.id)
                         ? " — nuevo"
                         : ""}
                     </option>
@@ -1167,7 +1171,7 @@ function RecordModal({
               </div>
               <div className="text-gray-800">
                 {mvpId
-                  ? (players.find((p) => p.id === mvpId)?.name ?? "—")
+                  ? (players.find((player) => player.id === mvpId)?.name ?? "—")
                   : "Opcional — elegí al jugador del partido"}
               </div>
             </div>
@@ -1175,27 +1179,27 @@ function RecordModal({
               <select
                 className="border rounded px-3 py-2 w-full bg-white"
                 value={mvpId ?? ""}
-                onChange={(e) => setMvpId(e.target.value || null)}
+                onChange={(event) => setMvpId(event.target.value || null)}
               >
                 <option value="">Sin MVP</option>
                 {(() => {
                   const current = [...teamA, ...teamB];
                   const topPerfId = (() => {
                     const all = [
-                      ...current.map((p) => ({
-                        id: p.id,
-                        perf: perfA[p.id] ?? perfB[p.id] ?? 0,
+                      ...current.map((player) => ({
+                        id: player.id,
+                        perf: perfA[player.id] ?? perfB[player.id] ?? 0,
                       })),
                     ];
-                    return all.sort((a, b) => b.perf - a.perf)[0]?.id;
+                    return all.sort((statA, statB) => statB.perf - statA.perf)[0]?.id;
                   })();
-                  return current.map((p) => {
-                    const perf = perfA[p.id] ?? perfB[p.id] ?? 0;
-                    const goals = goalsA[p.id] ?? goalsB[p.id] ?? 0;
-                    const isSuggested = p.id === topPerfId && perf > 0;
+                  return current.map((player) => {
+                    const perf = perfA[player.id] ?? perfB[player.id] ?? 0;
+                    const goals = goalsA[player.id] ?? goalsB[player.id] ?? 0;
+                    const isSuggested = player.id === topPerfId && perf > 0;
                     return (
-                      <option key={p.id} value={p.id}>
-                        {p.name} — ⚽ {goals} · ★ {perf}
+                      <option key={player.id} value={player.id}>
+                        {player.name} — ⚽ {goals} · ★ {perf}
                         {isSuggested ? " · sugerido" : ""}
                       </option>
                     );
@@ -1227,15 +1231,15 @@ function RecordModal({
                 Asigná jugadores a los equipos para elegir arqueros.
               </span>
             ) : (
-              [...teamA, ...teamB].map((p) => {
-                const active = goalkeeperIds.includes(p.id);
+              [...teamA, ...teamB].map((player) => {
+                const active = goalkeeperIds.includes(player.id);
                 const disabled =
                   !active && goalkeeperIds.length >= MAX_GOALKEEPERS;
                 return (
                   <button
-                    key={p.id}
+                    key={player.id}
                     type="button"
-                    onClick={() => toggleGoalkeeper(p.id)}
+                    onClick={() => toggleGoalkeeper(player.id)}
                     disabled={disabled}
                     aria-pressed={active}
                     className={`text-sm px-3 py-1 rounded-full border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
@@ -1244,7 +1248,7 @@ function RecordModal({
                         : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                     }`}
                   >
-                    🧤 {p.name}
+                    🧤 {player.name}
                   </button>
                 );
               })
