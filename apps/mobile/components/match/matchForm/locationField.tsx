@@ -11,7 +11,9 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 
 import { BottomSheet } from './bottomSheet'
 import { FormLabel } from './formLabel'
-import { fieldStyles, sheetStyles } from './sharedStyles'
+import { fieldStyles, locationStyles, sheetStyles } from './sharedStyles'
+
+const EMPTY_FORM = { id: '', name: '', street: '' }
 
 type Props = {
   value: MatchLocation | null
@@ -26,44 +28,30 @@ export function LocationField({ value, onChange }: Props) {
 
   const [open, setOpen] = useState(false)
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [formName, setFormName] = useState('')
-  const [formStreet, setFormStreet] = useState('')
+  const [form, setForm] = useState(EMPTY_FORM)
   const [toDelete, setToDelete] = useState<Address | null>(null)
 
-  const openCreate = () => {
-    setEditingId(null)
-    setFormName('')
-    setFormStreet('')
-    setIsFormOpen(true)
-  }
-
-  const openEdit = (address: Address) => {
-    setOpen(false)
-    setEditingId(address.id)
-    setFormName(address.name)
-    setFormStreet(address.street)
+  const openForm = (address?: Address) => {
+    setForm(address ? { id: address.id, name: address.name, street: address.street } : EMPTY_FORM)
     setIsFormOpen(true)
   }
 
   const closeForm = () => {
     setIsFormOpen(false)
-    setEditingId(null)
-    setFormName('')
-    setFormStreet('')
+    setForm(EMPTY_FORM)
   }
 
   const handleSave = async () => {
-    const name = formName.trim()
-    const street = formStreet.trim()
+    const name = form.name.trim()
+    const street = form.street.trim()
     if (!name || !street) {
       closeForm()
       return
     }
     try {
-      if (editingId) {
-        await updateAddress(editingId, { name, street })
-        if (value?.addressId === editingId) onChange({ name, street, addressId: editingId })
+      if (form.id) {
+        await updateAddress(form.id, { name, street })
+        if (value?.addressId === form.id) onChange({ name, street, addressId: form.id })
       } else {
         const id = await createAddress({ name, street })
         onChange({ name, street, addressId: id })
@@ -88,24 +76,26 @@ export function LocationField({ value, onChange }: Props) {
   const handleConfirmDelete = async () => {
     if (!toDelete) return
     const address = toDelete
-    setToDelete(null)
+    closeDeleteConfirm()
     try {
       await deleteAddress(address.id)
       if (value?.addressId === address.id) onChange(null)
     } catch {
       Alert.alert('No se pudo eliminar la cancha', 'Revisá tu conexión e intentá de nuevo.')
-    } finally {
-      setOpen(true)
     }
   }
 
   return (
     <>
       <FormLabel text="Ubicación" />
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={locationStyles.pickerRow}>
         <TouchableOpacity
           onPress={() => setOpen(true)}
-          style={[fieldStyles.inputBtn, { borderColor: colors.border, borderRadius: radii.sm, flex: 1 }]}
+          style={[
+            fieldStyles.inputBtn,
+            locationStyles.pickerBtn,
+            { borderColor: colors.border, borderRadius: radii.sm },
+          ]}
         >
           <Text style={[fieldStyles.inputBtnText, { color: colors.text }]}>
             {value?.name ? value.name : 'Seleccionar cancha'}
@@ -114,36 +104,30 @@ export function LocationField({ value, onChange }: Props) {
 
         {isAdmin && (
           <TouchableOpacity
-            onPress={openCreate}
-            style={{
-              width: 28,
-              height: 39,
-              borderRadius: radii.sm,
-              backgroundColor: colors.brand,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
+            onPress={() => openForm()}
+            style={[locationStyles.addBtn, { borderRadius: radii.sm, backgroundColor: colors.brand }]}
             accessibilityRole="button"
             accessibilityLabel="Agregar cancha nueva"
           >
-            <Text style={{ fontSize: 20, color: '#fff', lineHeight: 22 }}>+</Text>
+            <Text style={locationStyles.addBtnText}>+</Text>
           </TouchableOpacity>
         )}
       </View>
 
       <BottomSheet visible={open} title="Seleccionar cancha" onConfirm={() => setOpen(false)}>
-        <ScrollView style={{ maxHeight: 300 }}>
+        <ScrollView style={locationStyles.pickerScroll}>
           {addresses.map((address) => (
             <View
               key={address.id}
               style={[
                 sheetStyles.option,
-                { borderBottomColor: colors.border, flexDirection: 'row', alignItems: 'center', gap: 16 },
+                locationStyles.optionRow,
+                { borderBottomColor: colors.border },
                 value?.addressId === address.id && { backgroundColor: colors.brandSoft },
               ]}
             >
               <TouchableOpacity
-                style={{ flex: 1 }}
+                style={locationStyles.optionTouch}
                 onPress={() => {
                   onChange(addressToMatchLocation(address))
                   setOpen(false)
@@ -157,7 +141,10 @@ export function LocationField({ value, onChange }: Props) {
               {isAdmin && (
                 <>
                   <TouchableOpacity
-                    onPress={() => openEdit(address)}
+                    onPress={() => {
+                      setOpen(false)
+                      openForm(address)
+                    }}
                     hitSlop={12}
                     accessibilityRole="button"
                     accessibilityLabel={`Editar ${address.name}`}
@@ -177,33 +164,33 @@ export function LocationField({ value, onChange }: Props) {
             </View>
           ))}
           {addresses.length === 0 && (
-            <Text style={{ color: colors.muted, textAlign: 'center', padding: 24 }}>No se encontraron canchas</Text>
+            <Text style={[locationStyles.emptyText, { color: colors.muted }]}>No se encontraron canchas</Text>
           )}
         </ScrollView>
       </BottomSheet>
 
       <BottomSheet
         visible={isFormOpen}
-        title={editingId ? 'Editar cancha' : 'Agregar cancha nueva'}
+        title={form.id ? 'Editar cancha' : 'Agregar cancha nueva'}
         closeLabel="Guardar"
         onDismiss={closeForm}
         onConfirm={handleSave}
       >
-        <View style={{ gap: 4, paddingHorizontal: 14 }}>
+        <View style={locationStyles.formBody}>
           <FormLabel text="Nombre" />
           <TextInput
             placeholder="Nombre de la cancha"
             placeholderTextColor={colors.muted}
-            onChangeText={setFormName}
-            value={formName}
+            onChangeText={(name) => setForm((f) => ({ ...f, name }))}
+            value={form.name}
             style={[fieldStyles.textInput, { borderColor: colors.border, borderRadius: radii.sm, color: colors.text }]}
           />
           <FormLabel text="Dirección" />
           <TextInput
             placeholder="Dirección de la cancha"
             placeholderTextColor={colors.muted}
-            onChangeText={setFormStreet}
-            value={formStreet}
+            onChangeText={(street) => setForm((f) => ({ ...f, street }))}
+            value={form.street}
             style={[fieldStyles.textInput, { borderColor: colors.border, borderRadius: radii.sm, color: colors.text }]}
           />
         </View>
@@ -216,19 +203,19 @@ export function LocationField({ value, onChange }: Props) {
         onDismiss={closeDeleteConfirm}
         onConfirm={closeDeleteConfirm}
       >
-        <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 4, gap: 22 }}>
-          <Text style={{ color: colors.text, fontSize: 16, lineHeight: 22 }}>
+        <View style={locationStyles.deleteBody}>
+          <Text style={[locationStyles.deleteText, { color: colors.text }]}>
             ¿Estás seguro de que querés eliminar &quot;{toDelete?.name}&quot;? Los partidos ya guardados no se
             modifican.
           </Text>
           <TouchableOpacity
             onPress={handleConfirmDelete}
-            style={{ alignSelf: 'flex-end' }}
+            style={locationStyles.deleteBtn}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Eliminar"
           >
-            <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 17 }}>Eliminar</Text>
+            <Text style={[locationStyles.deleteBtnText, { color: colors.danger }]}>Eliminar</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>
