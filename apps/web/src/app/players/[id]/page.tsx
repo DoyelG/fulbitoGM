@@ -21,14 +21,14 @@ export default function PlayerDetailPage() {
   const { isAdmin } = useFirebaseAuth()
   const { id } = useParams();
   const router = useRouter();
-  const updatePlayer = usePlayerStore((s) => s.updatePlayer);
-  const initPlayersLoad = usePlayerStore((s) => s.initLoad);
-  const playersInit = usePlayerStore((s) => s.playersInit);
+  const updatePlayer = usePlayerStore((state) => state.updatePlayer);
+  const initPlayersLoad = usePlayerStore((state) => state.initLoad);
+  const playersInit = usePlayerStore((state) => state.playersInit);
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
   const fileRef = useRef<HTMLInputElement | null>(null)
-  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     if (!isAdmin) return
-    const f = e.target.files?.[0]
+    const f = event.target.files?.[0]
     if (!f) return
     setForm(prev => ({ ...prev, photo: f, photoUrl: URL.createObjectURL(f) }))
   }
@@ -37,7 +37,9 @@ export default function PlayerDetailPage() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const player = usePlayerStore((s) => s.players.find((p) => p.id === (id as string)));
+  const player = usePlayerStore((state) =>
+    state.players.find((playerRow) => playerRow.id === (id as string)),
+  );
 
   useEffect(() => {
     if (playersInit !== 'loaded') initPlayersLoad();
@@ -59,6 +61,7 @@ export default function PlayerDetailPage() {
     photoUrl: null as string | null,
   });
   const [originalForm, setOriginalForm] = useState(form);
+  type PlayerFormState = typeof form;
 
   useEffect(() => {
     if (player) {
@@ -81,17 +84,20 @@ export default function PlayerDetailPage() {
     }
   }, [player]);
 
-  const canSubmitQuick =
-    form.name.trim() !== originalForm.name.trim() ||
-    form.position !== originalForm.position ||
-    form.physical !== originalForm.physical ||
-    form.technical !== originalForm.technical ||
-    form.tactical !== originalForm.tactical ||
-    form.psychological !== originalForm.psychological ||
-    form.goalkeeping !== originalForm.goalkeeping ||
-    form.inactive !== originalForm.inactive ||
-    form.photo !== originalForm.photo ||
-    form.photoUrl !== originalForm.photoUrl;
+  const normalizeForComparison = (formState: PlayerFormState): PlayerFormState => ({
+    ...formState,
+    name: formState.name.trim(),
+  })
+
+  const hasFormChanged = (editedForm: PlayerFormState, savedForm: PlayerFormState) => {
+    const normalizedEdited = normalizeForComparison(editedForm)
+    const normalizedSaved = normalizeForComparison(savedForm)
+    const fieldNames = Object.keys(normalizedEdited) as Array<keyof PlayerFormState>
+
+    return fieldNames.some((fieldName) => normalizedEdited[fieldName] !== normalizedSaved[fieldName])
+  }
+
+  const canSubmitQuick = hasFormChanged(form, originalForm)
 
   const stats = useMemo(() => {
     const res = {
@@ -113,46 +119,46 @@ export default function PlayerDetailPage() {
       }>,
     };
 
-    for (const m of matches) {
-      const inA = m.teamA.find((p) => p.id === id);
-      const inB = m.teamB.find((p) => p.id === id);
+    for (const match of matches) {
+      const inA = match.teamA.find((playerRow) => playerRow.id === id);
+      const inB = match.teamB.find((playerRow) => playerRow.id === id);
       if (!inA && !inB) continue;
 
       const me = inA || inB;
       const team = inA ? ("A" as const) : ("B" as const);
-      const a = m.teamAScore,
-        b = m.teamBScore;
+      const teamAScore = match.teamAScore,
+        teamBScore = match.teamBScore;
       res.matches++;
       res.goals += me!.goals;
       res.totalPerformance += me!.performance;
       if (team === "A") {
-        if (a > b) res.wins++;
-        else if (a < b) res.losses++;
+        if (teamAScore > teamBScore) res.wins++;
+        else if (teamAScore < teamBScore) res.losses++;
         else res.draws++;
       } else {
-        if (b > a) res.wins++;
-        else if (b < a) res.losses++;
+        if (teamBScore > teamAScore) res.wins++;
+        else if (teamBScore < teamAScore) res.losses++;
         else res.draws++;
       }
       res.recent.push({
-        date: m.date,
-        type: m.type,
+        date: match.date,
+        type: match.type,
         team,
         goals: me!.goals,
         performance: me!.performance,
-        score: `${a} - ${b}`,
+        score: `${teamAScore} - ${teamBScore}`,
         result: (team === "A"
-          ? a > b
+          ? teamAScore > teamBScore
             ? "W"
-            : a < b
+            : teamAScore < teamBScore
             ? "L"
             : "D"
-          : b > a
+          : teamBScore > teamAScore
           ? "W"
-          : b < a
+          : teamBScore < teamAScore
           ? "L"
           : "D") as "W" | "L" | "D",
-        isFriendly: m.isFriendly ?? false,
+        isFriendly: match.isFriendly ?? false,
       });
     }
 
@@ -188,8 +194,8 @@ export default function PlayerDetailPage() {
     );
   }
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
     const skills = {
       physical: parseInt(form.physical, 10),
       technical: parseInt(form.technical, 10),
@@ -342,7 +348,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Nombre</label>
             <input
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
               required
             />
@@ -351,7 +357,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Físico</label>
             <select
               value={form.physical}
-              onChange={(e) => setForm({ ...form, physical: e.target.value })}
+              onChange={(event) => setForm({ ...form, physical: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -365,7 +371,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Técnico</label>
             <select
               value={form.technical}
-              onChange={(e) => setForm({ ...form, technical: e.target.value })}
+              onChange={(event) => setForm({ ...form, technical: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -379,7 +385,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Táctico</label>
             <select
               value={form.tactical}
-              onChange={(e) => setForm({ ...form, tactical: e.target.value })}
+              onChange={(event) => setForm({ ...form, tactical: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -395,8 +401,8 @@ export default function PlayerDetailPage() {
             </label>
             <select
               value={form.psychological}
-              onChange={(e) =>
-                setForm({ ...form, psychological: e.target.value })
+              onChange={(event) =>
+                setForm({ ...form, psychological: event.target.value })
               }
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
@@ -411,7 +417,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Arquero</label>
             <select
               value={gkQuickValue}
-              onChange={(e) => { setGkTouched(true); setForm({ ...form, goalkeeping: e.target.value }) }}
+              onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -428,7 +434,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Posición</label>
             <select
               value={form.position}
-              onChange={(e) => setForm({ ...form, position: e.target.value })}
+              onChange={(event) => setForm({ ...form, position: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               <option value="GK">Arquero</option>
@@ -542,9 +548,9 @@ export default function PlayerDetailPage() {
             <div className="text-gray-800">No hay partidos para este jugador aún.</div>
           ) : (
             <div className="grid gap-2">
-              {stats.recent.slice(0, 10).map((rm, i) => (
+              {stats.recent.slice(0, 10).map((rm, index) => (
                 <div
-                  key={i}
+                  key={index}
                   className="flex flex-wrap items-center justify-between bg-gray-50 rounded px-3 py-2"
                 >
                   <div className="flex items-center gap-3">
