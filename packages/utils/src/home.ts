@@ -34,18 +34,19 @@ export function pickLatestFinalMatch(matches: Match[]): Match | null {
 
 export function getMatchScorers(match: Pick<Match, 'teamA' | 'teamB'>): MatchPlayer[] {
   return [...match.teamA, ...match.teamB]
-    .filter((p) => p.goals > 0)
+    .filter((p) => p.goals > 0 && p.name.trim() !== '')
     .sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))
 }
 
 export function getMatchMvpName(match: Pick<Match, 'teamA' | 'teamB' | 'mvpId'>): string | null {
   if (!match.mvpId) return null
-  return [...match.teamA, ...match.teamB].find((p) => p.id === match.mvpId)?.name ?? null
+  return [...match.teamA, ...match.teamB].find((p) => p.id === match.mvpId)?.name.trim() || null
 }
 
 export function summarizeTeam(team: MatchPlayer[], visible = 3): string {
-  const names = team.slice(0, visible).map((p) => p.name.split(/\s+/)[0])
-  const rest = team.length - names.length
+  const named = team.filter((p) => p.name.trim() !== '')
+  const names = named.slice(0, visible).map((p) => p.name.trim().split(/\s+/)[0])
+  const rest = named.length - names.length
   return rest > 0 ? `${names.join(', ')} +${rest}` : names.join(', ')
 }
 

@@ -22,23 +22,35 @@ export default function ScoreboardResult({ match }: { match: Match }) {
   const mvpName = getMatchMvpName(match)
   const scorers = getMatchScorers(match)
   const details = [
-    mvpName ? `⭐ MVP ${mvpName}` : null,
-    scorers.length > 0 ? `⚽ ${scorers.map((p) => (p.goals > 1 ? `${p.name} ×${p.goals}` : p.name)).join(', ')}` : null,
-  ].filter((d): d is string => d !== null)
+    mvpName ? { icon: '⭐', text: `MVP ${mvpName}` } : null,
+    scorers.length > 0
+      ? { icon: '⚽', text: scorers.map((p) => (p.goals > 1 ? `${p.name} ×${p.goals}` : p.name)).join(', ') }
+      : null,
+  ].filter((d) => d !== null)
 
   return (
     <div>
       <p className="sr-only">{srSummary(a, b)}</p>
       <div aria-hidden className="mx-auto grid max-w-2xl grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-8">
         <TeamColumn label="Equipo A" summary={summarizeTeam(match.teamA)} isWinner={a > b} />
-        <p className="text-glow-brand text-6xl leading-none font-black tabular-nums sm:text-7xl">
+        <p className="text-glow-brand text-5xl leading-none font-black tabular-nums sm:text-7xl">
           {a}
           <span className="mx-2 text-white/35">:</span>
           {b}
         </p>
         <TeamColumn label="Equipo B" summary={summarizeTeam(match.teamB)} isWinner={b > a} />
       </div>
-      {details.length > 0 && <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-300">{details.join(' · ')}</p>}
+      {details.length > 0 && (
+        <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-300">
+          {details.map((d, i) => (
+            <span key={d.icon}>
+              {i > 0 && <span aria-hidden> · </span>}
+              <span aria-hidden>{d.icon} </span>
+              {d.text}
+            </span>
+          ))}
+        </p>
+      )}
     </div>
   )
 }
