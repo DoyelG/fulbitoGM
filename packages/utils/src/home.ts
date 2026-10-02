@@ -33,8 +33,8 @@ export function pickLatestFinalMatch(matches: Match[]): Match | null {
   return latest
 }
 
-export function getMatchScorers(match: Pick<Match, 'teamA' | 'teamB'>): MatchPlayer[] {
-  return [...match.teamA, ...match.teamB]
+export function getTeamScorers(team: MatchPlayer[]): MatchPlayer[] {
+  return team
     .filter((p) => p.goals > 0 && p.name.trim() !== '')
     .sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))
 }
