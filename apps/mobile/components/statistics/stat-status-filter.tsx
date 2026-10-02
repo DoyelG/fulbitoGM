@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { Pressable, TouchableOpacity } from 'react-native'
 
@@ -21,10 +22,11 @@ const OPTIONS: { key: PlayerStatusFilter; label: string }[] = [
 ]
 
 export function StatStatusFilter({ value, onChange }: Props) {
-  const { colors, radii } = useAppTheme()
+  const { colors, radii, spacing, isDark } = useAppTheme()
   const [open, setOpen] = useState(false)
 
-  const selectedLabel = OPTIONS.find((option) => option.key === value)?.label ?? ''
+  const textColor = isDark ? colors.text : '#4b5563'
+  const selectedLabel =OPTIONS.find((option) => option.key === value)?.label ?? ''
 
   return (
     <>
@@ -34,8 +36,18 @@ export function StatStatusFilter({ value, onChange }: Props) {
         accessibilityRole="button"
         accessibilityLabel={`Estado del jugador: ${selectedLabel}`}
         accessibilityHint="Abre la lista para filtrar por estado de jugador"
-        style={[styles.select, styles.wrapper,  { backgroundColor: colors.chipBg, borderRadius: radii.md }]}>
-        <ThemedText style={[styles.selectText, { color: colors.text }]}>{selectedLabel} ▾</ThemedText>
+        style={[
+          styles.select,
+          styles.wrapper,
+          {
+            backgroundColor: colors.chipBg,
+            borderColor: colors.chipBorder,
+            borderRadius: radii.pill,
+            paddingHorizontal: spacing.lg,
+          },
+        ]}>
+        <Ionicons name="options-outline" size={16} color={textColor} style={styles.icon} />
+        <ThemedText style={[styles.selectText, { color: textColor }]}>{selectedLabel}</ThemedText>
       </TouchableOpacity>
 
       <BottomSheet visible={open} title="Filtrar por estado" onConfirm={() => setOpen(false)}>
