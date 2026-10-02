@@ -2,6 +2,7 @@ import ChampionshipWidget from '@/components/home/ChampionshipWidget'
 import LeaderboardWidget from '@/components/home/LeaderboardWidget'
 import QuickLinks from '@/components/home/QuickLinks'
 import ScoreboardHero from '@/components/home/ScoreboardHero'
+import VideosSection from '@/components/home/VideosSection'
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
           <LeaderboardWidget />
         </div>
       </div>
+      <VideosSection />
       <QuickLinks />
     </div>
   )

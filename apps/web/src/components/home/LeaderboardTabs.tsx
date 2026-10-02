@@ -11,7 +11,12 @@ export type LeaderboardTabsProps<K extends string> = {
   onChange: (key: K) => void
 }
 
-export default function LeaderboardTabs<K extends string>({ idPrefix, tabs, active, onChange }: LeaderboardTabsProps<K>) {
+export default function LeaderboardTabs<K extends string>({
+  idPrefix,
+  tabs,
+  active,
+  onChange,
+}: LeaderboardTabsProps<K>) {
   const refs = useRef<Partial<Record<K, HTMLButtonElement | null>>>({})
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
