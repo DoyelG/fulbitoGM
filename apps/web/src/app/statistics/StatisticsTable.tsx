@@ -25,7 +25,6 @@ type Props = {
   sortDir: SortDir
   onToggleSort: (key: StatSortKey) => void
   emptyMessage: string
-  muted?: boolean
   inactiveIds?: Set<string>
 }
 
@@ -53,11 +52,8 @@ export default function StatisticsTable({
   sortDir,
   onToggleSort,
   emptyMessage,
-  muted = false,
   inactiveIds = new Set<string>(),
 }: Props) {
-  const thColor = muted ? 'text-gray-500' : 'text-gray-700'
-
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
@@ -67,7 +63,7 @@ export default function StatisticsTable({
             <tr>
               {COLUMNS.map(({ key, label, ariaLabel }) =>
                 key === null ? (
-                  <th key={label} scope="col" className={`px-4 py-3 text-left text-sm font-semibold ${thColor}`}>
+                  <th key={label} scope="col" className={`px-4 py-3 text-left text-sm font-semibold text-gray-700`}>
                     {label}
                   </th>
                 ) : (
@@ -75,7 +71,7 @@ export default function StatisticsTable({
                     key={key}
                     scope="col"
                     aria-sort={ariaSortFor(key, sortKey, sortDir)}
-                    className={`px-4 py-3 text-left text-sm font-semibold ${thColor}`}
+                    className={`px-4 py-3 text-left text-sm font-semibold text-gray-700`}
                   >
                     <button
                       type="button"
@@ -102,7 +98,7 @@ export default function StatisticsTable({
               stats.map((stat) => {
                 const perMatch = stat.matches === 0 ? 0 : stat.goals / stat.matches
                 const winRate = stat.matches === 0 ? 0 : (stat.wins / stat.matches) * 100
-                const isRowMuted = muted || inactiveIds.has(stat.id)
+                const isRowMuted = inactiveIds.has(stat.id)
                 const nameColor = isRowMuted ? 'text-gray-400' : 'text-blue-600'
                 const cellColor = isRowMuted ? 'text-gray-400' : 'text-gray-800'
                 return (

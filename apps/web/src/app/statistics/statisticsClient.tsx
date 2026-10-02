@@ -1,13 +1,11 @@
 'use client'
 
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { getMvpCountsByPlayerId, onlyFinalMatches } from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
 import { getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FiChevronDown } from 'react-icons/fi'
 import StatisticsTable, { type StatRow, type StatSortKey, type SortDir } from './StatisticsTable'
 
 type PlayerStatusFilter = 'all' | 'active' | 'inactive'
@@ -122,12 +120,17 @@ export default function StatisticsClient({
 
   const inactiveStats = useMemo(() => sorted.filter((stat) => inactiveIds.has(stat.id)), [sorted, inactiveIds])
 
-  const activeEmptyMessage =
-    stats.length === 0 ? 'No hay estadísticas disponibles.' : 'No hay estadísticas de jugadores activos.'
-
   const [playerStatusFilter, setPlayerStatusFilter] = useState<PlayerStatusFilter>('all')
 
-  const filteredPlayres = playerStatusFilter === 'all' ? sorted : playerStatusFilter === 'active' ? activeStats : inactiveStats
+  const filteredPlayers =
+    playerStatusFilter === 'all' ? sorted : playerStatusFilter === 'active' ? activeStats : inactiveStats
+
+  const emptyMessage =
+    stats.length === 0
+      ? 'No hay estadísticas disponibles.'
+      : playerStatusFilter === 'inactive'
+        ? 'No hay estadísticas de jugadores inactivos.'
+        : 'No hay estadísticas de jugadores activos.'
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -141,6 +144,7 @@ export default function StatisticsClient({
           <select
             name="player-status-filter"
             id="player-status-filter"
+            value={playerStatusFilter}
             onChange={(event) => setPlayerStatusFilter(event.target.value as PlayerStatusFilter)}
             className="h-10 w-full max-w-52 min-[700px]:w-auto rounded-md border border-gray-300 bg-white px-3 text-sm shadow-sm"
           >
@@ -152,12 +156,12 @@ export default function StatisticsClient({
       </div>
 
       <StatisticsTable
-        stats={filteredPlayres}
+        stats={filteredPlayers}
         inactiveIds={inactiveIds}
         sortKey={sortKey}
         sortDir={sortDir}
         onToggleSort={toggleSort}
-        emptyMessage={activeEmptyMessage}
+        emptyMessage={emptyMessage}
       />
     </div>
   )
