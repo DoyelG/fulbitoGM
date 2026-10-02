@@ -175,10 +175,19 @@ export default function PlayerForm({ mode, playerId }: Props) {
       uploadedUrl = await uploadPlayerPhoto(photoFile, photoId)
     }
 
+    const playerData = {
+      name: formData.name.trim(),
+      position: formData.position,
+      skills,
+      skill: avg,
+      goalkeeping: goalkeepingValue,
+      inactive: formData.inactive,
+    }
+
     if (mode === 'create') {
-      await addPlayer({ name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, inactive: formData.inactive, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+      await addPlayer({ ...playerData, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
     } else if (playerId) {
-      await updatePlayer(playerId, { name: formData.name.trim(), position: formData.position, skills, skill: avg, goalkeeping: goalkeepingValue, inactive: formData.inactive, ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}) })
+      await updatePlayer(playerId, { ...playerData, ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}) })
     }
     setModalOpen(false)
     router.push(mode === 'edit' && playerId ? `/players/${playerId}` : '/players')
@@ -212,7 +221,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
               onChange={(event) => setFormData({ ...formData, [cat.key]: event.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
             >
-              {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
+              {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
             </select>
           </div>
         ))}
@@ -277,7 +286,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
           onChange={(event) => { setGkTouched(true); setGoalkeeping(event.target.value) }}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
         >
-          {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}
+          {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
         </select>
         <p className="mt-1 text-xs text-gray-700">Por defecto sigue el promedio del jugador. Editalo para fijar un valor.</p>
       </div>
@@ -341,7 +350,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
         title={`${mode === 'edit' ? 'Actualizar' : 'Guardar'} datos`}
         open={modalOpen}
         onClose={() => setModalOpen(false)}>
-          <div className="text-center">
+          <div className="text-center p-2">
             <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-brand/10">
               <FiEdit2 className="text-brand" size={20} />
             </div>
