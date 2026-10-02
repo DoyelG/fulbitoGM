@@ -1,7 +1,7 @@
 import ChampionshipWidget from '@/components/home/ChampionshipWidget'
+import LeaderboardWidget from '@/components/home/LeaderboardWidget'
 import QuickLinks from '@/components/home/QuickLinks'
 import ScoreboardHero from '@/components/home/ScoreboardHero'
-import StreaksWidget from '@/components/home/StreaksWidget'
 
 export default function Home() {
   return (
@@ -13,7 +13,7 @@ export default function Home() {
           <ChampionshipWidget />
         </div>
         <div className="md:order-1">
-          <StreaksWidget />
+          <LeaderboardWidget />
         </div>
       </div>
       <QuickLinks />

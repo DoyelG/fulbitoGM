@@ -1,4 +1,5 @@
 import type { Match, MatchPlayer, Player } from '@fulbito/types'
+import type { PlayerStatRow } from './awards'
 import { onlyFinalMatches } from './match'
 import { calculateAllCurrentStreaks } from './playerStats'
 
@@ -75,4 +76,25 @@ export function pickStreakLeaders(
     winning: winning.sort(byCountThenName).slice(0, opts.winLimit),
     losing: losing.sort(byCountThenName).slice(0, opts.lossLimit),
   }
+}
+
+export type RankedStat = {
+  playerId: string
+  playerName: string
+  playerPhotoUrl?: string
+  value: number
+  rank: number
+}
+
+export function rankStatRows(rows: PlayerStatRow[], stat: 'goals' | 'mvps', limit: number): RankedStat[] {
+  const sorted = rows
+    .filter((r) => r[stat] > 0 && r.name.trim() !== '')
+    .sort((a, b) => b[stat] - a[stat] || a.name.localeCompare(b.name))
+  return sorted.slice(0, limit).map((r) => ({
+    playerId: r.id,
+    playerName: r.name,
+    playerPhotoUrl: r.photoUrl,
+    value: r[stat],
+    rank: 1 + sorted.filter((o) => o[stat] > r[stat]).length,
+  }))
 }
