@@ -194,6 +194,14 @@ export default function PlayerDetailPage() {
     );
   }
 
+  const handleCancel = () => {
+    if (form.photoUrl?.startsWith('blob:')) URL.revokeObjectURL(form.photoUrl)
+    setForm(originalForm)
+    setGkTouched(player.goalkeeping != null)
+    if (fileRef.current) fileRef.current.value = ''
+    setEditMode(false)
+  }
+
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
     const skills = {
@@ -305,7 +313,7 @@ export default function PlayerDetailPage() {
             isAdmin ? (
               <button
                 className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
-                onClick={() => setEditMode(false)}
+                onClick={handleCancel}
               >
                 Cancelar
               </button>
@@ -476,7 +484,7 @@ export default function PlayerDetailPage() {
           <div className="sm:col-span-3 flex justify-end gap-2">
             <button
               type="button"
-              onClick={() => setEditMode(false)}
+              onClick={handleCancel}
               className="px-4 py-2 rounded border hover:bg-gray-50"
             >
               Cancelar
