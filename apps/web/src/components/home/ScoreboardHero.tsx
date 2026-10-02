@@ -24,13 +24,12 @@ export default function ScoreboardHero() {
       className="bg-scoreboard relative isolate overflow-hidden rounded-3xl px-4 py-8 text-center text-white shadow-xl sm:px-10 sm:py-10"
     >
       <Image
-        src="/scoreboard-ball.svg"
+        src="/scoreboard-ball.jpg"
         alt=""
-        width={400}
-        height={400}
-        unoptimized
+        fill
         priority
-        className="pointer-events-none absolute -right-20 -bottom-24 -z-10 w-56 opacity-40 select-none sm:top-1/2 sm:-right-24 sm:bottom-auto sm:w-80 sm:-translate-y-1/2 sm:opacity-60"
+        sizes="(min-width: 1152px) 1104px, 100vw"
+        className="pointer-events-none -z-10 object-cover object-right opacity-50 mix-blend-luminosity select-none [mask-image:linear-gradient(to_left,black_20%,transparent_70%)] sm:opacity-70"
       />
       <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
         Último partido

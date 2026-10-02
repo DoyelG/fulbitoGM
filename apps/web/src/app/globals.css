@@ -31,7 +31,6 @@ button {
 
 @utility bg-scoreboard {
   background:
-    url('/scoreboard-waves.svg') center / 100% 100% no-repeat,
     radial-gradient(640px 240px at 50% -30%, color-mix(in oklab, var(--color-brand) 45%, transparent), transparent),
     linear-gradient(
       135deg,
