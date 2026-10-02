@@ -4,18 +4,22 @@ import { getAddresses, deleteAddress } from '@fulbito/firebase'
 
 export type AddressesDataState = {
   addresses: Address[]
+  error: string | null
   reload: () => Promise<void>
   deleteAddress: (id: string) => Promise<void>
 }
 
 export function useAddressesData(): AddressesDataState {
   const [addresses, setAddresses] = useState<Address[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
+    setError(null)
     try {
-      const data = await getAddresses()
-      setAddresses(data)
-    } catch {}
+      setAddresses(await getAddresses())
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Error al cargar las canchas')
+    }
   }, [])
 
   const handleDeleteAddress = useCallback(
@@ -30,5 +34,5 @@ export function useAddressesData(): AddressesDataState {
     void reload()
   }, [reload])
 
-  return { addresses, reload, deleteAddress: handleDeleteAddress }
+  return { addresses, error, reload, deleteAddress: handleDeleteAddress }
 }

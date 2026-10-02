@@ -15,6 +15,8 @@ import { fieldStyles, locationStyles, sheetStyles } from './sharedStyles'
 
 const EMPTY_FORM = { id: '', name: '', street: '' }
 
+type SheetKind = 'closed' | 'list' | 'form' | 'delete'
+
 type Props = {
   value: MatchLocation | null
   onChange: (value: MatchLocation | null) => void
@@ -23,29 +25,24 @@ type Props = {
 export function LocationField({ value, onChange }: Props) {
   const { isAdmin } = useFirebaseAuth()
   const { colors, radii } = useAppTheme()
-  const { addresses: allAddresses, reload, deleteAddress } = useAddressesData()
+  const { addresses: allAddresses, error, reload, deleteAddress } = useAddressesData()
   const addresses = allAddresses.filter((address) => address.name?.trim())
 
-  const [open, setOpen] = useState(false)
-  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [sheet, setSheet] = useState<SheetKind>('closed')
+  const [selected, setSelected] = useState<Address | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
-  const [toDelete, setToDelete] = useState<Address | null>(null)
 
-  const openForm = (address?: Address) => {
-    setForm(address ? { id: address.id, name: address.name, street: address.street } : EMPTY_FORM)
-    setIsFormOpen(true)
-  }
-
-  const closeForm = () => {
-    setIsFormOpen(false)
-    setForm(EMPTY_FORM)
+  const goToSheet = (kind: SheetKind, address: Address | null = null) => {
+    setSelected(address)
+    setForm(kind === 'form' && address ? { id: address.id, name: address.name, street: address.street } : EMPTY_FORM)
+    setSheet(kind)
   }
 
   const handleSave = async () => {
     const name = form.name.trim()
     const street = form.street.trim()
     if (!name || !street) {
-      closeForm()
+      goToSheet('closed')
       return
     }
     try {
@@ -56,27 +53,17 @@ export function LocationField({ value, onChange }: Props) {
         const id = await createAddress({ name, street })
         onChange({ name, street, addressId: id })
       }
-      closeForm()
+      goToSheet('closed')
       await reload()
     } catch {
       Alert.alert('No se pudo guardar la cancha', 'Revisá tu conexión e intentá de nuevo.')
     }
   }
 
-  const openDeleteConfirm = (address: Address) => {
-    setOpen(false)
-    setToDelete(address)
-  }
-
-  const closeDeleteConfirm = () => {
-    setToDelete(null)
-    setOpen(true)
-  }
-
   const handleConfirmDelete = async () => {
-    if (!toDelete) return
-    const address = toDelete
-    closeDeleteConfirm()
+    if (!selected) return
+    const address = selected
+    goToSheet('list')
     try {
       await deleteAddress(address.id)
       if (value?.addressId === address.id) onChange(null)
@@ -90,7 +77,7 @@ export function LocationField({ value, onChange }: Props) {
       <FormLabel text="Ubicación" />
       <View style={locationStyles.pickerRow}>
         <TouchableOpacity
-          onPress={() => setOpen(true)}
+          onPress={() => goToSheet('list')}
           style={[
             fieldStyles.inputBtn,
             locationStyles.pickerBtn,
@@ -104,7 +91,7 @@ export function LocationField({ value, onChange }: Props) {
 
         {isAdmin && (
           <TouchableOpacity
-            onPress={() => openForm()}
+            onPress={() => goToSheet('form')}
             style={[locationStyles.addBtn, { borderRadius: radii.sm, backgroundColor: colors.brand }]}
             accessibilityRole="button"
             accessibilityLabel="Agregar cancha nueva"
@@ -114,7 +101,7 @@ export function LocationField({ value, onChange }: Props) {
         )}
       </View>
 
-      <BottomSheet visible={open} title="Seleccionar cancha" onConfirm={() => setOpen(false)}>
+      <BottomSheet visible={sheet === 'list'} title="Seleccionar cancha" onConfirm={() => goToSheet('closed')}>
         <ScrollView style={locationStyles.pickerScroll}>
           {addresses.map((address) => (
             <View
@@ -130,7 +117,7 @@ export function LocationField({ value, onChange }: Props) {
                 style={locationStyles.optionTouch}
                 onPress={() => {
                   onChange(addressToMatchLocation(address))
-                  setOpen(false)
+                  goToSheet('closed')
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={`Elegir ${address.name}`}
@@ -141,10 +128,7 @@ export function LocationField({ value, onChange }: Props) {
               {isAdmin && (
                 <>
                   <TouchableOpacity
-                    onPress={() => {
-                      setOpen(false)
-                      openForm(address)
-                    }}
+                    onPress={() => goToSheet('form', address)}
                     hitSlop={12}
                     accessibilityRole="button"
                     accessibilityLabel={`Editar ${address.name}`}
@@ -152,7 +136,7 @@ export function LocationField({ value, onChange }: Props) {
                     <MaterialIcons name="edit" size={18} color={colors.text} />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => openDeleteConfirm(address)}
+                    onPress={() => goToSheet('delete', address)}
                     hitSlop={12}
                     accessibilityRole="button"
                     accessibilityLabel={`Eliminar ${address.name}`}
@@ -164,16 +148,18 @@ export function LocationField({ value, onChange }: Props) {
             </View>
           ))}
           {addresses.length === 0 && (
-            <Text style={[locationStyles.emptyText, { color: colors.muted }]}>No se encontraron canchas</Text>
+            <Text style={[locationStyles.emptyText, { color: colors.muted }]}>
+              {error ? 'No se pudieron cargar las canchas' : 'No se encontraron canchas'}
+            </Text>
           )}
         </ScrollView>
       </BottomSheet>
 
       <BottomSheet
-        visible={isFormOpen}
+        visible={sheet === 'form'}
         title={form.id ? 'Editar cancha' : 'Agregar cancha nueva'}
         closeLabel="Guardar"
-        onDismiss={closeForm}
+        onDismiss={() => goToSheet('closed')}
         onConfirm={handleSave}
       >
         <View style={locationStyles.formBody}>
@@ -181,7 +167,7 @@ export function LocationField({ value, onChange }: Props) {
           <TextInput
             placeholder="Nombre de la cancha"
             placeholderTextColor={colors.muted}
-            onChangeText={(name) => setForm((f) => ({ ...f, name }))}
+            onChangeText={(name) => setForm((current) => ({ ...current, name }))}
             value={form.name}
             style={[fieldStyles.textInput, { borderColor: colors.border, borderRadius: radii.sm, color: colors.text }]}
           />
@@ -189,7 +175,7 @@ export function LocationField({ value, onChange }: Props) {
           <TextInput
             placeholder="Dirección de la cancha"
             placeholderTextColor={colors.muted}
-            onChangeText={(street) => setForm((f) => ({ ...f, street }))}
+            onChangeText={(street) => setForm((current) => ({ ...current, street }))}
             value={form.street}
             style={[fieldStyles.textInput, { borderColor: colors.border, borderRadius: radii.sm, color: colors.text }]}
           />
@@ -197,15 +183,15 @@ export function LocationField({ value, onChange }: Props) {
       </BottomSheet>
 
       <BottomSheet
-        visible={toDelete !== null}
+        visible={sheet === 'delete'}
         title="Confirmar eliminación"
         closeLabel="Cancelar"
-        onDismiss={closeDeleteConfirm}
-        onConfirm={closeDeleteConfirm}
+        onDismiss={() => goToSheet('list')}
+        onConfirm={() => goToSheet('list')}
       >
         <View style={locationStyles.deleteBody}>
           <Text style={[locationStyles.deleteText, { color: colors.text }]}>
-            ¿Estás seguro de que querés eliminar &quot;{toDelete?.name}&quot;? Los partidos ya guardados no se
+            ¿Estás seguro de que querés eliminar &quot;{selected?.name}&quot;? Los partidos ya guardados no se
             modifican.
           </Text>
           <TouchableOpacity
