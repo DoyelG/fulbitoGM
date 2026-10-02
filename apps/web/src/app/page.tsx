@@ -1,4 +1,5 @@
 import ChampionshipWidget from '@/components/home/ChampionshipWidget'
+import QuickLinks from '@/components/home/QuickLinks'
 import ScoreboardHero from '@/components/home/ScoreboardHero'
 import StreaksWidget from '@/components/home/StreaksWidget'
 
@@ -15,6 +16,7 @@ export default function Home() {
           <StreaksWidget />
         </div>
       </div>
+      <QuickLinks />
     </div>
   )
 }
