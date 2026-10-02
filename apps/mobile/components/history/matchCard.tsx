@@ -151,7 +151,7 @@ export function MatchCard({
           >
             <Text style={[styles.shirts, { color: colors.muted }]}>
               Ubicación:{' '}
-              <Text style={{ fontWeight: '600', color: colors.brand }}>{match.location.name}</Text>
+              <Text style={[styles.locationName, { color: colors.brand }]}>{match.location.name}</Text>
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -311,6 +311,9 @@ const styles = StyleSheet.create({
   },
   location: {
     alignSelf: 'flex-start',
+  },
+  locationName: {
+    fontWeight: '600',
   },
   descriptionRow: {
     gap: 6,
