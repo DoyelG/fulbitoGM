@@ -28,7 +28,7 @@ La home actual (`apps/web/src/app/page.tsx`) es un hero estático con 5 cards de
   - Marcador grande en peso 900 con `tabular-nums` y un `text-shadow` violeta suave.
   - Etiqueta superior en mayúsculas con tracking amplio, en violeta claro.
   - El equipo ganador va resaltado en naranja claro.
-  - CTA sólida en `--color-accent` con sombra naranja.
+  - CTA sólida en `--color-accent` con sombra naranja y **texto `--color-night`** (blanco sobre #f97316 da ~2.8:1 y no cumple AA; night sobre naranja da ~7:1).
 - **Widgets:** cards blancas con `rounded-2xl`, borde `gray-200` y header con título + link «Ver … →» en `brand`.
 - **Orden en mobile:** Tablero → Carrera al campeonato → En racha → Accesos rápidos.
 
@@ -55,8 +55,11 @@ Si algún componente pasa las ~100 líneas, sus estados (skeleton y vacío) se e
 
 Son funciones puras, sin imports de framework, exportadas desde `packages/utils/src/index.ts`:
 
-- `pickLatestFinalMatch(matches: Match[]): Match | null`: aplica `onlyFinalMatches` y devuelve el de `date` más reciente.
+- `pickLatestFinalMatch(matches: Match[]): Match | null`: aplica `onlyFinalMatches` y devuelve el de `date` más reciente. Si hay empate de fecha, gana el `createdAt` más reciente. Los amistosos cuentan y el tablero los marca con «· amistoso».
 - `getMatchScorers(match: Match): MatchPlayer[]`: devuelve los jugadores de ambos equipos con `goals > 0`, ordenados por goles de mayor a menor y luego por nombre.
+- `parseMatchDate(date: string): Date` y `formatMatchDate(date: string, locale = 'es-AR'): string`: `Match.date` es `YYYY-MM-DD`, y `new Date('YYYY-MM-DD')` lo interpreta como medianoche UTC, lo que en Argentina (UTC-3) muestra el día anterior. Por eso se parsea como fecha local.
+- `summarizeTeam(team: MatchPlayer[], visible = 3): string`: arma textos como «Juan, Lucas, Nico +4».
+- `getMatchMvpName(match: Match): string | null`: busca el nombre del `mvpId` entre los jugadores del partido.
 - `pickStreakLeaders(players: Player[], matches: Match[], opts: { winLimit: number; lossLimit: number }): { winning: StreakLeader[]; losing: StreakLeader[] }`: usa `calculateAllCurrentStreaks`, que ya excluye amistosos, sobre los partidos finales. Filtra rachas con `count >= 2`, ordena por `count` de mayor a menor y luego por nombre, y cruza con `players` para obtener nombre y foto. `StreakLeader = { playerId, playerName, playerPhotoUrl?, count }`.
 
 `isFinal` y `onlyFinalMatches` ya existen en `@fulbito/types` y `@fulbito/utils` y se reutilizan.
@@ -84,8 +87,8 @@ Los widgets no se ocultan en ningún estado, para que el layout no salte. Las re
 - La racha se comunica con texto («Ganando» / «Perdiendo», «N seguidas») y no solo con color.
 - El track del campeonato es un `role="progressbar"` con `aria-valuenow`, `aria-valuemin`, `aria-valuemax` y `aria-label`.
 - La CTA y los links tienen `focus-visible:ring` visible, con offset sobre el fondo oscuro.
-- Los textos sobre `--color-night` usan blanco, `gray-300` o `violet-300`, todos ≥ 4.5:1. El texto blanco sobre la CTA naranja va en negrita y tamaño ≥ 14px.
-- Las fotos de jugadores llevan `alt` con el nombre. Los emojis decorativos llevan `aria-hidden`.
+- Los textos sobre `--color-night` usan blanco, `gray-300` o `violet-300`, todos ≥ 4.5:1. La CTA usa texto `night` sobre `accent`.
+- Las fotos de jugadores llevan `alt=""` porque el nombre siempre está escrito al lado y así el lector de pantalla no lo repite. Los emojis decorativos llevan `aria-hidden`.
 
 ## Fuera de alcance
 
