@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { CARD_TONE, type CardTone } from './card-tone'
+import type { CardTone } from './card-tone'
 import CardTitle from './CardTitle'
 
 export type WidgetCardProps = {
@@ -29,7 +29,7 @@ export default function WidgetCard({
     <section
       aria-labelledby={titleId}
       aria-busy={busy}
-      className={`h-full rounded-2xl border border-t-4 border-gray-200 bg-white p-5 shadow-sm ${CARD_TONE[tone].border}`}
+      className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
     >
       <header className="mb-4 flex items-center justify-between gap-3">
         <CardTitle id={titleId} title={title} emoji={emoji} tone={tone} />

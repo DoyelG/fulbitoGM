@@ -1,7 +1,7 @@
 export type CardTone = 'brand' | 'accent' | 'night'
 
-export const CARD_TONE: Record<CardTone, { border: string; badge: string }> = {
-  brand: { border: 'border-t-brand', badge: 'bg-brand/10' },
-  accent: { border: 'border-t-accent', badge: 'bg-accent/15' },
-  night: { border: 'border-t-night', badge: 'bg-night/10' },
+export const CARD_TONE_BADGE: Record<CardTone, string> = {
+  brand: 'bg-brand/10',
+  accent: 'bg-accent/15',
+  night: 'bg-night/10',
 }

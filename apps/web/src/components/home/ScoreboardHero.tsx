@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo } from 'react'
 import { pickLatestFinalMatch } from '@fulbito/utils'
@@ -20,9 +21,18 @@ export default function ScoreboardHero() {
     <section
       aria-labelledby="scoreboard-title"
       aria-busy={status === 'loading'}
-      className="bg-scoreboard rounded-3xl px-4 py-8 text-center text-white shadow-xl sm:px-10 sm:py-10"
+      className="bg-scoreboard relative isolate overflow-hidden rounded-3xl px-4 py-8 text-center text-white shadow-xl sm:px-10 sm:py-10"
     >
-      <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-300 uppercase">
+      <Image
+        src="/scoreboard-ball.svg"
+        alt=""
+        width={400}
+        height={400}
+        unoptimized
+        priority
+        className="pointer-events-none absolute -right-20 -bottom-24 -z-10 w-56 opacity-40 select-none sm:top-1/2 sm:-right-24 sm:bottom-auto sm:w-80 sm:-translate-y-1/2 sm:opacity-60"
+      />
+      <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
         Último partido
       </h2>
 

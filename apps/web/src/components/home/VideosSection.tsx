@@ -12,7 +12,6 @@ import VideosSkeleton from './VideosSkeleton'
 import VideoThumb, { clipLabel } from './VideoThumb'
 import WidgetError from './WidgetError'
 import CardTitle from './CardTitle'
-import { CARD_TONE } from './card-tone'
 
 export default function VideosSection() {
   const clips = useVideoClipStore((s) => s.videoClips)
@@ -45,7 +44,7 @@ export default function VideosSection() {
     <section
       aria-labelledby="videos-title"
       aria-busy={status === 'idle' || status === 'loading'}
-      className={`rounded-2xl border border-t-4 border-gray-200 bg-white p-5 shadow-sm ${CARD_TONE.night.border}`}
+      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
     >
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <CardTitle id="videos-title" title="Videos" emoji="🎬" tone="night" />
