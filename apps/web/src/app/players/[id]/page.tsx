@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/components/Button";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -286,7 +287,13 @@ export default function PlayerDetailPage() {
           <button
             type="button"
             className="px-3 py-2 rounded border hover:bg-gray-50"
-            onClick={() => router.push('/players')}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back()
+              } else {
+                router.push('/players')
+              }
+            }}
           >
             Volver
           </button>
@@ -453,10 +460,12 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Estado</label>
+            <span id="quick-status-label" className="block text-sm font-medium mb-1">
+              Estado
+            </span>
             <div
               role="group"
-              aria-label="Estado del jugador"
+              aria-labelledby="quick-status-label"
               className="flex w-full rounded border border-gray-300 overflow-hidden"
             >
               <button
@@ -482,22 +491,12 @@ export default function PlayerDetailPage() {
             </div>
           </div>
           <div className="sm:col-span-3 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-4 py-2 rounded border hover:bg-gray-50"
-            >
+            <Button type="button" variant="secondary" onClick={handleCancel}>
               Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmitQuick}
-              className={`px-4 py-2 rounded ${
-                canSubmitQuick ? 'bg-brand text-white hover:bg-brand/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
+            </Button>
+            <Button type="submit" disabled={!canSubmitQuick}>
               Guardar
-            </button>
+            </Button>
           </div>
         </form>
       )}

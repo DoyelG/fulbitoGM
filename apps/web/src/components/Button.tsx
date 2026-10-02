@@ -19,9 +19,6 @@ const variantStyles: Record<NonNullable<Props['variant']>, string> = {
 
 export default function Button({ variant = 'primary', block = false, className = '', ...props }: Props) {
   return (
-    <button
-      {...props}
-      className={`${base} ${variantStyles[variant]} ${block ? 'flex-1' : ''} ${className}`.trim()}
-    />
+    <button {...props} className={`${base} ${variantStyles[variant]} ${block ? 'flex-1' : ''} ${className}`.trim()} />
   )
 }
