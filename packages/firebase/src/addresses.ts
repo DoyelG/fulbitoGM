@@ -27,7 +27,7 @@ function docToAddress(id: string, data: Record<string, unknown>): Address {
 export async function getAddresses(): Promise<Address[]> {
   const db = getFirestore()
   const snap = await getDocs(query(collection(db, COLLECTION), orderBy('name')))
-  return snap.docs.map((d) => docToAddress(d.id, d.data()))
+  return snap.docs.map((addressDoc) => docToAddress(addressDoc.id, addressDoc.data()))
 }
 
 export async function createAddress(data: Omit<Address, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {

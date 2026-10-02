@@ -22,8 +22,8 @@ export default function AddressActionsMenu({ onAdd, onManage }: Props) {
       <button
         type="button"
         aria-label="Opciones de canchas"
-        onClick={(e) => {
-          const spaceBelow = window.innerHeight - e.currentTarget.getBoundingClientRect().bottom
+        onClick={(event) => {
+          const spaceBelow = window.innerHeight - event.currentTarget.getBoundingClientRect().bottom
           setOpenUp(spaceBelow < 120)
           setOpen((prev) => !prev)
         }}

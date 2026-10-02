@@ -43,31 +43,37 @@ export default function AddressForm({ initial, submitLabel, onCancel, onSubmit }
 
   return (
     <div>
-      <label htmlFor="address-name" className="block text-sm font-medium mb-1">Nombre</label>
+      <label htmlFor="address-name" className="block text-sm font-medium mb-1">
+        Nombre
+      </label>
       <input
         id="address-name"
         placeholder="Ingresar el Nombre de la cancha"
         value={name}
-        onChange={(e) => {
-          setName(e.target.value)
+        onChange={(event) => {
+          setName(event.target.value)
           setCoords(undefined)
         }}
         className="h-10 border rounded px-3 w-full"
       />
 
-      <label htmlFor="address-street" className="block text-sm font-medium mb-1 mt-3">Dirección</label>
+      <label htmlFor="address-street" className="block text-sm font-medium mb-1 mt-3">
+        Dirección
+      </label>
       <input
         id="address-street"
         placeholder="Ingresar la Dirección de la cancha"
         value={street}
-        onChange={(e) => {
-          setStreet(e.target.value)
+        onChange={(event) => {
+          setStreet(event.target.value)
           setCoords(undefined)
         }}
         className="h-10 border rounded px-3 w-full"
       />
 
-      {mapUrl && <iframe title="Vista previa de la ubicación" src={mapUrl} className="mt-3 h-60 w-full rounded border" />}
+      {mapUrl && (
+        <iframe title="Vista previa de la ubicación" src={mapUrl} className="mt-3 h-60 w-full rounded border" />
+      )}
       {coords === null && <p className="mt-3 text-sm text-gray-500">No se encontró esa dirección.</p>}
 
       <div className="flex gap-3 mt-6">

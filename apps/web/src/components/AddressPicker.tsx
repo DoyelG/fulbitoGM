@@ -52,8 +52,8 @@ export default function AddressPicker({ value, onChange }: AddressPickerProps) {
           className="select-chevron h-full min-w-0 flex-1 appearance-none border-none bg-transparent pl-3 pr-8 focus:outline-none"
           aria-label="Cancha"
           value={selectedAddress?.id ?? ''}
-          onChange={(e) => {
-            const found = addresses.find((address) => address.id === e.target.value)
+          onChange={(event) => {
+            const found = addresses.find((address) => address.id === event.target.value)
             onChange(found ? addressToMatchLocation(found) : null)
           }}
         >

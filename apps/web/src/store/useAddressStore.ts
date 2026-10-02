@@ -18,7 +18,7 @@ type AddressStore = {
 
 export const useAddressStore = create<AddressStore>()((set, get) => {
   const findOrThrow = (id: string) => {
-    const found = get().addresses.find((a) => a.id === id)
+    const found = get().addresses.find((address) => address.id === id)
     if (!found) throw new Error('No se encontró la cancha')
     return found
   }
