@@ -127,29 +127,28 @@ export default function StatisticsClient({
 
   const [playerStatusFilter, setPlayerStatusFilter] = useState<PlayerStatusFilter>('all')
 
-  const filteredPlayres = playerStatusFilter === 'all' ? sorted : playerStatusFilter === 'active' ? activeStats : inactiveStats 
+  const filteredPlayres = playerStatusFilter === 'all' ? sorted : playerStatusFilter === 'active' ? activeStats : inactiveStats
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col gap-4 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between mb-8">
         <h1 className="text-3xl font-bold">Estadísticas</h1>
 
-      <div className="flex items-center gap-2">
-        <label htmlFor="player-status-filter" className="text-sm font-medium text-black">
-          Filtrar por estado de jugador:
-        </label>
-        <select
-          name="player-status-filter"
-          id="player-status-filter"
-          onChange={(event) => setPlayerStatusFilter(event.target.value as PlayerStatusFilter)}
-          className="h-10 rounded-md border border-gray-300 bg-white px-3 text-sm shadow-sm"
-        >
-        <option value="all">Todos los jugadores</option>
-        <option value="active">Solo Activos</option>
-        <option value="inactive">Solo Inactivos</option>
-        </select>
-      </div>
-
+        <div className="flex flex-col gap-1 min-[700px]:flex-row min-[700px]:items-center min-[700px]:gap-2">
+          <label htmlFor="player-status-filter" className="text-sm font-medium text-black">
+            Filtrar por estado de jugador:
+          </label>
+          <select
+            name="player-status-filter"
+            id="player-status-filter"
+            onChange={(event) => setPlayerStatusFilter(event.target.value as PlayerStatusFilter)}
+            className="h-10 w-full max-w-52 min-[700px]:w-auto rounded-md border border-gray-300 bg-white px-3 text-sm shadow-sm"
+          >
+            <option value="all">Todos los jugadores</option>
+            <option value="active">Solo Activos</option>
+            <option value="inactive">Solo Inactivos</option>
+          </select>
+        </div>
       </div>
 
       <StatisticsTable
