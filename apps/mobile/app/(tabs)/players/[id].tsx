@@ -19,6 +19,7 @@ import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 
 import { PlayerAvatar } from '@/components/players/player-avatar'
 import { StreakBadge } from '@/components/players/streak-badge'
+import { InactiveBadge } from '@/components/players/inactive-badge'
 import { PlayerSkillBars } from '@/components/players/detail/player-skill-bars'
 import { PlayerStatsGrid } from '@/components/players/detail/player-stats-grid'
 import { RecentMatchRow } from '@/components/players/detail/recent-match-row'
@@ -138,6 +139,7 @@ export default function PlayerDetailScreen() {
                   {streak.kind ? (
                     <StreakBadge kind={streak.kind} count={streak.count} />
                   ) : null}
+                  <InactiveBadge inactive={player.inactive} />
                 </View>
               </View>
             </View>
