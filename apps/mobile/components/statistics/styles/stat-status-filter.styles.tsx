@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 36,
+    minHeight: 44,
     borderWidth: 1,
   },
   selectText: {
@@ -21,5 +21,9 @@ export const styles = StyleSheet.create({
   },
   wrapper: {
     marginBottom: 8,
+  },
+  check: {
+    fontSize: 16,
+    fontWeight: '700',
   },
 })

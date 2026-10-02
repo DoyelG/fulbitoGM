@@ -102,7 +102,7 @@ export default function PlayersScreen() {
   if (error) return <PlayersError message={error} onRetry={() => void reload()} />
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <SafeAreaView style={styles.safe} edges={[]}>
       <ThemedView style={styles.screen}>
         <FlatList
           data={sortedPlayers}

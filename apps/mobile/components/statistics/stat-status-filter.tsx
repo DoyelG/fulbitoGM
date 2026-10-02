@@ -25,8 +25,8 @@ export function StatStatusFilter({ value, onChange }: Props) {
   const { colors, radii, spacing, isDark } = useAppTheme()
   const [open, setOpen] = useState(false)
 
-  const textColor = isDark ? colors.text : '#4b5563'
-  const selectedLabel =OPTIONS.find((option) => option.key === value)?.label ?? ''
+  const textColor = isDark ? colors.text : colors.muted
+  const selectedLabel = OPTIONS.find((option) => option.key === value)?.label ?? ''
 
   return (
     <>
@@ -45,7 +45,8 @@ export function StatStatusFilter({ value, onChange }: Props) {
             borderRadius: radii.pill,
             paddingHorizontal: spacing.lg,
           },
-        ]}>
+        ]}
+      >
         <Ionicons name="options-outline" size={16} color={textColor} style={styles.icon} />
         <ThemedText style={[styles.selectText, { color: textColor }]}>{selectedLabel}</ThemedText>
       </TouchableOpacity>
@@ -63,11 +64,12 @@ export function StatStatusFilter({ value, onChange }: Props) {
               accessibilityRole="button"
               accessibilityLabel={option.label}
               accessibilityState={{ selected }}
-              style={[sheetStyles.option, { borderBottomColor: colors.border }]}>
+              style={[sheetStyles.option, { borderBottomColor: colors.border }]}
+            >
               <ThemedText style={[sheetStyles.optionText, { color: selected ? colors.brand : colors.text }]}>
                 {option.label}
               </ThemedText>
-              {selected && <ThemedText style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</ThemedText>}
+              {selected && <ThemedText style={[styles.check, { color: colors.brand }]}>✓</ThemedText>}
             </Pressable>
           )
         })}
