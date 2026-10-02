@@ -11,6 +11,8 @@ import VideoFilters, { type VideoFilter } from './VideoFilters'
 import VideosSkeleton from './VideosSkeleton'
 import VideoThumb, { clipLabel } from './VideoThumb'
 import WidgetError from './WidgetError'
+import CardTitle from './CardTitle'
+import { CARD_TONE } from './card-tone'
 
 export default function VideosSection() {
   const clips = useVideoClipStore((s) => s.videoClips)
@@ -43,15 +45,10 @@ export default function VideosSection() {
     <section
       aria-labelledby="videos-title"
       aria-busy={status === 'idle' || status === 'loading'}
-      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+      className={`rounded-2xl border border-t-4 border-gray-200 bg-white p-5 shadow-sm ${CARD_TONE.night.border}`}
     >
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 id="videos-title" className="text-base font-bold text-gray-900">
-          <span aria-hidden className="mr-1.5">
-            🎬
-          </span>
-          Videos
-        </h2>
+        <CardTitle id="videos-title" title="Videos" emoji="🎬" tone="night" />
         {status === 'loaded' && (
           <VideoFilters active={filter} counts={counts} total={clips.length} onChange={setFilter} />
         )}
@@ -62,7 +59,7 @@ export default function VideosSection() {
       {status === 'loaded' && (
         <VideoCarousel key={filter} itemCount={visible.length}>
           {visible.map((clip) => (
-            <li key={clip.id} className="w-60 shrink-0 snap-start">
+            <li key={clip.id} className="w-64 shrink-0 snap-start sm:w-72">
               <VideoThumb clip={clip} matchDate={dateByMatchId.get(clip.matchId)} onOpen={() => setOpenId(clip.id)} />
             </li>
           ))}

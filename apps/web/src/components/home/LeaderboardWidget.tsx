@@ -22,6 +22,9 @@ const STATS = {
     singular: 'gol',
     plural: 'goles',
     pillClass: 'bg-orange-100 text-orange-800',
+    featuredClass: 'from-orange-50 to-orange-100',
+    valueClass: 'text-orange-700',
+    featuredLabel: 'Goleador de la temporada',
     emptyText: 'Todavía no hay goles esta temporada.',
   },
   mvps: {
@@ -29,6 +32,9 @@ const STATS = {
     singular: 'MVP',
     plural: 'MVPs',
     pillClass: 'bg-brand/10 text-brand',
+    featuredClass: 'from-violet-50 to-violet-100',
+    valueClass: 'text-brand',
+    featuredLabel: 'Más MVPs de la temporada',
     emptyText: 'Todavía no hay MVPs esta temporada.',
   },
 }
@@ -52,6 +58,7 @@ export default function LeaderboardWidget() {
     <WidgetCard
       id={ID}
       emoji="⚽"
+      tone="accent"
       title="Goleadores y MVPs"
       href="/statistics"
       linkLabel="Ver estadísticas"
@@ -77,6 +84,9 @@ export default function LeaderboardWidget() {
               singular={config.singular}
               plural={config.plural}
               pillClass={config.pillClass}
+              featuredClass={config.featuredClass}
+              valueClass={config.valueClass}
+              featuredLabel={config.featuredLabel}
               emptyText={config.emptyText}
             />
           </div>
