@@ -44,7 +44,7 @@ export default function VideosSection() {
     <section
       aria-labelledby="videos-title"
       aria-busy={status === 'idle' || status === 'loading'}
-      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+      className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
     >
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <CardTitle id="videos-title" title="Videos" emoji="🎬" tone="night" />

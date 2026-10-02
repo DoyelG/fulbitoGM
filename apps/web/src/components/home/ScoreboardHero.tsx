@@ -21,14 +21,14 @@ export default function ScoreboardHero() {
     <section
       aria-labelledby="scoreboard-title"
       aria-busy={status === 'loading'}
-      className="bg-scoreboard relative isolate overflow-hidden rounded-3xl px-4 py-8 text-center text-white shadow-xl sm:px-10 sm:py-10"
+      className="bg-scoreboard relative isolate flex h-full flex-col justify-center overflow-hidden rounded-3xl px-4 py-8 text-center text-white shadow-xl sm:px-10 sm:py-10"
     >
       <Image
         src="/scoreboard-ball.jpg"
         alt=""
         fill
         priority
-        sizes="(min-width: 1152px) 1104px, 100vw"
+        sizes="(min-width: 1024px) 736px, 100vw"
         className="pointer-events-none -z-10 object-cover object-right opacity-50 mix-blend-luminosity select-none [mask-image:linear-gradient(to_left,black_20%,transparent_70%)] sm:opacity-70"
       />
       <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
