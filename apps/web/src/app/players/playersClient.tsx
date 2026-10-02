@@ -25,10 +25,15 @@ export default function PlayersClient({
   const [showInactiveTable, setShowInactiveTable] = useState(false)
   const [showToggleModal, setShowToggleModal] = useState(false)
   const [toggleTarget, setToggleTarget] = useState<{ playerId: string; inactive: boolean } | null>(null)
-  const { deletePlayer, updatePlayer, hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
+  const {
+    deletePlayer,
+    updatePlayer,
+    hydratePlayers,
+    players: storePlayers,
+    resetAndReload: resetPlayers,
+  } = usePlayerStore()
   const { hydrateMatches, matches: storeMatches, resetAndReload: resetMatches } = useMatchStore()
   const [globalFilter, setGlobalFilter] = useState('')
-
 
   const initialized = useRef(false)
   useEffect(() => {
@@ -44,23 +49,23 @@ export default function PlayersClient({
 
   const tableData: PlayerRow[] = useMemo(
     () =>
-      storePlayers.map((p) => {
-        const st = streaks[p.id] ?? { kind: null as 'win' | 'loss' | null, count: 0 }
-        return { ...p, streak: st, winGoalProgress: st.kind === 'win' ? st.count : 0 }
+      storePlayers.map((player) => {
+        const streak = streaks[player.id] ?? { kind: null as 'win' | 'loss' | null, count: 0 }
+        return { ...player, streak, winGoalProgress: streak.kind === 'win' ? streak.count : 0 }
       }),
     [storePlayers, streaks],
   )
 
-  const activePlayers = useMemo(() => tableData.filter((p) => !p.inactive), [tableData])
-  const inactivePlayers = useMemo(() => tableData.filter((p) => p.inactive), [tableData])
+  const activePlayers = useMemo(() => tableData.filter((player) => !player.inactive), [tableData])
+  const inactivePlayers = useMemo(() => tableData.filter((player) => player.inactive), [tableData])
 
   const selectedPlayer = useMemo(
-    () => storePlayers.find((p) => p.id === selectedPlayerId) ?? null,
+    () => storePlayers.find((player) => player.id === selectedPlayerId) ?? null,
     [storePlayers, selectedPlayerId],
   )
 
   const toggleTargetPlayer = useMemo(
-    () => storePlayers.find((p) => p.id === toggleTarget?.playerId) ?? null,
+    () => storePlayers.find((player) => player.id === toggleTarget?.playerId) ?? null,
     [storePlayers, toggleTarget],
   )
 
@@ -98,59 +103,55 @@ export default function PlayersClient({
       </div>
 
       <div className="mb-6">
-
-          <input
+        <input
           type="text"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder="Buscar por nombre..."
+          aria-label="Buscar jugador por nombre"
           className="w-full sm:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
         />
       </div>
-        <PlayersTable
-          players={activePlayers}
-          isAdmin={isAdmin}
-          globalFilter={globalFilter}
-          setGlobalFilter={setGlobalFilter}
-          onDelete={handleDelete}
-          onToggleActive={handleToggleActive}
-          emptyMessage="No hay jugadores activos aún."
-        />
-{isAdmin && (
-      <div className="bg-white rounded-lg border border-gray-200">
-        <button
-          type="button"
-          onClick={() => setShowInactiveTable((v) => !v)}
-          aria-expanded={showInactiveTable}
-          className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
-        >
-          <h2 className="text-lg font-semibold text-gray-800">Inactivos</h2>
-          <FiChevronDown
-            size={20}
-            className={`text-gray-500 transition-transform duration-200 ${showInactiveTable ? 'rotate-180' : ''}`}
-          />
-        </button>
-        {showInactiveTable && (
-          <div className="px-4 pb-4 pt-1 border-t border-gray-100">
-            <PlayersTable
-              players={inactivePlayers}
-              isAdmin={isAdmin}
-              onDelete={handleDelete}
-              onToggleActive={handleToggleActive}
-              globalFilter={globalFilter}
-              setGlobalFilter={setGlobalFilter}
-              emptyMessage="No hay jugadores inactivos."
+      <PlayersTable
+        players={activePlayers}
+        isAdmin={isAdmin}
+        globalFilter={globalFilter}
+        setGlobalFilter={setGlobalFilter}
+        onDelete={handleDelete}
+        onToggleActive={handleToggleActive}
+        emptyMessage="No hay jugadores activos aún."
+      />
+      {isAdmin && (
+        <div className="bg-white rounded-lg border border-gray-200">
+          <button
+            type="button"
+            onClick={() => setShowInactiveTable((isShown) => !isShown)}
+            aria-expanded={showInactiveTable}
+            className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+          >
+            <h2 className="text-lg font-semibold text-gray-800">Inactivos</h2>
+            <FiChevronDown
+              size={20}
+              className={`text-gray-500 transition-transform duration-200 ${showInactiveTable ? 'rotate-180' : ''}`}
             />
-          </div>
-        )}
-      </div>
+          </button>
+          {showInactiveTable && (
+            <div className="px-4 pb-4 pt-1 border-t border-gray-100">
+              <PlayersTable
+                players={inactivePlayers}
+                isAdmin={isAdmin}
+                onDelete={handleDelete}
+                onToggleActive={handleToggleActive}
+                globalFilter={globalFilter}
+                setGlobalFilter={setGlobalFilter}
+                emptyMessage="No hay jugadores inactivos."
+              />
+            </div>
+          )}
+        </div>
       )}
 
-
-      <Modal
-        title="Confirmar eliminación"
-        open={showModal}
-        onClose={() => setShowModal(false)}>
+      <Modal title="Confirmar eliminación" open={showModal} onClose={() => setShowModal(false)}>
         <div className="p-2 text-center">
           <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
             <FiTrash2 className="text-red-600" size={20} />
@@ -178,10 +179,7 @@ export default function PlayersClient({
         </div>
       </Modal>
 
-      <Modal
-        title="Confirmar cambio de estado"
-        open={showToggleModal}
-        onClose={() => setShowToggleModal(false)}>
+      <Modal title="Confirmar cambio de estado" open={showToggleModal} onClose={() => setShowToggleModal(false)}>
         <div className="p-2 text-center">
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${

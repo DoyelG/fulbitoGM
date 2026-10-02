@@ -380,9 +380,9 @@ export default function HistoryClient() {
                         aria-label={`Ver clips del partido${match.name ? `: ${match.name}` : ""}`}
                       >
                         <span aria-hidden="true">🎥</span>
-                        {videoClips.filter((c) => c.matchId === match.id).length > 0 && (
+                        {videoClips.filter((clip) => clip.matchId === match.id).length > 0 && (
                           <span className="text-xs bg-brand text-white rounded-full px-1.5">
-                            {videoClips.filter((c) => c.matchId === match.id).length}
+                            {videoClips.filter((clip) => clip.matchId === match.id).length}
                           </span>
                         )}
                       </button>
@@ -745,8 +745,8 @@ function RecordModal({
   );
 
   const move = (player: RecordingPlayer, target: "unassigned" | "a" | "b") => {
-    setTeamA((prev) => prev.filter((x) => x.id !== player.id));
-    setTeamB((prev) => prev.filter((x) => x.id !== player.id));
+    setTeamA((prev) => prev.filter((teamPlayer) => teamPlayer.id !== player.id));
+    setTeamB((prev) => prev.filter((teamPlayer) => teamPlayer.id !== player.id));
     if (target === "a")
       setTeamA((prev) =>
         prev.length >= playersPerTeam ? prev : [...prev, player],

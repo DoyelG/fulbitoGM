@@ -31,12 +31,20 @@ type Props = {
   isAdmin: boolean
   onDelete: (playerId: string) => void
   onToggleActive: (playerId: string, inactive: boolean) => void
-  emptyMessage: string,
-  globalFilter: string,
+  emptyMessage: string
+  globalFilter: string
   setGlobalFilter: (value: string) => void
 }
 
-export default function PlayersTable({ players, isAdmin, onDelete, onToggleActive, emptyMessage ,globalFilter , setGlobalFilter}: Props) {
+export default function PlayersTable({
+  players,
+  isAdmin,
+  onDelete,
+  onToggleActive,
+  emptyMessage,
+  globalFilter,
+  setGlobalFilter,
+}: Props) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'skill', desc: true }])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
@@ -81,17 +89,24 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
           <span className={row.original.inactive ? 'text-gray-400' : 'text-gray-800'}>{getValue()}</span>
         ),
       }),
-      columnHelper.accessor((row) => {
-        const st = row.streak
-        return st.kind === 'win' ? st.count : st.kind === 'loss' ? -st.count : 0
-      }, {
-        id: 'streak',
-        header: 'Racha',
-        enableSorting: true,
-        cell: ({ row }) => (
-          <StreakBadge kind={row.original.streak.kind} count={row.original.streak.count} muted={row.original.inactive} />
-        ),
-      }),
+      columnHelper.accessor(
+        (row) => {
+          const st = row.streak
+          return st.kind === 'win' ? st.count : st.kind === 'loss' ? -st.count : 0
+        },
+        {
+          id: 'streak',
+          header: 'Racha',
+          enableSorting: true,
+          cell: ({ row }) => (
+            <StreakBadge
+              kind={row.original.streak.kind}
+              count={row.original.streak.count}
+              muted={row.original.inactive}
+            />
+          ),
+        },
+      ),
       columnHelper.accessor('winGoalProgress', {
         id: 'goal7',
         header: 'Objetivo (7W)',
@@ -136,8 +151,7 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, _columnId, filterValue: string) => {
-      const normalize = (s: string) =>
-        s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+      const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
       return normalize(row.original.name).includes(normalize(filterValue))
     },
     getCoreRowModel: getCoreRowModel(),
@@ -148,75 +162,83 @@ export default function PlayersTable({ players, isAdmin, onDelete, onToggleActiv
   return (
     <div>
       <div className="mb-4">
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto">
-            <thead className="bg-gray-50">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 select-none ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getIsSorted() === 'asc' && ' ▲'}
-                      {header.column.getIsSorted() === 'desc' && ' ▼'}
-                    </th>
-                  ))}
-                  {isAdmin && (
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>
-                  )}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="divide-y">
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td colSpan={isAdmin ? 7 : 6} className="px-4 py-8 text-center text-gray-800">
-                    {emptyMessage}
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((row) => {
-                  const player = row.original
-                  const actions: RowAction[] = [
-                    { icon: <FiEye size={16} />, variant: 'primary', href: `/players/${player.id}`, tooltip: 'Ver' },
-                    ...(isAdmin
-                      ? [
-                          { icon: <FiEdit2 size={16} />, variant: 'primary' as const, href: `/players/edit/${player.id}`, tooltip: 'Editar' },
-                          player.inactive
-                            ? {
-                                icon: <FiUserCheck size={16} />,
-                                variant: 'primary' as const,
-                                onClick: () => onToggleActive(player.id, false),
-                                tooltip: 'Activar',
-                              }
-                            : {
-                                icon: <FiUserX size={16} />,
-                                variant: 'danger' as const,
-                                onClick: () => onToggleActive(player.id, true),
-                                tooltip: 'Desactivar',
-                              },
-                          { icon: <FiTrash2 size={16} />, variant: 'danger' as const, onClick: () => onDelete(player.id), tooltip: 'Eliminar' },
-                        ]
-                      : []),
-                  ]
-                  return (
-                    <ActionRow key={player.id} actions={actions}>
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="px-4 py-3">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      ))}
-                    </ActionRow>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto">
+              <thead className="bg-gray-50">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 select-none ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getIsSorted() === 'asc' && ' ▲'}
+                        {header.column.getIsSorted() === 'desc' && ' ▼'}
+                      </th>
+                    ))}
+                    {isAdmin && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="divide-y">
+                {table.getRowModel().rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={isAdmin ? 7 : 6} className="px-4 py-8 text-center text-gray-800">
+                      {emptyMessage}
+                    </td>
+                  </tr>
+                ) : (
+                  table.getRowModel().rows.map((row) => {
+                    const player = row.original
+                    const actions: RowAction[] = [
+                      { icon: <FiEye size={16} />, variant: 'primary', href: `/players/${player.id}`, tooltip: 'Ver' },
+                      ...(isAdmin
+                        ? [
+                            {
+                              icon: <FiEdit2 size={16} />,
+                              variant: 'primary' as const,
+                              href: `/players/edit/${player.id}`,
+                              tooltip: 'Editar',
+                            },
+                            player.inactive
+                              ? {
+                                  icon: <FiUserCheck size={16} />,
+                                  variant: 'primary' as const,
+                                  onClick: () => onToggleActive(player.id, false),
+                                  tooltip: 'Activar',
+                                }
+                              : {
+                                  icon: <FiUserX size={16} />,
+                                  variant: 'danger' as const,
+                                  onClick: () => onToggleActive(player.id, true),
+                                  tooltip: 'Desactivar',
+                                },
+                            {
+                              icon: <FiTrash2 size={16} />,
+                              variant: 'danger' as const,
+                              onClick: () => onDelete(player.id),
+                              tooltip: 'Eliminar',
+                            },
+                          ]
+                        : []),
+                    ]
+                    return (
+                      <ActionRow key={player.id} actions={actions}>
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-4 py-3">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        ))}
+                      </ActionRow>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
