@@ -165,6 +165,7 @@ export async function updateMatch(id: string, data: MatchInput): Promise<void> {
   batch.update(doc(db, 'matches', id), {
     ...scalars,
     date: Timestamp.fromDate(new Date(data.date)),
+    location: data.location ?? null,
     description: data.description ?? null,
     mvpId: mvpId ?? null,
     goalkeeperIds: goalkeeperIds ?? [],
