@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useMemo } from 'react'
-import { formatMatchDate, pickLatestFinalMatch } from '@fulbito/utils'
+import { pickLatestFinalMatch } from '@fulbito/utils'
 import { useMatchStore } from '@/store/useMatchStore'
 import { useHomeStatus } from '@/hooks/use-home-status'
 import ScoreboardResult from './ScoreboardResult'
@@ -23,9 +23,7 @@ export default function ScoreboardHero() {
       className="bg-scoreboard rounded-3xl px-4 py-8 text-center text-white shadow-xl sm:px-10 sm:py-10"
     >
       <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-300 uppercase">
-        {status === 'ready' && latest
-          ? `Último partido · ${formatMatchDate(latest.date)}${latest.isFriendly ? ' · amistoso' : ''}`
-          : 'Último partido'}
+        Último partido
       </h2>
 
       <div aria-live="polite" className="mt-5">
