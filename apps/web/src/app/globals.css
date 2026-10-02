@@ -16,6 +16,7 @@
   --color-brand-dark: #4c1d95; /* deep purple, for gradients */
   --color-accent: #f97316; /* orange */
   --color-brand-contrast: #ffffff;
+  --color-night: #0b0b1a;
 }
 
 body {
@@ -26,4 +27,14 @@ body {
 
 button {
   cursor: pointer;
+}
+
+@utility bg-scoreboard {
+  background:
+    radial-gradient(640px 240px at 50% -30%, color-mix(in oklab, var(--color-brand) 60%, transparent), transparent),
+    var(--color-night);
+}
+
+@utility text-glow-brand {
+  text-shadow: 0 0 18px color-mix(in oklab, var(--color-brand) 60%, transparent);
 }
