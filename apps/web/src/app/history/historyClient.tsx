@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import type { Match, MatchInput } from "@fulbito/types";
+import type { Match, MatchInput, MatchLocation } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
 import Modal from "@/components/Modal";
@@ -23,9 +23,12 @@ import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
 import { MatchDescription } from "./matchDescription";
 import { Backdrop } from "@/components/Backdrop";
+import AddressPicker from "@/components/AddressPicker";
+import MatchLocationLink from "@/components/MatchLocationLink";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
+const MAX_GOALKEEPERS = 2;
 
 type RecordingPlayer = { id: string; name: string };
 
@@ -349,8 +352,8 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className={m.description ? "" : "flex py-2"}>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                  <div className={`py-2 ${!m.description ? "flex" : ""}`}>
+                    <div className="grid gap-y-2 text-sm">
                       {m.shirtsResponsibleId && (
                         <div className="text-gray-700">
                           🎽 Camisetas:{" "}
@@ -361,11 +364,16 @@ export default function HistoryClient() {
                           </span>
                         </div>
                       )}
+                      {m.location?.name && (
+                        <div>
+                          📍 Ubicación: <MatchLocationLink location={m.location} />
+                        </div>
+                      )}
                     </div>
                     {m.description && (
                       <MatchDescription text={m.description}/>
                     )}
-                    <div className="flex justify-end gap-3 shrink-0 ml-auto">
+                    <div className="flex justify-end items-center gap-3 shrink-0 ml-auto self-end">
                       <button
                         type="button"
                         className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
@@ -611,6 +619,9 @@ function RecordModal({
   const [matchType, setMatchType] = useState<MatchType>(
     (initial?.type as MatchType) || "5v5",
   );
+  const [matchLocation, setMatchLocation] = useState<MatchLocation | null>(
+    initial?.location ?? null,
+  );
   const playersPerTeam = useMemo(
     () => parseInt(matchType.split("v")[0], 10),
     [matchType],
@@ -668,7 +679,6 @@ function RecordModal({
   const [goalkeeperIds, setGoalkeeperIds] = useState<string[]>(
     initial?.goalkeeperIds ?? [],
   );
-  const MAX_GOALKEEPERS = 2;
 
   useEffect(() => {
     if (!mvpId) return;
@@ -789,6 +799,7 @@ function RecordModal({
     return {
       date: matchDate,
       type: matchType,
+      location: matchLocation ?? undefined,
       status,
       teamAScore: isFinal ? (teamAScore as number) : 0,
       teamBScore: isFinal ? (teamBScore as number) : 0,
@@ -848,7 +859,7 @@ function RecordModal({
           </button>
         </div>
 
-        <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 mb-3">
+        <div className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 mb-3">
           <div>
             <label className="block text-sm font-medium mb-1">Fecha</label>
             <input
@@ -869,7 +880,7 @@ function RecordModal({
                 setTeamB([]);
                 setMatchType(e.target.value as MatchType);
               }}
-              className="h-10 border rounded px-3 w-full"
+              className="select-chevron h-10 w-full appearance-none rounded border pl-3 pr-8"
             >
               {MATCH_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -877,6 +888,12 @@ function RecordModal({
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Ubicación
+            </label>
+            <AddressPicker value={matchLocation} onChange={setMatchLocation} />
           </div>
           <div>
             <label htmlFor="fiendly-match" className="block text-sm font-medium mb-1">
@@ -918,7 +935,7 @@ function RecordModal({
               </span>
             </button>
           </div>
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-4">
             <label className="block text-lg font-medium mb-1">
               Nombre del Partido
             </label>
@@ -1119,7 +1136,7 @@ function RecordModal({
             </div>
             <div className="flex-1">
               <select
-                className="border rounded px-3 py-2 w-full"
+                className="select-chevron appearance-none border rounded pl-3 pr-8 py-2 w-full"
                 value={shirtsResponsibleId ?? ""}
                 onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
               >
@@ -1164,7 +1181,7 @@ function RecordModal({
             </div>
             <div className="flex-1">
               <select
-                className="border rounded px-3 py-2 w-full bg-white"
+                className="select-chevron appearance-none border rounded pl-3 pr-8 py-2 w-full bg-white"
                 value={mvpId ?? ""}
                 onChange={(e) => setMvpId(e.target.value || null)}
               >
