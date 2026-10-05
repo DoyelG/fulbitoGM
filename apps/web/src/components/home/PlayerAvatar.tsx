@@ -3,12 +3,13 @@ import Image from 'next/image'
 export type PlayerAvatarProps = {
   name: string
   photoUrl?: string
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 const SIZES = {
   sm: { px: 28, className: 'h-7 w-7 text-[11px]' },
   md: { px: 44, className: 'h-11 w-11 text-sm' },
+  lg: { px: 72, className: 'h-18 w-18 text-xl' },
 }
 
 function initials(name: string): string {

@@ -28,19 +28,28 @@ export default function LeaderboardList({
 
   return (
     <ol className="space-y-1">
-      <li className={`mb-2 flex min-w-0 items-center gap-3 rounded-xl bg-gradient-to-br p-3 ${featuredClass}`}>
-        <PlayerAvatar name={top.playerName} photoUrl={top.playerPhotoUrl} size="md" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-bold text-gray-900">{top.playerName}</p>
-          <p className="text-xs font-semibold text-gray-700">
-            <span aria-hidden>🥇 </span>
-            {featuredLabel}
+      <li className="mb-3 rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-100 to-amber-500 p-[3px] shadow-md">
+        <div
+          className={`relative flex min-w-0 items-center gap-4 overflow-hidden rounded-[13px] bg-gradient-to-br p-3 ${featuredClass}`}
+        >
+          <span className="absolute top-0 left-0 rounded-br-lg bg-amber-400 px-2 py-0.5 text-[10px] font-black tracking-wider text-gray-900 uppercase">
+            #1
+          </span>
+          <div className="mt-3 shrink-0 rounded-xl bg-white p-1 shadow-sm ring-1 ring-amber-300">
+            <PlayerAvatar name={top.playerName} photoUrl={top.playerPhotoUrl} size="lg" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg leading-tight font-black text-gray-900 uppercase">{top.playerName}</p>
+            <p className="mt-1 text-xs font-semibold text-gray-700">
+              <span aria-hidden>🥇 </span>
+              {featuredLabel}
+            </p>
+          </div>
+          <p className="shrink-0 text-center leading-none">
+            <span className={`block text-5xl font-black tracking-tight tabular-nums ${valueClass}`}>{top.value}</span>
+            <span className="text-[11px] font-bold tracking-wider text-gray-700 uppercase">{unit(top.value)}</span>
           </p>
         </div>
-        <p className="shrink-0 text-right leading-none">
-          <span className={`block text-4xl font-black tabular-nums ${valueClass}`}>{top.value}</span>
-          <span className="text-xs font-semibold text-gray-700">{unit(top.value)}</span>
-        </p>
       </li>
       {rest.map((e) => (
         <li
