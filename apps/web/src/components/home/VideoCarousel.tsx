@@ -30,7 +30,7 @@ export default function VideoCarousel({ children, itemCount }: { children: React
   }
 
   return (
-    <div className="relative">
+    <div className="relative lg:min-h-0 lg:flex-1">
       {canPrev && (
         <button
           type="button"
@@ -44,7 +44,7 @@ export default function VideoCarousel({ children, itemCount }: { children: React
       <ul
         ref={trackRef}
         onScroll={update}
-        className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 pt-1 pb-2"
+        className="-mx-1 flex snap-x lg:h-full snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 pt-1 pb-2"
       >
         {children}
       </ul>

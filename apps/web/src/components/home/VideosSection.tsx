@@ -44,7 +44,7 @@ export default function VideosSection() {
     <section
       aria-labelledby="videos-title"
       aria-busy={status === 'idle' || status === 'loading'}
-      className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+      className="h-full rounded-2xl border lg:flex lg:flex-col border-gray-200 bg-white p-5 shadow-sm"
     >
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <CardTitle id="videos-title" title="Videos" emoji="🎬" tone="night" />
@@ -58,7 +58,7 @@ export default function VideosSection() {
       {status === 'loaded' && (
         <VideoCarousel key={filter} itemCount={visible.length}>
           {visible.map((clip) => (
-            <li key={clip.id} className="w-64 shrink-0 snap-start sm:w-72 lg:w-[80%]">
+            <li key={clip.id} className="w-64 shrink-0 snap-start sm:w-72 lg:flex lg:w-[80%] lg:flex-col">
               <VideoThumb clip={clip} matchDate={dateByMatchId.get(clip.matchId)} onOpen={() => setOpenId(clip.id)} />
             </li>
           ))}

@@ -42,9 +42,9 @@ export default function VideoThumb({ clip, matchDate, onOpen }: VideoThumbProps)
       type="button"
       onClick={onOpen}
       aria-label={`Ver video: ${label}${matchDate ? `, ${matchDate}` : ''}`}
-      className="group block w-full rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      className="group block w-full rounded-xl text-left lg:flex lg:flex-1 lg:flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
-      <div className="relative aspect-video overflow-hidden rounded-xl bg-night">
+      <div className="relative aspect-video overflow-hidden rounded-xl bg-night lg:aspect-auto lg:min-h-48 lg:flex-1">
         {inView && (
           <video
             src={`${clip.url}#t=0.1`}
@@ -52,7 +52,7 @@ export default function VideoThumb({ clip, matchDate, onOpen }: VideoThumbProps)
             playsInline
             preload="metadata"
             aria-hidden
-            className="pointer-events-none h-full w-full object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
         )}
         <span
