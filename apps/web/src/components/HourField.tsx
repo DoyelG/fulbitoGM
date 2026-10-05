@@ -12,12 +12,15 @@ type Props = {
 
 const OPTIONS: (number | null)[] = [null, ...MATCH_HOUR_OPTIONS]
 
+const LIST_MAX_HEIGHT = 220
+
 function optionLabel(hour: number | null): string {
   return hour == null ? '-' : formatMatchClock(hour)
 }
 
 export default function HourField({ id, value, onChange, labelClassName = 'block text-sm font-medium' }: Props) {
   const [open, setOpen] = useState(false)
+  const [openUp, setOpenUp] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const selectedRef = useRef<HTMLLIElement>(null)
   const listId = `${id}-list`
@@ -39,6 +42,15 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
     }
   }, [open])
 
+  const toggle = () => {
+    if (!open && wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom
+      setOpenUp(spaceBelow < LIST_MAX_HEIGHT + 8 && rect.top > spaceBelow)
+    }
+    setOpen((o) => !o)
+  }
+
   const select = (hour: number | null) => {
     onChange(hour)
     setOpen(false)
@@ -52,7 +64,7 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
       <button
         id={id}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
@@ -68,7 +80,9 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
           id={listId}
           role="listbox"
           aria-labelledby={id}
-          className="absolute top-full mt-1 left-0 z-20 w-full max-h-[220px] overflow-auto bg-white border border-gray-500 rounded shadow-md"
+          className={`absolute left-0 z-20 w-full max-h-[220px] overflow-auto bg-white border border-gray-500 rounded shadow-md ${
+            openUp ? 'bottom-full mb-1' : 'top-full mt-1'
+          }`}
         >
           {OPTIONS.map((h) => {
             const selected = value === h
