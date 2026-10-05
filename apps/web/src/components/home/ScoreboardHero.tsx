@@ -56,9 +56,14 @@ export default function ScoreboardHero() {
       <div className="mt-7 flex flex-col items-center gap-2">
         <Link
           href="/match"
-          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-extrabold text-night shadow-lg shadow-accent/35 transition hover:brightness-110 sm:w-auto ${FOCUS_ON_DARK}`}
+          className={`group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-extrabold text-night shadow-lg shadow-accent/35 transition hover:brightness-110 sm:w-auto ${FOCUS_ON_DARK}`}
         >
-          <span aria-hidden>⚽</span>
+          <span
+            aria-hidden
+            className="inline-block transition-transform duration-700 ease-out motion-safe:group-hover:translate-x-1 motion-safe:group-hover:rotate-[360deg]"
+          >
+            ⚽
+          </span>
           {isEmpty ? 'Armá el primero' : 'Preparar el próximo partido'}
         </Link>
         {status === 'ready' && latest && (
