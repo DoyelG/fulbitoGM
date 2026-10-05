@@ -5,18 +5,12 @@ import { CHAMPIONSHIP_THRESHOLD, onlyFinalMatches, pickChampionshipProgress, pic
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { useHomeStatus } from '@/hooks/use-home-status'
-import ChampionshipChasers from './ChampionshipChasers'
-import ChampionshipTrack from './ChampionshipTrack'
-import PlayerAvatar from './PlayerAvatar'
+import ChampionshipStandings, { type StandingRow } from './ChampionshipStandings'
 import WidgetCard from './WidgetCard'
 import WidgetError from './WidgetError'
 import WidgetSkeleton from './WidgetSkeleton'
 
 const CHASER_LIMIT = 2
-
-function streakLabel(streak: number): string {
-  return streak === 1 ? '1 victoria seguida' : `${streak} victorias seguidas`
-}
 
 function remainingLabel(streak: number): string {
   const left = CHAMPIONSHIP_THRESHOLD - streak
@@ -36,8 +30,10 @@ export default function ChampionshipWidget() {
         .slice(0, CHASER_LIMIT),
     [players, matches, progress],
   )
-  const streak = progress?.streak ?? 0
-  const trackLabel = `Progreso al campeonato: ${Math.min(streak, CHAMPIONSHIP_THRESHOLD)} de ${CHAMPIONSHIP_THRESHOLD} victorias`
+  const rows = useMemo<StandingRow[]>(
+    () => [...(progress ? [{ ...progress }] : []), ...chasers.map((c) => ({ ...c, streak: c.count }))],
+    [progress, chasers],
+  )
 
   return (
     <WidgetCard
@@ -54,29 +50,17 @@ export default function ChampionshipWidget() {
       {status === 'ready' && (
         <div className="space-y-4">
           {progress ? (
-            <div className="flex min-w-0 items-center gap-3 rounded-xl bg-gradient-to-br from-violet-50 to-violet-100 p-3">
-              <PlayerAvatar name={progress.playerName} photoUrl={progress.playerPhotoUrl} size="md" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-lg font-bold text-gray-900">{progress.playerName}</p>
-                <p className="text-sm text-gray-700">{streakLabel(progress.streak)}</p>
-              </div>
-              <p aria-hidden className="shrink-0 leading-none">
-                <span className="text-4xl font-black text-brand tabular-nums">
-                  {Math.min(streak, CHAMPIONSHIP_THRESHOLD)}
-                </span>
-                <span className="text-lg font-bold text-gray-600">/{CHAMPIONSHIP_THRESHOLD}</span>
-              </p>
-            </div>
+            <p className="text-sm text-gray-700">
+              {progress.isChampion ? (
+                <strong className="text-emerald-700">{remainingLabel(progress.streak)}</strong>
+              ) : (
+                remainingLabel(progress.streak)
+              )}
+            </p>
           ) : (
             <p className="text-sm text-gray-600">Nadie viene ganando seguido todavía.</p>
           )}
-          <ChampionshipTrack streak={streak} label={trackLabel} />
-          {progress && (
-            <p className="text-sm text-gray-700">
-              {progress.isChampion ? <strong>{remainingLabel(streak)}</strong> : remainingLabel(streak)}
-            </p>
-          )}
-          <ChampionshipChasers chasers={chasers} />
+          <ChampionshipStandings rows={rows} />
         </div>
       )}
     </WidgetCard>
