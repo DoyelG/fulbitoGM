@@ -58,7 +58,7 @@ export default function VideosSection() {
       {status === 'loaded' && (
         <VideoCarousel key={filter} itemCount={visible.length}>
           {visible.map((clip) => (
-            <li key={clip.id} className="w-64 shrink-0 snap-start sm:w-72">
+            <li key={clip.id} className="w-64 shrink-0 snap-start sm:w-72 lg:w-[80%]">
               <VideoThumb clip={clip} matchDate={dateByMatchId.get(clip.matchId)} onOpen={() => setOpenId(clip.id)} />
             </li>
           ))}
