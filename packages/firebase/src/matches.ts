@@ -42,6 +42,7 @@ export function docToMatchScalars(id: string, data: Record<string, unknown>): Om
   return {
     id,
     date,
+    hasTime: (data['hasTime'] as boolean | undefined) ?? false,
     createdAt: toIsoString(data['createdAt']) ?? date,
     updatedAt: toIsoString(data['updatedAt']) ?? date,
     type: data['type'] as string,
