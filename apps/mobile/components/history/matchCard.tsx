@@ -1,4 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
+import { formatMatchDate, formatMatchHour, parseMatchDate } from '@fulbito/utils'
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
@@ -16,11 +17,6 @@ type Props = {
   onViewClips: () => void
 }
 
-function formatDate(iso: string): string {
-  const [yy, mm, dd] = iso.slice(0, 10).split('-')
-  return `${dd}/${mm}/${yy}`
-}
-
 export function MatchCard({
   match: m,
   players,
@@ -34,6 +30,7 @@ export function MatchCard({
 
   const winA = m.teamAScore > m.teamBScore
   const winB = m.teamBScore > m.teamAScore
+  const { date: matchDay, hour } = parseMatchDate(m)
 
   const shirtName = m.shirtsResponsibleId
     ? (players.find((p) => p.id === m.shirtsResponsibleId)?.name ?? '—')
@@ -64,7 +61,10 @@ export function MatchCard({
             <Text style={[styles.matchName, { color: colors.text }]}>{m.name}</Text>
           ) : null}
           <View style={styles.metaRow}>
-            <Text style={[styles.date, { color: colors.text }]}>{formatDate(m.date)}</Text>
+            <Text style={[styles.date, { color: colors.text }]}>{formatMatchDate(matchDay)}</Text>
+            {hour != null && (
+              <Text style={[styles.date, { color: colors.text }]}>{formatMatchHour(hour)}</Text>
+            )}
             <View style={[styles.typeBadge, { backgroundColor: colors.brand }]}>
               <Text style={styles.typeBadgeText}>{m.type}</Text>
             </View>
