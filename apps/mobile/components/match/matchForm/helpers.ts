@@ -1,11 +1,7 @@
 import type { MatchInput, Player } from '@fulbito/types'
-import { buildMatchSchedule, formatMatchDate } from '@fulbito/utils'
+import { buildMatchSchedule } from '@fulbito/utils'
 
 import type { MatchType, RecordingPlayer } from './types'
-
-export function formatDate(iso: string): string {
-  return formatMatchDate(iso)
-}
 
 export function toPlayerInfo(p: Player) {
   return {
