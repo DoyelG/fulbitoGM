@@ -32,7 +32,7 @@ export function LocationField({ value, onChange }: Props) {
   const [selected, setSelected] = useState<Address | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
 
-  const goToSheet = (kind: SheetKind, address: Address | null = null) => {
+  const switchLocationSheet = (kind: SheetKind, address: Address | null = null) => {
     setSelected(address)
     setForm(kind === 'form' && address ? { id: address.id, name: address.name, street: address.street } : EMPTY_FORM)
     setSheet(kind)
@@ -42,7 +42,7 @@ export function LocationField({ value, onChange }: Props) {
     const name = form.name.trim()
     const street = form.street.trim()
     if (!name || !street) {
-      goToSheet('closed')
+      switchLocationSheet('closed')
       return
     }
     try {
@@ -53,7 +53,7 @@ export function LocationField({ value, onChange }: Props) {
         const id = await createAddress({ name, street })
         onChange({ name, street, addressId: id })
       }
-      goToSheet('closed')
+      switchLocationSheet('closed')
       await reload()
     } catch {
       Alert.alert('No se pudo guardar la cancha', 'Revisá tu conexión e intentá de nuevo.')
@@ -63,7 +63,7 @@ export function LocationField({ value, onChange }: Props) {
   const handleConfirmDelete = async () => {
     if (!selected) return
     const address = selected
-    goToSheet('list')
+    switchLocationSheet('list')
     try {
       await deleteAddress(address.id)
       if (value?.addressId === address.id) onChange(null)
@@ -77,7 +77,7 @@ export function LocationField({ value, onChange }: Props) {
       <FormLabel text="Ubicación" />
       <View style={locationStyles.pickerRow}>
         <TouchableOpacity
-          onPress={() => goToSheet('list')}
+          onPress={() => switchLocationSheet('list')}
           style={[
             fieldStyles.inputBtn,
             locationStyles.pickerBtn,
@@ -91,7 +91,7 @@ export function LocationField({ value, onChange }: Props) {
 
         {isAdmin && (
           <TouchableOpacity
-            onPress={() => goToSheet('form')}
+            onPress={() => switchLocationSheet('form')}
             style={[locationStyles.addBtn, { borderRadius: radii.sm, backgroundColor: colors.brand }]}
             accessibilityRole="button"
             accessibilityLabel="Agregar cancha nueva"
@@ -101,7 +101,7 @@ export function LocationField({ value, onChange }: Props) {
         )}
       </View>
 
-      <BottomSheet visible={sheet === 'list'} title="Seleccionar cancha" onConfirm={() => goToSheet('closed')}>
+      <BottomSheet visible={sheet === 'list'} title="Seleccionar cancha" onConfirm={() => switchLocationSheet('closed')}>
         <ScrollView style={locationStyles.pickerScroll}>
           {addresses.map((address) => (
             <View
@@ -117,7 +117,7 @@ export function LocationField({ value, onChange }: Props) {
                 style={locationStyles.optionTouch}
                 onPress={() => {
                   onChange(addressToMatchLocation(address))
-                  goToSheet('closed')
+                  switchLocationSheet('closed')
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={`Elegir ${address.name}`}
@@ -128,7 +128,7 @@ export function LocationField({ value, onChange }: Props) {
               {isAdmin && (
                 <>
                   <TouchableOpacity
-                    onPress={() => goToSheet('form', address)}
+                    onPress={() => switchLocationSheet('form', address)}
                     hitSlop={12}
                     accessibilityRole="button"
                     accessibilityLabel={`Editar ${address.name}`}
@@ -136,7 +136,7 @@ export function LocationField({ value, onChange }: Props) {
                     <MaterialIcons name="edit" size={18} color={colors.text} />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => goToSheet('delete', address)}
+                    onPress={() => switchLocationSheet('delete', address)}
                     hitSlop={12}
                     accessibilityRole="button"
                     accessibilityLabel={`Eliminar ${address.name}`}
@@ -159,7 +159,7 @@ export function LocationField({ value, onChange }: Props) {
         visible={sheet === 'form'}
         title={form.id ? 'Editar cancha' : 'Agregar cancha nueva'}
         closeLabel="Guardar"
-        onDismiss={() => goToSheet('closed')}
+        onDismiss={() => switchLocationSheet('closed')}
         onConfirm={handleSave}
       >
         <View style={locationStyles.formBody}>
@@ -186,8 +186,8 @@ export function LocationField({ value, onChange }: Props) {
         visible={sheet === 'delete'}
         title="Confirmar eliminación"
         closeLabel="Cancelar"
-        onDismiss={() => goToSheet('list')}
-        onConfirm={() => goToSheet('list')}
+        onDismiss={() => switchLocationSheet('list')}
+        onConfirm={() => switchLocationSheet('list')}
       >
         <View style={locationStyles.deleteBody}>
           <Text style={[locationStyles.deleteText, { color: colors.text }]}>
