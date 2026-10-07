@@ -68,12 +68,9 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        className="h-10 flex items-center justify-between gap-1 px-2.5 border border-gray-500 rounded bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-brand"
+        className="select-chevron h-10 flex items-center pl-2.5 pr-8 border border-gray-500 rounded bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-brand"
       >
         <span>{optionLabel(value)}</span>
-        <span aria-hidden="true" className="w-3 text-center text-[9px]">
-          ▾
-        </span>
       </button>
       {open && (
         <ul
