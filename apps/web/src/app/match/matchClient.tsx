@@ -324,30 +324,31 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {players
-              .filter(p => {
-                const q = playerQuery.trim().toLowerCase()
-                if (!q) return true
-                return p.name.toLowerCase().includes(q)
+              .filter(player => {
+                if (player.inactive) return false
+                const normalizedQuery = playerQuery.trim().toLowerCase()
+                if (!normalizedQuery) return true
+                return player.name.toLowerCase().includes(normalizedQuery)
               })
-              .map(p => (
-              <div key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
+              .map(player => (
+              <div key={player.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
                 <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
                   <input
                     type="checkbox"
-                    checked={selected.has(p.id)}
-                    onChange={() => toggleSelect(p.id)}
+                    checked={selected.has(player.id)}
+                    onChange={() => toggleSelect(player.id)}
                   />
-                  <span className="font-medium truncate">{p.name}</span>
+                  <span className="font-medium truncate">{player.name}</span>
                 </label>
-                {selected.has(p.id) && (
+                {selected.has(player.id) && (
                   <button
                     type="button"
-                    onClick={() => toggleGoalkeeper(p.id)}
-                    disabled={!goalkeeperIds.has(p.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
-                    aria-pressed={goalkeeperIds.has(p.id)}
-                    title={goalkeeperIds.has(p.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
+                    onClick={() => toggleGoalkeeper(player.id)}
+                    disabled={!goalkeeperIds.has(player.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
+                    aria-pressed={goalkeeperIds.has(player.id)}
+                    title={goalkeeperIds.has(player.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
                     className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                      goalkeeperIds.has(p.id)
+                      goalkeeperIds.has(player.id)
                         ? 'bg-brand text-white border-brand'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                     }`}

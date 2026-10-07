@@ -10,18 +10,20 @@ type RawPlayer = {
   goalkeeping?: number
   createdAt: Date | string
   updatedAt: Date | string
+  inactive?: boolean
 }
 
 export function shapeStorePlayers(players: RawPlayer[]): Player[] {
-  return players.map((p) => ({
-    id: p.id,
-    name: p.name,
-    position: p.position,
-    skill: p.skill ?? null,
-    skills: p.skills as Player['skills'],
-    photoUrl: p.photoUrl ?? undefined,
-    goalkeeping: p.goalkeeping ?? undefined,
-    createdAt: p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt),
-    updatedAt: p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt),
+  return players.map((player) => ({
+    id: player.id,
+    name: player.name,
+    position: player.position,
+    skill: player.skill ?? null,
+    skills: player.skills as Player['skills'],
+    inactive: player.inactive ?? false,
+    photoUrl: player.photoUrl ?? undefined,
+    goalkeeping: player.goalkeeping ?? undefined,
+    createdAt: player.createdAt instanceof Date ? player.createdAt : new Date(player.createdAt),
+    updatedAt: player.updatedAt instanceof Date ? player.updatedAt : new Date(player.updatedAt),
   }))
 }
