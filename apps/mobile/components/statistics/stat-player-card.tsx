@@ -10,6 +10,7 @@ type Props = {
   stat: PlayerStatRow
   rank: number
   activeTab: SortTabKey
+  inactive?: boolean
   onPress: () => void
 }
 
@@ -32,16 +33,17 @@ function getFeaturedValue(stat: PlayerStatRow, activeTab: SortTabKey): { value: 
   }
 }
 
-export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
+export function StatPlayerCard({ stat, rank, activeTab, inactive = false, onPress }: Props) {
   const { colors, radii } = useAppTheme()
   const featured = getFeaturedValue(stat, activeTab)
-  const isFirst = rank === 1
+  const isFirst = !inactive && rank === 1
+  const muted = inactive ? { color: colors.muted } : null
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${stat.name}, puesto ${rank}, ${featured.value} ${featured.label}`}
+      accessibilityLabel={`${stat.name}${inactive ? ', inactivo' : ''}, puesto ${rank}, ${featured.value} ${featured.label}`}
       accessibilityHint="Abre el perfil del jugador"
       style={({ pressed }) => [
         styles.card,
@@ -64,7 +66,7 @@ export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
         />
 
         <View style={styles.mainInfo}>
-          <ThemedText numberOfLines={1} style={styles.name}>
+          <ThemedText numberOfLines={1} style={[styles.name, muted]}>
             {stat.name}
           </ThemedText>
           <ThemedText style={[styles.record, { color: colors.muted }]}>
@@ -73,7 +75,7 @@ export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
         </View>
 
         <View style={styles.featured}>
-          <ThemedText style={styles.featuredValue}>{featured.value}</ThemedText>
+          <ThemedText style={[styles.featuredValue, muted]}>{featured.value}</ThemedText>
           <ThemedText style={[styles.featuredLabel, { color: colors.muted }]}>
             {featured.label}
           </ThemedText>
@@ -82,38 +84,38 @@ export function StatPlayerCard({ stat, rank, activeTab, onPress }: Props) {
 
       <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-      <View style={styles.metrics}>
-        <View style={styles.metricItem}>
-          <ThemedText type="defaultSemiBold" style={styles.metricValue}>
-            {stat.matches}
-          </ThemedText>
-          <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>PARTIDOS</ThemedText>
+        <View style={styles.metrics}>
+          <View style={styles.metricItem}>
+            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
+              {stat.matches}
+            </ThemedText>
+            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>PARTIDOS</ThemedText>
+          </View>
+          <View style={styles.metricItem}>
+            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
+              {(stat.goals / Math.max(stat.matches, 1)).toFixed(2)}
+            </ThemedText>
+            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>G/P</ThemedText>
+          </View>
+          <View style={styles.metricItem}>
+            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
+              {stat.totalPerformance.toFixed(2)}
+            </ThemedText>
+            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>REND</ThemedText>
+          </View>
+          <View style={styles.metricItem}>
+            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
+              {((stat.wins / Math.max(stat.matches, 1)) * 100).toFixed(1)}%
+            </ThemedText>
+            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>VICTORIAS</ThemedText>
+          </View>
+          <View style={styles.metricItem}>
+            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
+              {stat.mvps}
+            </ThemedText>
+            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>🏆 MVP</ThemedText>
+          </View>
         </View>
-        <View style={styles.metricItem}>
-          <ThemedText type="defaultSemiBold" style={styles.metricValue}>
-            {(stat.goals / Math.max(stat.matches, 1)).toFixed(2)}
-          </ThemedText>
-          <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>G/P</ThemedText>
-        </View>
-        <View style={styles.metricItem}>
-          <ThemedText type="defaultSemiBold" style={styles.metricValue}>
-            {stat.totalPerformance.toFixed(2)}
-          </ThemedText>
-          <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>REND</ThemedText>
-        </View>
-        <View style={styles.metricItem}>
-          <ThemedText type="defaultSemiBold" style={styles.metricValue}>
-            {((stat.wins / Math.max(stat.matches, 1)) * 100).toFixed(1)}%
-          </ThemedText>
-          <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>VICTORIAS</ThemedText>
-        </View>
-        <View style={styles.metricItem}>
-          <ThemedText type="defaultSemiBold" style={styles.metricValue}>
-            {stat.mvps}
-          </ThemedText>
-          <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>🏆 MVP</ThemedText>
-        </View>
-      </View>
     </Pressable>
   )
 }
