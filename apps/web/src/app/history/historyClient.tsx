@@ -262,7 +262,7 @@ export default function HistoryClient() {
                       )}
                       <strong>
                         {formatMatchDate(matchDay)}
-                        {hour != null ? ` ${formatMatchHour(hour)}` : ''}
+                        {hour !== null ? ` ${formatMatchHour(hour)}` : ''}
                       </strong>
                       <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
                         {match.type}

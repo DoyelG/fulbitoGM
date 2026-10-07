@@ -32,8 +32,8 @@ export function HourField({ value, onChange }: Props) {
         accessibilityHint="Abre el selector de hora"
       >
         <View style={styles.valueRow}>
-          <Text style={[fieldStyles.inputBtnText, { color: value == null ? colors.muted : colors.text }]}>
-            {value == null ? 'Sin hora' : formatMatchClock(value)}
+          <Text style={[fieldStyles.inputBtnText, { color: value === null ? colors.muted : colors.text }]}>
+            {value === null ? 'Sin hora' : formatMatchClock(value)}
           </Text>
           <Feather name="chevron-down" size={18} color={colors.muted} />
         </View>
@@ -59,7 +59,7 @@ export function HourField({ value, onChange }: Props) {
                 }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
-                accessibilityLabel={item == null ? 'Sin hora' : formatMatchClock(item)}
+                accessibilityLabel={item === null ? 'Sin hora' : formatMatchClock(item)}
               >
                 <Text
                   style={[
@@ -67,7 +67,7 @@ export function HourField({ value, onChange }: Props) {
                     { color: active ? colors.brand : colors.text, fontWeight: active ? '700' : '400' },
                   ]}
                 >
-                  {item == null ? 'Sin hora' : formatMatchClock(item)}
+                  {item === null ? 'Sin hora' : formatMatchClock(item)}
                 </Text>
                 {active ? <Feather name="check" size={18} color={colors.brand} /> : null}
               </TouchableOpacity>

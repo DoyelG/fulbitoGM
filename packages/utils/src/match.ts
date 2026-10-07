@@ -9,7 +9,7 @@ export const MATCH_HOUR_OPTIONS: number[] = Array.from({ length: 24 }, (_, i) =>
 export type MatchDateParts = { date: string; hour: number | null }
 
 export function buildMatchSchedule(date: string, hour: number | null): Pick<Match, 'date' | 'hasTime'> {
-  if (hour == null) {
+  if (hour === null) {
     return { date: `${date}T00:00:00.000Z`, hasTime: false }
   }
   const [year, month, day] = date.split('-').map(Number)

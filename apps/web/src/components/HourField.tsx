@@ -15,7 +15,7 @@ const OPTIONS: (number | null)[] = [null, ...MATCH_HOUR_OPTIONS]
 const LIST_MAX_HEIGHT = 220
 
 function optionLabel(hour: number | null): string {
-  return hour == null ? '-' : formatMatchClock(hour)
+  return hour === null ? '-' : formatMatchClock(hour)
 }
 
 export default function HourField({ id, value, onChange, labelClassName = 'block text-sm font-medium' }: Props) {
