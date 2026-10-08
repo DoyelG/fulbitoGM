@@ -11,7 +11,7 @@ interface DrawerMenuProps {
   isOpen: boolean;
   onClose: () => void;
   progress: SharedValue<number>;
-  user: { name: string; email: string; role: string; image: string | null };
+  user: { name: string; email: string; role: string[]; image: string | null };
   onLogout: () => void;
   onDeleteUser: () => void;
 }
@@ -45,7 +45,7 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDelete
 
         <View style={styles.optionsContainer}>
           <View style={styles.divider} />
-          {user.role === 'USER' && (
+          {!user.role.includes('ADMIN') && (
             <Pressable onPress={() => {}} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
               <View style={styles.iconWrapper}>
                 <Ionicons name="shield-outline" size={20} color="#A78BFA" />
