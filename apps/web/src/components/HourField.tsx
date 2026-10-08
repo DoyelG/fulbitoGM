@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { MATCH_HOUR_OPTIONS, formatMatchClock } from '@fulbito/utils'
+import SelectChevron from './SelectChevron'
 
 type Props = {
   id: string
@@ -69,13 +69,10 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        className="h-10 flex items-center justify-between gap-1 px-2 border border-gray-500 rounded bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-brand"
+        className="relative h-10 flex items-center pl-2.5 pr-8 border border-gray-500 rounded bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-brand"
       >
         <span>{optionLabel(value)}</span>
-        <ChevronDownIcon
-          aria-hidden="true"
-          className={`h-5 w-5 shrink-0 text-gray-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-        />
+        <SelectChevron />
       </button>
       {open && (
         <ul
