@@ -15,7 +15,7 @@ export function DropColumn({ title, onDrop, children }: { title: string; onDrop:
   )
 }
 
-export function DraggableItem<T>({ data, label, onClick }: { data: T; label: string; onClick?: () => void }) {
+export function DraggableItem<T>({ data, label, onClick, isGoalkeeper }: { data: T; label: string; onClick?: () => void; isGoalkeeper?: boolean }) {
   return (
     <div
       draggable
@@ -23,7 +23,7 @@ export function DraggableItem<T>({ data, label, onClick }: { data: T; label: str
       className="bg-white border rounded px-3 py-2 text-center hover:shadow"
       onClick={onClick}
     >
-      <strong>{label}</strong>
+      <strong>{label}{isGoalkeeper ? ' 🧤' : ''}</strong>
     </div>
   )
 }

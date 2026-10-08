@@ -243,8 +243,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     moveManual(p, target)
   }
 
-  const Draggable = ({ p }: { p: PlayerInfo }) => (
-    <DraggableItem data={p} label={p.name} />
+  const Draggable = ({ p }: { p: PlayerInfo}) => (
+    <DraggableItem data={p} label={p.name} isGoalkeeper={goalkeeperIds.has(p.id)}/>
   )
 
   const totalSkillA = autoTeams?.teamA.totalSkill ?? 0
