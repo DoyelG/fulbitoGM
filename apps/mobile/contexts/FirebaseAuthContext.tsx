@@ -5,6 +5,7 @@ import {
   register as firebaseRegister,
   signIn as firebaseSignIn,
   signOut as firebaseSignOut,
+  isAdmin as checkIsAdmin,
   onAuthStateChanged,
   type AppUser,
 } from '@fulbito/firebase'
@@ -55,9 +56,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, isAdmin: user?.role === 'ADMIN', signIn, register, signOut, deleteUser }}
-    >
+    <AuthContext.Provider value={{ user, loading, isAdmin: checkIsAdmin(user), signIn, register, signOut, deleteUser }}>
       {children}
     </AuthContext.Provider>
   )
