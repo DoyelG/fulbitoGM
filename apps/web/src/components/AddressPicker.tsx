@@ -8,6 +8,7 @@ import Modal from './Modal'
 import AddressForm from './addresses/AddressForm'
 import AddressManagerModal from './addresses/AddressManagerModal'
 import AddressActionsMenu from './addresses/AddressActionsMenu'
+import SelectChevron from './SelectChevron'
 
 type AddressPickerProps = {
   value: MatchLocation | null
@@ -48,22 +49,25 @@ export default function AddressPicker({ value, onChange }: AddressPickerProps) {
   return (
     <div className="relative w-full">
       <div className="flex h-10 w-full items-center rounded border">
-        <select
-          className="select-chevron h-full min-w-0 flex-1 appearance-none border-none bg-transparent pl-3 pr-8 focus:outline-none"
-          aria-label="Cancha"
-          value={selectedAddress?.id ?? ''}
-          onChange={(event) => {
-            const found = addresses.find((address) => address.id === event.target.value)
-            onChange(found ? addressToMatchLocation(found) : null)
-          }}
-        >
-          <option value="">Seleccionar cancha...</option>
-          {addresses.map((address) => (
-            <option key={address.id} value={address.id}>
-              {address.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative h-full min-w-0 flex-1">
+          <select
+            className="h-full w-full appearance-none border-none bg-transparent pl-3 pr-8 focus:outline-none"
+            aria-label="Cancha"
+            value={selectedAddress?.id ?? ''}
+            onChange={(event) => {
+              const found = addresses.find((address) => address.id === event.target.value)
+              onChange(found ? addressToMatchLocation(found) : null)
+            }}
+          >
+            <option value="">Seleccionar cancha...</option>
+            {addresses.map((address) => (
+              <option key={address.id} value={address.id}>
+                {address.name}
+              </option>
+            ))}
+          </select>
+          <SelectChevron />
+        </div>
         <div className="h-7 w-px shrink-0 bg-gray-400" aria-hidden="true" />
         <AddressActionsMenu
           onAdd={() => {

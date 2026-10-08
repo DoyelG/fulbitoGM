@@ -24,6 +24,7 @@ import { usePagination } from "../shared/use-pagination";
 import { MatchDescription } from "./matchDescription";
 import { Backdrop } from "@/components/Backdrop";
 import AddressPicker from "@/components/AddressPicker";
+import SelectChevron from "@/components/SelectChevron";
 import MatchLocationLink from "@/components/MatchLocationLink";
 import { FiTrash2 } from "react-icons/fi";
 
@@ -886,21 +887,24 @@ function RecordModal({
             <label className="block text-sm font-medium mb-1">
               Modo de Partido
             </label>
-            <select
-              value={matchType}
-              onChange={(event) => {
-                setTeamA([]);
-                setTeamB([]);
-                setMatchType(event.target.value as MatchType);
-              }}
-              className="select-chevron h-10 w-full appearance-none rounded border pl-3 pr-8"
-            >
-              {MATCH_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={matchType}
+                onChange={(event) => {
+                  setTeamA([]);
+                  setTeamB([]);
+                  setMatchType(event.target.value as MatchType);
+                }}
+                className="h-10 w-full appearance-none rounded border pl-3 pr-8"
+              >
+                {MATCH_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+              <SelectChevron />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -1148,33 +1152,36 @@ function RecordModal({
               </div>
             </div>
             <div className="flex-1">
-              <select
-                className="select-chevron appearance-none border rounded pl-3 pr-8 py-2 w-full"
-                value={shirtsResponsibleId ?? ""}
-                onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
-              >
-                <option disabled={!!shirtsResponsibleId} value="">
-                  Seleccione un Jugador
-                </option>
-                {(() => {
-                  const current = [...teamA, ...teamB];
-                  const eligibleExists = current.some((pp) =>
-                    playedBefore.has(pp.id),
-                  );
-                  return current.map((player) => (
-                    <option
-                      key={player.id}
-                      value={player.id}
-                      disabled={eligibleExists && !playedBefore.has(player.id)}
-                    >
-                      {player.name} (#{dutiesById.get(player.id) ?? 0})
-                      {eligibleExists && !playedBefore.has(player.id)
-                        ? " — nuevo"
-                        : ""}
-                    </option>
-                  ));
-                })()}
-              </select>
+              <div className="relative">
+                <select
+                  className="appearance-none border rounded pl-3 pr-8 py-2 w-full"
+                  value={shirtsResponsibleId ?? ""}
+                  onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
+                >
+                  <option disabled={!!shirtsResponsibleId} value="">
+                    Seleccione un Jugador
+                  </option>
+                  {(() => {
+                    const current = [...teamA, ...teamB];
+                    const eligibleExists = current.some((pp) =>
+                      playedBefore.has(pp.id),
+                    );
+                    return current.map((player) => (
+                      <option
+                        key={player.id}
+                        value={player.id}
+                        disabled={eligibleExists && !playedBefore.has(player.id)}
+                      >
+                        {player.name} (#{dutiesById.get(player.id) ?? 0})
+                        {eligibleExists && !playedBefore.has(player.id)
+                          ? " — nuevo"
+                          : ""}
+                      </option>
+                    ));
+                  })()}
+                </select>
+                <SelectChevron />
+              </div>
             </div>
           </div>
         </div>
@@ -1193,36 +1200,39 @@ function RecordModal({
               </div>
             </div>
             <div className="flex-1">
-              <select
-                className="select-chevron appearance-none border rounded pl-3 pr-8 py-2 w-full bg-white"
-                value={mvpId ?? ""}
-                onChange={(event) => setMvpId(event.target.value || null)}
-              >
-                <option value="">Sin MVP</option>
-                {(() => {
-                  const current = [...teamA, ...teamB];
-                  const topPerfId = (() => {
-                    const all = [
-                      ...current.map((player) => ({
-                        id: player.id,
-                        perf: perfA[player.id] ?? perfB[player.id] ?? 0,
-                      })),
-                    ];
-                    return all.sort((statA, statB) => statB.perf - statA.perf)[0]?.id;
-                  })();
-                  return current.map((player) => {
-                    const perf = perfA[player.id] ?? perfB[player.id] ?? 0;
-                    const goals = goalsA[player.id] ?? goalsB[player.id] ?? 0;
-                    const isSuggested = player.id === topPerfId && perf > 0;
-                    return (
-                      <option key={player.id} value={player.id}>
-                        {player.name} — ⚽ {goals} · ★ {perf}
-                        {isSuggested ? " · sugerido" : ""}
-                      </option>
-                    );
-                  });
-                })()}
-              </select>
+              <div className="relative">
+                <select
+                  className="appearance-none border rounded pl-3 pr-8 py-2 w-full bg-white"
+                  value={mvpId ?? ""}
+                  onChange={(event) => setMvpId(event.target.value || null)}
+                >
+                  <option value="">Sin MVP</option>
+                  {(() => {
+                    const current = [...teamA, ...teamB];
+                    const topPerfId = (() => {
+                      const all = [
+                        ...current.map((player) => ({
+                          id: player.id,
+                          perf: perfA[player.id] ?? perfB[player.id] ?? 0,
+                        })),
+                      ];
+                      return all.sort((statA, statB) => statB.perf - statA.perf)[0]?.id;
+                    })();
+                    return current.map((player) => {
+                      const perf = perfA[player.id] ?? perfB[player.id] ?? 0;
+                      const goals = goalsA[player.id] ?? goalsB[player.id] ?? 0;
+                      const isSuggested = player.id === topPerfId && perf > 0;
+                      return (
+                        <option key={player.id} value={player.id}>
+                          {player.name} — ⚽ {goals} · ★ {perf}
+                          {isSuggested ? " · sugerido" : ""}
+                        </option>
+                      );
+                    });
+                  })()}
+                </select>
+                <SelectChevron />
+              </div>
             </div>
           </div>
         </div>

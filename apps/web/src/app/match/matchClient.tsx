@@ -12,6 +12,7 @@ import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { MatchInput, MatchLocation } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import AddressPicker from '@/components/AddressPicker'
+import SelectChevron from '@/components/SelectChevron'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
@@ -428,27 +429,30 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                 </div>
               </div>
               <div className="flex-1">
-                <select
-                  className="select-chevron appearance-none border rounded pl-3 pr-8 py-2 w-full"
-                  value={shirtsResponsibleId ?? ''}
-                  onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
-                >
-                  <option value="">(aleatorio entre elegibles con menos asignaciones)</option>
-                  {(() => {
-                    const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
-                    const played = new Set<string>()
-                    for (const m of finalMatches) {
-                      for (const p of m.teamA) played.add(p.id)
-                      for (const p of m.teamB) played.add(p.id)
-                    }
-                    const eligibleExists = current.some(p => played.has(p.id))
-                    return current.map(p => (
-                      <option key={p.id} value={p.id} disabled={eligibleExists && !played.has(p.id)}>
-                        {p.name} (#{dutiesById.get(p.id) ?? 0}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
-                      </option>
-                    ))
-                  })()}
-                </select>
+                <div className="relative">
+                  <select
+                    className="appearance-none border rounded pl-3 pr-8 py-2 w-full"
+                    value={shirtsResponsibleId ?? ''}
+                    onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
+                  >
+                    <option value="">(aleatorio entre elegibles con menos asignaciones)</option>
+                    {(() => {
+                      const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
+                      const played = new Set<string>()
+                      for (const m of finalMatches) {
+                        for (const p of m.teamA) played.add(p.id)
+                        for (const p of m.teamB) played.add(p.id)
+                      }
+                      const eligibleExists = current.some(p => played.has(p.id))
+                      return current.map(p => (
+                        <option key={p.id} value={p.id} disabled={eligibleExists && !played.has(p.id)}>
+                          {p.name} (#{dutiesById.get(p.id) ?? 0}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
+                        </option>
+                      ))
+                    })()}
+                  </select>
+                  <SelectChevron />
+                </div>
               </div>
               <div>
                 <button
