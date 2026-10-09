@@ -28,17 +28,29 @@ export function usePlayerStatistics(players: Player[], matches: Match[]) {
       }
     }
 
-    return [...stats].sort((a, b) => {
-      const diff = getSortValue(b) - getSortValue(a)
+    return [...stats].sort((rowA, rowB) => {
+      const diff = getSortValue(rowB) - getSortValue(rowA)
       if (diff !== 0) return diff
-      return a.name.localeCompare(b.name)
+      return rowA.name.localeCompare(rowB.name)
     })
   }, [stats, activeTab])
+
+  const inactiveIds = useMemo(
+    () => new Set(players.filter((player) => player.inactive).map((player) => player.id)),
+    [players],
+  )
+
+  const activeStats = useMemo(() => sortedStats.filter((row) => !inactiveIds.has(row.id)), [sortedStats, inactiveIds])
+
+  const inactiveStats = useMemo(() => sortedStats.filter((row) => inactiveIds.has(row.id)), [sortedStats, inactiveIds])
 
   return {
     activeTab,
     setActiveTab,
     stats,
     sortedStats,
+    inactiveIds,
+    activeStats,
+    inactiveStats,
   }
 }

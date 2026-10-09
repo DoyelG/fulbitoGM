@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/components/Button";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -21,24 +22,25 @@ export default function PlayerDetailPage() {
   const { isAdmin } = useFirebaseAuth()
   const { id } = useParams();
   const router = useRouter();
-  const updatePlayer = usePlayerStore((s) => s.updatePlayer);
-  const initPlayersLoad = usePlayerStore((s) => s.initLoad);
-  const playersInit = usePlayerStore((s) => s.playersInit);
+  const updatePlayer = usePlayerStore((state) => state.updatePlayer);
+  const initPlayersLoad = usePlayerStore((state) => state.initLoad);
+  const playersInit = usePlayerStore((state) => state.playersInit);
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
   const fileRef = useRef<HTMLInputElement | null>(null)
-  const onAvatarClick = () => {
+  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     if (!isAdmin) return
-    if (!player?.photoUrl) fileRef.current?.click()
-  }
-  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!isAdmin) return
-    const f = e.target.files?.[0]
+    const f = event.target.files?.[0]
     if (!f) return
-    const url = await uploadPlayerPhoto(f, player!.id)
-    await updatePlayer(player!.id, { photoUrl: url })
+    setForm(prev => ({ ...prev, photo: f, photoUrl: URL.createObjectURL(f) }))
+  }
+  const deletePhoto = () => {
+    setForm(prev => ({ ...prev, photo: null, photoUrl: null }))
+    if (fileRef.current) fileRef.current.value = ''
   }
 
-  const player = usePlayerStore((s) => s.players.find((p) => p.id === (id as string)));
+  const player = usePlayerStore((state) =>
+    state.players.find((playerRow) => playerRow.id === (id as string)),
+  );
 
   useEffect(() => {
     if (playersInit !== 'loaded') initPlayersLoad();
@@ -55,12 +57,17 @@ export default function PlayerDetailPage() {
     tactical: "5",
     psychological: "5",
     goalkeeping: "5",
+    inactive: false,
+    photo: null as File | null,
+    photoUrl: null as string | null,
   });
+  const [originalForm, setOriginalForm] = useState(form);
+  type PlayerFormState = typeof form;
 
   useEffect(() => {
     if (player) {
       const base = player.skill ?? 5;
-      setForm({
+      const loaded = {
         name: player.name,
         position: player.position,
         physical: String(player.skills?.physical ?? base),
@@ -68,10 +75,30 @@ export default function PlayerDetailPage() {
         tactical: String(player.skills?.tactical ?? base),
         psychological: String(player.skills?.psychological ?? base),
         goalkeeping: String(getGoalkeeping(player)),
-      });
+        inactive: player.inactive ?? false,
+        photo: null,
+        photoUrl: player.photoUrl ?? null,
+      };
+      setForm(loaded);
+      setOriginalForm(loaded);
       setGkTouched(player.goalkeeping != null);
     }
   }, [player]);
+
+  const normalizeForComparison = (formState: PlayerFormState): PlayerFormState => ({
+    ...formState,
+    name: formState.name.trim(),
+  })
+
+  const hasFormChanged = (editedForm: PlayerFormState, savedForm: PlayerFormState) => {
+    const normalizedEdited = normalizeForComparison(editedForm)
+    const normalizedSaved = normalizeForComparison(savedForm)
+    const fieldNames = Object.keys(normalizedEdited) as Array<keyof PlayerFormState>
+
+    return fieldNames.some((fieldName) => normalizedEdited[fieldName] !== normalizedSaved[fieldName])
+  }
+
+  const canSubmitQuick = hasFormChanged(form, originalForm)
 
   const stats = useMemo(() => {
     const res = {
@@ -93,46 +120,46 @@ export default function PlayerDetailPage() {
       }>,
     };
 
-    for (const m of matches) {
-      const inA = m.teamA.find((p) => p.id === id);
-      const inB = m.teamB.find((p) => p.id === id);
+    for (const match of matches) {
+      const inA = match.teamA.find((playerRow) => playerRow.id === id);
+      const inB = match.teamB.find((playerRow) => playerRow.id === id);
       if (!inA && !inB) continue;
 
       const me = inA || inB;
       const team = inA ? ("A" as const) : ("B" as const);
-      const a = m.teamAScore,
-        b = m.teamBScore;
+      const teamAScore = match.teamAScore,
+        teamBScore = match.teamBScore;
       res.matches++;
       res.goals += me!.goals;
       res.totalPerformance += me!.performance;
       if (team === "A") {
-        if (a > b) res.wins++;
-        else if (a < b) res.losses++;
+        if (teamAScore > teamBScore) res.wins++;
+        else if (teamAScore < teamBScore) res.losses++;
         else res.draws++;
       } else {
-        if (b > a) res.wins++;
-        else if (b < a) res.losses++;
+        if (teamBScore > teamAScore) res.wins++;
+        else if (teamBScore < teamAScore) res.losses++;
         else res.draws++;
       }
       res.recent.push({
-        date: m.date,
-        type: m.type,
+        date: match.date,
+        type: match.type,
         team,
         goals: me!.goals,
         performance: me!.performance,
-        score: `${a} - ${b}`,
+        score: `${teamAScore} - ${teamBScore}`,
         result: (team === "A"
-          ? a > b
+          ? teamAScore > teamBScore
             ? "W"
-            : a < b
+            : teamAScore < teamBScore
             ? "L"
             : "D"
-          : b > a
+          : teamBScore > teamAScore
           ? "W"
-          : b < a
+          : teamBScore < teamAScore
           ? "L"
           : "D") as "W" | "L" | "D",
-        isFriendly: m.isFriendly ?? false,
+        isFriendly: match.isFriendly ?? false,
       });
     }
 
@@ -168,8 +195,16 @@ export default function PlayerDetailPage() {
     );
   }
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCancel = () => {
+    if (form.photoUrl?.startsWith('blob:')) URL.revokeObjectURL(form.photoUrl)
+    setForm(originalForm)
+    setGkTouched(player.goalkeeping != null)
+    if (fileRef.current) fileRef.current.value = ''
+    setEditMode(false)
+  }
+
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
     const skills = {
       physical: parseInt(form.physical, 10),
       technical: parseInt(form.technical, 10),
@@ -183,12 +218,21 @@ export default function PlayerDetailPage() {
         skills.psychological) /
       4;
     const goalkeeping = gkTouched ? parseInt(form.goalkeeping, 10) : Math.round(avg);
-    updatePlayer(player.id, {
+
+    let uploadedUrl: string | undefined
+    if (form.photo) {
+      uploadedUrl = await uploadPlayerPhoto(form.photo, player.id)
+    }
+    const photoChanged = form.photoUrl !== originalForm.photoUrl
+
+    await updatePlayer(player.id, {
       name: form.name.trim(),
       position: form.position,
       skills,
       skill: avg,
       goalkeeping,
+      inactive: form.inactive,
+      ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}),
     });
     setEditMode(false);
   };
@@ -229,6 +273,11 @@ export default function PlayerDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700">General:</span>
                 <SkillBadge skill={overallAvg} />
+              {player.inactive && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-600">
+                  Inactivo
+                </span>
+              )}
               </div>
               <span className="text-sm">Posición: {player.position}</span>
             </div>
@@ -271,7 +320,7 @@ export default function PlayerDetailPage() {
             isAdmin ? (
               <button
                 className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
-                onClick={() => setEditMode(false)}
+                onClick={handleCancel}
               >
                 Cancelar
               </button>
@@ -284,12 +333,14 @@ export default function PlayerDetailPage() {
           <div className="relative">
             <PlayerCard
               overall={overallAvg}
-              photoUrl={player.photoUrl}
+              photoUrl={form.photoUrl}
               skills={catSkills}
               goalkeeping={getGoalkeeping(player)}
-              onAvatarClick={onAvatarClick}
+              onAvatarClick={() => fileRef.current?.click()}
+              editMode={editMode}
+              deletePhoto={deletePhoto}
             />
-            {isAdmin && (
+            {editMode && isAdmin && (
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
             )}
           </div>
@@ -312,7 +363,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Nombre</label>
             <input
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
               required
             />
@@ -321,7 +372,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Físico</label>
             <select
               value={form.physical}
-              onChange={(e) => setForm({ ...form, physical: e.target.value })}
+              onChange={(event) => setForm({ ...form, physical: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -335,7 +386,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Técnico</label>
             <select
               value={form.technical}
-              onChange={(e) => setForm({ ...form, technical: e.target.value })}
+              onChange={(event) => setForm({ ...form, technical: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -349,7 +400,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Táctico</label>
             <select
               value={form.tactical}
-              onChange={(e) => setForm({ ...form, tactical: e.target.value })}
+              onChange={(event) => setForm({ ...form, tactical: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -365,8 +416,8 @@ export default function PlayerDetailPage() {
             </label>
             <select
               value={form.psychological}
-              onChange={(e) =>
-                setForm({ ...form, psychological: e.target.value })
+              onChange={(event) =>
+                setForm({ ...form, psychological: event.target.value })
               }
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
@@ -381,7 +432,7 @@ export default function PlayerDetailPage() {
             <label className="block text-sm font-medium mb-1">Arquero</label>
             <select
               value={gkQuickValue}
-              onChange={(e) => { setGkTouched(true); setForm({ ...form, goalkeeping: e.target.value }) }}
+              onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -392,14 +443,13 @@ export default function PlayerDetailPage() {
             </select>
           </div>
           <div className="sm:col-span-3 text-sm text-gray-800">
-            General (promedio):{" "}
-            <span className="font-semibold">Lv {avgPreview}</span>
+            General (promedio): <span className="font-semibold">Lv {avgPreview}</span>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Posición</label>
             <select
               value={form.position}
-              onChange={(e) => setForm({ ...form, position: e.target.value })}
+              onChange={(event) => setForm({ ...form, position: event.target.value })}
               className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
             >
               <option value="GK">Arquero</option>
@@ -409,20 +459,44 @@ export default function PlayerDetailPage() {
               <option value="PLAYER">Cualquier posición</option>
             </select>
           </div>
+          <div>
+            <span id="quick-status-label" className="block text-sm font-medium mb-1">
+              Estado
+            </span>
+            <div
+              role="group"
+              aria-labelledby="quick-status-label"
+              className="flex w-full rounded border border-gray-300 overflow-hidden"
+            >
+              <button
+                type="button"
+                aria-pressed={!form.inactive}
+                onClick={() => setForm({ ...form, inactive: false })}
+                className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+                  !form.inactive ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Activo
+              </button>
+              <button
+                type="button"
+                aria-pressed={form.inactive}
+                onClick={() => setForm({ ...form, inactive: true })}
+                className={`flex-1 px-3 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+                  form.inactive ? 'bg-gray-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Inactivo
+              </button>
+            </div>
+          </div>
           <div className="sm:col-span-3 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setEditMode(false)}
-              className="px-4 py-2 rounded border hover:bg-gray-50"
-            >
+            <Button type="button" variant="secondary" onClick={handleCancel}>
               Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded bg-brand text-white hover:bg-brand/90"
-            >
+            </Button>
+            <Button type="submit" disabled={!canSubmitQuick}>
               Guardar
-            </button>
+            </Button>
           </div>
         </form>
       )}
@@ -481,9 +555,9 @@ export default function PlayerDetailPage() {
             <div className="text-gray-800">No hay partidos para este jugador aún.</div>
           ) : (
             <div className="grid gap-2">
-              {stats.recent.slice(0, 10).map((rm, i) => (
+              {stats.recent.slice(0, 10).map((rm, index) => (
                 <div
-                  key={i}
+                  key={index}
                   className="flex flex-wrap items-center justify-between bg-gray-50 rounded px-3 py-2"
                 >
                   <div className="flex items-center gap-3">
