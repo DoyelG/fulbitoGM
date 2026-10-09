@@ -35,7 +35,7 @@ export function HourField({ value, onChange }: Props) {
           <Text style={[fieldStyles.inputBtnText, { color: value === null ? colors.muted : colors.text }]}>
             {value === null ? 'Sin hora' : formatMatchClock(value)}
           </Text>
-          <Feather name="chevron-down" size={18} color={colors.muted} />
+          <Feather name="chevron-down" size={20} color={colors.text} />
         </View>
       </TouchableOpacity>
       <BottomSheet
