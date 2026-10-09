@@ -24,9 +24,9 @@ import { usePagination } from "../shared/use-pagination";
 import { MatchDescription } from "./matchDescription";
 import { Backdrop } from "@/components/Backdrop";
 import AddressPicker from "@/components/AddressPicker";
-import SelectChevron from "@/components/SelectChevron";
 import MatchLocationLink from "@/components/MatchLocationLink";
 import { FiTrash2 } from "react-icons/fi";
+import Chevron from "../shared/Icons/Chevron";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
@@ -903,7 +903,7 @@ function RecordModal({
                   </option>
                 ))}
               </select>
-              <SelectChevron />
+              <Chevron select />
             </div>
           </div>
           <div>
@@ -1180,7 +1180,7 @@ function RecordModal({
                     ));
                   })()}
                 </select>
-                <SelectChevron />
+                <Chevron select />
               </div>
             </div>
           </div>
@@ -1231,7 +1231,7 @@ function RecordModal({
                     });
                   })()}
                 </select>
-                <SelectChevron />
+                <Chevron select />
               </div>
             </div>
           </div>

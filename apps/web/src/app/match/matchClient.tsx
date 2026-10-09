@@ -12,7 +12,7 @@ import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { MatchInput, MatchLocation } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import AddressPicker from '@/components/AddressPicker'
-import SelectChevron from '@/components/SelectChevron'
+import Chevron from '../shared/Icons/Chevron'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
@@ -451,7 +451,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                       ))
                     })()}
                   </select>
-                  <SelectChevron />
+                  <Chevron select />
                 </div>
               </div>
               <div>

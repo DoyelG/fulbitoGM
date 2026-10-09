@@ -8,9 +8,10 @@ import type { Match, Player } from '@fulbito/types'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { FiChevronDown, FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
+import { FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
 import PlayersTable, { type PlayerRow } from './PlayersTable'
 import Modal from '@/components/Modal'
+import Chevron from '../shared/Icons/Chevron'
 
 export default function PlayersClient({
   players: initialPlayers,
@@ -130,10 +131,7 @@ export default function PlayersClient({
             className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
           >
             <h2 className="text-lg font-semibold text-gray-800">Inactivos</h2>
-            <FiChevronDown
-              size={20}
-              className={`text-gray-500 transition-transform duration-200 ${showInactiveTable ? 'rotate-180' : ''}`}
-            />
+            <Chevron direction={showInactiveTable ? 'up' : 'down'} className="h-5 w-5 text-gray-500" />
           </button>
           {showInactiveTable && (
             <div className="px-4 pb-4 pt-1 border-t border-gray-100">

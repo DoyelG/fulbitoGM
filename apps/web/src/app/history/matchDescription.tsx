@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FiChevronDown } from 'react-icons/fi'
+import Chevron from '../shared/Icons/Chevron'
 
 type Props = {
   text: string,
@@ -40,11 +40,9 @@ export function MatchDescription({ text }: Props) {
           {text}
         </p>
         {isTruncatable && (
-          <FiChevronDown
-            aria-hidden="true"
-            className={`h-4 w-4 shrink-0 cursor-pointer text-gray-400 transition-transform duration-200 ${
-              isExpanded ? 'rotate-180' : ''
-            }`}
+          <Chevron
+            direction={isExpanded ? 'up' : 'down'}
+            className="shrink-0 cursor-pointer text-gray-400"
           />
         )}
       </button>

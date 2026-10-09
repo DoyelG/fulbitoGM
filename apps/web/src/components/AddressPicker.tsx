@@ -8,7 +8,7 @@ import Modal from './Modal'
 import AddressForm from './addresses/AddressForm'
 import AddressManagerModal from './addresses/AddressManagerModal'
 import AddressActionsMenu from './addresses/AddressActionsMenu'
-import SelectChevron from './SelectChevron'
+import Chevron from '@/app/shared/Icons/Chevron'
 
 type AddressPickerProps = {
   value: MatchLocation | null
@@ -66,7 +66,7 @@ export default function AddressPicker({ value, onChange }: AddressPickerProps) {
               </option>
             ))}
           </select>
-          <SelectChevron />
+          <Chevron select />
         </div>
         <div className="h-7 w-px shrink-0 bg-gray-400" aria-hidden="true" />
         <AddressActionsMenu
