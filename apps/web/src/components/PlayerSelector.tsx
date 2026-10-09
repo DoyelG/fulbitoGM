@@ -1,76 +1,90 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import type { Player } from '@fulbito/types'
 
 type PlayerSelectorProps = {
-    players: Player[]
-    hidePlayerCondition?: (player: Player) => boolean
-    isMultiSelector?: boolean
-    onSelectionChange?: (selectedIds: string[]) => void
-    inputBackgroundColor?: string
+  players: Player[]
+  selectedIds: ReadonlySet<string>
+  onChange: (selectedIds: Set<string>) => void
+  hidePlayerCondition?: (player: Player) => boolean
+  isMultiSelector?: boolean
+  renderSelectedPlayerAction?: (player: Player) => ReactNode
+  playerBackgroundClassName?: string
+  maxHeight?: number | string
 }
 
 export default function PlayerSelector({
-    players,
-    hidePlayerCondition,
-    isMultiSelector = true,
-    onSelectionChange,
-    inputBackgroundColor = "bg-gray-50"
+  players,
+  selectedIds,
+  onChange,
+  hidePlayerCondition,
+  isMultiSelector = true,
+  renderSelectedPlayerAction,
+  playerBackgroundClassName = 'bg-gray-50',
+  maxHeight,
 }: PlayerSelectorProps) {
-    const groupName = useId()
-    const [playerQuery, setPlayerQuery] = useState('')
-    const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const groupName = useId()
+  const [playerQuery, setPlayerQuery] = useState('')
 
-    const toggleSelect = (id: string) => {
-        let nextSelectedIds = [id]
-        if (isMultiSelector) {
-            nextSelectedIds = selectedIds.includes(id)
-                ? selectedIds.filter((selectedId) => selectedId !== id)
-                : [...selectedIds, id]
-        }
-        setSelectedIds(nextSelectedIds)
-        onSelectionChange?.(nextSelectedIds)
+  const selectPlayer = (playerId: string) => {
+    if (!isMultiSelector) {
+      onChange(new Set([playerId]))
+      return
     }
+    const nextSelectedIds = new Set(selectedIds)
+    if (nextSelectedIds.has(playerId)) nextSelectedIds.delete(playerId)
+    else nextSelectedIds.add(playerId)
+    onChange(nextSelectedIds)
+  }
 
-    const normalizedQuery = playerQuery.trim().toLowerCase()
-    const visiblePlayers = players.filter(
-        (player) => !hidePlayerCondition?.(player) && player.name.toLowerCase().includes(normalizedQuery),
-    )
+  const normalizedQuery = playerQuery.trim().toLowerCase()
+  const visiblePlayers = players.filter(
+    (player) => !hidePlayerCondition?.(player) && player.name.toLowerCase().includes(normalizedQuery),
+  )
 
-    return (
-        <div>
-            <div className="mb-3">
+  return (
+    <div>
+      <div className="mb-3">
+        <input
+          type="text"
+          value={playerQuery}
+          onChange={(e) => setPlayerQuery(e.target.value)}
+          className="border rounded px-3 py-2 w-full"
+          placeholder="Buscar jugadores por nombre..."
+          aria-label="Buscar jugadores por nombre"
+        />
+      </div>
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 ${maxHeight === undefined ? '' : 'scrollbar-visible pr-2'}`}
+        style={maxHeight === undefined ? undefined : { maxHeight }}
+      >
+        {visiblePlayers.map((player) => {
+          const isSelected = selectedIds.has(player.id)
+          return (
+            <div
+              key={player.id}
+              className={`flex items-center justify-between gap-2 rounded px-3 py-2 ${playerBackgroundClassName}`}
+            >
+              <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
                 <input
-                    type="text"
-                    value={playerQuery}
-                    onChange={(e) => setPlayerQuery(e.target.value)}
-                    className="border rounded px-3 py-2 w-full"
-                    placeholder="Buscar jugadores por nombre..."
-                    aria-label="Buscar jugadores por nombre"
+                  type={isMultiSelector ? 'checkbox' : 'radio'}
+                  name={groupName}
+                  checked={isSelected}
+                  onChange={() => selectPlayer(player.id)}
                 />
+                <span className="font-medium truncate">{player.name}</span>
+              </label>
+              {isSelected && renderSelectedPlayerAction?.(player)}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-72 overflow-y-auto">
-                {visiblePlayers.map((player) => (
-                    <label
-                        key={player.id}
-                        className={`flex items-center gap-2 cursor-pointer min-w-0 ${inputBackgroundColor} rounded px-3 py-2`}
-                    >
-                        <input
-                            type={isMultiSelector ? 'checkbox' : 'radio'}
-                            name={groupName}
-                            checked={selectedIds.includes(player.id)}
-                            onChange={() => toggleSelect(player.id)}
-                        />
-                        <span className="font-medium truncate">{player.name}</span>
-                    </label>
-                ))}
-            </div>
-            {visiblePlayers.length === 0 && (
-                <p className="text-sm text-gray-800" aria-live="polite">
-                    No se encontraron jugadores
-                </p>
-            )}
-        </div>
-    )
+          )
+        })}
+      </div>
+      {visiblePlayers.length === 0 && (
+        <p className="text-sm text-gray-800" aria-live="polite">
+          No se encontraron jugadores
+        </p>
+      )}
+    </div>
+  )
 }
