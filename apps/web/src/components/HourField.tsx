@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { MATCH_HOUR_OPTIONS, formatMatchClock } from '@fulbito/utils'
-import SelectChevron from './SelectChevron'
+import Chevron from '@/app/shared/Icons/Chevron'
 
 type Props = {
   id: string
@@ -72,7 +72,7 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
         className="relative h-10 flex items-center pl-2.5 pr-8 border border-gray-500 rounded bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-brand"
       >
         <span>{optionLabel(value)}</span>
-        <SelectChevron />
+        <Chevron select direction={open ? 'up' : 'down'} />
       </button>
       {open && (
         <ul
