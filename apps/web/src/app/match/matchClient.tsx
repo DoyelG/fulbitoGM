@@ -7,7 +7,8 @@ import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds, getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { balanceRemainingPlayers, balanceTeams, seedPriorityPlayers, getHotStreakIds, PlayerInfo, TeamResult } from '@/lib/teamUtils'
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
-import { onlyFinalMatches } from '@fulbito/utils'
+import { onlyFinalMatches, buildMatchSchedule } from '@fulbito/utils'
+import HourField from '@/components/HourField'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { MatchInput } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -31,6 +32,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const requiredPlayers = playersPerTeam * 2
 
   const [draftDate, setDraftDate] = useState<string>(() => new Date().toISOString().slice(0, 10))
+  const [draftHour, setDraftHour] = useState<number | null>(null)
   const [draftName, setDraftName] = useState<string>('')
   const [isCreatingDraft, setIsCreatingDraft] = useState(false)
 
@@ -193,7 +195,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     setIsCreatingDraft(true)
     try {
       const draft: MatchInput = {
-        date: draftDate,
+        ...buildMatchSchedule(draftDate, draftHour),
         type: matchType,
         status: 'draft',
         teamAScore: 0,
@@ -477,7 +479,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           {isAdmin && (
             <div>
               <h4 className="font-semibold mb-1">Crear partido</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto_auto] gap-3 sm:items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_2fr_auto_auto] gap-3 sm:items-end">
                 <div>
                   <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
                   <input
@@ -488,6 +490,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     className="h-10 border rounded px-3 w-full"
                   />
                 </div>
+                <HourField id="draft-hour" value={draftHour} onChange={setDraftHour} labelClassName="block text-sm" />
                 <div>
                   <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
                   <input

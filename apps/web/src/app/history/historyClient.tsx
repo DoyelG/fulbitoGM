@@ -15,7 +15,14 @@ import {
   computeLeastAssignedPoolIds,
   getShirtDutiesByPlayerId,
 } from "@/lib/shirtDuty";
-import { onlyFinalMatches } from "@fulbito/utils";
+import {
+  onlyFinalMatches,
+  buildMatchSchedule,
+  parseMatchDate,
+  formatMatchHour,
+  formatMatchDate,
+} from "@fulbito/utils";
+import HourField from "@/components/HourField";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 import { Pagination } from "../shared/Pagination";
@@ -107,7 +114,7 @@ export default function HistoryClient() {
   const isLoadingMatches = matchesInit === "idle" || matchesInit === "loading";
 
   const filteredMatches = storeMatches.filter((match) => {
-    const matchDateOnly = match.date.slice(0, 10);
+    const matchDateOnly = parseMatchDate(match).date;
     if (fromDate && matchDateOnly < fromDate) return false;
     if (toDate && matchDateOnly > toDate) return false;
     if (searchQuery) {
@@ -242,6 +249,7 @@ export default function HistoryClient() {
           displayedMatches
             .map((match) => {
               const isDraft = match.status === "draft";
+              const { date: matchDay, hour } = parseMatchDate(match);
               return (
                 <div
                   key={match.id}
@@ -253,10 +261,8 @@ export default function HistoryClient() {
                         <div className="text-lg mb-1 font-bold">{match.name}</div>
                       )}
                       <strong>
-                        {(() => {
-                          const [yy, mm, dd] = match.date.slice(0, 10).split("-");
-                          return `${dd}/${mm}/${yy}`;
-                        })()}
+                        {formatMatchDate(matchDay)}
+                        {hour !== null ? ` ${formatMatchHour(hour)}` : ''}
                       </strong>
                       <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
                         {match.type}
@@ -614,7 +620,10 @@ function RecordModal({
     [finalMatches],
   );
   const [matchDate, setMatchDate] = useState<string>(
-    initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+    initial ? parseMatchDate(initial).date : new Date().toISOString().slice(0, 10),
+  );
+  const [matchHour, setMatchHour] = useState<number | null>(
+    initial ? parseMatchDate(initial).hour : null,
   );
 
   const [matchType, setMatchType] = useState<MatchType>(
@@ -800,7 +809,7 @@ function RecordModal({
         : undefined);
 
     return {
-      date: matchDate,
+      ...buildMatchSchedule(matchDate, matchHour),
       type: matchType,
       status,
       teamAScore: isFinal ? (teamAScore as number) : 0,
@@ -861,10 +870,12 @@ function RecordModal({
           </button>
         </div>
 
-        <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 mb-3">
+        <div className="grid sm:grid-cols-[auto_1fr_1fr_auto] gap-3 mb-3">
+          <HourField id="match-hour" value={matchHour} onChange={setMatchHour} />
           <div>
-            <label className="block text-sm font-medium mb-1">Fecha</label>
+            <label htmlFor="match-date" className="block text-sm font-medium mb-1">Fecha</label>
             <input
+              id="match-date"
               type="date"
               value={matchDate}
               onChange={(event) => setMatchDate(event.target.value)}

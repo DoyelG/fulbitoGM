@@ -1,3 +1,4 @@
+import { formatMatchDate } from '@fulbito/utils'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useState } from 'react'
 import { Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
@@ -5,7 +6,6 @@ import { Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { FormLabel } from './formLabel'
-import { formatDate } from './helpers'
 import { fieldStyles, sheetStyles } from './sharedStyles'
 
 type Props = {
@@ -24,7 +24,7 @@ export function DateField({ value, onChange }: Props) {
         style={[fieldStyles.inputBtn, { borderColor: colors.border, borderRadius: radii.sm }]}
         onPress={() => setOpen(true)}
       >
-        <Text style={[fieldStyles.inputBtnText, { color: colors.text }]}>{formatDate(value)}</Text>
+        <Text style={[fieldStyles.inputBtnText, { color: colors.text }]}>{formatMatchDate(value)}</Text>
       </TouchableOpacity>
       {open && <DatePickerModal value={value} onChange={onChange} onClose={() => setOpen(false)} />}
     </>

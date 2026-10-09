@@ -1,4 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
+import { formatMatchDate, formatMatchHour, parseMatchDate } from '@fulbito/utils'
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
@@ -16,13 +17,8 @@ type Props = {
   onViewClips: () => void
 }
 
-function formatDate(iso: string): string {
-  const [yy, mm, dd] = iso.slice(0, 10).split('-')
-  return `${dd}/${mm}/${yy}`
-}
-
 export function MatchCard({
-  match: m,
+  match,
   players,
   isAdmin,
   clipCount,
@@ -32,11 +28,12 @@ export function MatchCard({
 }: Props) {
   const { colors, radii, spacing, shadows, isDark } = useAppTheme()
 
-  const winA = m.teamAScore > m.teamBScore
-  const winB = m.teamBScore > m.teamAScore
+  const winA = match.teamAScore > match.teamBScore
+  const winB = match.teamBScore > match.teamAScore
+  const { date: matchDay, hour } = parseMatchDate(match)
 
-  const shirtName = m.shirtsResponsibleId
-    ? (players.find((p) => p.id === m.shirtsResponsibleId)?.name ?? '—')
+  const shirtName = match.shirtsResponsibleId
+    ? (players.find((p) => p.id === match.shirtsResponsibleId)?.name ?? '—')
     : null
 
   const [isExpanded, setIsExpanded] = useState(false)
@@ -60,15 +57,18 @@ export function MatchCard({
     >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          {m.name ? (
-            <Text style={[styles.matchName, { color: colors.text }]}>{m.name}</Text>
+          {match.name ? (
+            <Text style={[styles.matchName, { color: colors.text }]}>{match.name}</Text>
           ) : null}
           <View style={styles.metaRow}>
-            <Text style={[styles.date, { color: colors.text }]}>{formatDate(m.date)}</Text>
+            <Text style={[styles.date, { color: colors.text }]}>{formatMatchDate(matchDay)}</Text>
+            {hour !== null && (
+              <Text style={[styles.date, { color: colors.text }]}>{formatMatchHour(hour)}</Text>
+            )}
             <View style={[styles.typeBadge, { backgroundColor: colors.brand }]}>
-              <Text style={styles.typeBadgeText}>{m.type}</Text>
+              <Text style={styles.typeBadgeText}>{match.type}</Text>
             </View>
-            {m.isFriendly && (
+            {match.isFriendly && (
               <View style={[styles.typeBadge, { backgroundColor: colors.friendlyBrand }]}>
                 <Text style={styles.typeBadgeText}>Amistoso</Text>
               </View>
@@ -76,36 +76,36 @@ export function MatchCard({
           </View>
         </View>
         <Text style={[styles.score, { color: colors.brand }]}>
-          {m.teamAScore} – {m.teamBScore}
+          {match.teamAScore} – {match.teamBScore}
         </Text>
       </View>
 
       <View style={styles.teamsRow}>
         <TeamColumn
           label="Equipo A"
-          players={m.teamA}
+          players={match.teamA}
           winner={winA}
           loser={winB}
-          goalkeeperIds={m.goalkeeperIds}
-          mvpId={m.mvpId}
+          goalkeeperIds={match.goalkeeperIds}
+          mvpId={match.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
         />
         <TeamColumn
           label="Equipo B"
-          players={m.teamB}
+          players={match.teamB}
           winner={winB}
           loser={winA}
-          goalkeeperIds={m.goalkeeperIds}
-          mvpId={m.mvpId}
+          goalkeeperIds={match.goalkeeperIds}
+          mvpId={match.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
         />
       </View>
 
-      {m.description ? (
+      {match.description ? (
         <Pressable
           onPress={toggleExtended}
           onStartShouldSetResponderCapture={() => true}
@@ -118,7 +118,7 @@ export function MatchCard({
             style={[styles.description, { color: colors.muted }]}
             numberOfLines={isExpanded ? undefined : 2}
           >
-            {m.description}
+            {match.description}
           </Text>
           <Text
             style={[
@@ -144,7 +144,7 @@ export function MatchCard({
             onPress={onViewClips}
             style={[styles.editBtn, styles.clipsBtn, { borderColor: colors.border }]}
             accessibilityRole="button"
-            accessibilityLabel={`Ver clips del partido${m.name ? `: ${m.name}` : ''}`}>
+            accessibilityLabel={`Ver clips del partido${match.name ? `: ${match.name}` : ''}`}>
             <Text style={styles.clipsBtnIcon}>🎥</Text>
             {clipCount > 0 && (
               <View style={[styles.clipCountBadge, { backgroundColor: colors.brand }]}>
