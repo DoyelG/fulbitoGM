@@ -52,3 +52,6 @@ generated/prisma
 
 # superpowers brainstorming companion
 .superpowers/
+
+# Claude Code local tool-permission config (personal, not project config)
+.claude/settings.local.json

@@ -1,4 +1,4 @@
-import type { MatchInput, Player } from '@fulbito/types'
+import type { MatchInput, MatchLocation, Player } from '@fulbito/types'
 
 import type { MatchType, RecordingPlayer } from './types'
 
@@ -70,6 +70,7 @@ export type BuildPayloadInput = {
   goalkeeperIds?: string[]
   mvpId?: string | null
   isMatchFriendly?: boolean
+  matchLocation?: MatchLocation | null
 }
 
 export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
@@ -89,6 +90,7 @@ export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
     date: input.matchDate,
     type: input.matchType,
     name: input.matchName.trim() || undefined,
+    location: input.matchLocation ?? undefined,
     description: input.matchDescription.trim() || undefined,
     teamAScore: input.teamAScore,
     teamBScore: input.teamBScore,

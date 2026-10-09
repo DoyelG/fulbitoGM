@@ -1,5 +1,5 @@
 import { getFirestore, collection, doc, getDocs, getDoc, writeBatch, query, where, Timestamp } from 'firebase/firestore'
-import type { Match, MatchInput, MatchPlayer } from '@fulbito/types'
+import type { Match, MatchInput, MatchPlayer, MatchLocation } from '@fulbito/types'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
 
@@ -31,6 +31,16 @@ export function groupTeamsByMatch(
   return byMatch
 }
 
+function parseLocation(raw: unknown): MatchLocation | null {
+  if (!raw || typeof raw !== 'object') return null
+  const data = raw as Record<string, unknown>
+  return {
+    name: data['name'] as string,
+    street: data['street'] as string,
+    addressId: data['addressId'] as string,
+  }
+}
+
 function toIsoString(value: unknown): string | undefined {
   if (isTimestampLike(value)) return value.toDate().toISOString()
   return typeof value === 'string' ? value : undefined
@@ -47,6 +57,7 @@ export function docToMatchScalars(id: string, data: Record<string, unknown>): Om
     type: data['type'] as string,
     status: data['status'] === 'draft' ? 'draft' : 'final',
     name: (data['name'] as string | undefined) ?? undefined,
+    location: parseLocation(data['location']),
     description: (data['description'] as string | undefined) ?? undefined,
     teamAScore: data['teamAScore'] as number,
     teamBScore: data['teamBScore'] as number,
@@ -117,6 +128,7 @@ export async function createMatch(data: MatchInput): Promise<string> {
     date: Timestamp.fromDate(new Date(data.date)),
     status: data.status ?? 'final',
     name: data.name ?? null,
+    location: data.location ?? null,
     description: data.description ?? null,
     mvpId: mvpId ?? null,
     goalkeeperIds: goalkeeperIds ?? [],
@@ -153,6 +165,7 @@ export async function updateMatch(id: string, data: MatchInput): Promise<void> {
   batch.update(doc(db, 'matches', id), {
     ...scalars,
     date: Timestamp.fromDate(new Date(data.date)),
+    location: data.location ?? null,
     description: data.description ?? null,
     mvpId: mvpId ?? null,
     goalkeeperIds: goalkeeperIds ?? [],
