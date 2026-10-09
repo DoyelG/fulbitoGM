@@ -11,6 +11,7 @@ import { onlyFinalMatches } from '@fulbito/utils'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { MatchInput } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import PlayerSelector from '@/components/PlayerSelector'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
@@ -59,8 +60,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
-  const [playerQuery, setPlayerQuery] = useState('')
-
   const MAX_GOALKEEPERS = 2
 
   const playedBefore = useMemo(() => buildPlayedBeforeSet(finalMatches), [finalMatches])
@@ -86,24 +85,13 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     return selectedPlayers.filter(p => !ids.has(p.id))
   }, [selectedPlayers, manualA, manualB])
 
-  const toggleSelect = (id: string) => {
-    const wasSelected = selected.has(id)
-    setSelected(prev => {
-      const s = new Set(prev)
-      if (s.has(id)) s.delete(id)
-      else s.add(id)
-      return s
-    })
-    if (wasSelected) {
-      setGoalkeeperIds(prev => {
-        if (!prev.has(id)) return prev
-        const s = new Set(prev)
-        s.delete(id)
-        return s
-      })
-      setManualA(prev => prev.filter(p => p.id !== id))
-      setManualB(prev => prev.filter(p => p.id !== id))
-    }
+  const changeSelection = (nextSelected: Set<string>) => {
+    const removedIds = [...selected].filter(id => !nextSelected.has(id))
+    setSelected(nextSelected)
+    if (removedIds.length === 0) return
+    setGoalkeeperIds(prev => new Set([...prev].filter(id => !removedIds.includes(id))))
+    setManualA(prev => prev.filter(p => !removedIds.includes(p.id)))
+    setManualB(prev => prev.filter(p => !removedIds.includes(p.id)))
   }
 
   const toggleGoalkeeper = (id: string) => {
@@ -118,6 +106,23 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       return s
     })
   }
+
+  const renderGoalkeeperButton = (player: Player) => (
+    <button
+      type="button"
+      onClick={() => toggleGoalkeeper(player.id)}
+      disabled={!goalkeeperIds.has(player.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
+      aria-pressed={goalkeeperIds.has(player.id)}
+      title={goalkeeperIds.has(player.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
+      className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+        goalkeeperIds.has(player.id)
+          ? 'bg-brand text-white border-brand'
+          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+      }`}
+    >
+      🧤 Arquero
+    </button>
+  )
 
   const openSelection = () => {
     if (players.length < requiredPlayers) {
@@ -311,52 +316,13 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               )
             })()}
           </div>
-          <div className="mb-3">
-            <input
-              type="text"
-              value={playerQuery}
-              onChange={e => setPlayerQuery(e.target.value)}
-              className="border rounded px-3 py-2 w-full"
-              placeholder="Buscar jugadores por nombre..."
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {players
-              .filter(player => {
-                if (player.inactive) return false
-                const normalizedQuery = playerQuery.trim().toLowerCase()
-                if (!normalizedQuery) return true
-                return player.name.toLowerCase().includes(normalizedQuery)
-              })
-              .map(player => (
-              <div key={player.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
-                <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(player.id)}
-                    onChange={() => toggleSelect(player.id)}
-                  />
-                  <span className="font-medium truncate">{player.name}</span>
-                </label>
-                {selected.has(player.id) && (
-                  <button
-                    type="button"
-                    onClick={() => toggleGoalkeeper(player.id)}
-                    disabled={!goalkeeperIds.has(player.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
-                    aria-pressed={goalkeeperIds.has(player.id)}
-                    title={goalkeeperIds.has(player.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
-                    className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                      goalkeeperIds.has(player.id)
-                        ? 'bg-brand text-white border-brand'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                    }`}
-                  >
-                    🧤 Arquero
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
+          <PlayerSelector
+            players={players}
+            selectedIds={selected}
+            onChange={changeSelection}
+            hidePlayerCondition={(player) => !!player.inactive}
+            renderSelectedPlayerAction={renderGoalkeeperButton}
+          />
         </div>
       )}
 
