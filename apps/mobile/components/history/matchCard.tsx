@@ -1,5 +1,6 @@
 import type { Match, Player } from '@fulbito/types'
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { matchLocationMapsUrl } from '@fulbito/utils'
+import { Linking, StyleSheet, Text, TouchableOpacity, View, Pressable } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 import { useState } from 'react'
@@ -22,7 +23,7 @@ function formatDate(iso: string): string {
 }
 
 export function MatchCard({
-  match: m,
+  match,
   players,
   isAdmin,
   clipCount,
@@ -32,17 +33,17 @@ export function MatchCard({
 }: Props) {
   const { colors, radii, spacing, shadows, isDark } = useAppTheme()
 
-  const winA = m.teamAScore > m.teamBScore
-  const winB = m.teamBScore > m.teamAScore
+  const winA = match.teamAScore > match.teamBScore
+  const winB = match.teamBScore > match.teamAScore
 
-  const shirtName = m.shirtsResponsibleId
-    ? (players.find((p) => p.id === m.shirtsResponsibleId)?.name ?? '—')
+  const shirtName = match.shirtsResponsibleId
+    ? (players.find((player) => player.id === match.shirtsResponsibleId)?.name ?? '—')
     : null
 
   const [isExpanded, setIsExpanded] = useState(false)
 
   const toggleExtended = () => {
-    setIsExpanded((e) => !e)
+    setIsExpanded((isOpen) => !isOpen)
   }
 
   return (
@@ -60,15 +61,15 @@ export function MatchCard({
     >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          {m.name ? (
-            <Text style={[styles.matchName, { color: colors.text }]}>{m.name}</Text>
+          {match.name ? (
+            <Text style={[styles.matchName, { color: colors.text }]}>{match.name}</Text>
           ) : null}
           <View style={styles.metaRow}>
-            <Text style={[styles.date, { color: colors.text }]}>{formatDate(m.date)}</Text>
+            <Text style={[styles.date, { color: colors.text }]}>{formatDate(match.date)}</Text>
             <View style={[styles.typeBadge, { backgroundColor: colors.brand }]}>
-              <Text style={styles.typeBadgeText}>{m.type}</Text>
+              <Text style={styles.typeBadgeText}>{match.type}</Text>
             </View>
-            {m.isFriendly && (
+            {match.isFriendly && (
               <View style={[styles.typeBadge, { backgroundColor: colors.friendlyBrand }]}>
                 <Text style={styles.typeBadgeText}>Amistoso</Text>
               </View>
@@ -76,36 +77,36 @@ export function MatchCard({
           </View>
         </View>
         <Text style={[styles.score, { color: colors.brand }]}>
-          {m.teamAScore} – {m.teamBScore}
+          {match.teamAScore} – {match.teamBScore}
         </Text>
       </View>
 
       <View style={styles.teamsRow}>
         <TeamColumn
           label="Equipo A"
-          players={m.teamA}
+          players={match.teamA}
           winner={winA}
           loser={winB}
-          goalkeeperIds={m.goalkeeperIds}
-          mvpId={m.mvpId}
+          goalkeeperIds={match.goalkeeperIds}
+          mvpId={match.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
         />
         <TeamColumn
           label="Equipo B"
-          players={m.teamB}
+          players={match.teamB}
           winner={winB}
           loser={winA}
-          goalkeeperIds={m.goalkeeperIds}
-          mvpId={m.mvpId}
+          goalkeeperIds={match.goalkeeperIds}
+          mvpId={match.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
         />
       </View>
 
-      {m.description ? (
+      {match.description ? (
         <Pressable
           onPress={toggleExtended}
           onStartShouldSetResponderCapture={() => true}
@@ -118,7 +119,7 @@ export function MatchCard({
             style={[styles.description, { color: colors.muted }]}
             numberOfLines={isExpanded ? undefined : 2}
           >
-            {m.description}
+            {match.description}
           </Text>
           <Text
             style={[
@@ -139,12 +140,28 @@ export function MatchCard({
           </Text>
         ) : null}
 
+        {match.location?.name ? (
+          <TouchableOpacity
+            onPress={() => match.location && Linking.openURL(matchLocationMapsUrl(match.location))}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel={`Ubicación: ${match.location.name}, ${match.location.street}`}
+            accessibilityHint="Abre la cancha en Google Maps"
+            style={styles.location}
+          >
+            <Text style={[styles.shirts, { color: colors.muted }]}>
+              Ubicación:{' '}
+              <Text style={[styles.locationName, { color: colors.brand }]}>{match.location.name}</Text>
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.actions}>
           <TouchableOpacity
             onPress={onViewClips}
             style={[styles.editBtn, styles.clipsBtn, { borderColor: colors.border }]}
             accessibilityRole="button"
-            accessibilityLabel={`Ver clips del partido${m.name ? `: ${m.name}` : ''}`}>
+            accessibilityLabel={`Ver clips del partido${match.name ? `: ${match.name}` : ''}`}>
             <Text style={styles.clipsBtnIcon}>🎥</Text>
             {clipCount > 0 && (
               <View style={[styles.clipCountBadge, { backgroundColor: colors.brand }]}>
@@ -198,13 +215,14 @@ function TeamColumn({
   return (
     <View style={[styles.teamCol, { backgroundColor: bg, borderRadius: radii.sm, padding: spacing.sm }]}>
       <Text style={[styles.teamLabel, { color: colors.text }]}>{label}</Text>
-      {players.map((p) => (
-        <View key={p.id} style={styles.playerRow}>
+      {players.map((player) => (
+        <View key={player.id} style={styles.playerRow}>
           <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
-            {p.name}
+            {player.name}
           </Text>
           <Text style={[styles.playerStats, { color: colors.muted }]}>
-            {goalkeeperIds?.includes(p.id) ? '🧤 ' : ''}{mvpId === p.id ? '🏆 ' : ''}{p.goals}⚽ {p.performance}★
+            {goalkeeperIds?.includes(player.id) ? '🧤 ' : ''}{mvpId === player.id ? '🏆 ' : ''}{player.goals}⚽{' '}
+            {player.performance}★
           </Text>
         </View>
       ))}
@@ -290,6 +308,12 @@ const styles = StyleSheet.create({
   },
   shirts: {
     fontSize: 12,
+  },
+  location: {
+    alignSelf: 'flex-start',
+  },
+  locationName: {
+    fontWeight: '600',
   },
   descriptionRow: {
     gap: 6,
