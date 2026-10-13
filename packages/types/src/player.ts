@@ -15,6 +15,7 @@ export type Player = {
   skills?: Skills
   photoUrl?: string | null
   goalkeeping?: number
+  userId?: string
   inactive?: boolean
   linkedUserId?: string
   createdAt: Date

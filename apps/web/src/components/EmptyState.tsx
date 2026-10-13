@@ -4,7 +4,7 @@ import Button from './Button'
 
 export type EmptyStateAction = { label: string; href: string } | { label: string; onClick: () => void }
 
-type EmptyStateProps = {
+export type EmptyStateProps = {
   icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
   title: string
   description?: string
