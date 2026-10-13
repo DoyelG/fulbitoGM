@@ -4,14 +4,21 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Application from 'expo-application'
 import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import Animated, { interpolate, useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { User } from '@/constants/auth';
+
+
 
 interface DrawerMenuProps {
   isOpen: boolean;
   onClose: () => void;
   progress: SharedValue<number>;
-  user: { name: string; email: string; role: string[]; image: string | null };
+  user: User;
   onLogout: () => void;
   onDeleteUser: () => void;
 }
@@ -25,9 +32,12 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDelete
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: interpolate(progress.value, [0, 1], [400, 0]) }],
-  }))
+  }));
   return (
-    <View style={[StyleSheet.absoluteFill, styles.root]} pointerEvents={isOpen ? 'auto' : 'none'}>
+    <View
+      style={[StyleSheet.absoluteFill, styles.root]}
+      pointerEvents={isOpen ? 'auto' : 'none'}
+    >
       <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
@@ -46,7 +56,7 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDelete
         <View style={styles.optionsContainer}>
           <View style={styles.divider} />
           {!user.role.includes('ADMIN') && (
-            <Pressable onPress={() => {}} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
+            <Pressable onPress={() => { }} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
               <View style={styles.iconWrapper}>
                 <Ionicons name="shield-outline" size={20} color="#A78BFA" />
               </View>
