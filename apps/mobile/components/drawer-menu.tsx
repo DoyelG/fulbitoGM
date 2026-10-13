@@ -9,6 +9,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { UserAvatar } from '@/components/user-avatar';
+import { User } from '@/constants/auth';
 
 
 
@@ -16,7 +17,7 @@ interface DrawerMenuProps {
   isOpen: boolean;
   onClose: () => void;
   progress: SharedValue<number>;
-  user: { name: string; email: string; role: string[]; image: string | null };
+  user: User;
   onLogout: () => void;
 }
 
@@ -30,7 +31,7 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout }: Drawer
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: interpolate(progress.value, [0, 1], [400, 0]) }],
   }));
-    return (
+  return (
     <View
       style={[StyleSheet.absoluteFill, styles.root]}
       pointerEvents={isOpen ? 'auto' : 'none'}
@@ -53,7 +54,7 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout }: Drawer
         <>
           <View style={styles.divider} />
           {!user.role.includes('ADMIN') && (
-            <Pressable onPress={() => {}} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
+            <Pressable onPress={() => { }} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
               <View style={styles.iconWrapper}>
                 <Ionicons name="shield-outline" size={20} color="#A78BFA" />
               </View>
