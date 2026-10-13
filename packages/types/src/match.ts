@@ -16,6 +16,7 @@ export type MatchLocation = {
 export type Match = {
   id: string
   date: string
+  hasTime?: boolean
   type: string
   status?: MatchStatus
   teamAScore: number
