@@ -66,8 +66,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
-  const MAX_GOALKEEPERS = 2
-
   const playedBefore = useMemo(() => buildPlayedBeforeSet(finalMatches), [finalMatches])
   const dutiesById = useMemo(() => getShirtDutiesByPlayerId(finalMatches), [finalMatches])
 
