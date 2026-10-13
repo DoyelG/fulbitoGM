@@ -7,6 +7,12 @@ export type MatchPlayer = {
 
 export type MatchStatus = 'draft' | 'final'
 
+export type MatchLocation = {
+  name: string
+  street: string
+  addressId: string
+}
+
 export type Match = {
   id: string
   date: string
@@ -25,6 +31,7 @@ export type Match = {
   isFriendly?: boolean
   createdAt: string
   updatedAt: string
+  location?: MatchLocation | null
 }
 
 export type MatchInput = Omit<Match, 'id' | 'createdAt' | 'updatedAt'>

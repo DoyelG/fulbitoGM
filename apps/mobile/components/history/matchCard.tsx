@@ -1,6 +1,6 @@
 import type { Match, Player } from '@fulbito/types'
-import { formatMatchDate, formatMatchHour, parseMatchDate } from '@fulbito/utils'
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { formatMatchDate, formatMatchHour, parseMatchDate, matchLocationMapsUrl } from '@fulbito/utils'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View, Linking} from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 import { useState } from 'react'
@@ -33,13 +33,13 @@ export function MatchCard({
   const { date: matchDay, hour } = parseMatchDate(match)
 
   const shirtName = match.shirtsResponsibleId
-    ? (players.find((p) => p.id === match.shirtsResponsibleId)?.name ?? '—')
+    ? (players.find((player) => player.id === match.shirtsResponsibleId)?.name ?? '—')
     : null
 
   const [isExpanded, setIsExpanded] = useState(false)
 
   const toggleExtended = () => {
-    setIsExpanded((e) => !e)
+    setIsExpanded((isOpen) => !isOpen)
   }
 
   return (
@@ -139,6 +139,22 @@ export function MatchCard({
           </Text>
         ) : null}
 
+        {match.location?.name ? (
+          <TouchableOpacity
+            onPress={() => match.location && Linking.openURL(matchLocationMapsUrl(match.location))}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel={`Ubicación: ${match.location.name}, ${match.location.street}`}
+            accessibilityHint="Abre la cancha en Google Maps"
+            style={styles.location}
+          >
+            <Text style={[styles.shirts, { color: colors.muted }]}>
+              Ubicación:{' '}
+              <Text style={[styles.locationName, { color: colors.brand }]}>{match.location.name}</Text>
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.actions}>
           <TouchableOpacity
             onPress={onViewClips}
@@ -198,13 +214,14 @@ function TeamColumn({
   return (
     <View style={[styles.teamCol, { backgroundColor: bg, borderRadius: radii.sm, padding: spacing.sm }]}>
       <Text style={[styles.teamLabel, { color: colors.text }]}>{label}</Text>
-      {players.map((p) => (
-        <View key={p.id} style={styles.playerRow}>
+      {players.map((player) => (
+        <View key={player.id} style={styles.playerRow}>
           <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
-            {p.name}
+            {player.name}
           </Text>
           <Text style={[styles.playerStats, { color: colors.muted }]}>
-            {goalkeeperIds?.includes(p.id) ? '🧤 ' : ''}{mvpId === p.id ? '🏆 ' : ''}{p.goals}⚽ {p.performance}★
+            {goalkeeperIds?.includes(player.id) ? '🧤 ' : ''}{mvpId === player.id ? '🏆 ' : ''}{player.goals}⚽{' '}
+            {player.performance}★
           </Text>
         </View>
       ))}
@@ -290,6 +307,12 @@ const styles = StyleSheet.create({
   },
   shirts: {
     fontSize: 12,
+  },
+  location: {
+    alignSelf: 'flex-start',
+  },
+  locationName: {
+    fontWeight: '600',
   },
   descriptionRow: {
     gap: 6,
