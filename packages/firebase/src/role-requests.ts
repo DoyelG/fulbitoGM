@@ -48,7 +48,20 @@ type CreateRoleRequestInput = {
   newPlayerName?: string
 }
 
+let isCreatingRequest = false
+
 export async function createRoleRequest(input: CreateRoleRequestInput): Promise<string> {
+  if (isCreatingRequest) throw new Error('A request is already being created')
+
+  isCreatingRequest = true
+  try {
+    return await saveRoleRequest(input)
+  } finally {
+    isCreatingRequest = false
+  }
+}
+
+async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
   const { userId, userEmail, requestedRole, playerId, newPlayerName } = input
 
   if (requestedRole === 'PLAYER' && Boolean(playerId) === Boolean(newPlayerName)) {
