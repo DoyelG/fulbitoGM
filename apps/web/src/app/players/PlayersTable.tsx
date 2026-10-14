@@ -2,9 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { FiEye, FiEdit2, FiTrash2, FiUserCheck, FiUserX } from 'react-icons/fi'
-import SkillBadge from '@/components/SkillBadge'
 import StreakBadge from '@/components/StreakBadge'
 import ActionRow, { type RowAction } from '@/components/ActionRow'
 import type { Player } from '@fulbito/types'
@@ -18,6 +17,9 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
+import { getGoalkeeping } from '@fulbito/utils'
+import SkillBadge from '@/components/SkillBadge'
+import SkillSortHeader, { type SkillMode } from './SkillSortHeader'
 
 export type PlayerRow = Player & {
   streak: { kind: 'win' | 'loss' | null; count: number }
@@ -25,6 +27,13 @@ export type PlayerRow = Player & {
 }
 
 const columnHelper = createColumnHelper<PlayerRow>()
+
+const NO_SKILL_VALUE = -1
+
+function getSkillValue(player: Player, mode: SkillMode) {
+  const value = mode === 'goalkeeper' ? getGoalkeeping(player) : player.skill
+  return value ?? NO_SKILL_VALUE
+}
 
 type Props = {
   players: PlayerRow[]
@@ -47,12 +56,23 @@ export default function PlayersTable({
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'skill', desc: true }])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [skillMode, setSkillMode] = useState<SkillMode>('player')
+
+  const selectSkillMode = useCallback(
+    (mode: SkillMode) => {
+      setSkillMode(mode)
+      setSorting(([current]) => {
+        const isSameSort = current?.id === 'skill' && mode === skillMode
+        return [{ id: 'skill', desc: isSameSort ? !current.desc : true }]
+      })
+    },
+    [skillMode],
+  )
 
   const columns = useMemo(
     () => [
       columnHelper.display({
         id: 'photo',
-        header: 'Imagen',
         enableSorting: false,
         cell: ({ row }) => (
           <Image
@@ -60,7 +80,7 @@ export default function PlayersTable({
             alt={row.original.name}
             width={32}
             height={32}
-            className={`object-cover w-full h-full max-w-8 max-h-8 rounded-full ${row.original.inactive ? 'filter grayscale' : ''}`}
+            className={`object-cover w-full h-full max-w-8 max-h-8 rounded-full mx-auto ${row.original.inactive ? 'filter grayscale' : ''}`}
           />
         ),
       }),
@@ -77,10 +97,29 @@ export default function PlayersTable({
         ),
       }),
       columnHelper.accessor('skill', {
-        header: 'Habilidad',
+        header: ({ column }) => (
+          <SkillSortHeader mode={skillMode} sortDirection={column.getIsSorted()} onSelect={selectSkillMode} />
+        ),
         enableSorting: true,
-        cell: ({ getValue, row }) => <SkillBadge skill={getValue() ?? 'unknown'} muted={row.original.inactive} />,
-        sortUndefined: -1,
+        sortingFn: (rowA, rowB) => getSkillValue(rowA.original, skillMode) - getSkillValue(rowB.original, skillMode),
+        cell: ({ row, column }) => {
+          const isSortedBySkill = column.getIsSorted() !== false
+          return (
+            <div className="flex justify-end items-start gap-1">
+              <SkillBadge
+                skill={row.original.skill ?? 'unknown'}
+                muted={row.original.inactive}
+                soft={isSortedBySkill && skillMode !== 'player'}
+              />
+              <SkillBadge
+                skill={getGoalkeeping(row.original)}
+                muted={row.original.inactive}
+                isGoalkeeper
+                soft={isSortedBySkill && skillMode !== 'goalkeeper'}
+              />
+            </div>
+          )
+        },
       }),
       columnHelper.accessor('position', {
         header: 'Posición',
@@ -140,7 +179,7 @@ export default function PlayersTable({
         },
       }),
     ],
-    [],
+    [skillMode, selectSkillMode],
   )
 
   const table = useReactTable({
@@ -171,12 +210,12 @@ export default function PlayersTable({
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
-                        className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 select-none ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
+                        className={`${header.column.id === 'photo' ? 'py-1 pl-2' : 'px-4 py-3'} ${header.column.id === 'skill' ? 'pr-8 lg:pr-20' : ''} text-left text-sm font-semibold text-gray-700 select-none ${header.column.getCanSort() ? 'cursor-pointer' : ''} ${header.column.id === 'skill' ? 'w-1 whitespace-nowrap' : ''}`}
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getIsSorted() === 'asc' && ' ▲'}
-                        {header.column.getIsSorted() === 'desc' && ' ▼'}
+                        {header.column.id !== 'skill' && header.column.getIsSorted() === 'asc' && ' ▲'}
+                        {header.column.id !== 'skill' && header.column.getIsSorted() === 'desc' && ' ▼'}
                       </th>
                     ))}
                     {isAdmin && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}
@@ -217,7 +256,7 @@ export default function PlayersTable({
                                   tooltip: 'Desactivar',
                                 },
                             {
-                              icon: <FiTrash2 size={16} />,
+                              icon: <FiTrash2 size={17} />,
                               variant: 'danger' as const,
                               onClick: () => onDelete(player.id),
                               tooltip: 'Eliminar',
@@ -228,7 +267,10 @@ export default function PlayersTable({
                     return (
                       <ActionRow key={player.id} actions={actions}>
                         {row.getVisibleCells().map((cell) => (
-                          <td key={cell.id} className="px-4 py-3">
+                          <td
+                            key={cell.id}
+                            className={`${cell.column.id === 'photo' ? 'py-1 pl-2' : 'px-4 py-3'} ${cell.column.id === 'skill' ? 'pr-8 lg:pr-20' : ''}`}
+                          >
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </td>
                         ))}
