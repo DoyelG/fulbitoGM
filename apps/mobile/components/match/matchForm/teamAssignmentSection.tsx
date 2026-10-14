@@ -1,13 +1,13 @@
 import type { Player } from '@fulbito/types'
 import { useState } from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
+import PlayerSelector from '@/components/players/player-selector/player-selector'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { BottomSheet } from './bottomSheet'
 import { FormLabel } from './formLabel'
 import type { TeamStats } from './helpers'
-import { sheetStyles } from './sharedStyles'
 import type { RecordingPlayer, TeamSide } from './types'
 
 type Props = {
@@ -155,20 +155,10 @@ function TeamPickerModal({
   onClose: () => void
   onConfirm: (players: RecordingPlayer[]) => void
 }) {
-  const { colors } = useAppTheme()
   const [draft, setDraft] = useState<Set<string>>(new Set(currentTeam.map((p) => p.id)))
 
   const otherIds = new Set(otherTeam.map((p) => p.id))
   const available = poolPlayers.filter((p) => !otherIds.has(p.id))
-
-  const toggle = (id: string) => {
-    setDraft((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else if (next.size < playersPerTeam) next.add(id)
-      return next
-    })
-  }
 
   const confirm = () => {
     const selected = available
@@ -184,29 +174,12 @@ function TeamPickerModal({
       onConfirm={confirm}
       onDismiss={onClose}
     >
-      {available.length === 0 ? (
-        <Text style={{ color: colors.muted, textAlign: 'center', padding: 24 }}>
-          No hay jugadores disponibles
-        </Text>
-      ) : (
-        <ScrollView keyboardShouldPersistTaps="handled">
-          {available.map((p) => {
-            const selected = draft.has(p.id)
-            return (
-              <TouchableOpacity
-                key={p.id}
-                style={[sheetStyles.option, { borderBottomColor: colors.border }]}
-                onPress={() => toggle(p.id)}
-              >
-                <Text style={[sheetStyles.optionText, { color: colors.text }]}>{p.name}</Text>
-                {selected && (
-                  <Text style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</Text>
-                )}
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
-      )}
+      <PlayerSelector
+        players={available}
+        selectedIds={draft}
+        onChange={setDraft}
+        maxSelectedCount={playersPerTeam}
+      />
     </BottomSheet>
   )
 }
