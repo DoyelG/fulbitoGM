@@ -3,8 +3,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import type { Player } from '@fulbito/types'
 import EmptyState, { type EmptyStateProps } from './EmptyState'
-import { FiUsers } from 'react-icons/fi'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { FiSearch, FiUsers } from 'react-icons/fi'
 
 type PlayerSelectorProps = {
   players: Player[]
@@ -15,7 +14,7 @@ type PlayerSelectorProps = {
   renderSelectedPlayerAction?: (player: Player) => ReactNode
   playerBackgroundClassName?: string
   maxHeight?: number | string
-  emptyState?: Partial<Pick<EmptyStateProps, 'title' | 'description' | 'action'>>
+  emptyState?: Pick<EmptyStateProps, 'title' | 'description' | 'action'>
 }
 
 export default function PlayerSelector({
@@ -27,20 +26,10 @@ export default function PlayerSelector({
   renderSelectedPlayerAction,
   playerBackgroundClassName = 'bg-gray-50',
   maxHeight,
-  emptyState,
+  emptyState = { title: 'No hay jugadores disponibles para seleccionar' },
 }: PlayerSelectorProps) {
   const groupName = useId()
   const [playerQuery, setPlayerQuery] = useState('')
-
-  const { isAdmin } = useFirebaseAuth()
-
-  const emptyStateDefaultValues = {
-    title: "No hay jugadores disponibles para seleccionar",
-    description: isAdmin
-      ? 'Agregá jugadores para armar los equipos.'
-      : 'Contactate con un administrador para que cree nuevos jugadores.',
-    action: isAdmin ? { label: 'Ir a jugadores', href: '/players' } : undefined,
-  }
 
   const selectPlayer = (playerId: string) => {
     if (!isMultiSelector) {
@@ -56,6 +45,8 @@ export default function PlayerSelector({
   const normalizedQuery = playerQuery.trim().toLowerCase()
   const availablePlayers = players.filter((player) => !hidePlayerCondition?.(player))
   const visiblePlayers = availablePlayers.filter((player) => player.name.toLowerCase().includes(normalizedQuery))
+
+  if (availablePlayers.length === 0) return <EmptyState icon={FiUsers} {...emptyState} />
 
   return (
     <div>
@@ -96,10 +87,9 @@ export default function PlayerSelector({
       </div>
       {visiblePlayers.length === 0 && (
         <EmptyState
-          icon={FiUsers}
-          title={emptyState?.title ?? emptyStateDefaultValues.title}
-          description={emptyState?.description ?? emptyStateDefaultValues.description}
-          action={emptyState?.action ?? emptyStateDefaultValues.action}
+          icon={FiSearch}
+          title="No se encontraron jugadores"
+          description="Probá con otro nombre."
         />)}
     </div>
   )
