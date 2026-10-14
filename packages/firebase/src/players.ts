@@ -31,6 +31,7 @@ export function docToPlayer(id: string, data: Record<string, unknown>): Player {
     photoUrl: (data['photoUrl'] as string | null) ?? undefined,
     inactive: (data['inactive'] as boolean | null) ?? false,
     goalkeeping: (data['goalkeeping'] as number | null) ?? undefined,
+    linkedUserId: (data['linkedUserId'] as string | null) ?? undefined,
     createdAt: toDate(data['createdAt']),
     updatedAt: toDate(data['updatedAt']),
   }

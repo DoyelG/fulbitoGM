@@ -48,6 +48,8 @@ type CreateRoleRequestInput = {
   newPlayerName?: string
 }
 
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
+
 let isCreatingRequest = false
 
 export async function createRoleRequest(input: CreateRoleRequestInput): Promise<string> {
@@ -73,15 +75,27 @@ async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
 
   const db = getFirestore()
 
-  const existingPendingRequests = await getDocs(
-    query(
-      collection(db, 'roleRequests'),
-      where('userId', '==', userId),
-      where('requestedRole', '==', requestedRole),
-      where('status', '==', 'pending'),
-    ),
+  const sameRoleRequests = await getDocs(
+    query(collection(db, 'roleRequests'), where('userId', '==', userId), where('requestedRole', '==', requestedRole)),
   )
-  if (!existingPendingRequests.empty) throw new Error('You already have a pending request')
+  if (sameRoleRequests.docs.some((request) => request.get('status') === 'pending')) {
+    throw new Error('You already have a pending request')
+  }
+  // eslint-disable-next-line fulbito/no-comments
+  // If the status of the request is "Rejected" and that request was rejected before one day, we throw an error
+  const wasRejectedRecently = sameRoleRequests.docs.some(
+    (request) =>
+      request.get('status') === 'rejected' && Date.now() - request.get('resolvedAt').toMillis() < ONE_DAY_IN_MS,
+  )
+  if (wasRejectedRecently) throw new Error('You can request this role again after 1 day')
+
+  const userDocument = await getDoc(doc(db, 'users', userId))
+  const storedUserRole = userDocument.get('role') as Role[] | Role | undefined
+  const currentRoles = Array.isArray(storedUserRole) ? storedUserRole : [storedUserRole]
+  if (currentRoles.includes(requestedRole)) throw new Error('You already have this role')
+  if (requestedRole === 'PLAYER' && userDocument.get('linkedPlayerId')) {
+    throw new Error('You are already linked to a player')
+  }
 
   let playerName = newPlayerName
   if (playerId) {
@@ -147,15 +161,6 @@ export async function resolveRoleRequest(
   if (!requestDocument.exists()) throw new Error('Role Request not found')
   const request = docToRoleRequest(requestDocument.id, requestDocument.data() as RoleRequestDoc)
 
-  if (action === 'accepted' && request.playerId) {
-    const usersLinkedToPlayer = await getDocs(
-      query(collection(db, 'users'), where('linkedPlayerId', '==', request.playerId)),
-    )
-    if (usersLinkedToPlayer.docs.some((linkedUserDocument) => linkedUserDocument.id !== request.userId)) {
-      throw new Error('This player is already linked to another user')
-    }
-  }
-
   const requestNotifications = await getDocs(
     query(collection(db, 'notifications'), where('data.requestId', '==', requestId)),
   )
@@ -166,6 +171,15 @@ export async function resolveRoleRequest(
 
     const userRef = doc(db, 'users', request.userId)
     const userDocument = action === 'accepted' ? await transaction.get(userRef) : null
+
+    const playerRef = request.playerId ? doc(db, 'players', request.playerId) : null
+    const playerDocument = userDocument && playerRef ? await transaction.get(playerRef) : null
+
+    if (playerDocument && !playerDocument.exists()) throw new Error('Player not found')
+    const playerLinkedUserId = playerDocument?.get('linkedUserId') as string | undefined
+    if (playerLinkedUserId && playerLinkedUserId !== request.userId) {
+      throw new Error('This player is already linked to another user')
+    }
 
     const now = Timestamp.now()
     transaction.update(requestRef, { status: action, resolvedAt: now, resolvedBy: adminId, updatedAt: now })
@@ -196,11 +210,14 @@ export async function resolveRoleRequest(
         photoUrl: null,
         goalkeeping: null,
         inactive: false,
+        linkedUserId: request.userId,
         createdAt: now,
         updatedAt: now,
       })
       linkedPlayerId = newPlayerRef.id
     }
+
+    if (playerRef) transaction.update(playerRef, { linkedUserId: request.userId, updatedAt: now })
 
     transaction.update(userRef, {
       role: updatedRoles,
