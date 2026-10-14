@@ -13,13 +13,13 @@ import {
 } from 'react-native'
 
 import { DateFilterBar } from '@/components/history/dateFilterBar'
-import { HistoryEmpty } from '@/components/history/historyEmpty'
 import { HistoryError } from '@/components/history/historyError'
 import { HistoryLoading } from '@/components/history/historyLoading'
 import { MatchCard } from '@/components/history/matchCard'
 import { MatchClipsModal } from '@/components/history/match-clips-modal'
 import { VideoClipUploadModal } from '@/components/players/detail/video-clip-upload-modal'
 import { ThemedView } from '@/components/themed-view'
+import EmptyState from '@/components/ui/empty-state/empty-state'
 import { Spacing } from '@/constants/theme'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { useIsAdmin } from '@/hooks/use-is-admin'
@@ -153,7 +153,9 @@ export default function HistoryScreen() {
           contentContainerStyle={
             filteredMatches.length === 0 ? styles.emptyList : styles.listContent
           }
-          ListEmptyComponent={<HistoryEmpty />}
+          ListEmptyComponent={
+            <EmptyState icon="clock" title="Sin partidos" description="Todavía no hay partidos registrados." />
+          }
           renderItem={({ item }) => (
             <MatchCard
               match={item}
