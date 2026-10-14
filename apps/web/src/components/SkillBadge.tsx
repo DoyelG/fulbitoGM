@@ -1,35 +1,50 @@
 'use client'
 
-function colorForSkill(skill: number) {
-  if (skill <= 5) {
-    const intensity = (Math.max(1, skill) - 1) / 4
-    const h = 24
-    const s = 85
-    const l = 38 + 14 * intensity
-    return `hsl(${h}deg ${s}% ${l}%)`
-  } else {
-    const intensity = (Math.min(10, skill) - 6) / 4
-    const h = 270
-    const s = 78
-    const l = 50 - 14 * intensity
-    return `hsl(${h}deg ${s}% ${l}%)`
-  }
+export type ColorTweaks = { saturationScale?: number; lightnessOffset?: number }
+
+const BADGE_CLASSES = 'inline-flex items-center px-2 py-0.5 rounded text-xs'
+const SOFT_BACKGROUND_ALPHA = 0.1
+
+function hsl(hue: number, saturation: number, lightness: number) {
+  return `hsl(${hue}deg ${saturation}% ${lightness}%)`
 }
 
-export default function SkillBadge({ skill, muted = false }: { skill: number | 'unknown'; muted?: boolean }) {
+export function colorForSkill(skill: number, { saturationScale = 1, lightnessOffset = 0 }: ColorTweaks = {}) {
+  if (skill <= 5) {
+    const intensity = (Math.max(1, skill) - 1) / 4
+    return hsl(24, 85 * saturationScale, 38 + 14 * intensity + lightnessOffset)
+  }
+  const intensity = (Math.min(10, skill) - 6) / 4
+  return hsl(270, 78 * saturationScale, 50 - 14 * intensity + lightnessOffset)
+}
+
+export function colorForGoalkeeperSkill(skill: number) {
+  const progress = (Math.min(10, Math.max(1, skill)) - 1) / 9
+  return hsl(200 - 50 * progress, 72, 42 - 6 * progress)
+}
+
+type SkillBadgeProps = {
+  skill: number | 'unknown'
+  muted?: boolean
+  isGoalkeeper?: boolean
+  soft?: boolean
+}
+
+export default function SkillBadge({ skill, muted = false, isGoalkeeper = false, soft = false }: SkillBadgeProps) {
   if (skill === 'unknown') {
-    return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-200 text-gray-800">Unknown</span>
+    return <span className={`${BADGE_CLASSES} bg-gray-200 text-gray-800`}>Unknown</span>
   }
   if (muted) {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-200 text-gray-500">
-        Lv {skill}
-      </span>
-    )
+    return <span className={`${BADGE_CLASSES} bg-gray-200 text-gray-500`}>Lv {skill}</span>
   }
-  const bg = colorForSkill(skill)
+
+  const color = isGoalkeeper ? colorForGoalkeeperSkill(skill) : colorForSkill(skill)
+  const style = soft
+    ? { backgroundColor: color.replace(/\)$/, ` / ${SOFT_BACKGROUND_ALPHA})`), color }
+    : { backgroundColor: color }
+
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs text-white" style={{ backgroundColor: bg }}>
+    <span className={`${BADGE_CLASSES} ${soft ? 'font-medium' : 'text-white'}`} style={style}>
       Lv {skill}
     </span>
   )
