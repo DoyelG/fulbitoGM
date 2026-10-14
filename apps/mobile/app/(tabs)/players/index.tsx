@@ -8,12 +8,12 @@ import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } f
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PlayerCard } from '@/components/players/player-card'
-import { PlayersEmpty } from '@/components/players/players-empty'
 import { PlayersError } from '@/components/players/players-error'
 import { PlayersListHeader } from '@/components/players/players-list-header'
 import { PlayersLoading } from '@/components/players/players-loading'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
+import EmptyState from '@/components/ui/empty-state/empty-state'
 import { Spacing } from '@/constants/theme'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { usePlayerFilters } from '@/hooks/use-player-filters'
@@ -139,9 +139,13 @@ export default function PlayersScreen() {
             sortedPlayers.length === 0 ? styles.emptyList : styles.listContent
           }
           ListEmptyComponent={
-            <PlayersEmpty
-              isAdmin={isAdmin}
-              onCreate={() => router.push('/(tabs)/players/new')}
+            <EmptyState
+              icon="user-plus"
+              title="Sin jugadores todavía"
+              description={
+                isAdmin ? 'No hay jugadores cargados. Creá el primero con el botón de abajo.' : 'No hay jugadores cargados.'
+              }
+              action={isAdmin ? { label: 'Nuevo jugador', href: '/(tabs)/players/new' } : undefined}
             />
           }
           renderItem={({ item: player }) => (
