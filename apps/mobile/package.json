@@ -16,7 +16,7 @@
     "@fulbito/firebase": "workspace:*",
     "@fulbito/types": "workspace:*",
     "@fulbito/utils": "workspace:*",
-    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/datetimepicker": "^8.4.4",
     "@react-native-community/slider": "5.0.1",
     "@react-navigation/bottom-tabs": "^7.4.0",
