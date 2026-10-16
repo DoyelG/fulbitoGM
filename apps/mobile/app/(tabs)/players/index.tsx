@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons'
 import type { Player } from '@fulbito/types'
 import { calculateAllCurrentStreaks } from '@fulbito/utils'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useCallback, useMemo, useState } from 'react'
 import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native'
@@ -19,6 +20,11 @@ import { usePlayerFilters } from '@/hooks/use-player-filters'
 import { usePlayerSort } from '@/hooks/use-player-sort'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { useAppTheme } from '@/hooks/use-theme'
+
+function withZeroAlpha(hex: string) {
+  const fullHex = hex.length === 4 ? `#${[...hex.slice(1)].map((digit) => digit + digit).join('')}` : hex
+  return `${fullHex}00`
+}
 
 export default function PlayersScreen() {
   const router = useRouter()
@@ -47,10 +53,15 @@ export default function PlayersScreen() {
     positions,
     filteredPlayers,
   } = usePlayerFilters(allPlayers)
-  const { sortedPlayers: sortedAllPlayers } = usePlayerSort(filteredPlayers, streaks, 'skill')
+  const { sortedPlayers: sortedAllPlayers, skillMode, sortDir, selectSkillMode } = usePlayerSort(
+    filteredPlayers,
+    streaks,
+    'skill',
+  )
 
   const sortedPlayers = useMemo(() => sortedAllPlayers.filter((player) => !player.inactive), [sortedAllPlayers])
   const sortedInactivePlayers = useMemo(() => sortedAllPlayers.filter((player) => player.inactive), [sortedAllPlayers])
+  const cuantityOfPlayers = sortedPlayers.length
 
   const confirmDelete = useCallback(
     (player: Player) => {
@@ -104,6 +115,7 @@ export default function PlayersScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       <ThemedView style={styles.screen}>
+        <View style={styles.listWrap}>
         <FlatList
           data={sortedPlayers}
           keyExtractor={(item) => item.id}
@@ -116,6 +128,10 @@ export default function PlayersScreen() {
               onPositionChange={setPosition}
               isAdmin={isAdmin}
               onAdd={() => router.push('/(tabs)/players/new')}
+              skillMode={skillMode}
+              sortDir={sortDir}
+              onSkillSelect={selectSkillMode}
+              cuantityOfPlayers={cuantityOfPlayers}
             />
           }
           refreshControl={
@@ -140,6 +156,7 @@ export default function PlayersScreen() {
               streak={streaks[player.id] ?? { kind: null, count: 0 }}
               onPress={() => router.push(`/(tabs)/players/${player.id}`)}
               onLongPress={isAdmin ? () => openAdminActions(player) : undefined}
+              isGoalkeepingMode={skillMode === 'goalkeeper'}
             />
           )}
           ListFooterComponent={
@@ -173,6 +190,7 @@ export default function PlayersScreen() {
                           streak={streaks[player.id] ?? { kind: null, count: 0 }}
                           onPress={() => router.push(`/(tabs)/players/${player.id}`)}
                           onLongPress={() => openAdminActions(player)}
+                          isGoalkeepingMode={skillMode === 'goalkeeper'}
                         />
                       ))
                     )}
@@ -182,6 +200,12 @@ export default function PlayersScreen() {
             ) : null
           }
         />
+        <LinearGradient
+          pointerEvents="none"
+          colors={[colors.background, withZeroAlpha(colors.background)]}
+          style={styles.topFade}
+        />
+        </View>
       </ThemedView>
     </SafeAreaView>
   )
@@ -194,7 +218,17 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Spacing.lg,
+    paddingTop: Spacing.sm,
+  },
+  listWrap: {
+    flex: 1,
+  },
+  topFade: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: Spacing.lg,
   },
   listContent: {
     paddingBottom: 32,

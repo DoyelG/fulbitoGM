@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native'
-
 import { HeaderAddButton } from '@/components/players/header-add-button'
 import { PlayersSearchBar } from '@/components/players/players-search-bar'
 import { PositionFilterRow, type PositionFilter } from '@/components/players/position-filter-row'
+import { SkillFilterRow, type SkillMode } from '@/components/players/skill-filter-row'
 
 type Props = {
   query: string
@@ -12,6 +12,10 @@ type Props = {
   onPositionChange: (v: PositionFilter) => void
   isAdmin: boolean
   onAdd: () => void
+  skillMode: SkillMode
+  sortDir: 'asc' | 'desc'
+  onSkillSelect: (mode: SkillMode) => void
+  cuantityOfPlayers: number
 }
 
 export function PlayersListHeader({
@@ -22,6 +26,10 @@ export function PlayersListHeader({
   onPositionChange,
   isAdmin,
   onAdd,
+  skillMode,
+  sortDir,
+  onSkillSelect,
+  cuantityOfPlayers,
 }: Props) {
   return (
     <View style={styles.wrap}>
@@ -36,6 +44,7 @@ export function PlayersListHeader({
         value={position}
         onChange={onPositionChange}
       />
+      <SkillFilterRow mode={skillMode} dir={sortDir} onSelect={onSkillSelect} cuantityOfPlayers={cuantityOfPlayers}/>
     </View>
   )
 }
@@ -48,5 +57,6 @@ const styles = StyleSheet.create({
   addRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    marginTop: 8
   },
 })

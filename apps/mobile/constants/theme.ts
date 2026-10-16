@@ -5,6 +5,9 @@ const FRIENDLYBRAND = '#0cb000'
 const tintColorLight = '#0a7ea4'
 const tintColorDark = '#fff'
 
+// Punto medio del degradado del botón de arquero en web: hsl(170 90% 32%) → hsl(195 90% 32%)
+export const GOALKEEPER_COLOR = '#08969b'
+
 export const Colors = {
   light: {
     text: '#11181C',

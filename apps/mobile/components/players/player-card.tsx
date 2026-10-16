@@ -1,4 +1,5 @@
 import type { Player } from '@fulbito/types'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import { GoalMiniBar } from '@/components/players/goal-mini-bar'
@@ -6,7 +7,9 @@ import { PlayerAvatar } from '@/components/players/player-avatar'
 import { SkillBig } from '@/components/players/skill-big'
 import { StreakBadge } from '@/components/players/streak-badge'
 import { ThemedText } from '@/components/themed-text'
+import { GOALKEEPER_COLOR } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
+import { getGoalkeeping } from '@fulbito/utils'
 
 type StreakKind = 'win' | 'loss' | null
 
@@ -15,13 +18,16 @@ type Props = {
   streak: { kind: StreakKind; count: number }
   onPress: () => void
   onLongPress?: () => void
+  isGoalkeepingMode: boolean
 }
 
 const AVATAR_SIZE = 48
 
-export function PlayerCard({ player, streak, onPress, onLongPress }: Props) {
+export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeepingMode = false }: Props) {
   const { colors, isDark, shadows, radii } = useAppTheme()
   const winGoalProgress = streak.kind === 'win' ? streak.count : 0
+
+  const isGoalkeeping = getGoalkeeping(player)
 
   return (
     <Pressable
@@ -38,6 +44,14 @@ export function PlayerCard({ player, streak, onPress, onLongPress }: Props) {
         shadows.card(isDark),
         pressed && { opacity: 0.92 },
       ]}>
+      <LinearGradient
+        pointerEvents="none"
+        colors={[isGoalkeepingMode ? GOALKEEPER_COLOR : colors.brand, '#fff']}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 0 }}
+        locations={[0, 0.6]}
+        style={[StyleSheet.absoluteFill, { borderRadius: radii.lg - 1 }]}
+      />
       <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={AVATAR_SIZE} />
 
       <View style={styles.middle}>
@@ -58,7 +72,7 @@ export function PlayerCard({ player, streak, onPress, onLongPress }: Props) {
       </View>
 
       <View style={styles.right}>
-        <SkillBig skill={player.skill ?? null} />
+        <SkillBig skill={isGoalkeepingMode ?  isGoalkeeping : player.skill ?? null} isGoalkeepingMode={isGoalkeepingMode} />
         <GoalMiniBar winCount={winGoalProgress} />
       </View>
     </Pressable>

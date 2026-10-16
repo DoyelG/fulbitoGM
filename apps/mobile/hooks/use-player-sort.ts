@@ -1,4 +1,6 @@
+import type { SkillMode } from '@/components/players/skill-filter-row'
 import type { Player } from '@fulbito/types'
+import { getGoalkeeping } from '@fulbito/utils'
 import { useCallback, useMemo, useState } from 'react'
 
 export type SortKey = 'skill' | 'streak' | 'goal7'
@@ -22,6 +24,7 @@ export function usePlayerSort(
 ) {
   const [sortKey, setSortKey] = useState<SortKey>(initial)
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [skillMode, setSkillMode] = useState<'player' | 'goalkeeper'>('player')
 
   const toggleSort = useCallback((key: SortKey) => {
     setSortKey((prevKey: SortKey) => {
@@ -33,6 +36,19 @@ export function usePlayerSort(
       return key
     })
   }, [])
+
+  const selectSkillMode = useCallback(
+  (mode: SkillMode) => {
+    if (mode === skillMode && sortKey === 'skill') {
+      setSortDir((current) => (current === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSkillMode(mode)
+      setSortKey('skill')
+      setSortDir('desc')
+    }
+  },
+  [skillMode, sortKey],
+)
 
   const sortedPlayers = useMemo(() => {
     const dir = sortDir === 'asc' ? 1 : -1
@@ -46,8 +62,8 @@ export function usePlayerSort(
       let bv = 0
       switch (sortKey) {
         case 'skill':
-          av = a.skill ?? -Infinity
-          bv = b.skill ?? -Infinity
+          av = (skillMode === 'goalkeeper' ? getGoalkeeping(a) : a.skill) ?? -Infinity
+          bv = (skillMode === 'goalkeeper' ? getGoalkeeping(b) : b.skill) ?? -Infinity
           break
         case 'streak':
           av = streakScore(stA)
@@ -61,7 +77,7 @@ export function usePlayerSort(
       if (av === bv) return 0
       return av > bv ? dir : -dir
     })
-  }, [players, streaks, sortKey, sortDir])
+  }, [players, streaks, sortKey, sortDir, skillMode])
 
-  return { sortKey, sortDir, toggleSort, sortedPlayers }
+return { sortKey, sortDir, skillMode, toggleSort, selectSkillMode, sortedPlayers }
 }
