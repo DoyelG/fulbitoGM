@@ -22,7 +22,6 @@ function colorForStreak(kind: Kind, count: number): string {
 
 type Props = { kind: Kind; count: number }
 
-/** Mini pill de racha: verde para victorias, rojo para derrotas. */
 export function StreakBadge({ kind, count }: Props) {
   const { colors } = useAppTheme()
   if (!count || count <= 0 || !kind) {

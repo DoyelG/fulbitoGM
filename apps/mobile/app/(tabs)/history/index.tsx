@@ -1,4 +1,5 @@
 import type { Match } from '@fulbito/types'
+import { parseMatchDate } from '@fulbito/utils'
 import { useRouter } from 'expo-router'
 import { useCallback, useMemo, useState } from 'react'
 import {
@@ -16,11 +17,14 @@ import { HistoryEmpty } from '@/components/history/historyEmpty'
 import { HistoryError } from '@/components/history/historyError'
 import { HistoryLoading } from '@/components/history/historyLoading'
 import { MatchCard } from '@/components/history/matchCard'
+import { MatchClipsModal } from '@/components/history/match-clips-modal'
+import { VideoClipUploadModal } from '@/components/players/detail/video-clip-upload-modal'
 import { ThemedView } from '@/components/themed-view'
 import { Spacing } from '@/constants/theme'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { useMatchesData } from '@/hooks/use-matches-data'
+import { useVideoClipsData } from '@/hooks/use-video-clips-data'
 import { useAppTheme } from '@/hooks/use-theme'
 
 export default function HistoryScreen() {
@@ -30,6 +34,10 @@ export default function HistoryScreen() {
 
   const { matches, players, loading, refreshing, error, reload, refresh, deleteMatch } =
     useMatchesData()
+  const { videoClips, addVideoClip, deleteVideoClip } = useVideoClipsData()
+
+  const [videoUploadMatch, setVideoUploadMatch] = useState<Match | null>(null)
+  const [viewClipsMatch, setViewClipsMatch] = useState<Match | null>(null)
 
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -38,7 +46,7 @@ export default function HistoryScreen() {
   const filteredMatches = useMemo(
     () =>
       matches.filter((match) => {
-        const matchDateOnly = match.date.slice(0, 10)
+        const matchDateOnly = parseMatchDate(match).date
         if (fromDate && matchDateOnly < fromDate) return false
         if (toDate && matchDateOnly > toDate) return false
         if (searchQuery) {
@@ -151,6 +159,7 @@ export default function HistoryScreen() {
               match={item}
               players={players}
               isAdmin={isAdmin}
+              clipCount={videoClips.filter((c) => c.matchId === item.id).length}
               onEdit={() =>
                 router.push({
                   pathname: '/(tabs)/history/edit/[id]',
@@ -158,10 +167,36 @@ export default function HistoryScreen() {
                 })
               }
               onDelete={() => confirmDelete(item)}
+              onViewClips={() => setViewClipsMatch(item)}
             />
           )}
         />
       </ThemedView>
+
+      <VideoClipUploadModal
+        key={videoUploadMatch?.id ?? 'none'}
+        visible={videoUploadMatch !== null}
+        matches={videoUploadMatch ? [videoUploadMatch] : []}
+        lockedMatchId={videoUploadMatch?.id}
+        onSubmit={async (data, uri) => {
+          await addVideoClip(data, uri)
+          setVideoUploadMatch(null)
+        }}
+        onClose={() => setVideoUploadMatch(null)}
+      />
+
+      <MatchClipsModal
+        visible={viewClipsMatch !== null}
+        match={viewClipsMatch}
+        clips={viewClipsMatch ? videoClips.filter((c) => c.matchId === viewClipsMatch.id) : []}
+        isAdmin={isAdmin}
+        onDelete={deleteVideoClip}
+        onAddVideo={() => {
+          setVideoUploadMatch(viewClipsMatch)
+          setViewClipsMatch(null)
+        }}
+        onClose={() => setViewClipsMatch(null)}
+      />
     </View>
   )
 }

@@ -38,11 +38,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 20,
   },
-  userAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
   userInfo: {
     flex: 1,
   },

@@ -42,12 +42,10 @@ export function RecentMatchRow({ match, showBorder = true }: Props) {
         styles.row,
         showBorder && { borderBottomWidth: 1, borderBottomColor: colors.border },
       ]}>
-      {/* Result badge */}
       <View style={[styles.badge, { backgroundColor: `${color}22` }]}>
         <ThemedText style={[styles.badgeText, { color }]}>{label}</ThemedText>
       </View>
 
-      {/* Date + type */}
       <View style={styles.meta}>
         <ThemedText style={[styles.date, { color: colors.text }]}>
           {formatDate(match.date)}
@@ -57,10 +55,8 @@ export function RecentMatchRow({ match, showBorder = true }: Props) {
         </ThemedText>
       </View>
 
-      {/* Score */}
       <ThemedText style={[styles.score, { color: colors.muted }]}>{match.score}</ThemedText>
 
-      {/* Goals + Performance */}
       <View style={styles.stats}>
         <ThemedText style={[styles.statValue, { color: colors.text }]}>
           {match.goals}G

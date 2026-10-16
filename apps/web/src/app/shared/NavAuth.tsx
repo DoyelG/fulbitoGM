@@ -5,7 +5,7 @@ import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext"
 import { useRouter } from "next/navigation"
 
 type Props = {
-  closeNavBar?: () => void // Optional callback for reusability outside NavBar
+  closeNavBar?: () => void
 }
 
 export default function NavAuth({ closeNavBar }: Props) {

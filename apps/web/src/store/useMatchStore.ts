@@ -1,13 +1,13 @@
 import { create } from 'zustand'
-import type { Match } from '@fulbito/types'
+import type { Match, MatchInput } from '@fulbito/types'
 import { getMatches, createMatch, updateMatch, deleteMatch } from '@fulbito/firebase'
 
 type MatchStore = {
   matches: Match[]
   matchesInit: 'idle' | 'loading' | 'loaded' | 'error'
   initLoad: () => Promise<void>
-  addMatch: (m: Omit<Match, 'id'>) => Promise<string>
-  updateMatch: (id: string, m: Omit<Match, 'id'>) => Promise<void>
+  addMatch: (m: MatchInput) => Promise<string>
+  updateMatch: (id: string, m: MatchInput) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
   resetAndReload: () => Promise<void>

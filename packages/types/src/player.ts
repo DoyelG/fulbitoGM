@@ -13,13 +13,13 @@ export type Player = {
   skill: number | null
   position: string
   skills?: Skills
-  photoUrl?: string
+  photoUrl?: string | null
   goalkeeping?: number
+  inactive?: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-/** Minimal player shape used by team-balancing algorithms */
 export type PlayerInfo = {
   id: string
   name: string

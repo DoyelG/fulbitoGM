@@ -89,7 +89,7 @@ export default function NewPlayerScreen() {
   }, [values, photoUri, reload, router])
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <PlayerCreateForm
         values={values}
         onChange={setValues}

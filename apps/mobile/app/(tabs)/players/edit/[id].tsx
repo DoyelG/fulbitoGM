@@ -28,6 +28,7 @@ export default function EditPlayerScreen() {
     tactical: 5,
     psychological: 5,
     goalkeeping: 5,
+    inactive: false,
   })
   const [saving, setSaving] = useState(false)
 
@@ -54,6 +55,7 @@ export default function EditPlayerScreen() {
         tactical: Number(player.skills?.tactical ?? base),
         psychological: Number(player.skills?.psychological ?? base),
         goalkeeping: getGoalkeeping(player),
+        inactive: player.inactive ?? false,
       })
     }
   }, [player])
@@ -75,6 +77,7 @@ export default function EditPlayerScreen() {
         skills,
         skill,
         goalkeeping: values.goalkeeping,
+        inactive: values.inactive,
       })
       await reload()
       router.back()
@@ -88,7 +91,7 @@ export default function EditPlayerScreen() {
   return (
     <SafeAreaView
       style={[styles.safe, { backgroundColor: colors.background }]}
-      edges={['bottom']}>
+      edges={[]}>
       <PlayerEditForm
         values={values}
         onChange={setValues}

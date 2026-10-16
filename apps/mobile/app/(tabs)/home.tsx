@@ -17,7 +17,7 @@ export default function HomeScreen() {
   const { colors: C, isDark, shadows } = useAppTheme();
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: C.background }]} edges={['bottom']}>
+    <SafeAreaView style={[styles.root, { backgroundColor: C.background }]} edges={[]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         <HomeHero />

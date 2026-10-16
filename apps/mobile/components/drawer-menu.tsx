@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { styles } from '@/components/drawer-menu.styles';
 import Animated, {
   useAnimatedStyle,
@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { UserAvatar } from '@/components/user-avatar';
 
 
 
@@ -42,10 +43,7 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout }: Drawer
         <View style={styles.handle} />
 
         <View style={styles.userSection}>
-          <Image
-            source={user.image ? { uri: user.image } : require('@/assets/images/user-placeholder.png')}
-            style={styles.userAvatar}
-          />
+          <UserAvatar imageUrl={user.image} size={44} />
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{user.name}</Text>
             <Text style={styles.userEmail}>{user.email}</Text>

@@ -77,7 +77,6 @@ export function DateFilterBar({ fromDate, toDate, onChangeFrom, onChangeTo, onCl
         </TouchableOpacity>
       )}
 
-      {/* Android: native inline picker */}
       {Platform.OS === 'android' && activePicker ? (
         <DateTimePicker
           value={isoToDate(activePicker === 'from' ? fromDate : toDate)}
@@ -87,7 +86,6 @@ export function DateFilterBar({ fromDate, toDate, onChangeFrom, onChangeTo, onCl
         />
       ) : null}
 
-      {/* iOS: modal wrapper */}
       {Platform.OS === 'ios' && activePicker ? (
         <Modal transparent animationType="slide" visible>
           <Pressable style={styles.backdrop} onPress={() => setActivePicker(null)} />

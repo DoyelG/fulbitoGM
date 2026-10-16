@@ -14,7 +14,6 @@ type Props = {
   onChange: (next: PositionFilter) => void
 }
 
-/** Chips horizontales para filtrar por posición; `null` = Todos. */
 export function PositionFilterRow({ positions, value, onChange }: Props) {
   const sorted = [...positions].sort((a, b) => {
     const ia = ORDER.indexOf(a)

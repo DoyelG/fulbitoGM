@@ -10,9 +10,5 @@ export async function uploadPlayerPhoto(file: File | Blob, playerId: string): Pr
 export async function deletePlayerPhoto(playerId: string): Promise<void> {
   const storage = getStorage()
   const storageRef = ref(storage, `players/${playerId}.jpg`)
-  try {
-    await deleteObject(storageRef)
-  } catch {
-    // ignore if file doesn't exist
-  }
+  await deleteObject(storageRef).catch(() => undefined)
 }

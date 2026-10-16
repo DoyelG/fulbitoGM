@@ -8,9 +8,14 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "echo 'No linting configured'"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@fulbito/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@fulbito/eslint-config": "workspace:*",
+    "@typescript-eslint/parser": "^8",
+    "eslint": "^9"
   }
 }

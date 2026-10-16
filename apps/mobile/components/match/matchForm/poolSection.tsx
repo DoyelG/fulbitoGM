@@ -56,12 +56,12 @@ export function PoolSection({ players, poolPlayers, poolIds, maxSize, onConfirm 
           </Text>
         ) : (
           <View style={styles.chipsWrap}>
-            {poolPlayers.map((p) => (
+            {poolPlayers.map((player) => (
               <View
-                key={p.id}
+                key={player.id}
                 style={[styles.chip, { backgroundColor: colors.brandSoft, borderRadius: radii.pill }]}
               >
-                <Text style={[styles.chipText, { color: colors.brand }]}>{p.name}</Text>
+                <Text style={[styles.chipText, { color: colors.brand }]}>{player.name}</Text>
               </View>
             ))}
           </View>
@@ -75,15 +75,17 @@ export function PoolSection({ players, poolPlayers, poolIds, maxSize, onConfirm 
         onDismiss={() => setOpen(false)}
       >
         <ScrollView keyboardShouldPersistTaps="handled">
-          {players.map((p) => {
-            const selected = draftIds.has(p.id)
+          {players
+            .filter((player) => !player.inactive)
+            .map((player) => {
+            const selected = draftIds.has(player.id)
             return (
               <TouchableOpacity
-                key={p.id}
+                key={player.id}
                 style={[sheetStyles.option, { borderBottomColor: colors.border }]}
-                onPress={() => toggle(p.id)}
+                onPress={() => toggle(player.id)}
               >
-                <Text style={[sheetStyles.optionText, { color: colors.text }]}>{p.name}</Text>
+                <Text style={[sheetStyles.optionText, { color: colors.text }]}>{player.name}</Text>
                 {selected && (
                   <Text style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</Text>
                 )}

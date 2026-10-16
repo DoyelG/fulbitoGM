@@ -1,7 +1,9 @@
 import type { Match, Player } from '@fulbito/types'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { formatMatchDate, formatMatchHour, parseMatchDate, matchLocationMapsUrl } from '@fulbito/utils'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View, Linking} from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { useState } from 'react'
 
 type MatchPlayer = Match['teamA'][number]
 
@@ -9,24 +11,36 @@ type Props = {
   match: Match
   players: Player[]
   isAdmin: boolean
+  clipCount: number
   onEdit: () => void
   onDelete: () => void
+  onViewClips: () => void
 }
 
-function formatDate(iso: string): string {
-  const [yy, mm, dd] = iso.slice(0, 10).split('-')
-  return `${dd}/${mm}/${yy}`
-}
-
-export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Props) {
+export function MatchCard({
+  match,
+  players,
+  isAdmin,
+  clipCount,
+  onEdit,
+  onDelete,
+  onViewClips,
+}: Props) {
   const { colors, radii, spacing, shadows, isDark } = useAppTheme()
 
-  const winA = m.teamAScore > m.teamBScore
-  const winB = m.teamBScore > m.teamAScore
+  const winA = match.teamAScore > match.teamBScore
+  const winB = match.teamBScore > match.teamAScore
+  const { date: matchDay, hour } = parseMatchDate(match)
 
-  const shirtName = m.shirtsResponsibleId
-    ? (players.find((p) => p.id === m.shirtsResponsibleId)?.name ?? '—')
+  const shirtName = match.shirtsResponsibleId
+    ? (players.find((player) => player.id === match.shirtsResponsibleId)?.name ?? '—')
     : null
+
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const toggleExtended = () => {
+    setIsExpanded((isOpen) => !isOpen)
+  }
 
   return (
     <TouchableOpacity
@@ -41,68 +55,131 @@ export function MatchCard({ match: m, players, isAdmin, onEdit, onDelete }: Prop
         shadows.card(isDark),
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          {m.name ? (
-            <Text style={[styles.matchName, { color: colors.text }]}>{m.name}</Text>
+          {match.name ? (
+            <Text style={[styles.matchName, { color: colors.text }]}>{match.name}</Text>
           ) : null}
           <View style={styles.metaRow}>
-            <Text style={[styles.date, { color: colors.text }]}>{formatDate(m.date)}</Text>
+            <Text style={[styles.date, { color: colors.text }]}>{formatMatchDate(matchDay)}</Text>
+            {hour !== null && (
+              <Text style={[styles.date, { color: colors.text }]}>{formatMatchHour(hour)}</Text>
+            )}
             <View style={[styles.typeBadge, { backgroundColor: colors.brand }]}>
-              <Text style={styles.typeBadgeText}>{m.type}</Text>
+              <Text style={styles.typeBadgeText}>{match.type}</Text>
             </View>
+            {match.isFriendly && (
+              <View style={[styles.typeBadge, { backgroundColor: colors.friendlyBrand }]}>
+                <Text style={styles.typeBadgeText}>Amistoso</Text>
+              </View>
+            )}
           </View>
         </View>
         <Text style={[styles.score, { color: colors.brand }]}>
-          {m.teamAScore} – {m.teamBScore}
+          {match.teamAScore} – {match.teamBScore}
         </Text>
       </View>
 
-      {/* Teams */}
       <View style={styles.teamsRow}>
         <TeamColumn
           label="Equipo A"
-          players={m.teamA}
+          players={match.teamA}
           winner={winA}
           loser={winB}
-          goalkeeperIds={m.goalkeeperIds}
-          mvpId={m.mvpId}
+          goalkeeperIds={match.goalkeeperIds}
+          mvpId={match.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
         />
         <TeamColumn
           label="Equipo B"
-          players={m.teamB}
+          players={match.teamB}
           winner={winB}
           loser={winA}
-          goalkeeperIds={m.goalkeeperIds}
-          mvpId={m.mvpId}
+          goalkeeperIds={match.goalkeeperIds}
+          mvpId={match.mvpId}
           colors={colors}
           radii={radii}
           spacing={spacing}
         />
       </View>
 
-      {/* Shirts + Admin actions */}
+      {match.description ? (
+        <Pressable
+          onPress={toggleExtended}
+          onStartShouldSetResponderCapture={() => true}
+          style={styles.descriptionRow}
+          accessibilityRole="button"
+          accessibilityLabel={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
+          accessibilityState={{ expanded: isExpanded }}
+        >
+          <Text
+            style={[styles.description, { color: colors.muted }]}
+            numberOfLines={isExpanded ? undefined : 2}
+          >
+            {match.description}
+          </Text>
+          <Text
+            style={[
+              styles.chevron,
+              { color: colors.brandAccent },
+              { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] },
+            ]}
+          >
+            ^
+          </Text>
+        </Pressable>
+      ) : null}
+
       <View style={styles.footer}>
         {shirtName ? (
           <Text style={[styles.shirts, { color: colors.muted }]}>
             Camisetas: <Text style={{ fontWeight: '600', color: colors.text }}>{shirtName}</Text>
           </Text>
-        ) : <View />}
-
-        {isAdmin ? (
-          <View style={styles.actions}>
-            <TouchableOpacity onPress={onEdit} style={[styles.editBtn, { borderColor: colors.border }]}>
-              <Text style={[styles.editBtnText, { color: colors.text }]}>Editar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onDelete}>
-              <Text style={[styles.deleteText, { color: colors.danger }]}>Eliminar</Text>
-            </TouchableOpacity>
-          </View>
         ) : null}
+
+        {match.location?.name ? (
+          <TouchableOpacity
+            onPress={() => match.location && Linking.openURL(matchLocationMapsUrl(match.location))}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel={`Ubicación: ${match.location.name}, ${match.location.street}`}
+            accessibilityHint="Abre la cancha en Google Maps"
+            style={styles.location}
+          >
+            <Text style={[styles.shirts, { color: colors.muted }]}>
+              Ubicación:{' '}
+              <Text style={[styles.locationName, { color: colors.brand }]}>{match.location.name}</Text>
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            onPress={onViewClips}
+            style={[styles.editBtn, styles.clipsBtn, { borderColor: colors.border }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Ver clips del partido${match.name ? `: ${match.name}` : ''}`}>
+            <Text style={styles.clipsBtnIcon}>🎥</Text>
+            {clipCount > 0 && (
+              <View style={[styles.clipCountBadge, { backgroundColor: colors.brand }]}>
+                <Text style={styles.clipCountBadgeText}>{clipCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {isAdmin && (
+            <>
+              <TouchableOpacity onPress={onEdit} style={[styles.editBtn, { borderColor: colors.border }]}>
+                <Text style={[styles.editBtnText, { color: colors.text }]}>Editar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onDelete}>
+                <Text style={[styles.deleteText, { color: colors.danger }]}>Eliminar</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   )
@@ -137,13 +214,14 @@ function TeamColumn({
   return (
     <View style={[styles.teamCol, { backgroundColor: bg, borderRadius: radii.sm, padding: spacing.sm }]}>
       <Text style={[styles.teamLabel, { color: colors.text }]}>{label}</Text>
-      {players.map((p) => (
-        <View key={p.id} style={styles.playerRow}>
+      {players.map((player) => (
+        <View key={player.id} style={styles.playerRow}>
           <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
-            {p.name}
+            {player.name}
           </Text>
           <Text style={[styles.playerStats, { color: colors.muted }]}>
-            {goalkeeperIds?.includes(p.id) ? '🧤 ' : ''}{mvpId === p.id ? '🏆 ' : ''}{p.goals}⚽ {p.performance}★
+            {goalkeeperIds?.includes(player.id) ? '🧤 ' : ''}{mvpId === player.id ? '🏆 ' : ''}{player.goals}⚽{' '}
+            {player.performance}★
           </Text>
         </View>
       ))}
@@ -224,18 +302,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 8,
+    gap: 8,
   },
   shirts: {
     fontSize: 12,
+  },
+  location: {
+    alignSelf: 'flex-start',
+  },
+  locationName: {
+    fontWeight: '600',
+  },
+  descriptionRow: {
+    gap: 6,
+    marginTop: 6,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  description: {
     flex: 1,
+    flexShrink: 1,
+    fontSize: 12,
+  },
+  chevron: {
+    fontSize: 12,
+    fontWeight: '700',
+    alignSelf: 'flex-end',
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
     gap: 12,
   },
   editBtn: {
@@ -250,5 +349,24 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  clipsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  clipsBtnIcon: {
+    fontSize: 14,
+  },
+  clipCountBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 5,
+    minWidth: 16,
+    alignItems: 'center',
+  },
+  clipCountBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
 })

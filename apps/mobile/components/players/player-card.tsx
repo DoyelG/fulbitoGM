@@ -19,7 +19,6 @@ type Props = {
 
 const AVATAR_SIZE = 48
 
-/** Fila compacta al estilo del mock: avatar | nombre+posición+racha | skill+objetivo. */
 export function PlayerCard({ player, streak, onPress, onLongPress }: Props) {
   const { colors, isDark, shadows, radii } = useAppTheme()
   const winGoalProgress = streak.kind === 'win' ? streak.count : 0

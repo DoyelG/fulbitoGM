@@ -22,6 +22,7 @@ export type PlayerEditFormValues = {
   tactical: number
   psychological: number
   goalkeeping: number
+  inactive: boolean
 }
 
 type Props = {
@@ -54,7 +55,7 @@ function SkillStepper({
 }: {
   label: string
   value: number
-  onChange: (v: number) => void
+  onChange: (nextValue: number) => void
 }) {
   const { colors, radii } = useAppTheme()
   return (
@@ -87,7 +88,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
 
   const canSave = values.name.trim().length >= 2 && !saving
 
-  const set = (key: keyof PlayerEditFormValues, val: string | number) =>
+  const set = (key: keyof PlayerEditFormValues, val: string | number | boolean) =>
     onChange({ ...values, [key]: val })
 
   return (
@@ -99,11 +100,10 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
 
-        {/* ── Nombre ──────────────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Nombre</ThemedText>
         <TextInput
           value={values.name}
-          onChangeText={(v) => set('name', v)}
+          onChangeText={(text) => set('name', text)}
           autoCapitalize="words"
           autoCorrect={false}
           placeholder="Nombre del jugador"
@@ -119,15 +119,14 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           ]}
         />
 
-        {/* ── Posición ─────────────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Posición</ThemedText>
         <View style={styles.chips}>
-          {POSITIONS.map((p) => {
-            const active = values.position === p.value
+          {POSITIONS.map((position) => {
+            const active = values.position === position.value
             return (
               <TouchableOpacity
-                key={p.value}
-                onPress={() => set('position', p.value)}
+                key={position.value}
+                onPress={() => set('position', position.value)}
                 style={[
                   styles.chip,
                   {
@@ -138,14 +137,13 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
                 ]}>
                 <ThemedText
                   style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
-                  {p.label}
+                  {position.label}
                 </ThemedText>
               </TouchableOpacity>
             )
           })}
         </View>
 
-        {/* ── Habilidades ──────────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Habilidades</ThemedText>
         <View
           style={[
@@ -157,12 +155,11 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
               key={key}
               label={label}
               value={values[key] as number}
-              onChange={(v) => set(key, v)}
+              onChange={(nextValue) => set(key, nextValue)}
             />
           ))}
         </View>
 
-        {/* ── Promedio ─────────────────────────────────────── */}
         <View style={[styles.avgRow, { borderColor: colors.border, borderRadius: radii.sm }]}>
           <ThemedText style={[styles.avgLabel, { color: colors.muted }]}>General (promedio)</ThemedText>
           <ThemedText style={[styles.avgValue, { color: colors.brand }]}>
@@ -170,7 +167,6 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           </ThemedText>
         </View>
 
-        {/* ── Nivel de arquero ─────────────────────────────── */}
         <ThemedText style={[styles.label, { color: colors.muted }]}>Nivel de arquero</ThemedText>
         <View
           style={[
@@ -180,11 +176,40 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
           <SkillStepper
             label="Arquero"
             value={values.goalkeeping}
-            onChange={(v) => set('goalkeeping', v)}
+            onChange={(nextValue) => set('goalkeeping', nextValue)}
           />
         </View>
 
-        {/* ── Acciones ─────────────────────────────────────── */}
+        <ThemedText style={[styles.label, { color: colors.muted }]}>Estado</ThemedText>
+        <View
+          style={[styles.segmented, { borderColor: colors.border, borderRadius: radii.sm }]}
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Estado del jugador">
+          {[
+            { value: false, label: 'Activo' },
+            { value: true, label: 'Inactivo' },
+          ].map((option, index) => {
+            const active = values.inactive === option.value
+            const selectedColor = option.value ? '#6b7280' : colors.brand
+            return (
+              <TouchableOpacity
+                key={option.label}
+                onPress={() => set('inactive', option.value)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+                style={[
+                  styles.segmentBtn,
+                  index > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border },
+                  { backgroundColor: active ? selectedColor : 'transparent' },
+                ]}>
+                <ThemedText style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
+                  {option.label}
+                </ThemedText>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
         <View style={styles.actions}>
           <TouchableOpacity
             onPress={onCancel}
@@ -252,6 +277,19 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontFamily: Fonts.semiBold,
+  },
+
+  segmented: {
+    flexDirection: 'row',
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  segmentBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs + 2,
+    width: 80,
+    alignItems: 'center',
   },
 
   skillsCard: {

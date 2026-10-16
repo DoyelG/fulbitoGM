@@ -1,0 +1,28 @@
+{
+  "name": "@fulbito/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@fulbito/firebase": "workspace:*",
+    "@fulbito/types": "workspace:*",
+    "@fulbito/utils": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.21.0",
+    "firebase": "^12.13.0",
+    "tsx": "^4.19.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@fulbito/eslint-config": "workspace:*",
+    "@types/node": "^22",
+    "@typescript-eslint/parser": "^8",
+    "eslint": "^9",
+    "typescript": "^5"
+  }
+}

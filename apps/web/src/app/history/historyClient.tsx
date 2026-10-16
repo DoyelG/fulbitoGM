@@ -3,23 +3,41 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import type { Match } from "@fulbito/types";
+import type { Match, MatchInput, MatchLocation } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
+import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
+import Modal from "@/components/Modal";
+import VideoClipUploadForm from "@/components/videoClips/VideoClipUploadForm";
+import VideoClipCarousel from "@/components/videoClips/VideoClipCarousel";
 import {
   buildPlayedBeforeSet,
   getEligiblePlayerIds,
   computeLeastAssignedPoolIds,
   getShirtDutiesByPlayerId,
 } from "@/lib/shirtDuty";
-import { onlyFinalMatches } from "@fulbito/utils";
+import {
+  onlyFinalMatches,
+  buildMatchSchedule,
+  parseMatchDate,
+  formatMatchHour,
+  formatMatchDate,
+} from "@fulbito/utils";
+import HourField from "@/components/HourField";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { DropColumn, DraggableItem } from "@/components/DragAndDrop";
 import { Pagination } from "../shared/Pagination";
 import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
+import { MatchDescription } from "./matchDescription";
+import { Backdrop } from "@/components/Backdrop";
+import AddressPicker from "@/components/AddressPicker";
+import MatchLocationLink from "@/components/MatchLocationLink";
+import { FiTrash2 } from "react-icons/fi";
+import Chevron from "../shared/Icons/Chevron";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
+const MAX_GOALKEEPERS = 2;
 
 type RecordingPlayer = { id: string; name: string };
 
@@ -38,6 +56,60 @@ export default function HistoryClient() {
   >(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const addVideoClip = useVideoClipStore((state) => state.addVideoClip);
+  const deleteVideoClip = useVideoClipStore((state) => state.deleteVideoClip);
+  const videoClips = useVideoClipStore((state) => state.videoClips);
+  const videoClipsInit = useVideoClipStore((state) => state.videoClipsInit);
+  const initVideoClipsLoad = useVideoClipStore((state) => state.initLoad);
+  const [videoUploadMatch, setVideoUploadMatch] = useState<Match | null>(null);
+  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
+  const [viewClipsMatch, setViewClipsMatch] = useState<Match | null>(null);
+  const [viewPlaybackClipId, setViewPlaybackClipId] = useState<string | null>(null);
+  const [viewDeleteError, setViewDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (videoClipsInit !== "loaded") initVideoClipsLoad();
+  }, [videoClipsInit, initVideoClipsLoad]);
+
+  const viewClips = useMemo(
+    () => (viewClipsMatch ? videoClips.filter((c) => c.matchId === viewClipsMatch.id) : []),
+    [videoClips, viewClipsMatch],
+  );
+  const viewMatchById = useMemo(
+    () => (viewClipsMatch ? new Map([[viewClipsMatch.id, viewClipsMatch]]) : new Map()),
+    [viewClipsMatch],
+  );
+  const viewPlaybackClip = viewPlaybackClipId
+    ? (viewClips.find((c) => c.id === viewPlaybackClipId) ?? null)
+    : null;
+
+  const handleViewDelete = async (clipId: string) => {
+    if (!window.confirm("¿Eliminar este clip?")) return;
+    setViewDeleteError(null);
+    try {
+      await deleteVideoClip(clipId);
+    } catch (err) {
+      setViewDeleteError(err instanceof Error ? err.message : "No se pudo eliminar el clip.");
+    }
+  };
+
+  const selectedMatch = useMemo(
+    () => storeMatches.find((match) => match.id === selectedMatchId) ?? null,
+    [storeMatches, selectedMatchId],
+  );
+
+  const handleVideoUpload = async (data: NewVideoClipData, file: File) => {
+    setVideoUploadError(null);
+    try {
+      await addVideoClip(data, file);
+      setVideoUploadMatch(null);
+    } catch (err) {
+      setVideoUploadError(
+        err instanceof Error ? err.message : "No se pudo subir el clip.",
+      );
+      throw err;
+    }
+  };
 
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
@@ -46,7 +118,7 @@ export default function HistoryClient() {
   const isLoadingMatches = matchesInit === "idle" || matchesInit === "loading";
 
   const filteredMatches = storeMatches.filter((match) => {
-    const matchDateOnly = match.date.slice(0, 10);
+    const matchDateOnly = parseMatchDate(match).date;
     if (fromDate && matchDateOnly < fromDate) return false;
     if (toDate && matchDateOnly > toDate) return false;
     if (searchQuery) {
@@ -73,26 +145,11 @@ export default function HistoryClient() {
     resetKey: `${fromDate}|${toDate}|${searchQuery}`,
   });
 
-  if (open) {
-    return (
-      <RecordModal
-        mode={open.mode}
-        initial={open.mode === "edit" ? open.match : undefined}
-        onClose={() => setOpen(false)}
-        onSave={async (m) => {
-          if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, m);
-          } else {
-            await addMatch(m);
-          }
-        }}
-      />
-    );
-  }
   const handleDelete = (matchId: string) => {
     setShowModal(true);
     setSelectedMatchId(matchId);
   };
+
   const handleConfirmDelete = async () => {
     try {
       await deleteMatch(selectedMatchId as string);
@@ -137,7 +194,7 @@ export default function HistoryClient() {
             type="text"
             placeholder="Buscar por título o jugador..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="border rounded pl-9 pr-3 py-2 w-full"
           />
         </div>
@@ -147,7 +204,7 @@ export default function HistoryClient() {
             <input
               type="date"
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
+              onChange={(event) => setFromDate(event.target.value)}
               className="border rounded px-3 py-2"
             />
           </div>
@@ -156,7 +213,7 @@ export default function HistoryClient() {
             <input
               type="date"
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
+              onChange={(event) => setToDate(event.target.value)}
               className="border rounded px-3 py-2"
             />
           </div>
@@ -194,36 +251,40 @@ export default function HistoryClient() {
           </div>
         ) : (
           displayedMatches
-            .map((m) => {
-              const isDraft = m.status === "draft";
+            .map((match) => {
+              const isDraft = match.status === "draft";
+              const { date: matchDay, hour } = parseMatchDate(match);
               return (
                 <div
-                  key={m.id}
-                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : "border-indigo-500"}`}
+                  key={match.id}
+                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : match.isFriendly ? "border-green-400" : "border-indigo-500"}`}
                 >
                   <div className="flex justify-between items-center mb-3">
                     <div>
-                      {m.name && (
-                        <div className="text-lg mb-1 font-bold">{m.name}</div>
+                      {match.name && (
+                        <div className="text-lg mb-1 font-bold">{match.name}</div>
                       )}
                       <strong>
-                        {(() => {
-                          const [yy, mm, dd] = m.date.slice(0, 10).split("-");
-                          return `${dd}/${mm}/${yy}`;
-                        })()}
+                        {formatMatchDate(matchDay)}
+                        {hour !== null ? ` ${formatMatchHour(hour)}` : ''}
                       </strong>
                       <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
-                        {m.type}
+                        {match.type}
                       </span>
                       {isDraft && (
                         <span className="ml-2 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded">
                           Borrador
                         </span>
                       )}
+                      {match.isFriendly && (
+                        <span className="ml-2 inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">
+                          Amistoso
+                        </span>
+                      )}
                     </div>
                     {!isDraft && (
                       <div className="text-indigo-600 font-bold text-xl">
-                        {m.teamAScore} - {m.teamBScore}
+                        {match.teamAScore} - {match.teamBScore}
                       </div>
                     )}
                   </div>
@@ -232,34 +293,34 @@ export default function HistoryClient() {
                       className={`flex-1 min-w-0 ${
                         isDraft
                           ? "bg-gray-50"
-                          : m.teamAScore > m.teamBScore
+                          : match.teamAScore > match.teamBScore
                             ? "bg-green-50"
-                            : m.teamAScore < m.teamBScore
+                            : match.teamAScore < match.teamBScore
                               ? "bg-red-50"
                               : "bg-gray-50"
                       } rounded p-2`}
                     >
                       <h4 className="text-center font-semibold mb-2 text-sm">Equipo A</h4>
-                      {m.teamA.map((p: Match["teamA"][number]) => (
+                      {match.teamA.map((player: Match["teamA"][number]) => (
                         <div
-                          key={p.id}
+                          key={player.id}
                           className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                         >
-                          <span className="text-sm truncate">{p.name}</span>
+                          <span className="text-sm truncate">{player.name}</span>
                           <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
-                            {m.goalkeeperIds?.includes(p.id) && (
+                            {match.goalkeeperIds?.includes(player.id) && (
                               <span aria-label="Arquero" role="img">
                                 🧤
                               </span>
                             )}
                             {!isDraft && (
                               <>
-                                {m.mvpId === p.id && (
+                                {match.mvpId === player.id && (
                                   <span aria-label="MVP" role="img">
                                     🏆
                                   </span>
                                 )}
-                                {p.goals}⚽ {p.performance}★
+                                {player.goals}⚽ {player.performance}★
                               </>
                             )}
                           </span>
@@ -270,34 +331,34 @@ export default function HistoryClient() {
                       className={`flex-1 min-w-0 ${
                         isDraft
                           ? "bg-gray-50"
-                          : m.teamBScore > m.teamAScore
+                          : match.teamBScore > match.teamAScore
                             ? "bg-green-50"
-                            : m.teamBScore < m.teamAScore
+                            : match.teamBScore < match.teamAScore
                               ? "bg-red-50"
                               : "bg-gray-50"
                       } rounded p-2`}
                     >
                       <h4 className="text-center font-semibold mb-2 text-sm">Equipo B</h4>
-                      {m.teamB.map((p: Match["teamB"][number]) => (
+                      {match.teamB.map((player: Match["teamB"][number]) => (
                         <div
-                          key={p.id}
+                          key={player.id}
                           className="flex justify-between items-center border-b last:border-b-0 py-0.5 gap-1"
                         >
-                          <span className="text-sm truncate">{p.name}</span>
+                          <span className="text-sm truncate">{player.name}</span>
                           <span className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0">
-                            {m.goalkeeperIds?.includes(p.id) && (
+                            {match.goalkeeperIds?.includes(player.id) && (
                               <span aria-label="Arquero" role="img">
                                 🧤
                               </span>
                             )}
                             {!isDraft && (
                               <>
-                                {m.mvpId === p.id && (
+                                {match.mvpId === player.id && (
                                   <span aria-label="MVP" role="img">
                                     🏆
                                   </span>
                                 )}
-                                {p.goals}⚽ {p.performance}★
+                                {player.goals}⚽ {player.performance}★
                               </>
                             )}
                           </span>
@@ -305,20 +366,41 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                      {m.shirtsResponsibleId && (
+                  <div className={`py-2 ${!match.description ? "flex" : ""}`}>
+                    <div className="grid gap-y-2 text-sm">
+                      {match.shirtsResponsibleId && (
                         <div className="text-gray-700">
                           🎽 Camisetas:{" "}
                           <span className="font-medium">
                             {storePlayers.find(
-                              (p) => p.id === m.shirtsResponsibleId,
+                              (player) => player.id === match.shirtsResponsibleId,
                             )?.name ?? "—"}
                           </span>
                         </div>
                       )}
+                      {match.location?.name && (
+                        <div>
+                          📍 Ubicación: <MatchLocationLink location={match.location} />
+                        </div>
+                      )}
                     </div>
-                    <div className="flex justify-end gap-3">
+                    {match.description && (
+                      <MatchDescription text={match.description}/>
+                    )}
+                    <div className="flex justify-end items-center gap-3 shrink-0 ml-auto self-end">
+                      <button
+                        type="button"
+                        className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
+                        onClick={() => setViewClipsMatch(match)}
+                        aria-label={`Ver clips del partido${match.name ? `: ${match.name}` : ""}`}
+                      >
+                        <span aria-hidden="true">🎥</span>
+                        {videoClips.filter((clip) => clip.matchId === match.id).length > 0 && (
+                          <span className="text-xs bg-brand text-white rounded-full px-1.5">
+                            {videoClips.filter((clip) => clip.matchId === match.id).length}
+                          </span>
+                        )}
+                      </button>
                       {isAdmin && (
                         <>
                           {isDraft ? (
@@ -326,7 +408,7 @@ export default function HistoryClient() {
                               <button
                                 className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
                                 onClick={() =>
-                                  setOpen({ mode: "edit", match: m })
+                                  setOpen({ mode: "edit", match })
                                 }
                               >
                                 Editar
@@ -334,7 +416,7 @@ export default function HistoryClient() {
                               <button
                                 className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
                                 onClick={() =>
-                                  setOpen({ mode: "edit", match: m })
+                                  setOpen({ mode: "edit", match })
                                 }
                               >
                                 Completar resultado
@@ -343,14 +425,14 @@ export default function HistoryClient() {
                           ) : (
                             <button
                               className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                              onClick={() => setOpen({ mode: "edit", match: m })}
+                              onClick={() => setOpen({ mode: "edit", match })}
                             >
                               Editar
                             </button>
                           )}
                           <button
                             className="text-red-600 hover:text-red-800 text-sm"
-                            onClick={() => handleDelete(m.id)}
+                            onClick={() => handleDelete(match.id)}
                           >
                             Eliminar
                           </button>
@@ -379,36 +461,144 @@ export default function HistoryClient() {
           className="mb-10"
         />
       )}
-      <dialog
+
+      <Modal 
+        title="Confirmar eliminación"
         open={showModal}
-        className="rounded-xl p-0 border-none shadow-2xl w-full h-full fixed inset-0 bg-black/40"
-      >
-        <div className="bg-white p-6 rounded-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            Confirmar eliminación
-          </h2>
-
-          <p className="text-gray-600 mb-6">
-            ¿Estás seguro de que querés eliminar este partido?
-          </p>
-
-          <div className="flex justify-end gap-3">
+        onClose={() => setShowModal(false)}>
+          <div className="p-2 text-center">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
+              <FiTrash2 className="text-red-600" size={20} />
+            </div>
+              <p className="text-gray-600">
+                ¿Estás seguro de que querés eliminar al partido: {' '}
+                <span className="font-medium text-gray-900">{selectedMatch?.name}</span>?
+              </p>
+            <div className="flex justify-center gap-3 mt-6">
             <button
+              type="button"
               onClick={() => setShowModal(false)}
-              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
             >
               Cancelar
             </button>
-
             <button
-              onClick={() => handleConfirmDelete()}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              type="button"
+              onClick={handleConfirmDelete}
+              className="flex-1 px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
             >
               Eliminar
             </button>
           </div>
-        </div>
-      </dialog>
+          </div>
+      </Modal>
+
+      {open && <RecordModal
+        mode={open.mode}
+        initial={open.mode === "edit" ? open.match : undefined}
+        onClose={() => setOpen(false)}
+        onSave={async (match) => {
+          if (open.mode === "edit" && open.match) {
+            await updateMatch(open.match.id, match);
+          } else {
+            await addMatch(match);
+          }
+        }}
+      />}
+
+      <Modal
+        open={videoUploadMatch !== null}
+        onClose={() => {
+          setVideoUploadMatch(null);
+          setVideoUploadError(null);
+        }}
+        title="Subir clip"
+      >
+        {videoUploadMatch && (
+          <VideoClipUploadForm
+            matches={[videoUploadMatch]}
+            lockedMatchId={videoUploadMatch.id}
+            onSubmit={handleVideoUpload}
+            onCancel={() => {
+              setVideoUploadMatch(null);
+              setVideoUploadError(null);
+            }}
+            error={videoUploadError}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        open={viewClipsMatch !== null}
+        onClose={() => {
+          setViewClipsMatch(null);
+          setViewDeleteError(null);
+        }}
+        title={`Clips${viewClipsMatch?.name ? `: ${viewClipsMatch.name}` : ""}`}
+        size="large"
+      >
+        {isAdmin && viewClipsMatch && (
+          <div className="flex justify-end mb-4">
+            <button
+              type="button"
+              className="text-sm px-3 py-1.5 rounded bg-brand text-white hover:bg-brand/90"
+              onClick={() => {
+                setVideoUploadError(null);
+                setVideoUploadMatch(viewClipsMatch);
+                setViewClipsMatch(null);
+              }}
+            >
+              + Subir clip
+            </button>
+          </div>
+        )}
+        {viewDeleteError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          >
+            <span>{viewDeleteError}</span>
+            <button
+              type="button"
+              onClick={() => setViewDeleteError(null)}
+              className="ml-3 text-red-800 hover:text-red-950 focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+              aria-label="Descartar error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        {videoClipsInit === "error" ? (
+          <div role="alert" className="text-red-800">
+            No se pudieron cargar los clips.
+          </div>
+        ) : viewClips.length === 0 ? (
+          videoClipsInit === "loading" ? (
+            <div className="text-gray-800">Cargando clips...</div>
+          ) : null
+        ) : (
+          <VideoClipCarousel
+            clips={viewClips}
+            matchById={viewMatchById}
+            isAdmin={isAdmin}
+            onOpen={setViewPlaybackClipId}
+            onDelete={handleViewDelete}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        open={viewPlaybackClip !== null}
+        onClose={() => setViewPlaybackClipId(null)}
+        title={viewPlaybackClip?.title || "Clip"}
+        size="large"
+      >
+        {viewPlaybackClip && (
+          <video controls autoPlay className="w-full max-h-[75vh] rounded" src={viewPlaybackClip.url}>
+            Tu navegador no soporta la reproducción de video.
+          </video>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -422,7 +612,7 @@ function RecordModal({
   mode?: "create" | "edit";
   initial?: Match;
   onClose: () => void;
-  onSave: (m: Omit<Match, "id">) => void;
+  onSave: (match: MatchInput) => void;
 }) {
   const { players } = usePlayerStore();
   const { matches: allMatches } = useMatchStore();
@@ -439,10 +629,17 @@ function RecordModal({
     [finalMatches],
   );
   const [matchDate, setMatchDate] = useState<string>(
-    initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+    initial ? parseMatchDate(initial).date : new Date().toISOString().slice(0, 10),
   );
+  const [matchHour, setMatchHour] = useState<number | null>(
+    initial ? parseMatchDate(initial).hour : null,
+  );
+
   const [matchType, setMatchType] = useState<MatchType>(
     (initial?.type as MatchType) || "5v5",
+  );
+  const [matchLocation, setMatchLocation] = useState<MatchLocation | null>(
+    initial?.location ?? null,
   );
   const playersPerTeam = useMemo(
     () => parseInt(matchType.split("v")[0], 10),
@@ -453,23 +650,23 @@ function RecordModal({
   const isDraft = initial?.status === "draft";
 
   const [teamA, setTeamA] = useState<RecordingPlayer[]>(
-    initial?.teamA?.map((p: Match["teamA"][number]) => ({
-      id: p.id,
-      name: p.name,
+    initial?.teamA?.map((player: Match["teamA"][number]) => ({
+      id: player.id,
+      name: player.name,
     })) || [],
   );
   const [teamB, setTeamB] = useState<RecordingPlayer[]>(
-    initial?.teamB?.map((p: Match["teamB"][number]) => ({
-      id: p.id,
-      name: p.name,
+    initial?.teamB?.map((player: Match["teamB"][number]) => ({
+      id: player.id,
+      name: player.name,
     })) || [],
   );
 
   const unassigned = useMemo(() => {
-    const ids = new Set([...teamA, ...teamB].map((p) => p.id));
+    const ids = new Set([...teamA, ...teamB].map((player) => player.id));
     return players
-      .filter((p) => !ids.has(p.id))
-      .map((p) => ({ id: p.id, name: p.name }));
+      .filter((player) => !ids.has(player.id) && !player.inactive)
+      .map((player) => ({ id: player.id, name: player.name }));
   }, [players, teamA, teamB]);
 
   const [teamAScore, setTeamAScore] = useState<number | "">(
@@ -479,15 +676,19 @@ function RecordModal({
     typeof initial?.teamBScore === "number" ? initial.teamBScore : "",
   );
   const [matchName, setMatchName] = useState<string>(initial?.name || "");
+  const [matchDescription, setMatchDescription] = useState<string>(
+    initial?.description || "",
+  );
+  const [isFriendly, setIsFriendly] = useState<boolean>(initial?.isFriendly ?? false);
   const selectedPlayersForDuty = useMemo(() => {
     const all = [...teamA, ...teamB];
-    const teamIds = all.map((p) => p.id);
+    const teamIds = all.map((player) => player.id);
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore);
     const { poolIds, min } = computeLeastAssignedPoolIds(
       consideredIds,
       dutiesById,
     );
-    const pool = all.filter((p) => poolIds.includes(p.id));
+    const pool = all.filter((player) => poolIds.includes(player.id));
     return { pool, min };
   }, [teamA, teamB, dutiesById, playedBefore]);
   const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(
@@ -497,16 +698,15 @@ function RecordModal({
   const [goalkeeperIds, setGoalkeeperIds] = useState<string[]>(
     initial?.goalkeeperIds ?? [],
   );
-  const MAX_GOALKEEPERS = 2;
 
   useEffect(() => {
     if (!mvpId) return;
-    const inTeams = [...teamA, ...teamB].some((p) => p.id === mvpId);
+    const inTeams = [...teamA, ...teamB].some((player) => player.id === mvpId);
     if (!inTeams) setMvpId(null);
   }, [teamA, teamB, mvpId]);
 
   useEffect(() => {
-    const ids = new Set([...teamA, ...teamB].map((p) => p.id));
+    const ids = new Set([...teamA, ...teamB].map((player) => player.id));
     setGoalkeeperIds((prev) => {
       const next = prev.filter((id) => ids.has(id));
       return next.length === prev.length ? prev : next;
@@ -524,91 +724,93 @@ function RecordModal({
 
   const [goalsA, setGoalsA] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamA || []).map((p: Match["teamA"][number]) => [
-        p.id,
-        p.goals,
+      (initial?.teamA || []).map((player: Match["teamA"][number]) => [
+        player.id,
+        player.goals,
       ]),
     ),
   );
   const [perfA, setPerfA] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamA || []).map((p: Match["teamA"][number]) => [
-        p.id,
-        p.performance || 5,
+      (initial?.teamA || []).map((player: Match["teamA"][number]) => [
+        player.id,
+        player.performance || 5,
       ]),
     ),
   );
   const [goalsB, setGoalsB] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamB || []).map((p: Match["teamB"][number]) => [
-        p.id,
-        p.goals,
+      (initial?.teamB || []).map((player: Match["teamB"][number]) => [
+        player.id,
+        player.goals,
       ]),
     ),
   );
   const [perfB, setPerfB] = useState<Record<string, number>>(() =>
     Object.fromEntries(
-      (initial?.teamB || []).map((p: Match["teamB"][number]) => [
-        p.id,
-        p.performance || 5,
+      (initial?.teamB || []).map((player: Match["teamB"][number]) => [
+        player.id,
+        player.performance || 5,
       ]),
     ),
   );
 
   const totalGoalsA = useMemo(
-    () => Object.values(goalsA).reduce((s, n) => s + (n || 0), 0),
+    () => Object.values(goalsA).reduce((sum, n) => sum + (n || 0), 0),
     [goalsA],
   );
   const totalGoalsB = useMemo(
-    () => Object.values(goalsB).reduce((s, n) => s + (n || 0), 0),
+    () => Object.values(goalsB).reduce((sum, n) => sum + (n || 0), 0),
     [goalsB],
   );
 
-  const move = (p: RecordingPlayer, target: "unassigned" | "a" | "b") => {
-    setTeamA((prev) => prev.filter((x) => x.id !== p.id));
-    setTeamB((prev) => prev.filter((x) => x.id !== p.id));
+  const move = (player: RecordingPlayer, target: "unassigned" | "a" | "b") => {
+    setTeamA((prev) => prev.filter((teamPlayer) => teamPlayer.id !== player.id));
+    setTeamB((prev) => prev.filter((teamPlayer) => teamPlayer.id !== player.id));
     if (target === "a")
-      setTeamA((prev) => (prev.length >= playersPerTeam ? prev : [...prev, p]));
+      setTeamA((prev) =>
+        prev.length >= playersPerTeam ? prev : [...prev, player],
+      );
     if (target === "b")
-      setTeamB((prev) => (prev.length >= playersPerTeam ? prev : [...prev, p]));
+      setTeamB((prev) =>
+        prev.length >= playersPerTeam ? prev : [...prev, player],
+      );
   };
 
   const onDrop = (
-    e: React.DragEvent<HTMLDivElement>,
+    event: React.DragEvent<HTMLDivElement>,
     target: "unassigned" | "a" | "b",
   ) => {
-    const json = e.dataTransfer.getData("application/json");
+    const json = event.dataTransfer.getData("application/json");
     if (!json) return;
-    const p: RecordingPlayer = JSON.parse(json);
-    move(p, target);
+    const player: RecordingPlayer = JSON.parse(json);
+    move(player, target);
   };
 
-  const Draggable = ({ p }: { p: RecordingPlayer }) => (
+  const Draggable = ({ player }: { player: RecordingPlayer }) => (
     <DraggableItem
-      data={p}
-      label={p.name}
+      data={player}
+      label={player.name}
       onClick={() => {
         const choice = prompt(
-          `Move ${p.name} to:\n1. Unassigned\n2. Team A\n3. Team B\n\nEnter 1, 2, or 3:`,
+          `Move ${player.name} to:\n1. Unassigned\n2. Team A\n3. Team B\n\nEnter 1, 2, or 3:`,
         );
-        if (choice === "1") move(p, "unassigned");
-        if (choice === "2") move(p, "a");
-        if (choice === "3") move(p, "b");
+        if (choice === "1") move(player, "unassigned");
+        if (choice === "2") move(player, "a");
+        if (choice === "3") move(player, "b");
       }}
     />
   );
 
   const teamsComplete =
     teamA.length === playersPerTeam && teamB.length === playersPerTeam;
-  // Confirming a match (status 'final') needs a complete, consistent result.
   const canConfirm =
     (typeof teamAScore === "number" ? teamAScore : 0) === totalGoalsA &&
     (typeof teamBScore === "number" ? teamBScore : 0) === totalGoalsB &&
     teamsComplete;
-  // Saving a draft only needs full teams — it hasn't been played yet.
   const canUpdateDraft = teamsComplete;
 
-  const buildPayload = (status: "draft" | "final"): Omit<Match, "id"> => {
+  const buildPayload = (status: "draft" | "final"): MatchInput => {
     const isFinal = status === "final";
     const pool = selectedPlayersForDuty.pool;
     const chosen =
@@ -618,27 +820,30 @@ function RecordModal({
         : undefined);
 
     return {
-      date: matchDate,
+      ...buildMatchSchedule(matchDate, matchHour),
       type: matchType,
+      location: matchLocation ?? undefined,
       status,
       teamAScore: isFinal ? (teamAScore as number) : 0,
       teamBScore: isFinal ? (teamBScore as number) : 0,
-      teamA: teamA.map((p) => ({
-        id: p.id,
-        name: p.name,
-        goals: isFinal ? goalsA[p.id] || 0 : 0,
-        performance: isFinal ? perfA[p.id] || 5 : 0,
+      teamA: teamA.map((player) => ({
+        id: player.id,
+        name: player.name,
+        goals: isFinal ? goalsA[player.id] || 0 : 0,
+        performance: isFinal ? perfA[player.id] || 5 : 0,
       })),
-      teamB: teamB.map((p) => ({
-        id: p.id,
-        name: p.name,
-        goals: isFinal ? goalsB[p.id] || 0 : 0,
-        performance: isFinal ? perfB[p.id] || 5 : 0,
+      teamB: teamB.map((player) => ({
+        id: player.id,
+        name: player.name,
+        goals: isFinal ? goalsB[player.id] || 0 : 0,
+        performance: isFinal ? perfB[player.id] || 5 : 0,
       })),
       name: matchName.trim() || undefined,
+      description: matchDescription.trim() || undefined,
       shirtsResponsibleId: chosen ?? null,
       mvpId: isFinal ? mvpId : null,
       goalkeeperIds,
+      isFriendly,
     };
   };
 
@@ -665,8 +870,9 @@ function RecordModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
+    <Backdrop onClose={onClose} title='Registrar Resultado del Partido'>
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h2 className="text-xl font-semibold">
             Registrar Resultado del Partido
@@ -676,44 +882,95 @@ function RecordModal({
           </button>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+        <div className="grid sm:grid-cols-[auto_auto_auto_1fr_auto] gap-3 mb-3">
+          <HourField id="match-hour" value={matchHour} onChange={setMatchHour} />
           <div>
-            <label className="block text-sm font-medium mb-1">Fecha</label>
+            <label htmlFor="match-date" className="block text-sm font-medium mb-1">Fecha</label>
             <input
+              id="match-date"
               type="date"
               value={matchDate}
-              onChange={(e) => setMatchDate(e.target.value)}
-              className="border rounded px-3 py-2 w-full"
+              onChange={(event) => setMatchDate(event.target.value)}
+              className="h-10 border rounded px-3 w-full"
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              Tipo de Partido
+              Modo de Partido
             </label>
-            <select
-              value={matchType}
-              onChange={(e) => {
-                setTeamA([]);
-                setTeamB([]);
-                setMatchType(e.target.value as MatchType);
-              }}
-              className="border rounded px-3 py-2 w-full"
-            >
-              {MATCH_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={matchType}
+                onChange={(event) => {
+                  setTeamA([]);
+                  setTeamB([]);
+                  setMatchType(event.target.value as MatchType);
+                }}
+                className="h-10 w-full appearance-none rounded border pl-3 pr-8"
+              >
+                {MATCH_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
+            <label className="block text-sm font-medium mb-1">
+              Ubicación
+            </label>
+            <AddressPicker value={matchLocation} onChange={setMatchLocation} />
+          </div>
+          <div>
+            <label htmlFor="fiendly-match" className="block text-sm font-medium mb-1">
+              Tipo de partido
+            </label>
+            <button
+              id="fiendly-match"
+              type="button"
+              role="switch"
+              aria-checked={isFriendly}
+              aria-label="Partido amistoso"
+              onClick={() => setIsFriendly((current) => !current)}
+              className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
+                isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
+              }`}
+            >
+              <span
+                className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Competitivo
+              </span>
+
+              <span
+                className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                Amistoso
+              </span>
+
+              <span
+                className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
+                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
+                }`}
+              >
+                <span className="text-md">{isFriendly ? "🤝" : "⚔️"}</span>
+              </span>
+            </button>
+          </div>
+          <div className="sm:col-span-5">
             <label className="block text-lg font-medium mb-1">
               Nombre del Partido
             </label>
             <input
               type="text"
               value={matchName}
-              onChange={(e) => setMatchName(e.target.value)}
+              onChange={(event) => setMatchName(event.target.value)}
               className="border rounded px-3 py-2 w-full"
             />
           </div>
@@ -722,28 +979,41 @@ function RecordModal({
         <div className="grid md:grid-cols-3 gap-3 mb-4">
           <DropColumn
             title="Jugadores Disponibles"
-            onDrop={(e) => onDrop(e, "unassigned")}
+            onDrop={(event) => onDrop(event, "unassigned")}
           >
-            {unassigned.map((p) => (
-              <Draggable key={p.id} p={p} />
+            {unassigned.map((player) => (
+              <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
           <DropColumn
             title={`Equipo A (${teamA.length}/${playersPerTeam})`}
-            onDrop={(e) => onDrop(e, "a")}
+            onDrop={(event) => onDrop(event, "a")}
           >
-            {teamA.map((p) => (
-              <Draggable key={p.id} p={p} />
+            {teamA.map((player) => (
+              <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
           <DropColumn
             title={`Equipo B (${teamB.length}/${playersPerTeam})`}
-            onDrop={(e) => onDrop(e, "b")}
+            onDrop={(event) => onDrop(event, "b")}
           >
-            {teamB.map((p) => (
-              <Draggable key={p.id} p={p} />
+            {teamB.map((player) => (
+              <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="match-description-history" className="block text-sm font-medium mb-1">
+            Crónica
+          </label>
+          <textarea
+            id="match-description-history"
+            value={matchDescription}
+            onChange={(event) => setMatchDescription(event.target.value)}
+            placeholder="Escribí la crónica del partido"
+            className="border min-w-full rounded px-3 py-2 w-full"
+          />
         </div>
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
@@ -754,30 +1024,30 @@ function RecordModal({
               min={0}
               placeholder="Goles del Equipo A"
               value={teamAScore}
-              onChange={(e) =>
+              onChange={(event) =>
                 setTeamAScore(
-                  e.target.value === "" ? "" : Number(e.target.value),
+                  event.target.value === "" ? "" : Number(event.target.value),
                 )
               }
               className="w-24 text-center border rounded px-2 py-1 mb-2"
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {teamA.map((p) => (
+              {teamA.map((player) => (
                 <div
-                  key={p.id}
+                  key={player.id}
                   className="flex items-center justify-between bg-white border rounded px-3 py-2"
                 >
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-medium">{player.name}</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       min={0}
                       max={20}
-                      value={goalsA[p.id] ?? 0}
-                      onChange={(e) =>
-                        setGoalsA((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 0),
+                      value={goalsA[player.id] ?? 0}
+                      onChange={(event) =>
+                        setGoalsA((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 0),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -787,11 +1057,11 @@ function RecordModal({
                       min={1}
                       max={10}
                       step={0.1}
-                      value={perfA[p.id] ?? 5}
-                      onChange={(e) =>
-                        setPerfA((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 5),
+                      value={perfA[player.id] ?? 5}
+                      onChange={(event) =>
+                        setPerfA((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 5),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -820,30 +1090,30 @@ function RecordModal({
               min={0}
               placeholder="Goles del Equipo B"
               value={teamBScore}
-              onChange={(e) =>
+              onChange={(event) =>
                 setTeamBScore(
-                  e.target.value === "" ? "" : Number(e.target.value),
+                  event.target.value === "" ? "" : Number(event.target.value),
                 )
               }
               className="w-24 text-center border rounded px-2 py-1 mb-2"
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {teamB.map((p) => (
+              {teamB.map((player) => (
                 <div
-                  key={p.id}
+                  key={player.id}
                   className="flex items-center justify-between bg-white border rounded px-3 py-2"
                 >
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-medium">{player.name}</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       min={0}
                       max={20}
-                      value={goalsB[p.id] ?? 0}
-                      onChange={(e) =>
-                        setGoalsB((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 0),
+                      value={goalsB[player.id] ?? 0}
+                      onChange={(event) =>
+                        setGoalsB((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 0),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -853,11 +1123,11 @@ function RecordModal({
                       min={1}
                       max={10}
                       step={0.1}
-                      value={perfB[p.id] ?? 5}
-                      onChange={(e) =>
-                        setPerfB((s) => ({
-                          ...s,
-                          [p.id]: Number(e.target.value || 5),
+                      value={perfB[player.id] ?? 5}
+                      onChange={(event) =>
+                        setPerfB((prev) => ({
+                          ...prev,
+                          [player.id]: Number(event.target.value || 5),
                         }))
                       }
                       className="w-16 text-center border rounded px-2 py-1"
@@ -885,7 +1155,7 @@ function RecordModal({
               <div className="text-gray-800">
                 {(() => {
                   const name = shirtsResponsibleId
-                    ? (players.find((p) => p.id === shirtsResponsibleId)
+                    ? (players.find((player) => player.id === shirtsResponsibleId)
                         ?.name ?? "—")
                     : "Seleccione un jugador";
                   return name;
@@ -893,33 +1163,36 @@ function RecordModal({
               </div>
             </div>
             <div className="flex-1">
-              <select
-                className="border rounded px-3 py-2 w-full"
-                value={shirtsResponsibleId ?? ""}
-                onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
-              >
-                <option disabled={!!shirtsResponsibleId} value="">
-                  Seleccione un Jugador
-                </option>
-                {(() => {
-                  const current = [...teamA, ...teamB];
-                  const eligibleExists = current.some((pp) =>
-                    playedBefore.has(pp.id),
-                  );
-                  return current.map((p) => (
-                    <option
-                      key={p.id}
-                      value={p.id}
-                      disabled={eligibleExists && !playedBefore.has(p.id)}
-                    >
-                      {p.name} (#{dutiesById.get(p.id) ?? 0})
-                      {eligibleExists && !playedBefore.has(p.id)
-                        ? " — nuevo"
-                        : ""}
-                    </option>
-                  ));
-                })()}
-              </select>
+              <div className="relative">
+                <select
+                  className="appearance-none border rounded pl-3 pr-8 py-2 w-full"
+                  value={shirtsResponsibleId ?? ""}
+                  onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
+                >
+                  <option disabled={!!shirtsResponsibleId} value="">
+                    Seleccione un Jugador
+                  </option>
+                  {(() => {
+                    const current = [...teamA, ...teamB];
+                    const eligibleExists = current.some((pp) =>
+                      playedBefore.has(pp.id),
+                    );
+                    return current.map((player) => (
+                      <option
+                        key={player.id}
+                        value={player.id}
+                        disabled={eligibleExists && !playedBefore.has(player.id)}
+                      >
+                        {player.name} (#{dutiesById.get(player.id) ?? 0})
+                        {eligibleExists && !playedBefore.has(player.id)
+                          ? " — nuevo"
+                          : ""}
+                      </option>
+                    ));
+                  })()}
+                </select>
+                <Chevron select />
+              </div>
             </div>
           </div>
         </div>
@@ -933,41 +1206,44 @@ function RecordModal({
               </div>
               <div className="text-gray-800">
                 {mvpId
-                  ? (players.find((p) => p.id === mvpId)?.name ?? "—")
+                  ? (players.find((player) => player.id === mvpId)?.name ?? "—")
                   : "Opcional — elegí al jugador del partido"}
               </div>
             </div>
             <div className="flex-1">
-              <select
-                className="border rounded px-3 py-2 w-full bg-white"
-                value={mvpId ?? ""}
-                onChange={(e) => setMvpId(e.target.value || null)}
-              >
-                <option value="">Sin MVP</option>
-                {(() => {
-                  const current = [...teamA, ...teamB];
-                  const topPerfId = (() => {
-                    const all = [
-                      ...current.map((p) => ({
-                        id: p.id,
-                        perf: perfA[p.id] ?? perfB[p.id] ?? 0,
-                      })),
-                    ];
-                    return all.sort((a, b) => b.perf - a.perf)[0]?.id;
-                  })();
-                  return current.map((p) => {
-                    const perf = perfA[p.id] ?? perfB[p.id] ?? 0;
-                    const goals = goalsA[p.id] ?? goalsB[p.id] ?? 0;
-                    const isSuggested = p.id === topPerfId && perf > 0;
-                    return (
-                      <option key={p.id} value={p.id}>
-                        {p.name} — ⚽ {goals} · ★ {perf}
-                        {isSuggested ? " · sugerido" : ""}
-                      </option>
-                    );
-                  });
-                })()}
-              </select>
+              <div className="relative">
+                <select
+                  className="appearance-none border rounded pl-3 pr-8 py-2 w-full bg-white"
+                  value={mvpId ?? ""}
+                  onChange={(event) => setMvpId(event.target.value || null)}
+                >
+                  <option value="">Sin MVP</option>
+                  {(() => {
+                    const current = [...teamA, ...teamB];
+                    const topPerfId = (() => {
+                      const all = [
+                        ...current.map((player) => ({
+                          id: player.id,
+                          perf: perfA[player.id] ?? perfB[player.id] ?? 0,
+                        })),
+                      ];
+                      return all.sort((statA, statB) => statB.perf - statA.perf)[0]?.id;
+                    })();
+                    return current.map((player) => {
+                      const perf = perfA[player.id] ?? perfB[player.id] ?? 0;
+                      const goals = goalsA[player.id] ?? goalsB[player.id] ?? 0;
+                      const isSuggested = player.id === topPerfId && perf > 0;
+                      return (
+                        <option key={player.id} value={player.id}>
+                          {player.name} — ⚽ {goals} · ★ {perf}
+                          {isSuggested ? " · sugerido" : ""}
+                        </option>
+                      );
+                    });
+                  })()}
+                </select>
+                <Chevron select />
+              </div>
             </div>
           </div>
         </div>
@@ -993,15 +1269,15 @@ function RecordModal({
                 Asigná jugadores a los equipos para elegir arqueros.
               </span>
             ) : (
-              [...teamA, ...teamB].map((p) => {
-                const active = goalkeeperIds.includes(p.id);
+              [...teamA, ...teamB].map((player) => {
+                const active = goalkeeperIds.includes(player.id);
                 const disabled =
                   !active && goalkeeperIds.length >= MAX_GOALKEEPERS;
                 return (
                   <button
-                    key={p.id}
+                    key={player.id}
                     type="button"
-                    onClick={() => toggleGoalkeeper(p.id)}
+                    onClick={() => toggleGoalkeeper(player.id)}
                     disabled={disabled}
                     aria-pressed={active}
                     className={`text-sm px-3 py-1 rounded-full border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
@@ -1010,7 +1286,7 @@ function RecordModal({
                         : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                     }`}
                   >
-                    🧤 {p.name}
+                    🧤 {player.name}
                   </button>
                 );
               })
@@ -1062,7 +1338,7 @@ function RecordModal({
           </button>
         </div>
       </div>
-    </div>
+    </Backdrop>
   );
 }
 

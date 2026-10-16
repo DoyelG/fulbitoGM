@@ -13,11 +13,8 @@ export type ShirtsState = {
   shirtsResponsibleId: string | null
   setShirtsResponsibleId: (id: string | null) => void
   playedBefore: Set<string>
-  /** Jugadores en cancha (combinación de ambos equipos) */
   teamPlayers: RecordingPlayer[]
-  /** IDs candidatos para asignación automática */
   dutyPoolIds: string[]
-  /** Conteo derivado de cuántas veces cada jugador se llevó las camisetas */
   dutiesById: Map<string, number>
 }
 
