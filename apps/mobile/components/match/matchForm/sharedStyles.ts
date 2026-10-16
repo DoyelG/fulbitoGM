@@ -62,3 +62,58 @@ export const fieldStyles = StyleSheet.create({
     fontSize: 14,
   },
 })
+
+export const locationStyles = StyleSheet.create({
+  pickerRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  pickerBtn: {
+    flex: 1,
+  },
+  addBtn: {
+    width: 28,
+    height: 39,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addBtnText: {
+    fontSize: 20,
+    color: '#fff',
+    lineHeight: 22,
+  },
+  pickerScroll: {
+    maxHeight: 300,
+  },
+  optionRow: {
+    gap: 16,
+  },
+  optionTouch: {
+    flex: 1,
+  },
+  emptyText: {
+    textAlign: 'center',
+    padding: 24,
+  },
+  formBody: {
+    gap: 4,
+    paddingHorizontal: 14,
+  },
+  deleteBody: {
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 4,
+    gap: 22,
+  },
+  deleteText: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  deleteBtn: {
+    alignSelf: 'flex-end',
+  },
+  deleteBtnText: {
+    fontWeight: '700',
+    fontSize: 17,
+  },
+})
