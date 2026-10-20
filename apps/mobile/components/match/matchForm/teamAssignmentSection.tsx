@@ -68,6 +68,7 @@ export function TeamAssignmentSection({
           side={selectingTeam}
           playersPerTeam={playersPerTeam}
           poolPlayers={poolPlayers}
+          goalkeeperIds={goalkeeperIds}
           currentTeam={selectingTeam === 'a' ? teamA : teamB}
           otherTeam={selectingTeam === 'a' ? teamB : teamA}
           onClose={() => setSelectingTeam(null)}
@@ -142,6 +143,7 @@ function TeamPickerModal({
   side,
   playersPerTeam,
   poolPlayers,
+  goalkeeperIds,
   currentTeam,
   otherTeam,
   onClose,
@@ -150,6 +152,7 @@ function TeamPickerModal({
   side: TeamSide
   playersPerTeam: number
   poolPlayers: Player[]
+  goalkeeperIds: Set<string>
   currentTeam: RecordingPlayer[]
   otherTeam: RecordingPlayer[]
   onClose: () => void
@@ -198,7 +201,10 @@ function TeamPickerModal({
                 style={[sheetStyles.option, { borderBottomColor: colors.border }]}
                 onPress={() => toggle(p.id)}
               >
-                <Text style={[sheetStyles.optionText, { color: colors.text }]}>{p.name}</Text>
+                <Text style={[sheetStyles.optionText, { color: colors.text }]}>
+                  {p.name}
+                  {goalkeeperIds.has(p.id) ? ' 🧤 ' : ''}
+                </Text>
                 {selected && (
                   <Text style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</Text>
                 )}
