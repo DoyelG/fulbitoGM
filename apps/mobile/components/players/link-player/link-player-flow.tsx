@@ -1,5 +1,5 @@
 import Feather from '@expo/vector-icons/Feather'
-import { cancelRoleRequest, createRoleRequest, getPlayers, type AppUser } from '@fulbito/firebase'
+import { cancelRoleRequest, createRoleRequest, getPlayers, RoleRequestError, type AppUser } from '@fulbito/firebase'
 import type { Player } from '@fulbito/types'
 import { useEffect, useState } from 'react'
 import { Text, TextInput, TouchableOpacity, View } from 'react-native'
@@ -90,7 +90,9 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
       onRequestSent()
       onStepChange('sent')
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'No se pudo enviar la solicitud')
+      setErrorMessage(
+        error instanceof RoleRequestError ? error.message : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
+      )
     } finally {
       setIsSending(false)
     }
@@ -104,7 +106,11 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
       await cancelRoleRequest(sentRequestId)
       onStepChange('select')
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'No se pudo revertir la solicitud')
+      setErrorMessage(
+        error instanceof RoleRequestError
+          ? error.message
+          : 'No se pudo revertir la solicitud. Probá de nuevo más tarde.',
+      )
     } finally {
       setIsSending(false)
     }
