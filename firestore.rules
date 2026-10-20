@@ -77,7 +77,7 @@ service cloud.firestore {
         && request.resource.data.status == 'pending'
         && request.resource.data.requestedRole in ['ADMIN', 'PLAYER'];
       allow update: if isAdmin();
-      allow delete: if false;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid && resource.data.status == 'pending';
     }
 
     match /notifications/{notificationId} {
@@ -86,7 +86,7 @@ service cloud.firestore {
         && request.resource.data.status == 'pending'
         && request.resource.data.data.userId == request.auth.uid;
       allow update: if isAdmin();
-      allow delete: if false;
+      allow delete: if isSignedIn() && resource.data.data.userId == request.auth.uid && resource.data.status == 'pending';
     }
   }
 }

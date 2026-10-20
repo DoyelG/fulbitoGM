@@ -50,6 +50,14 @@ type CreateRoleRequestInput = {
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 
+async function playerNameExists(name: string): Promise<boolean> {
+  const playerDocuments = await getDocs(collection(getFirestore(), 'players'))
+  const normalizedName = name.trim().toLowerCase()
+  return playerDocuments.docs.some(
+    (playerDocument) => playerDocument.get('name')?.trim().toLowerCase() === normalizedName,
+  )
+}
+
 let isCreatingRequest = false
 
 export async function createRoleRequest(input: CreateRoleRequestInput): Promise<string> {
@@ -64,7 +72,8 @@ export async function createRoleRequest(input: CreateRoleRequestInput): Promise<
 }
 
 async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
-  const { userId, userEmail, requestedRole, playerId, newPlayerName } = input
+  const { userId, userEmail, requestedRole, playerId } = input
+  const newPlayerName = input.newPlayerName?.trim()
 
   if (requestedRole === 'PLAYER' && Boolean(playerId) === Boolean(newPlayerName)) {
     throw new Error('A player request needs only a player id or a new player name')
@@ -74,6 +83,10 @@ async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
   }
 
   const db = getFirestore()
+
+  if (newPlayerName && (await playerNameExists(newPlayerName))) {
+    throw new Error('A player with this name already exists')
+  }
 
   const sameRoleRequests = await getDocs(
     query(collection(db, 'roleRequests'), where('userId', '==', userId), where('requestedRole', '==', requestedRole)),
@@ -106,7 +119,7 @@ async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
 
   const now = Timestamp.now()
   const newRequestRef = doc(collection(db, 'roleRequests'))
-  const newNotificationRef = doc(collection(db, 'notifications'))
+  const newNotificationRef = doc(db, 'notifications', newRequestRef.id)
 
   const batch = writeBatch(db)
   batch.set(newRequestRef, {
@@ -149,6 +162,20 @@ export async function getMyRoleRequests(userId: string): Promise<RoleRequest[]> 
     .sort((first, second) => second.createdAt.getTime() - first.createdAt.getTime())
 }
 
+export async function cancelRoleRequest(requestId: string): Promise<void> {
+  const db = getFirestore()
+  const requestRef = doc(db, 'roleRequests', requestId)
+  const notificationRef = doc(db, 'notifications', requestId)
+
+  await runTransaction(db, async (transaction) => {
+    const requestDocument = await transaction.get(requestRef)
+    if (!requestDocument.exists()) throw new Error('Role Request not found')
+    if (requestDocument.get('status') !== 'pending') throw new Error('This request was already resolved')
+    transaction.delete(requestRef)
+    transaction.delete(notificationRef)
+  })
+}
+
 export async function resolveRoleRequest(
   requestId: string,
   action: Exclude<RoleRequestStatus, 'pending'>,
@@ -160,6 +187,10 @@ export async function resolveRoleRequest(
   const requestDocument = await getDoc(requestRef)
   if (!requestDocument.exists()) throw new Error('Role Request not found')
   const request = docToRoleRequest(requestDocument.id, requestDocument.data() as RoleRequestDoc)
+
+  if (action === 'accepted' && request.newPlayerName && (await playerNameExists(request.newPlayerName))) {
+    throw new Error('A player with this name already exists')
+  }
 
   const requestNotifications = await getDocs(
     query(collection(db, 'notifications'), where('data.requestId', '==', requestId)),
