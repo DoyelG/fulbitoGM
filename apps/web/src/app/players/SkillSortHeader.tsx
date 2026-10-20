@@ -1,9 +1,8 @@
 'use client'
 
+import type { SkillMode } from '@fulbito/types'
 import type { SortDirection } from '@tanstack/react-table'
 import { colorForSkill } from '@/components/SkillBadge'
-
-export type SkillMode = 'player' | 'goalkeeper'
 
 type Props = {
   mode: SkillMode
