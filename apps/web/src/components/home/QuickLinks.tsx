@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { ChartBarIcon, ClockIcon, TrophyIcon, UserGroupIcon } from '@heroicons/react/24/outline'
+import { ChartBarIcon, ClockIcon, RectangleStackIcon, TrophyIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 
 const LINKS = [
+  { href: '/tournaments', label: 'Mis torneos', Icon: RectangleStackIcon },
   { href: '/players', label: 'Jugadores', Icon: UserGroupIcon },
   { href: '/statistics', label: 'Estadísticas', Icon: ChartBarIcon },
   { href: '/history', label: 'Historial', Icon: ClockIcon },
@@ -11,7 +12,7 @@ const LINKS = [
 export default function QuickLinks() {
   return (
     <nav aria-label="Accesos rápidos">
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {LINKS.map(({ href, label, Icon }) => (
           <li key={href}>
             <Link

@@ -12,6 +12,12 @@ const navigation = [
     color: "from-sky-500/20 to-blue-500/20",
   },
   {
+    name: "Mis torneos",
+    location: "/tournaments",
+    style: "whitespace-nowrap",
+    color: "from-sky-500/20 to-indigo-500/20",
+  },
+  {
     name: "Estadísticas",
     location: "/statistics",
     color: "from-indigo-500/20 to-fuchsia-500/20",
