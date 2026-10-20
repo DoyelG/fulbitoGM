@@ -34,6 +34,7 @@ type Props = {
   onAnswerNo: () => void
   onRequestSent: () => void
   onFinish: () => void
+  onCancel?: () => void
 }
 
 type FlowButtonVariant = 'primary' | 'secondary' | 'danger' | 'dangerousSecondary'
@@ -69,7 +70,15 @@ function FlowButton({ label, onPress, variant = 'primary', disabled = false }: F
   )
 }
 
-export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, onRequestSent, onFinish }: Props) {
+export default function LinkPlayerFlow({
+  user,
+  step,
+  onStepChange,
+  onAnswerNo,
+  onRequestSent,
+  onFinish,
+  onCancel,
+}: Props) {
   const { colors, radii } = useAppTheme()
   const [players, setPlayers] = useState<Player[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -187,7 +196,11 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
         </Text>
         {errorText}
         <View style={styles.row}>
-          <FlowButton label="Volver" onPress={() => goToStep('question')} variant="secondary" />
+          <FlowButton
+            label={onCancel ? 'Cancelar' : 'Volver'}
+            onPress={() => (onCancel ? onCancel() : goToStep('question'))}
+            variant="secondary"
+          />
           <FlowButton
             label="Enviar solicitud"
             onPress={() => void sendRequest({ playerId: selectedPlayerId })}

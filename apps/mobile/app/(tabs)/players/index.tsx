@@ -7,6 +7,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import LinkPlayerAlert from '@/components/players/link-player/link-player-alert'
 import { PlayerCard } from '@/components/players/player-card'
 import { PlayersError } from '@/components/players/players-error'
 import { PlayersListHeader } from '@/components/players/players-list-header'
@@ -112,7 +113,7 @@ export default function PlayersScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       <ThemedView style={styles.screen}>
-        <View style={styles.listWrap}>
+        <LinkPlayerAlert />
         <FlatList
           data={sortedPlayers}
           keyExtractor={(item) => item.id}
@@ -203,7 +204,6 @@ export default function PlayersScreen() {
           colors={[colors.background, withZeroAlpha(colors.background)]}
           style={styles.topFade}
         />
-        </View>
       </ThemedView>
     </SafeAreaView>
   )
