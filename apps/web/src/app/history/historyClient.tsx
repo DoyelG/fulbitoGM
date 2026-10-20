@@ -34,6 +34,7 @@ import AddressPicker from "@/components/AddressPicker";
 import MatchLocationLink from "@/components/MatchLocationLink";
 import { FiTrash2 } from "react-icons/fi";
 import Chevron from "../shared/Icons/Chevron";
+import { title } from "process";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
 const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
@@ -51,9 +52,17 @@ export default function HistoryClient() {
     matchesInit,
   } = useMatchStore();
   const { players: storePlayers } = usePlayerStore();
-  const [open, setOpen] = useState<
-    false | { mode: "create" } | { mode: "edit"; match: Match }
-  >(false);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Match | null>(null);
+  const openCreate = () => {
+    setEditing(null);
+    setOpen(true);
+  };
+  const openEdit = (match: Match) => {
+    setEditing(match);
+    setOpen(true);
+  };
+  const closeRecordModal = () => setOpen(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const addVideoClip = useVideoClipStore((state) => state.addVideoClip);
@@ -167,7 +176,7 @@ export default function HistoryClient() {
         {isAdmin && (
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={() => setOpen({ mode: "create" })}
+            onClick={openCreate}
           >
             Cargar partido
           </button>
@@ -407,17 +416,13 @@ export default function HistoryClient() {
                             <>
                               <button
                                 className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                                onClick={() =>
-                                  setOpen({ mode: "edit", match })
-                                }
+                                onClick={() => openEdit(match)}
                               >
                                 Editar
                               </button>
                               <button
                                 className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-                                onClick={() =>
-                                  setOpen({ mode: "edit", match })
-                                }
+                                onClick={() => openEdit(match)}
                               >
                                 Completar resultado
                               </button>
@@ -425,7 +430,7 @@ export default function HistoryClient() {
                           ) : (
                             <button
                               className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                              onClick={() => setOpen({ mode: "edit", match })}
+                              onClick={() => openEdit(match)}
                             >
                               Editar
                             </button>
@@ -493,18 +498,25 @@ export default function HistoryClient() {
           </div>
       </Modal>
 
-      {open && <RecordModal
-        mode={open.mode}
-        initial={open.mode === "edit" ? open.match : undefined}
-        onClose={() => setOpen(false)}
-        onSave={async (match) => {
-          if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, match);
-          } else {
-            await addMatch(match);
-          }
-        }}
-      />}
+      <Modal
+        open={open}
+        onClose={closeRecordModal}
+        title={editing ? "Editar Resultado del Partido" : "Registrar Resultado del Partido"}
+        size="large"
+      >
+        <RecordModal
+          mode={editing ? "edit" : "create"}
+          initial={editing ?? undefined}
+          onClose={closeRecordModal}
+          onSave={async (match) => {
+            if (editing) {
+              await updateMatch(editing.id, match);
+            } else {
+              await addMatch(match);
+            }
+          }}
+        />
+      </Modal>
 
       <Modal
         open={videoUploadMatch !== null}
@@ -871,18 +883,7 @@ function RecordModal({
   };
 
   return (
-    <Backdrop onClose={onClose} title='Registrar Resultado del Partido'>
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
-        <div className="flex justify-between items-center border-b pb-2 mb-4">
-          <h2 className="text-xl font-semibold">
-            Registrar Resultado del Partido
-          </h2>
-          <button className="text-black hover:text-black" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
+      <div>
         <div className="grid sm:grid-cols-[auto_auto_auto_1fr_auto] gap-3 mb-3">
           <HourField id="match-hour" value={matchHour} onChange={setMatchHour} />
           <div>
@@ -1339,7 +1340,6 @@ function RecordModal({
           </button>
         </div>
       </div>
-    </Backdrop>
   );
 }
 

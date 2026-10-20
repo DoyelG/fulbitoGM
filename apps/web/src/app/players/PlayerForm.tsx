@@ -10,6 +10,7 @@ import Button from '@/components/Button'
 import Modal from '@/components/Modal'
 import Tooltip from '@/components/Tooltip'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
+import Chevron from '@/app/shared/Icons/Chevron'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -216,13 +217,16 @@ export default function PlayerForm({ mode, playerId }: Props) {
         ].map(cat => (
           <div key={cat.key}>
             <label className="block text-sm font-medium text-black">{cat.label}</label>
-            <select
-              value={(formData as unknown as { [key: string]: number | string })[cat.key]}
-              onChange={(event) => setFormData({ ...formData, [cat.key]: event.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
-            >
-              {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
-            </select>
+            <div className="relative mt-1">
+              <select
+                value={(formData as unknown as { [key: string]: number | string })[cat.key]}
+                onChange={(event) => setFormData({ ...formData, [cat.key]: event.target.value })}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
+              </select>
+              <Chevron select />
+            </div>
           </div>
         ))}
       </div>
@@ -280,31 +284,37 @@ export default function PlayerForm({ mode, playerId }: Props) {
 
       <div>
         <label htmlFor="goalkeeping" className="block text-sm font-medium text-black">Nivel de arquero</label>
-        <select
-          id="goalkeeping"
-          value={gkValue}
-          onChange={(event) => { setGkTouched(true); setGoalkeeping(event.target.value) }}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
-        >
-          {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
-        </select>
+        <div className="relative mt-1">
+          <select
+            id="goalkeeping"
+            value={gkValue}
+            onChange={(event) => { setGkTouched(true); setGoalkeeping(event.target.value) }}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand pr-9 appearance-none"
+          >
+            {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
+          </select>
+          <Chevron select />
+        </div>
         <p className="mt-1 text-xs text-gray-700">Por defecto sigue el promedio del jugador. Editalo para fijar un valor.</p>
       </div>
 
       <div>
         <label htmlFor="position" className="block text-sm font-medium text-black">Posición</label>
-        <select
-          id="position"
-          value={formData.position}
-          onChange={(event) => setFormData({...formData, position: event.target.value})}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
-        >
-          <option value="GK">Arquero</option>
-          <option value="DEF">Defensor</option>
-          <option value="MID">Mediocampista</option>
-          <option value="FWD">Delantero</option>
-          <option value="PLAYER">Cualquier posición</option>
-        </select>
+        <div className="relative mt-1">
+          <select
+            id="position"
+            value={formData.position}
+            onChange={(event) => setFormData({...formData, position: event.target.value})}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand pr-9 appearance-none"
+          >
+            <option value="GK">Arquero</option>
+            <option value="DEF">Defensor</option>
+            <option value="MID">Mediocampista</option>
+            <option value="FWD">Delantero</option>
+            <option value="PLAYER">Cualquier posición</option>
+          </select>
+          <Chevron select />
+        </div>
       </div>
 
       <div>
