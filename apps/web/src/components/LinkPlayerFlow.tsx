@@ -32,6 +32,7 @@ type LinkPlayerFlowProps = {
   onAnswerNo: () => void
   onRequestSent: () => void
   onFinish: () => void
+  onCancel?: () => void
 }
 
 export default function LinkPlayerFlow({
@@ -41,6 +42,7 @@ export default function LinkPlayerFlow({
   onAnswerNo,
   onRequestSent,
   onFinish,
+  onCancel,
 }: LinkPlayerFlowProps) {
   const { players } = usePlayerStore()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -156,8 +158,8 @@ export default function LinkPlayerFlow({
         </p>
         {errorAlert}
         <div className="mt-6 flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={() => goToStep('question')}>
-            Volver
+          <Button type="button" variant="secondary" onClick={() => (onCancel ? onCancel() : goToStep('question'))}>
+            {onCancel ? 'Cancelar' : 'Volver'}
           </Button>
           <Button
             type="button"
