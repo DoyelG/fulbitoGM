@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi'
-import { cancelRoleRequest, createRoleRequest, type AppUser } from '@fulbito/firebase'
+import { cancelRoleRequest, createRoleRequest, RoleRequestError, type AppUser } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import Button from './Button'
 import PlayerSelector from './PlayerSelector'
@@ -55,7 +55,9 @@ export default function LinkPlayerFlow({
       onRequestSent()
       onStepChange('sent')
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'No se pudo enviar la solicitud')
+      setErrorMessage(
+        error instanceof RoleRequestError ? error.message : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
+      )
     } finally {
       setIsSending(false)
     }
@@ -69,7 +71,11 @@ export default function LinkPlayerFlow({
       await cancelRoleRequest(sentRequestId)
       onStepChange('select')
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'No se pudo revertir la solicitud')
+      setErrorMessage(
+        error instanceof RoleRequestError
+          ? error.message
+          : 'No se pudo revertir la solicitud. Probá de nuevo más tarde.',
+      )
     } finally {
       setIsSending(false)
     }
