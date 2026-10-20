@@ -12,6 +12,8 @@ import {
 } from 'firebase/firestore'
 import type { Role, RoleRequest, RoleRequestStatus, RoleRequestType } from '@fulbito/types'
 
+export class RoleRequestError extends Error {}
+
 type RoleRequestDoc = {
   userId: string
   requestedRole: RoleRequestType
@@ -61,7 +63,7 @@ async function playerNameExists(name: string): Promise<boolean> {
 let isCreatingRequest = false
 
 export async function createRoleRequest(input: CreateRoleRequestInput): Promise<string> {
-  if (isCreatingRequest) throw new Error('A request is already being created')
+  if (isCreatingRequest) throw new RoleRequestError('Ya se está enviando una solicitud')
 
   isCreatingRequest = true
   try {
@@ -76,23 +78,23 @@ async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
   const newPlayerName = input.newPlayerName?.trim()
 
   if (requestedRole === 'PLAYER' && Boolean(playerId) === Boolean(newPlayerName)) {
-    throw new Error('A player request needs only a player id or a new player name')
+    throw new RoleRequestError('La solicitud de jugador necesita un jugador o un nombre nuevo, pero no ambos')
   }
   if (requestedRole === 'ADMIN' && (playerId || newPlayerName)) {
-    throw new Error('An admin request cannot have a player')
+    throw new RoleRequestError('La solicitud de administrador no puede incluir un jugador')
   }
 
   const db = getFirestore()
 
   if (newPlayerName && (await playerNameExists(newPlayerName))) {
-    throw new Error('A player with this name already exists')
+    throw new RoleRequestError('Ya existe un jugador con ese nombre')
   }
 
   const sameRoleRequests = await getDocs(
     query(collection(db, 'roleRequests'), where('userId', '==', userId), where('requestedRole', '==', requestedRole)),
   )
   if (sameRoleRequests.docs.some((request) => request.get('status') === 'pending')) {
-    throw new Error('You already have a pending request')
+    throw new RoleRequestError('Ya tenés una solicitud pendiente')
   }
   // eslint-disable-next-line fulbito/no-comments
   // If the status of the request is "Rejected" and that request was rejected before one day, we throw an error
@@ -100,20 +102,20 @@ async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
     (request) =>
       request.get('status') === 'rejected' && Date.now() - request.get('resolvedAt').toMillis() < ONE_DAY_IN_MS,
   )
-  if (wasRejectedRecently) throw new Error('You can request this role again after 1 day')
+  if (wasRejectedRecently) throw new RoleRequestError('Podés volver a pedir este rol después de 1 día')
 
   const userDocument = await getDoc(doc(db, 'users', userId))
   const storedUserRole = userDocument.get('role') as Role[] | Role | undefined
   const currentRoles = Array.isArray(storedUserRole) ? storedUserRole : [storedUserRole]
-  if (currentRoles.includes(requestedRole)) throw new Error('You already have this role')
+  if (currentRoles.includes(requestedRole)) throw new RoleRequestError('Ya tenés este rol')
   if (requestedRole === 'PLAYER' && userDocument.get('linkedPlayerId')) {
-    throw new Error('You are already linked to a player')
+    throw new RoleRequestError('Ya estás vinculado a un jugador')
   }
 
   let playerName = newPlayerName
   if (playerId) {
     const playerDocument = await getDoc(doc(db, 'players', playerId))
-    if (!playerDocument.exists()) throw new Error('Player not found')
+    if (!playerDocument.exists()) throw new RoleRequestError('No se encontró el jugador')
     playerName = playerDocument.get('name')
   }
 
@@ -169,8 +171,8 @@ export async function cancelRoleRequest(requestId: string): Promise<void> {
 
   await runTransaction(db, async (transaction) => {
     const requestDocument = await transaction.get(requestRef)
-    if (!requestDocument.exists()) throw new Error('Role Request not found')
-    if (requestDocument.get('status') !== 'pending') throw new Error('This request was already resolved')
+    if (!requestDocument.exists()) throw new RoleRequestError('No se encontró la solicitud')
+    if (requestDocument.get('status') !== 'pending') throw new RoleRequestError('Esta solicitud ya fue resuelta')
     transaction.delete(requestRef)
     transaction.delete(notificationRef)
   })
@@ -185,11 +187,11 @@ export async function resolveRoleRequest(
   const requestRef = doc(db, 'roleRequests', requestId)
 
   const requestDocument = await getDoc(requestRef)
-  if (!requestDocument.exists()) throw new Error('Role Request not found')
+  if (!requestDocument.exists()) throw new RoleRequestError('No se encontró la solicitud')
   const request = docToRoleRequest(requestDocument.id, requestDocument.data() as RoleRequestDoc)
 
   if (action === 'accepted' && request.newPlayerName && (await playerNameExists(request.newPlayerName))) {
-    throw new Error('A player with this name already exists')
+    throw new RoleRequestError('Ya existe un jugador con ese nombre')
   }
 
   const requestNotifications = await getDocs(
@@ -198,7 +200,7 @@ export async function resolveRoleRequest(
 
   await runTransaction(db, async (transaction) => {
     const currentRequestDocument = await transaction.get(requestRef)
-    if (currentRequestDocument.get('status') !== 'pending') throw new Error('This request was already resolved')
+    if (currentRequestDocument.get('status') !== 'pending') throw new RoleRequestError('Esta solicitud ya fue resuelta')
 
     const userRef = doc(db, 'users', request.userId)
     const userDocument = action === 'accepted' ? await transaction.get(userRef) : null
@@ -206,10 +208,10 @@ export async function resolveRoleRequest(
     const playerRef = request.playerId ? doc(db, 'players', request.playerId) : null
     const playerDocument = userDocument && playerRef ? await transaction.get(playerRef) : null
 
-    if (playerDocument && !playerDocument.exists()) throw new Error('Player not found')
+    if (playerDocument && !playerDocument.exists()) throw new RoleRequestError('No se encontró el jugador')
     const playerLinkedUserId = playerDocument?.get('linkedUserId') as string | undefined
     if (playerLinkedUserId && playerLinkedUserId !== request.userId) {
-      throw new Error('This player is already linked to another user')
+      throw new RoleRequestError('Este jugador ya está vinculado a otro usuario')
     }
 
     const now = Timestamp.now()
