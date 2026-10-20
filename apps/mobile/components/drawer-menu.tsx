@@ -1,16 +1,10 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { styles } from '@/components/drawer-menu.styles';
-import Animated, {
-  useAnimatedStyle,
-  interpolate,
-  type SharedValue,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { UserAvatar } from '@/components/user-avatar';
-
-
+import { styles } from '@/components/drawer-menu.styles'
+import { UserAvatar } from '@/components/user-avatar'
+import { Ionicons } from '@expo/vector-icons'
+import React from 'react'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import Animated, { interpolate, useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface DrawerMenuProps {
   isOpen: boolean;
@@ -18,23 +12,21 @@ interface DrawerMenuProps {
   progress: SharedValue<number>;
   user: { name: string; email: string; role: string; image: string | null };
   onLogout: () => void;
+  onDeleteUser: () => void;
 }
 
-export function DrawerMenu({ isOpen, onClose, progress, user, onLogout }: DrawerMenuProps) {
-  const insets = useSafeAreaInsets();
+export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDeleteUser }: DrawerMenuProps) {
+  const insets = useSafeAreaInsets()
 
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1]),
-  }));
+  }))
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: interpolate(progress.value, [0, 1], [400, 0]) }],
-  }));
-    return (
-    <View
-      style={[StyleSheet.absoluteFill, styles.root]}
-      pointerEvents={isOpen ? 'auto' : 'none'}
-    >
+  }))
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.root]} pointerEvents={isOpen ? 'auto' : 'none'}>
       <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
@@ -66,9 +58,15 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout }: Drawer
             </View>
             <Text style={styles.itemLabel}>Cerrar sesión</Text>
           </Pressable>
+
+          <Pressable onPress={onDeleteUser} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="trash-outline" size={20} color="#FF0000" />
+            </View>
+            <Text style={styles.itemLabel}>Eliminar Usuario</Text>
+          </Pressable>
         </>
       </Animated.View>
     </View>
-  );
+  )
 }
-

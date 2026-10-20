@@ -1,15 +1,17 @@
+import type { Role } from '@fulbito/types'
 import {
-  getAuth,
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
+  deleteUser as firebaseDeleteUser,
   onAuthStateChanged as firebaseOnAuthStateChanged,
-  signInWithPopup,
+  signOut as firebaseSignOut,
+  getAuth,
   GoogleAuthProvider,
+  reauthenticateWithPopup,
+  signInWithEmailAndPassword,
+  signInWithPopup,
   type User as FirebaseUser,
 } from 'firebase/auth'
-import { getFirestore, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
-import type { Role } from '@fulbito/types'
+import { deleteDoc, doc, getDoc, getFirestore, setDoc, Timestamp } from 'firebase/firestore'
 
 export type AppUser = {
   uid: string
@@ -65,6 +67,19 @@ export async function signInWithGoogle(): Promise<AppUser> {
 
 export async function signOut(): Promise<void> {
   await firebaseSignOut(getAuth())
+}
+
+export async function deleteUser(): Promise<void> {
+  const auth = getAuth()
+  const user = auth.currentUser
+  if (!user) throw new Error('No hay un usuario autenticado')
+
+  if (user.providerData.some((p) => p.providerId === 'google.com')) {
+    await reauthenticateWithPopup(user, new GoogleAuthProvider())
+  }
+
+  await deleteDoc(doc(getFirestore(), 'users', user.uid))
+  await firebaseDeleteUser(user)
 }
 
 export function onAuthStateChanged(callback: (user: AppUser | null) => void): () => void {
