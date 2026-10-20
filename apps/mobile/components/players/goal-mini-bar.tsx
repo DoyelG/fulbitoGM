@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 
+import { useAppTheme } from '@/hooks/use-theme'
+
 type Props = {
   winCount: number
   max?: number
@@ -7,16 +9,17 @@ type Props = {
 }
 
 export function GoalMiniBar({ winCount, max = 7, width = 80 }: Props) {
+  const { colors } = useAppTheme()
   const capped = Math.max(0, Math.min(max, winCount))
   const pct = (capped / max) * 100
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>
+      <Text style={[styles.label, { color: colors.onAccentSoft }]}>
         {capped}/{max} obj
       </Text>
-      <View style={[styles.track, { width }]}>
-        <View style={[styles.fill, { width: `${pct}%` }]} />
+      <View style={[styles.track, { width, backgroundColor: colors.onAccentTrack }]}>
+        <View style={[styles.fill, { width: `${pct}%`, backgroundColor: colors.onAccent }]} />
       </View>
     </View>
   )
@@ -30,17 +33,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 11,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.85)',
   },
   track: {
     height: 4,
     borderRadius: 99,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   fill: {
     height: 4,
     borderRadius: 99,
-    backgroundColor: '#fff',
   },
 })

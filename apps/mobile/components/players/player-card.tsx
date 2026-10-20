@@ -1,4 +1,5 @@
 import type { Player } from '@fulbito/types'
+import { getGoalkeeping } from '@fulbito/utils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, View } from 'react-native'
 
@@ -9,7 +10,6 @@ import { StreakBadge } from '@/components/players/streak-badge'
 import { ThemedText } from '@/components/themed-text'
 import { GOALKEEPER_COLOR } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
-import { getGoalkeeping } from '@fulbito/utils'
 
 type StreakKind = 'win' | 'loss' | null
 
@@ -18,7 +18,7 @@ type Props = {
   streak: { kind: StreakKind; count: number }
   onPress: () => void
   onLongPress?: () => void
-  isGoalkeepingMode: boolean
+  isGoalkeepingMode?: boolean
 }
 
 const AVATAR_SIZE = 48
@@ -27,7 +27,7 @@ export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeeping
   const { colors, isDark, shadows, radii } = useAppTheme()
   const winGoalProgress = streak.kind === 'win' ? streak.count : 0
 
-  const isGoalkeeping = getGoalkeeping(player)
+  const displayedSkill = isGoalkeepingMode ? getGoalkeeping(player) : (player.skill ?? null)
 
   return (
     <Pressable
@@ -46,7 +46,7 @@ export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeeping
       ]}>
       <LinearGradient
         pointerEvents="none"
-        colors={[isGoalkeepingMode ? GOALKEEPER_COLOR : colors.brand, '#fff']}
+        colors={[isGoalkeepingMode ? GOALKEEPER_COLOR : colors.brand, colors.surface]}
         start={{ x: 1, y: 0 }}
         end={{ x: 0, y: 0 }}
         locations={[0, 0.6]}
@@ -72,7 +72,7 @@ export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeeping
       </View>
 
       <View style={styles.right}>
-        <SkillBig skill={isGoalkeepingMode ?  isGoalkeeping : player.skill ?? null} isGoalkeepingMode={isGoalkeepingMode} />
+        <SkillBig skill={displayedSkill} isGoalkeepingMode={isGoalkeepingMode} />
         <GoalMiniBar winCount={winGoalProgress} />
       </View>
     </Pressable>
