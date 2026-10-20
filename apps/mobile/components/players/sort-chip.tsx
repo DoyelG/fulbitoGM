@@ -13,6 +13,8 @@ type Props = {
   accessibilityLabel?: string
 }
 
+const HIT_SLOP = { top: 8, bottom: 8, left: 2, right: 2 }
+
 export function SortChip({ label, active, dir, onPress, activeColor, accessibilityLabel }: Props) {
   const { colors } = useAppTheme()
   const tint = activeColor ?? colors.brand
@@ -23,6 +25,8 @@ export function SortChip({ label, active, dir, onPress, activeColor, accessibili
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: active }}
+      accessibilityValue={active ? { text: dir === 'asc' ? 'ascendente' : 'descendente' } : undefined}
+      hitSlop={HIT_SLOP}
       onPress={() => {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
         onPress()
@@ -35,7 +39,7 @@ export function SortChip({ label, active, dir, onPress, activeColor, accessibili
         },
         pressed && styles.pressed,
       ]}>
-      <ThemedText style={[styles.label, { color: active ? '#fff' : colors.muted }]}>
+      <ThemedText style={[styles.label, { color: active ? colors.onAccent : colors.muted }]}>
         {label}
         {arrow}
       </ThemedText>

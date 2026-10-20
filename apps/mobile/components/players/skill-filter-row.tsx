@@ -1,24 +1,24 @@
+import type { SkillMode } from '@fulbito/types'
 import { StyleSheet, View } from 'react-native'
+
+import { SortChip } from '@/components/players/sort-chip'
+import { ThemedText } from '@/components/themed-text'
 import { GOALKEEPER_COLOR } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
-import { ThemedText } from '../themed-text'
-import { SortChip } from './sort-chip'
-
-export type SkillMode = 'player' | 'goalkeeper'
 
 type Props = {
   mode: SkillMode
   dir: 'asc' | 'desc'
   onSelect: (mode: SkillMode) => void
-  cuantityOfPlayers: number
+  playersCount: number
 }
 
-export function SkillFilterRow({ mode, dir, onSelect, cuantityOfPlayers }: Props) {
+export function SkillFilterRow({ mode, dir, onSelect, playersCount }: Props) {
   const { colors } = useAppTheme()
 
   return (
     <View style={styles.container}>
-      <ThemedText style={[styles.count, { color: colors.muted }]}>{cuantityOfPlayers} jugadores</ThemedText>
+      <ThemedText style={[styles.count, { color: colors.muted }]}>{playersCount} jugadores</ThemedText>
       <View style={styles.SortChipRow}>
         <SortChip
           label="🧤"
@@ -31,11 +31,15 @@ export function SkillFilterRow({ mode, dir, onSelect, cuantityOfPlayers }: Props
         <SortChip
           label="⚽️"
           accessibilityLabel="Ordenar por nivel de jugador"
-          active={mode === 'player'} dir={dir} onPress={() => onSelect('player')} />
+          active={mode === 'player'}
+          dir={dir}
+          onPress={() => onSelect('player')}
+        />
       </View>
     </View>
   )
 }
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',

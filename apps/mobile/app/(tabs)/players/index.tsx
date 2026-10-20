@@ -48,9 +48,6 @@ export default function PlayersScreen() {
   const {
     query,
     setQuery,
-    position,
-    setPosition,
-    positions,
     filteredPlayers,
   } = usePlayerFilters(allPlayers)
   const { sortedPlayers: sortedAllPlayers, skillMode, sortDir, selectSkillMode } = usePlayerSort(
@@ -61,7 +58,7 @@ export default function PlayersScreen() {
 
   const sortedPlayers = useMemo(() => sortedAllPlayers.filter((player) => !player.inactive), [sortedAllPlayers])
   const sortedInactivePlayers = useMemo(() => sortedAllPlayers.filter((player) => player.inactive), [sortedAllPlayers])
-  const cuantityOfPlayers = sortedPlayers.length
+  const playersCount = sortedPlayers.length
 
   const confirmDelete = useCallback(
     (player: Player) => {
@@ -123,15 +120,12 @@ export default function PlayersScreen() {
             <PlayersListHeader
               query={query}
               onQueryChange={setQuery}
-              positions={positions}
-              position={position}
-              onPositionChange={setPosition}
               isAdmin={isAdmin}
               onAdd={() => router.push('/(tabs)/players/new')}
               skillMode={skillMode}
               sortDir={sortDir}
               onSkillSelect={selectSkillMode}
-              cuantityOfPlayers={cuantityOfPlayers}
+              playersCount={playersCount}
             />
           }
           refreshControl={
