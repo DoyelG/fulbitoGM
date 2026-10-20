@@ -17,14 +17,17 @@ export type AppUser = {
   uid: string
   email: string
   role: Role[]
+  linkedPlayerId?: string
 }
 
-async function getUserRoles(uid: string): Promise<Role[]> {
+async function getUserProfile(uid: string): Promise<Pick<AppUser, 'role' | 'linkedPlayerId'>> {
   const db = getFirestore()
   const snap = await getDoc(doc(db, 'users', uid))
-  const role = snap.data()?.role
-  if (!role) return ['USER']
-  return Array.isArray(role) ? role : [role]
+  const { role, linkedPlayerId } = snap.data() ?? {}
+  return {
+    role: !role ? ['USER'] : Array.isArray(role) ? role : [role],
+    linkedPlayerId: linkedPlayerId ?? undefined,
+  }
 }
 
 async function ensureUserDoc(uid: string, email: string): Promise<void> {
@@ -40,8 +43,8 @@ async function ensureUserDoc(uid: string, email: string): Promise<void> {
 export async function signIn(email: string, password: string): Promise<AppUser> {
   const auth = getAuth()
   const cred = await signInWithEmailAndPassword(auth, email, password)
-  const role = await getUserRoles(cred.user.uid)
-  return { uid: cred.user.uid, email: cred.user.email!, role }
+  const profile = await getUserProfile(cred.user.uid)
+  return { uid: cred.user.uid, email: cred.user.email!, ...profile }
 }
 
 export async function register(email: string, password: string): Promise<AppUser> {
@@ -66,8 +69,8 @@ export async function signInWithGoogle(): Promise<AppUser> {
   const email = cred.user.email!
 
   await ensureUserDoc(uid, email)
-  const role = await getUserRoles(uid)
-  return { uid, email, role }
+  const profile = await getUserProfile(uid)
+  return { uid, email, ...profile }
 }
 
 export async function signOut(): Promise<void> {
@@ -94,8 +97,8 @@ export function onAuthStateChanged(callback: (user: AppUser | null) => void): ()
       callback(null)
       return
     }
-    const role = await getUserRoles(firebaseUser.uid)
-    callback({ uid: firebaseUser.uid, email: firebaseUser.email!, role })
+    const profile = await getUserProfile(firebaseUser.uid)
+    callback({ uid: firebaseUser.uid, email: firebaseUser.email!, ...profile })
   })
 }
 
