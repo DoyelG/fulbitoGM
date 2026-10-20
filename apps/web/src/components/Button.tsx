@@ -3,7 +3,7 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'secondary' | 'danger' | 'dangerousSecondary'
   block?: boolean
 }
 
@@ -15,6 +15,8 @@ const base =
 const variantStyles: Record<NonNullable<Props['variant']>, string> = {
   primary: 'border-transparent bg-brand text-white hover:bg-brand/90',
   secondary: 'border-gray-300 bg-white text-black hover:bg-gray-50',
+  danger: 'border-transparent bg-red-600 text-white hover:bg-red-700',
+  dangerousSecondary: 'border-red-600 bg-white text-red-600 hover:bg-red-50',
 }
 
 export default function Button({ variant = 'primary', block = false, className = '', ...props }: Props) {
