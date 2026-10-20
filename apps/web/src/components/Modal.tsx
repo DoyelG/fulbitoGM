@@ -9,9 +9,10 @@ type Props = {
   title: string
   children: React.ReactNode
   size?: 'default' | 'large'
+  hideHeader?: boolean
 }
 
-export default function Modal({ open, onClose, title, children, size = 'default' }: Props) {
+export default function Modal({ open, onClose, title, children, size = 'default', hideHeader = false }: Props) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (e: KeyboardEvent) => {
@@ -30,17 +31,30 @@ export default function Modal({ open, onClose, title, children, size = 'default'
           size === 'large' ? 'max-w-4xl' : 'max-w-lg'
         }`}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-700 hover:text-black focus:outline-none focus:ring-2 focus:ring-brand rounded"
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
+        {hideHeader ? (
+          <div className="flex justify-end px-4 pt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-700 hover:text-black focus:outline-none focus:ring-2 focus:ring-brand rounded"
+              aria-label="Cerrar"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between px-4 py-3 border-b">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-700 hover:text-black focus:outline-none focus:ring-2 focus:ring-brand rounded"
+              aria-label="Cerrar"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <div className="p-4">{children}</div>
       </div>
     </Backdrop>

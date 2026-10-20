@@ -4,6 +4,7 @@ import "./globals.css"
 import AppBootstrap from "./shared/AppBootstrap"
 import AuthProvider from "./shared/AuthProvider"
 import NavBar from "./NavBar"
+import LinkPlayerModal from "@/components/LinkPlayerModal"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -31,6 +32,7 @@ export default function RootLayout({
             </header>
             <main>{children}</main>
             <AppBootstrap />
+            <LinkPlayerModal />
           </div>
         </AuthProvider>
       </body>
