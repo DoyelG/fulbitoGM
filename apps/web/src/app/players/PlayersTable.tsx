@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { FiEye, FiEdit2, FiTrash2, FiUserCheck, FiUserX } from 'react-icons/fi'
 import StreakBadge from '@/components/StreakBadge'
 import ActionRow, { type RowAction } from '@/components/ActionRow'
-import type { Player } from '@fulbito/types'
+import type { Player, SkillMode } from '@fulbito/types'
 import {
   useReactTable,
   getCoreRowModel,
@@ -19,7 +19,7 @@ import {
 } from '@tanstack/react-table'
 import { getGoalkeeping } from '@fulbito/utils'
 import SkillBadge from '@/components/SkillBadge'
-import SkillSortHeader, { type SkillMode } from './SkillSortHeader'
+import SkillSortHeader from './SkillSortHeader'
 
 export type PlayerRow = Player & {
   streak: { kind: 'win' | 'loss' | null; count: number }
@@ -73,6 +73,7 @@ export default function PlayersTable({
     () => [
       columnHelper.display({
         id: 'photo',
+        header: () => <span className="sr-only">Imagen</span>,
         enableSorting: false,
         cell: ({ row }) => (
           <Image
