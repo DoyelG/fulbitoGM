@@ -8,6 +8,7 @@ import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
+import ConfirmModal from "@/components/ConfirmModal";
 import VideoClipUploadForm from "@/components/videoClips/VideoClipUploadForm";
 import VideoClipCarousel from "@/components/videoClips/VideoClipCarousel";
 import {
@@ -448,28 +449,20 @@ export default function HistoryClient() {
         />
       )}
 
-      <Modal 
+      <ConfirmModal
         title="Confirmar eliminación"
         open={showModal}
-        onClose={() => setShowModal(false)}>
-          <div className="p-2 text-center">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
-              <FiTrash2 className="text-red-600" size={20} />
-            </div>
-              <p className="text-gray-600">
-                ¿Estás seguro de que querés eliminar al partido: {' '}
-                <span className="font-medium text-gray-900">{selectedMatch?.name}</span>?
-              </p>
-            <div className="flex justify-center gap-3 mt-6">
-            <Button variant="secondary" block onClick={() => setShowModal(false)}>
-              Cancelar
-            </Button>
-            <Button variant="danger" block onClick={handleConfirmDelete}>
-              Eliminar
-            </Button>
-          </div>
-          </div>
-      </Modal>
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmDelete}
+        icon={FiTrash2}
+        tone="danger"
+        confirmLabel="Eliminar"
+      >
+        <p>
+          ¿Estás seguro de que querés eliminar al partido:{' '}
+          <span className="font-medium text-gray-900">{selectedMatch?.name}</span>?
+        </p>
+      </ConfirmModal>
 
       <Modal
         open={open}

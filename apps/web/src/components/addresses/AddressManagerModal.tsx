@@ -6,7 +6,7 @@ import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Address } from '@fulbito/types'
 import Button from '@/components/Button'
 import Modal from '@/components/Modal'
-import { Backdrop } from '@/components/Backdrop'
+import ConfirmModal from '@/components/ConfirmModal'
 import ActionRow from '@/components/ActionRow'
 import { useAddressStore, type AddressInput } from '@/store/useAddressStore'
 import AddressForm from './AddressForm'
@@ -154,27 +154,20 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
         </div>
       )}
 
-      {toDelete && (
-        <Backdrop onClose={() => setToDelete(null)} title="Confirmar eliminación">
-          <div className="bg-white p-6 rounded-xl max-w-md">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
-
-            <p className="text-gray-600 mb-6">
-              ¿Estás seguro de que querés eliminar &quot;{toDelete.name}&quot;? Los partidos ya guardados no se
-              modifican.
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => setToDelete(null)}>
-                Cancelar
-              </Button>
-              <Button variant="danger" onClick={handleConfirmDelete}>
-                Eliminar
-              </Button>
-            </div>
-          </div>
-        </Backdrop>
-      )}
+      <ConfirmModal
+        title="Confirmar eliminación"
+        open={toDelete !== null}
+        onClose={() => setToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        icon={FiTrash2}
+        tone="danger"
+        confirmLabel="Eliminar"
+      >
+        <p>
+          ¿Estás seguro de que querés eliminar &quot;<span className="font-medium text-gray-900">{toDelete?.name}</span>
+          &quot;? Los partidos ya guardados no se modifican.
+        </p>
+      </ConfirmModal>
     </Modal>
   )
 }

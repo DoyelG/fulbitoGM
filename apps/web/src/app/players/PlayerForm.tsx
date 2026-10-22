@@ -7,7 +7,7 @@ import { uploadPlayerPhoto } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { getGoalkeeping } from '@fulbito/utils'
 import Button from '@/components/Button'
-import Modal from '@/components/Modal'
+import ConfirmModal from '@/components/ConfirmModal'
 import Tooltip from '@/components/Tooltip'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import Chevron from '@/app/shared/Icons/Chevron'
@@ -356,56 +356,47 @@ export default function PlayerForm({ mode, playerId }: Props) {
         </Button>
       </div>
 
-      <Modal
+      <ConfirmModal
         title={`${mode === 'edit' ? 'Actualizar' : 'Guardar'} datos`}
         open={modalOpen}
-        onClose={() => setModalOpen(false)}>
-          <div className="text-center p-2">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-brand/10">
-              <FiEdit2 className="text-brand" size={20} />
-            </div>
-            <p className="text-gray-600">
-              ¿Confirmás {mode === 'edit' ? 'actualizar' : 'guardar'} los datos de{' '}
-              <span className="font-medium text-gray-900">{formData.name}</span>?
-            </p>
-            {summaryRows.length > 0 && (
-              <div className="mt-3 space-y-1 text-sm text-gray-600 text-left">
-                {summaryRows.map((row) =>
-                  row.label === 'Foto' ? (
-                    <div key={row.label} className="flex items-center gap-2">
-                      <span>{row.label}:</span>
-                      {row.beforeImg && (
-                        <Image src={row.beforeImg} alt="Foto anterior" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-gray-300 opacity-50" />
-                      )}
-                      {row.beforeImg && <span className="text-gray-400">→</span>}
-                      {row.afterImg ? (
-                        <Image src={row.afterImg} alt="Foto nueva" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-brand" />
-                      ) : (
-                        <span className="font-medium text-black">Sin foto</span>
-                      )}
-                    </div>
+        onClose={() => setModalOpen(false)}
+        onConfirm={savePlayer}
+        icon={FiEdit2}
+        confirmLabel={mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
+      >
+        <p>
+          ¿Confirmás {mode === 'edit' ? 'actualizar' : 'guardar'} los datos de{' '}
+          <span className="font-medium text-gray-900">{formData.name}</span>?
+        </p>
+        {summaryRows.length > 0 && (
+          <div className="mt-3 space-y-1 text-sm text-gray-600 text-left">
+            {summaryRows.map((row) =>
+              row.label === 'Foto' ? (
+                <div key={row.label} className="flex items-center gap-2">
+                  <span>{row.label}:</span>
+                  {row.beforeImg && (
+                    <Image src={row.beforeImg} alt="Foto anterior" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-gray-300 opacity-50" />
+                  )}
+                  {row.beforeImg && <span className="text-gray-400">→</span>}
+                  {row.afterImg ? (
+                    <Image src={row.afterImg} alt="Foto nueva" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-brand" />
                   ) : (
-                    <p key={row.label}>
-                      {row.label}:{' '}
-                      {row.before !== undefined && (
-                        <span className="line-through text-gray-400">{row.before}</span>
-                      )}{' '}
-                      <span className="font-medium text-black">{row.after}</span>
-                    </p>
-                  )
-                )}
-              </div>
+                    <span className="font-medium text-black">Sin foto</span>
+                  )}
+                </div>
+              ) : (
+                <p key={row.label}>
+                  {row.label}:{' '}
+                  {row.before !== undefined && (
+                    <span className="line-through text-gray-400">{row.before}</span>
+                  )}{' '}
+                  <span className="font-medium text-black">{row.after}</span>
+                </p>
+              )
             )}
-            <div className="flex justify-center gap-3 mt-6">
-              <Button type="button" variant="secondary" block onClick={() => setModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="button" block onClick={savePlayer}>
-                {mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
-              </Button>
-            </div>
           </div>
-        </Modal>
+        )}
+      </ConfirmModal>
        
       
       

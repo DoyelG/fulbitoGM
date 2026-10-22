@@ -10,8 +10,8 @@ import { usePlayerStore } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
 import PlayersTable, { type PlayerRow } from './PlayersTable'
-import Modal from '@/components/Modal'
-import Button, { buttonClasses } from '@/components/Button'
+import ConfirmModal from '@/components/ConfirmModal'
+import { buttonClasses } from '@/components/Button'
 import Chevron from '../shared/Icons/Chevron'
 
 export default function PlayersClient({
@@ -150,53 +150,35 @@ export default function PlayersClient({
         </div>
       )}
 
-      <Modal title="Confirmar eliminación" open={showModal} onClose={() => setShowModal(false)}>
-        <div className="p-2 text-center">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
-            <FiTrash2 className="text-red-600" size={20} />
-          </div>
-          <p className="text-gray-600">
-            ¿Estás seguro de que querés eliminar a{' '}
-            <span className="font-medium text-gray-900">{selectedPlayer?.name}</span>?
-          </p>
-          <div className="flex justify-center gap-3 mt-6">
-            <Button variant="secondary" block onClick={() => setShowModal(false)}>
-              Cancelar
-            </Button>
-            <Button variant="danger" block onClick={handleConfirmDelete}>
-              Eliminar
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ConfirmModal
+        title="Confirmar eliminación"
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmDelete}
+        icon={FiTrash2}
+        tone="danger"
+        confirmLabel="Eliminar"
+      >
+        <p>
+          ¿Estás seguro de que querés eliminar a{' '}
+          <span className="font-medium text-gray-900">{selectedPlayer?.name}</span>?
+        </p>
+      </ConfirmModal>
 
-      <Modal title="Confirmar cambio de estado" open={showToggleModal} onClose={() => setShowToggleModal(false)}>
-        <div className="p-2 text-center">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${
-              toggleTarget?.inactive ? 'bg-red-100' : 'bg-brand/10'
-            }`}
-          >
-            {toggleTarget?.inactive ? (
-              <FiUserX className="text-red-600" size={20} />
-            ) : (
-              <FiUserCheck className="text-brand" size={20} />
-            )}
-          </div>
-          <p className="text-gray-600">
-            ¿Estás seguro de que querés {toggleTarget?.inactive ? 'desactivar' : 'activar'} a{' '}
-            <span className="font-medium text-gray-900">{toggleTargetPlayer?.name}</span>?
-          </p>
-          <div className="flex justify-center gap-3 mt-6">
-            <Button variant="secondary" block onClick={() => setShowToggleModal(false)}>
-              Cancelar
-            </Button>
-            <Button block onClick={handleConfirmToggle}>
-              Confirmar
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ConfirmModal
+        title="Confirmar cambio de estado"
+        open={showToggleModal}
+        onClose={() => setShowToggleModal(false)}
+        onConfirm={handleConfirmToggle}
+        icon={toggleTarget?.inactive ? FiUserX : FiUserCheck}
+        tone={toggleTarget?.inactive ? 'danger' : 'brand'}
+        confirmVariant="primary"
+      >
+        <p>
+          ¿Estás seguro de que querés {toggleTarget?.inactive ? 'desactivar' : 'activar'} a{' '}
+          <span className="font-medium text-gray-900">{toggleTargetPlayer?.name}</span>?
+        </p>
+      </ConfirmModal>
     </div>
   )
 }
