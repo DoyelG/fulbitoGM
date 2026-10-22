@@ -363,13 +363,13 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         </div>
       )}
 
-      {selected.size === requiredPlayers && (
+      {selected.size === requiredPlayers && !manualOpen && (
         <div className="flex gap-3 justify-center mb-6">
-          <Button variant="secondary" onClick={() => setManualOpen(o => !o)}>
-            {manualOpen ? 'Cerrar configuración manual' : 'Configuración manual de equipos'}
+          <Button onClick={() => setManualOpen(true)}>
+            Generación manual
           </Button>
           <Button onClick={generateTeams}>
-            {autoTeams ? '🔄 Re-generar equipos' : '🎲 Generar equipos'}
+            {autoTeams ? 'Re-generación automática' : 'Generación automática'}
           </Button>
         </div>
       )}
@@ -382,7 +382,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             automáticamente al generar equipos.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <DropColumn title="Jugadores disponibles" onDrop={e => onDrop(e, 'unassigned')}>
+            <DropColumn title={`Jugadores disponibles · ${unassignedManual.length}`} onDrop={e => onDrop(e, 'unassigned')}>
               {unassignedManual.map(p => <Draggable key={p.id} p={p} />)}
             </DropColumn>
             <DropColumn title={`Equipo A (${manualA.length}/${playersPerTeam})`} onDrop={e => onDrop(e, 'a')}>
@@ -392,10 +392,24 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               {manualB.map(p => <Draggable key={p.id} p={p} />)}
             </DropColumn>
           </div>
-          <div className="flex gap-3 justify-center mt-4">
-            <Button variant="secondary" onClick={() => { setManualA([]); setManualB([]) }}>
-              Reiniciar
-            </Button>
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={() => { setManualA([]); setManualB([]) }}>
+                Reiniciar
+              </Button>
+              <Button variant="secondary" onClick={() => setManualOpen(false)}>
+                Cerrar manual
+              </Button>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="tertiary" onClick={generateTeams} disabled={unassignedManual.length === 0}>
+                <span aria-hidden="true">✦</span>
+                Completar el resto
+              </Button>
+              <Button onClick={generateTeams} disabled={unassignedManual.length > 0}>
+                Confirmar equipos
+              </Button>
+            </div>
           </div>
         </div>
       )}
