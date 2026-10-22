@@ -7,6 +7,7 @@ import type { Match, MatchInput, MatchLocation } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
 import Modal from "@/components/Modal";
+import Button from "@/components/Button";
 import VideoClipUploadForm from "@/components/videoClips/VideoClipUploadForm";
 import VideoClipCarousel from "@/components/videoClips/VideoClipCarousel";
 import {
@@ -29,7 +30,6 @@ import { Pagination } from "../shared/Pagination";
 import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
 import { MatchDescription } from "./matchDescription";
-import { Backdrop } from "@/components/Backdrop";
 import AddressPicker from "@/components/AddressPicker";
 import MatchLocationLink from "@/components/MatchLocationLink";
 import { FiTrash2 } from "react-icons/fi";
@@ -51,9 +51,17 @@ export default function HistoryClient() {
     matchesInit,
   } = useMatchStore();
   const { players: storePlayers } = usePlayerStore();
-  const [open, setOpen] = useState<
-    false | { mode: "create" } | { mode: "edit"; match: Match }
-  >(false);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Match | null>(null);
+  const openCreate = () => {
+    setEditing(null);
+    setOpen(true);
+  };
+  const openEdit = (match: Match) => {
+    setEditing(match);
+    setOpen(true);
+  };
+  const closeRecordModal = () => setOpen(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const addVideoClip = useVideoClipStore((state) => state.addVideoClip);
@@ -165,12 +173,7 @@ export default function HistoryClient() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Historial de partidos</h1>
         {isAdmin && (
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={() => setOpen({ mode: "create" })}
-          >
-            Cargar partido
-          </button>
+          <Button onClick={openCreate}>Cargar partido</Button>
         )}
       </div>
       <div className="mb-4 flex flex-col md:flex-row md:items-end gap-3">
@@ -219,15 +222,15 @@ export default function HistoryClient() {
           </div>
           {(fromDate || toDate) && (
             <div className="flex items-end">
-              <button
-                className="border rounded px-3 py-2 hover:bg-gray-50"
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setFromDate("");
                   setToDate("");
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -388,9 +391,9 @@ export default function HistoryClient() {
                       <MatchDescription text={match.description}/>
                     )}
                     <div className="flex justify-end items-center gap-3 shrink-0 ml-auto self-end">
-                      <button
-                        type="button"
-                        className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setViewClipsMatch(match)}
                         aria-label={`Ver clips del partido${match.name ? `: ${match.name}` : ""}`}
                       >
@@ -400,42 +403,25 @@ export default function HistoryClient() {
                             {videoClips.filter((clip) => clip.matchId === match.id).length}
                           </span>
                         )}
-                      </button>
+                      </Button>
                       {isAdmin && (
                         <>
-                          {isDraft ? (
-                            <>
-                              <button
-                                className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                                onClick={() =>
-                                  setOpen({ mode: "edit", match })
-                                }
-                              >
-                                Editar
-                              </button>
-                              <button
-                                className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-                                onClick={() =>
-                                  setOpen({ mode: "edit", match })
-                                }
-                              >
-                                Completar resultado
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                              onClick={() => setOpen({ mode: "edit", match })}
-                            >
-                              Editar
-                            </button>
+                          <Button variant="secondary" size="sm" onClick={() => openEdit(match)}>
+                            Editar
+                          </Button>
+                          {isDraft && (
+                            <Button size="sm" onClick={() => openEdit(match)}>
+                              Completar resultado
+                            </Button>
                           )}
-                          <button
-                            className="text-red-600 hover:text-red-800 text-sm"
+                          <Button
                             onClick={() => handleDelete(match.id)}
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-600 px-1"
                           >
                             Eliminar
-                          </button>
+                          </Button>
                         </>
                       )}
                     </div>
@@ -475,36 +461,35 @@ export default function HistoryClient() {
                 <span className="font-medium text-gray-900">{selectedMatch?.name}</span>?
               </p>
             <div className="flex justify-center gap-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
+            <Button variant="secondary" block onClick={() => setShowModal(false)}>
               Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmDelete}
-              className="flex-1 px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
+            </Button>
+            <Button variant="danger" block onClick={handleConfirmDelete}>
               Eliminar
-            </button>
+            </Button>
           </div>
           </div>
       </Modal>
 
-      {open && <RecordModal
-        mode={open.mode}
-        initial={open.mode === "edit" ? open.match : undefined}
-        onClose={() => setOpen(false)}
-        onSave={async (match) => {
-          if (open.mode === "edit" && open.match) {
-            await updateMatch(open.match.id, match);
-          } else {
-            await addMatch(match);
-          }
-        }}
-      />}
+      <Modal
+        open={open}
+        onClose={closeRecordModal}
+        title={editing ? "Editar Resultado del Partido" : "Registrar Resultado del Partido"}
+        size="large"
+      >
+        <RecordModal
+          mode={editing ? "edit" : "create"}
+          initial={editing ?? undefined}
+          onClose={closeRecordModal}
+          onSave={async (match) => {
+            if (editing) {
+              await updateMatch(editing.id, match);
+            } else {
+              await addMatch(match);
+            }
+          }}
+        />
+      </Modal>
 
       <Modal
         open={videoUploadMatch !== null}
@@ -539,9 +524,8 @@ export default function HistoryClient() {
       >
         {isAdmin && viewClipsMatch && (
           <div className="flex justify-end mb-4">
-            <button
-              type="button"
-              className="text-sm px-3 py-1.5 rounded bg-brand text-white hover:bg-brand/90"
+            <Button
+              size="sm"
               onClick={() => {
                 setVideoUploadError(null);
                 setVideoUploadMatch(viewClipsMatch);
@@ -549,7 +533,7 @@ export default function HistoryClient() {
               }}
             >
               + Subir clip
-            </button>
+            </Button>
           </div>
         )}
         {viewDeleteError && (
@@ -871,18 +855,7 @@ function RecordModal({
   };
 
   return (
-    <Backdrop onClose={onClose} title='Registrar Resultado del Partido'>
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
-        <div className="flex justify-between items-center border-b pb-2 mb-4">
-          <h2 className="text-xl font-semibold">
-            Registrar Resultado del Partido
-          </h2>
-          <button className="text-black hover:text-black" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
+      <div>
         <div className="grid sm:grid-cols-[auto_auto_auto_1fr_auto] gap-3 mb-3">
           <HourField id="match-hour" value={matchHour} onChange={setMatchHour} />
           <div>
@@ -1296,35 +1269,19 @@ function RecordModal({
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            className="border px-4 py-2 rounded hover:bg-gray-50 disabled:opacity-50"
-            onClick={onClose}
-            disabled={isLoading}
-          >
+          <Button variant="secondary" onClick={onClose} disabled={isLoading}>
             Cancelar
-          </button>
+          </Button>
           {isDraft && (
-            <button
-              className={`px-4 py-2 rounded text-white ${
-                canUpdateDraft
-                  ? "bg-amber-500 hover:bg-amber-600"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
+            <Button
+              variant="secondary"
               disabled={!canUpdateDraft || isLoading}
               onClick={() => handleSave("draft")}
             >
               {isLoading ? "Actualizando..." : "Actualizar borrador"}
-            </button>
+            </Button>
           )}
-          <button
-            className={`px-4 py-2 rounded text-white ${
-              canConfirm
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
-            disabled={!canConfirm || isLoading}
-            onClick={() => handleSave("final")}
-          >
+          <Button disabled={!canConfirm || isLoading} onClick={() => handleSave("final")}>
             {isLoading
               ? isDraft
                 ? "Confirmando..."
@@ -1336,10 +1293,9 @@ function RecordModal({
                 : mode === "edit"
                   ? "Actualizar Partido"
                   : "Guardar Partido"}
-          </button>
+          </Button>
         </div>
       </div>
-    </Backdrop>
   );
 }
 
