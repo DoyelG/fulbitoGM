@@ -555,7 +555,7 @@ export default function PlayerDetailPage() {
             <div className="text-gray-800">No hay partidos para este jugador aún.</div>
           ) : (
             <div className="grid gap-2">
-              {stats.recent.slice(0, 10).map((rm, index) => (
+              {stats.recent.slice(0, 10).map((recentMatch, index) => (
                 <div
                   key={index}
                   className="flex flex-wrap items-center justify-between bg-gray-50 rounded px-3 py-2"
@@ -563,21 +563,21 @@ export default function PlayerDetailPage() {
                   <div className="flex items-center gap-3">
                     <span
                       className={`px-2 py-0.5 rounded text-white text-xs ${
-                        rm.result === "W"
+                        recentMatch.result === "W"
                           ? "bg-green-600"
-                          : rm.result === "L"
+                          : recentMatch.result === "L"
                           ? "bg-red-600"
                           : "bg-gray-600"
                       }`}
                     >
-                      {rm.result}
+                      {recentMatch.result}
                     </span>
                     <span className="text-sm">
-                      {new Date(rm.date).toLocaleDateString()}{" "}
+                      {new Date(recentMatch.date).toLocaleDateString()}{" "}
                       <span className="ml-2 inline-block bg-accent text-white text-xs px-2 py-0.5 rounded">
-                        {rm.type}
+                        {recentMatch.type}
                       </span>
-                      {rm.isFriendly && (
+                      {recentMatch.isFriendly && (
                         <span
                           className="ml-1 inline-block bg-green-600 text-white text-xs px-2 py-0.5 rounded"
                           title="Partido amistoso"
@@ -589,10 +589,10 @@ export default function PlayerDetailPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm">Equipo {rm.team}</span>
-                    <span className="font-semibold">{rm.score}</span>
+                    <span className="text-sm">Equipo {recentMatch.team}</span>
+                    <span className="font-semibold">{recentMatch.score}</span>
                     <span className="text-sm">
-                      {rm.goals}⚽ {rm.performance}★
+                      {recentMatch.goals}⚽ {recentMatch.performance}★
                     </span>
                   </div>
                 </div>

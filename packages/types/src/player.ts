@@ -27,3 +27,5 @@ export type PlayerInfo = {
   position?: string
   physical?: SkillValue
 }
+
+export type SkillMode = 'player' | 'goalkeeper'

@@ -4,9 +4,10 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
   skill: number | null
+  isGoalkeepingMode?: boolean
 }
 
-export function SkillBig({ skill }: Props) {
+export function SkillBig({ skill, isGoalkeepingMode = false }: Props) {
   const { colors, isDark } = useAppTheme()
 
   if (skill === null || skill === undefined || Number.isNaN(skill)) {
@@ -19,10 +20,8 @@ export function SkillBig({ skill }: Props) {
 
   return (
     <View style={styles.row}>
-      <Text style={[styles.number, { color: colors.text }]}>
-        {skill.toFixed(2)}
-      </Text>
-      <Text style={[styles.suffix, { color: colors.muted }]}>lv</Text>
+      <Text style={[styles.number, { color: colors.onAccent }]}>{skill.toFixed(2)}</Text>
+      <Text style={[styles.suffix, { color: colors.onAccentSoft }]}>lv{isGoalkeepingMode ? '🧤' : ''}</Text>
     </View>
   )
 }

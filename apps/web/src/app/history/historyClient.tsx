@@ -791,6 +791,7 @@ function RecordModal({
     <DraggableItem
       data={player}
       label={player.name}
+      isGoalkeeper={goalkeeperIds.includes(player.id)}
       onClick={() => {
         const choice = prompt(
           `Move ${player.name} to:\n1. Unassigned\n2. Team A\n3. Team B\n\nEnter 1, 2, or 3:`,

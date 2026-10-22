@@ -35,7 +35,12 @@ export const Colors = {
     warning: '#f59e0b',
 
     secondary: '#f97316',
+    goalkeeper: '#08969b',
     shadow: '#4c1d95',
+
+    onAccent: '#ffffff',
+    onAccentSoft: 'rgba(255,255,255,0.85)',
+    onAccentTrack: 'rgba(255,255,255,0.3)',
   },
   dark: {
     text: '#ECEDEE',
@@ -67,8 +72,13 @@ export const Colors = {
     warning: '#fbbf24',
 
     secondary: '#f97316',
+    goalkeeper: '#08969b',
 
     shadow: '#000',
+
+    onAccent: '#ffffff',
+    onAccentSoft: 'rgba(255,255,255,0.85)',
+    onAccentTrack: 'rgba(255,255,255,0.3)',
   },
 } as const
 

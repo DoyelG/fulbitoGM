@@ -1,4 +1,6 @@
 import type { Player } from '@fulbito/types'
+import { getGoalkeeping } from '@fulbito/utils'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import { GoalMiniBar } from '@/components/players/goal-mini-bar'
@@ -15,13 +17,16 @@ type Props = {
   streak: { kind: StreakKind; count: number }
   onPress: () => void
   onLongPress?: () => void
+  isGoalkeepingMode?: boolean
 }
 
 const AVATAR_SIZE = 48
 
-export function PlayerCard({ player, streak, onPress, onLongPress }: Props) {
+export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeepingMode = false }: Props) {
   const { colors, isDark, shadows, radii } = useAppTheme()
   const winGoalProgress = streak.kind === 'win' ? streak.count : 0
+
+  const displayedSkill = isGoalkeepingMode ? getGoalkeeping(player) : (player.skill ?? null)
 
   return (
     <Pressable
@@ -38,6 +43,14 @@ export function PlayerCard({ player, streak, onPress, onLongPress }: Props) {
         shadows.card(isDark),
         pressed && { opacity: 0.92 },
       ]}>
+      <LinearGradient
+        pointerEvents="none"
+        colors={[isGoalkeepingMode ? colors.goalkeeper : colors.brand, colors.surface]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 0 }}
+        locations={[0, 0.6]}
+        style={[StyleSheet.absoluteFill, { borderRadius: radii.lg - 1 }]}
+      />
       <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={AVATAR_SIZE} />
 
       <View style={styles.middle}>
@@ -58,7 +71,7 @@ export function PlayerCard({ player, streak, onPress, onLongPress }: Props) {
       </View>
 
       <View style={styles.right}>
-        <SkillBig skill={player.skill ?? null} />
+        <SkillBig skill={displayedSkill} isGoalkeepingMode={isGoalkeepingMode} />
         <GoalMiniBar winCount={winGoalProgress} />
       </View>
     </Pressable>
