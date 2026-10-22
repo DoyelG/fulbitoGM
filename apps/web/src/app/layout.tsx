@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <div className="min-h-screen bg-gray-50">
-            <header className="bg-gradient-to-r from-brand to-accent text-white shadow-md">
+            <header className="bg-scoreboard border-b border-white/10 text-white shadow-md">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center">
                   <NavBar />
