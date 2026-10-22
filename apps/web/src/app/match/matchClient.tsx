@@ -9,6 +9,7 @@ import { balanceRemainingPlayers, balanceTeams, seedPriorityPlayers, getHotStrea
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
 import { onlyFinalMatches, buildMatchSchedule } from '@fulbito/utils'
 import HourField from '@/components/HourField'
+import Button from '@/components/Button'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { MatchInput, MatchLocation } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -272,12 +273,9 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           >
             {MATCH_TYPES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
-          <button
-            className="ml-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={toggleSelectionPanel}
-          >
+          <Button className="ml-auto" onClick={toggleSelectionPanel}>
             {selected.size === 0 ? 'Seleccionar jugadores' : (selectionOpen ? 'Ocultar selección' : 'Modificar selección')}
-          </button>
+          </Button>
         </div>
         <div className="mt-3 text-sm text-gray-800">
           {(() => {
@@ -367,15 +365,12 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
       {selected.size === requiredPlayers && (
         <div className="flex gap-3 justify-center mb-6">
-          <button
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-            onClick={() => setManualOpen(o => !o)}
-          >
+          <Button variant="secondary" onClick={() => setManualOpen(o => !o)}>
             {manualOpen ? 'Cerrar configuración manual' : 'Configuración manual de equipos'}
-          </button>
-          <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={generateTeams}>
+          </Button>
+          <Button onClick={generateTeams}>
             {autoTeams ? '🔄 Re-generar equipos' : '🎲 Generar equipos'}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -398,9 +393,9 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             </DropColumn>
           </div>
           <div className="flex gap-3 justify-center mt-4">
-            <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" onClick={() => { setManualA([]); setManualB([]) }}>
+            <Button variant="secondary" onClick={() => { setManualA([]); setManualB([]) }}>
               Reiniciar
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -457,15 +452,15 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                 </div>
               </div>
               <div>
-                <button
-                  className="border rounded px-3 py-2 hover:bg-gray-50"
+                <Button
+                  variant="secondary"
                   onClick={() => {
                     if (!dutyPool.length) return
                     setShirtsResponsibleId(dutyPool[Math.floor(Math.random() * dutyPool.length)].id)
                   }}
                 >
                   🎲 Elegir aleatorio
-                </button>
+                </Button>
               </div>
             </div>
             <div className="py-2">
@@ -548,16 +543,13 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     </span>
                   </button>
                 </div>
-                <button
-                  type="button"
+                <Button
                   onClick={createDraft}
                   disabled={isCreatingDraft}
-                  className={`h-10 w-full sm:col-span-2 lg:col-span-1 lg:w-auto px-4 flex items-center justify-center whitespace-nowrap rounded text-white ${
-                    isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-                  }`}
+                  className="h-10 w-full sm:col-span-2 lg:col-span-1 lg:w-auto whitespace-nowrap"
                 >
                   {isCreatingDraft ? 'Creando...' : 'Crear partido'}
-                </button>
+                </Button>
               </div>
               <p className="mt-2 text-xs text-gray-500">
                 Se guarda como borrador en el historial. Más tarde podés completar el resultado.
