@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --color-goalkeeper: #08969b;
+  --color-goalkeeper-high: #089b83;
+  --color-goalkeeper-low: #08769b;
 }
 
 @theme inline {

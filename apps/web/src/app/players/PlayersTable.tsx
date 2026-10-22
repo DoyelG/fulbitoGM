@@ -19,6 +19,7 @@ import {
 } from '@tanstack/react-table'
 import { getGoalkeeping } from '@fulbito/utils'
 import SkillBadge from '@/components/SkillBadge'
+import Arrow from '@/app/shared/Icons/Arrow'
 import SkillSortHeader from './SkillSortHeader'
 
 export type PlayerRow = Player & {
@@ -215,8 +216,11 @@ export default function PlayersTable({
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.id !== 'skill' && header.column.getIsSorted() === 'asc' && ' ▲'}
-                        {header.column.id !== 'skill' && header.column.getIsSorted() === 'desc' && ' ▼'}
+                        {header.column.id !== 'skill' && header.column.getIsSorted() && (
+                          <span className="ml-1 inline-flex align-middle">
+                            <Arrow direction={header.column.getIsSorted() === 'asc' ? 'up' : 'down'} />
+                          </span>
+                        )}
                       </th>
                     ))}
                     {isAdmin && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}

@@ -3,6 +3,7 @@
 import type { SkillMode } from '@fulbito/types'
 import type { SortDirection } from '@tanstack/react-table'
 import { colorForSkill } from '@/components/SkillBadge'
+import Arrow from '@/app/shared/Icons/Arrow'
 
 type Props = {
   mode: SkillMode
@@ -23,8 +24,8 @@ const GRADIENT_COLORS: Record<SkillMode, { high: string; low: string }> = {
     low: colorForSkill(5, { ...tweaks, lightnessOffset: 8 }),
   },
   goalkeeper: {
-    high: 'hsl(170deg 90% 32%)',
-    low: 'hsl(195deg 90% 32%)',
+    high: 'var(--color-goalkeeper-high)',
+    low: 'var(--color-goalkeeper-low)',
   },
 }
 
@@ -61,9 +62,9 @@ export default function SkillSortHeader({ mode, sortDirection, onSelect }: Props
                 }`}
                 style={{ backgroundImage: getGradient(option.mode, isActive && sortDirection === 'asc') }}
               />
-              <span className="relative">
+              <span className="relative inline-flex items-center gap-1">
                 {option.label}
-                {isActive && (sortDirection === 'desc' ? ' ▼' : ' ▲')}
+                {isActive && <Arrow direction={sortDirection === 'asc' ? 'up' : 'down'} />}
               </span>
             </button>
           )

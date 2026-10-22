@@ -1,5 +1,13 @@
 'use client'
 
+const GOALKEEPER_LEVEL_SCALE = {
+  hueLow: 200,
+  hueHigh: 150,
+  saturation: 72,
+  lightnessLow: 42,
+  lightnessHigh: 36,
+}
+
 export type ColorTweaks = { saturationScale?: number; lightnessOffset?: number }
 
 const BADGE_CLASSES = 'inline-flex items-center px-2 py-0.5 rounded text-xs'
@@ -19,8 +27,9 @@ export function colorForSkill(skill: number, { saturationScale = 1, lightnessOff
 }
 
 export function colorForGoalkeeperSkill(skill: number) {
+  const { hueLow, hueHigh, saturation, lightnessLow, lightnessHigh } = GOALKEEPER_LEVEL_SCALE
   const progress = (Math.min(10, Math.max(1, skill)) - 1) / 9
-  return hsl(200 - 50 * progress, 72, 42 - 6 * progress)
+  return hsl(hueLow + (hueHigh - hueLow) * progress, saturation, lightnessLow + (lightnessHigh - lightnessLow) * progress)
 }
 
 type SkillBadgeProps = {
