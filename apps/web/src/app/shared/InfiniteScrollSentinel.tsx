@@ -1,3 +1,5 @@
+import Spinner from "@/components/Spinner";
+
 type InfiniteScrollSentinelProps = {
   sentinelRef: (node: HTMLElement | null) => void;
   label?: string;
@@ -9,16 +11,5 @@ export const InfiniteScrollSentinel = ({
   label = "Cargando más…",
   className = "",
 }: InfiniteScrollSentinelProps) => (
-  <div
-    ref={sentinelRef}
-    className={`flex justify-center items-center gap-2 text-gray-600 py-6 ${className}`}
-    role="status"
-    aria-live="polite"
-    aria-busy="true"
-  >
-    <span className="animate-spin text-lg leading-none" aria-hidden="true">
-      ⚽
-    </span>
-    {label}
-  </div>
+  <Spinner ref={sentinelRef} label={label} className={`justify-center py-6 ${className}`} />
 );

@@ -9,6 +9,7 @@ import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipSt
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
 import ConfirmModal from "@/components/ConfirmModal";
+import Spinner from "@/components/Spinner";
 import VideoClipUploadForm from "@/components/videoClips/VideoClipUploadForm";
 import VideoClipCarousel from "@/components/videoClips/VideoClipCarousel";
 import {
@@ -238,17 +239,7 @@ export default function HistoryClient() {
       </div>
       <div className="space-y-4 mb-10">
         {isLoadingMatches ? (
-          <div
-            className="flex items-center gap-2 text-gray-600"
-            role="status"
-            aria-live="polite"
-            aria-busy="true"
-          >
-            <span className="animate-spin text-lg leading-none" aria-hidden="true">
-              ⚽
-            </span>
-            Buscando partidos…
-          </div>
+          <Spinner label="Buscando partidos…" />
         ) : filteredMatches.length === 0 ? (
           <div className="text-black">
             No se encontraron partidos que coincidan con la búsqueda.
