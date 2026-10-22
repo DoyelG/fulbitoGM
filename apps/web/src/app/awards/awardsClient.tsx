@@ -62,12 +62,14 @@ export function AwardsClient({ players, matches }: Props) {
               <select
                 id="award-season"
                 value={selection}
-                onChange={(e) => onSelectSeason(e.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(e.target.value))}
+                onChange={(event) =>
+                  onSelectSeason(event.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(event.target.value))
+                }
                 className="appearance-none rounded border py-2 pl-3 pr-9"
               >
-                {availableYears.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
                   </option>
                 ))}
                 <option value={HALL_OF_FAME}>🏆 Hall of Fame</option>

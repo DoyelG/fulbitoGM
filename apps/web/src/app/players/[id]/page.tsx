@@ -368,9 +368,9 @@ export default function PlayerDetailPage() {
                 onChange={(event) => setForm({ ...form, physical: event.target.value })}
                 className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
                   </option>
                 ))}
               </select>
@@ -385,9 +385,9 @@ export default function PlayerDetailPage() {
                 onChange={(event) => setForm({ ...form, technical: event.target.value })}
                 className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
                   </option>
                 ))}
               </select>
@@ -402,9 +402,9 @@ export default function PlayerDetailPage() {
                 onChange={(event) => setForm({ ...form, tactical: event.target.value })}
                 className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
                   </option>
                 ))}
               </select>
@@ -423,9 +423,9 @@ export default function PlayerDetailPage() {
                 }
                 className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
                   </option>
                 ))}
               </select>
@@ -440,9 +440,9 @@ export default function PlayerDetailPage() {
                 onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
                 className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
                   </option>
                 ))}
               </select>

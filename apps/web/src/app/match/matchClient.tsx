@@ -382,13 +382,13 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             automáticamente al generar equipos.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <DropColumn title={`Jugadores disponibles · ${unassignedManual.length}`} onDrop={e => onDrop(e, 'unassigned')}>
+            <DropColumn title={`Jugadores disponibles · ${unassignedManual.length}`} onDrop={event => onDrop(event, 'unassigned')}>
               {unassignedManual.map(p => <Draggable key={p.id} p={p} />)}
             </DropColumn>
-            <DropColumn title={`Equipo A (${manualA.length}/${playersPerTeam})`} onDrop={e => onDrop(e, 'a')}>
+            <DropColumn title={`Equipo A (${manualA.length}/${playersPerTeam})`} onDrop={event => onDrop(event, 'a')}>
               {manualA.map(p => <Draggable key={p.id} p={p} />)}
             </DropColumn>
-            <DropColumn title={`Equipo B (${manualB.length}/${playersPerTeam})`} onDrop={e => onDrop(e, 'b')}>
+            <DropColumn title={`Equipo B (${manualB.length}/${playersPerTeam})`} onDrop={event => onDrop(event, 'b')}>
               {manualB.map(p => <Draggable key={p.id} p={p} />)}
             </DropColumn>
           </div>
