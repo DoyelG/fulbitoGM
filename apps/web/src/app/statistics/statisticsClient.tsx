@@ -7,9 +7,7 @@ import type { Match, Player } from '@fulbito/types'
 import { getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import StatisticsTable, { type StatRow, type StatSortKey, type SortDir } from './StatisticsTable'
-import Chevron from '../shared/Icons/Chevron'
-
-type PlayerStatusFilter = 'all' | 'active' | 'inactive'
+import PlayerStatusSelect, { type PlayerStatusFilter } from './PlayerStatusSelect'
 
 export default function StatisticsClient({
   players: propsPlayers,
@@ -138,25 +136,7 @@ export default function StatisticsClient({
       <div className="flex flex-col gap-4 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between mb-8">
         <h1 className="text-3xl font-bold">Estadísticas</h1>
 
-        <div className="flex flex-col gap-1 min-[700px]:flex-row min-[700px]:items-center min-[700px]:gap-2">
-          <label htmlFor="player-status-filter" className="text-sm font-medium">
-            Filtrar por estado de jugador:
-          </label>
-          <div className="relative w-full max-w-52 min-[700px]:w-auto">
-            <select
-              name="player-status-filter"
-              id="player-status-filter"
-              value={playerStatusFilter}
-              onChange={(event) => setPlayerStatusFilter(event.target.value as PlayerStatusFilter)}
-              className="h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-9 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-[var(--color-brand)]"
-            >
-              <option value="all">Todos los jugadores</option>
-              <option value="active">Solo Activos</option>
-              <option value="inactive">Solo Inactivos</option>
-            </select>
-            <Chevron select />
-          </div>
-        </div>
+        <PlayerStatusSelect value={playerStatusFilter} onChange={setPlayerStatusFilter} />
       </div>
 
       <StatisticsTable
