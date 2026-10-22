@@ -132,8 +132,8 @@ export default function PlayersTable({
       }),
       columnHelper.accessor(
         (row) => {
-          const st = row.streak
-          return st.kind === 'win' ? st.count : st.kind === 'loss' ? -st.count : 0
+          const { kind, count } = row.streak
+          return kind === 'win' ? count : kind === 'loss' ? -count : 0
         },
         {
           id: 'streak',
@@ -153,8 +153,8 @@ export default function PlayersTable({
         header: 'Objetivo (7W)',
         enableSorting: true,
         cell: ({ getValue, row }) => {
-          const v = getValue()
-          return v >= 7 ? (
+          const winGoalProgress = getValue()
+          return winGoalProgress >= 7 ? (
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${row.original.inactive ? 'bg-gray-200 text-gray-500' : 'text-white'}`}
               style={row.original.inactive ? undefined : { backgroundColor: 'hsl(270deg 80% 36%)' }}
@@ -164,14 +164,14 @@ export default function PlayersTable({
           ) : (
             <div className="w-28">
               <div className="flex justify-between text-[10px] text-gray-700 mb-0.5">
-                <span>W{Math.min(7, v)}</span>
+                <span>W{Math.min(7, winGoalProgress)}</span>
                 <span>7</span>
               </div>
               <div className="h-1.5 bg-gray-200 rounded">
                 <div
                   className={`h-1.5 rounded ${row.original.inactive ? 'bg-gray-400' : ''}`}
                   style={{
-                    width: `${(Math.min(7, v) / 7) * 100}%`,
+                    width: `${(Math.min(7, winGoalProgress) / 7) * 100}%`,
                     backgroundColor: row.original.inactive ? undefined : 'hsl(270deg 75% 45%)',
                   }}
                 />
