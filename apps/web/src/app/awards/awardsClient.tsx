@@ -10,6 +10,7 @@ import { ChampionsSection } from '@/components/ChampionsSection'
 import { HallOfFame } from '@/components/HallOfFame'
 import { AWARD_ICONS } from '@/constants/award-icons'
 import { HALL_OF_FAME, useAnnualAwards } from '@/hooks/use-annual-awards'
+import Chevron from '../shared/Icons/Chevron'
 
 type Props = { players: Player[]; matches: Match[] }
 
@@ -57,19 +58,22 @@ export function AwardsClient({ players, matches }: Props) {
             <label htmlFor="award-season" className="text-sm font-medium">
               Temporada
             </label>
-            <select
-              id="award-season"
-              value={selection}
-              onChange={(e) => onSelectSeason(e.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(e.target.value))}
-              className="rounded border px-3 py-2"
-            >
-              {availableYears.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-              <option value={HALL_OF_FAME}>🏆 Hall of Fame</option>
-            </select>
+            <div className="relative">
+              <select
+                id="award-season"
+                value={selection}
+                onChange={(e) => onSelectSeason(e.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(e.target.value))}
+                className="appearance-none rounded border py-2 pl-3 pr-9"
+              >
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+                <option value={HALL_OF_FAME}>🏆 Hall of Fame</option>
+              </select>
+              <Chevron select />
+            </div>
           </div>
         </div>
       </div>

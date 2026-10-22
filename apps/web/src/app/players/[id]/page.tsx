@@ -17,6 +17,7 @@ import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
 import { getMvpCountsByPlayerId, getGoalkeeping } from "@fulbito/utils";
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import Chevron from "@/app/shared/Icons/Chevron";
 
 export default function PlayerDetailPage() {
   const { isAdmin } = useFirebaseAuth()
@@ -370,94 +371,112 @@ export default function PlayerDetailPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Físico</label>
-            <select
-              value={form.physical}
-              onChange={(event) => setForm({ ...form, physical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.physical}
+                onChange={(event) => setForm({ ...form, physical: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Técnico</label>
-            <select
-              value={form.technical}
-              onChange={(event) => setForm({ ...form, technical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.technical}
+                onChange={(event) => setForm({ ...form, technical: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Táctico</label>
-            <select
-              value={form.tactical}
-              onChange={(event) => setForm({ ...form, tactical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.tactical}
+                onChange={(event) => setForm({ ...form, tactical: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
               Mental
             </label>
-            <select
-              value={form.psychological}
-              onChange={(event) =>
-                setForm({ ...form, psychological: event.target.value })
-              }
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.psychological}
+                onChange={(event) =>
+                  setForm({ ...form, psychological: event.target.value })
+                }
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Arquero</label>
-            <select
-              value={gkQuickValue}
-              onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={gkQuickValue}
+                onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div className="sm:col-span-3 text-sm text-gray-800">
             General (promedio): <span className="font-semibold">Lv {avgPreview}</span>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Posición</label>
-            <select
-              value={form.position}
-              onChange={(event) => setForm({ ...form, position: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              <option value="GK">Arquero</option>
-              <option value="DEF">Defensor</option>
-              <option value="MID">Mediocampista</option>
-              <option value="FWD">Delantero</option>
-              <option value="PLAYER">Cualquier posición</option>
-            </select>
+            <div className="relative">
+              <select
+                value={form.position}
+                onChange={(event) => setForm({ ...form, position: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                <option value="GK">Arquero</option>
+                <option value="DEF">Defensor</option>
+                <option value="MID">Mediocampista</option>
+                <option value="FWD">Delantero</option>
+                <option value="PLAYER">Cualquier posición</option>
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <span id="quick-status-label" className="block text-sm font-medium mb-1">
