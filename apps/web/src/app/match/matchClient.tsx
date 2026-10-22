@@ -10,6 +10,7 @@ import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
 import { onlyFinalMatches, buildMatchSchedule } from '@fulbito/utils'
 import HourField from '@/components/HourField'
 import Button from '@/components/Button'
+import PageTitle from '@/components/PageTitle'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { MatchInput, MatchLocation } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -261,7 +262,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Preparar partido</h1>
+      <PageTitle>Preparar partido</PageTitle>
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">

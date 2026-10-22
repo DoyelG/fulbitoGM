@@ -7,6 +7,7 @@ import type { Match, Player } from '@fulbito/types'
 import { getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import StatisticsTable, { type StatRow, type StatSortKey, type SortDir } from './StatisticsTable'
+import PageTitle from '@/components/PageTitle'
 import PlayerStatusSelect, { type PlayerStatusFilter } from './PlayerStatusSelect'
 
 export default function StatisticsClient({
@@ -133,11 +134,12 @@ export default function StatisticsClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col gap-4 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between mb-8">
-        <h1 className="text-3xl font-bold">Estadísticas</h1>
-
-        <PlayerStatusSelect value={playerStatusFilter} onChange={setPlayerStatusFilter} />
-      </div>
+      <PageTitle
+        spacing={8}
+        actions={<PlayerStatusSelect value={playerStatusFilter} onChange={setPlayerStatusFilter} />}
+      >
+        Estadísticas
+      </PageTitle>
 
       <StatisticsTable
         stats={filteredPlayers}

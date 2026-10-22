@@ -8,6 +8,7 @@ import { AwardCard } from '@/components/AwardCard'
 import { AwardRunnersUp } from '@/components/AwardRunnersUp'
 import { ChampionsSection } from '@/components/ChampionsSection'
 import { HallOfFame } from '@/components/HallOfFame'
+import PageTitle from '@/components/PageTitle'
 import { AWARD_ICONS } from '@/constants/award-icons'
 import { HALL_OF_FAME, useAnnualAwards } from '@/hooks/use-annual-awards'
 import Chevron from '../shared/Icons/Chevron'
@@ -51,9 +52,9 @@ export function AwardsClient({ players, matches }: Props) {
 
       <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-          <h1 className="text-3xl font-black italic tracking-tight">
+          <PageTitle variant="display" spacing={0}>
             {isHallOfFame ? 'Hall of Fame' : 'Premios del Año'}
-          </h1>
+          </PageTitle>
           <div className="flex items-center gap-2">
             <label htmlFor="award-season" className="text-sm font-medium">
               Temporada

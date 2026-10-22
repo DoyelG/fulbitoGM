@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import PlayerForm from '../../PlayerForm'
 import { useEffect } from 'react'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import PageTitle from '@/components/PageTitle'
 
 export default function EditPlayerPage() {
   const { isAdmin, loading } = useFirebaseAuth()
@@ -14,7 +15,7 @@ export default function EditPlayerPage() {
   const { id } = useParams()
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold mb-6">Editar jugador</h1>
+      <PageTitle>Editar jugador</PageTitle>
       <PlayerForm mode="edit" playerId={id as string} />
     </div>
   )

@@ -9,6 +9,7 @@ import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipSt
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
 import ConfirmModal from "@/components/ConfirmModal";
+import PageTitle from "@/components/PageTitle";
 import Spinner from "@/components/Spinner";
 import VideoClipUploadForm from "@/components/videoClips/VideoClipUploadForm";
 import VideoClipCarousel from "@/components/videoClips/VideoClipCarousel";
@@ -172,12 +173,9 @@ export default function HistoryClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Historial de partidos</h1>
-        {isAdmin && (
-          <Button onClick={openCreate}>Cargar partido</Button>
-        )}
-      </div>
+      <PageTitle spacing={8} actions={isAdmin && <Button onClick={openCreate}>Cargar partido</Button>}>
+        Historial de partidos
+      </PageTitle>
       <div className="mb-4 flex flex-col md:flex-row md:items-end gap-3">
         <div className="relative flex-1">
           <svg

@@ -1,6 +1,7 @@
 "use client";
 
 import Button, { buttonClasses } from "@/components/Button";
+import PageTitle from "@/components/PageTitle";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -268,7 +269,7 @@ export default function PlayerDetailPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6 flex gap-5 items-center justify-between">
         <div className="space-y-2 grow">
-          <h1 className="text-3xl font-bold">{player.name}</h1>
+          <PageTitle spacing={0}>{player.name}</PageTitle>
           <div className="flex flex-col gap-3 text-gray-800">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
