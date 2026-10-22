@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
 import PlayersTable, { type PlayerRow } from './PlayersTable'
 import Modal from '@/components/Modal'
+import Button, { buttonClasses } from '@/components/Button'
 import Chevron from '../shared/Icons/Chevron'
 
 export default function PlayersClient({
@@ -97,7 +98,7 @@ export default function PlayersClient({
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Jugadores</h1>
         {isAdmin && (
-          <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">
+          <Link href="/players/new" className={buttonClasses()}>
             Agregar jugador
           </Link>
         )}
@@ -159,20 +160,12 @@ export default function PlayersClient({
             <span className="font-medium text-gray-900">{selectedPlayer?.name}</span>?
           </p>
           <div className="flex justify-center gap-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
+            <Button variant="secondary" block onClick={() => setShowModal(false)}>
               Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmDelete}
-              className="flex-1 px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
+            </Button>
+            <Button variant="danger" block onClick={handleConfirmDelete}>
               Eliminar
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -195,20 +188,12 @@ export default function PlayersClient({
             <span className="font-medium text-gray-900">{toggleTargetPlayer?.name}</span>?
           </p>
           <div className="flex justify-center gap-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setShowToggleModal(false)}
-              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
+            <Button variant="secondary" block onClick={() => setShowToggleModal(false)}>
               Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmToggle}
-              className="flex-1 px-5 py-2 rounded-lg bg-brand text-white hover:bg-brand/90 transition"
-            >
+            </Button>
+            <Button block onClick={handleConfirmToggle}>
               Confirmar
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

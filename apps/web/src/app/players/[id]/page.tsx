@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/components/Button";
+import Button, { buttonClasses } from "@/components/Button";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -285,9 +285,8 @@ export default function PlayerDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="px-3 py-2 rounded border hover:bg-gray-50"
+          <Button
+            variant="secondary"
             onClick={() => {
               if (typeof window !== 'undefined' && window.history.length > 1) {
                 router.back()
@@ -297,34 +296,26 @@ export default function PlayerDetailPage() {
             }}
           >
             Volver
-          </button>
+          </Button>
           {!editMode ? (
             <>
               {isAdmin && (
                 <>
                   <Link
                     href={`/players/edit/${player.id}`}
-                    className="px-3 py-2 rounded border hover:bg-gray-50"
+                    className={buttonClasses({ variant: 'tertiary' })}
                   >
                     Abrir edición
                   </Link>
-                  <button
-                    className="px-3 py-2 rounded bg-brand text-white hover:bg-brand/90"
-                    onClick={() => setEditMode(true)}
-                  >
-                    Edición rápida
-                  </button>
+                  <Button onClick={() => setEditMode(true)}>Edición rápida</Button>
                 </>
               )}
             </>
           ) : (
             isAdmin ? (
-              <button
-                className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
-                onClick={handleCancel}
-              >
+              <Button variant="secondary" onClick={handleCancel}>
                 Cancelar
-              </button>
+              </Button>
             ) : null
           )}
         </div>
