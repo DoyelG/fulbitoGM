@@ -110,14 +110,14 @@ function TeamColumn({
       <Text style={[styles.title, { color: colors.text }]}>
         {label} ({team.length}/{playersPerTeam})
       </Text>
-      {team.map((p) => (
-        <View key={p.id} style={[styles.playerRow, { borderColor: colors.border }]}>
+      {team.map((player) => (
+        <View key={player.id} style={[styles.playerRow, { borderColor: colors.border }]}>
           <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
-            {goalkeeperIds.has(p.id) ? '🧤 ' : ''}
-            {p.name}
-            {pinned.has(p.id) ? ' ⭐' : ''}
+            {goalkeeperIds.has(player.id) ? '🧤 ' : ''}
+            {player.name}
+            {pinned.has(player.id) ? ' ⭐' : ''}
           </Text>
-          <TouchableOpacity onPress={() => onRemove(p.id)}>
+          <TouchableOpacity onPress={() => onRemove(player.id)}>
             <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 14 }}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -175,8 +175,8 @@ function TeamPickerModal({
 
   const confirm = () => {
     const selected = available
-      .filter((p) => draft.has(p.id))
-      .map((p) => ({ id: p.id, name: p.name }))
+      .filter((player) => draft.has(player.id))
+      .map((player) => ({ id: player.id, name: player.name }))
     onConfirm(selected)
   }
 
@@ -193,17 +193,17 @@ function TeamPickerModal({
         </Text>
       ) : (
         <ScrollView keyboardShouldPersistTaps="handled">
-          {available.map((p) => {
-            const selected = draft.has(p.id)
+          {available.map((player) => {
+            const selected = draft.has(player.id)
             return (
               <TouchableOpacity
-                key={p.id}
+                key={player.id}
                 style={[sheetStyles.option, { borderBottomColor: colors.border }]}
-                onPress={() => toggle(p.id)}
+                onPress={() => toggle(player.id)}
               >
                 <Text style={[sheetStyles.optionText, { color: colors.text }]}>
-                  {p.name}
-                  {goalkeeperIds.has(p.id) ? ' 🧤 ' : ''}
+                  {player.name}
+                  {goalkeeperIds.has(player.id) ? ' 🧤 ' : ''}
                 </Text>
                 {selected && (
                   <Text style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</Text>
