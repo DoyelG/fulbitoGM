@@ -5,6 +5,7 @@ import type { Match, Player, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
+import Button from '@/components/Button'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
 import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
 
@@ -68,16 +69,15 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold">Clips</h2>
         {isAdmin && (
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={() => {
               setUploadError(null)
               setUploadOpen(true)
             }}
-            className="px-3 py-1.5 rounded bg-brand text-white text-sm hover:bg-brand/90"
           >
             + Subir clip
-          </button>
+          </Button>
         )}
       </div>
       <div className="p-4" aria-busy={videoClipsInit === 'loading'}>

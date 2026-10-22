@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Address } from '@fulbito/types'
-import '@/styles/buttons.css'
+import Button from '@/components/Button'
 import Modal from '@/components/Modal'
 import { Backdrop } from '@/components/Backdrop'
 import ActionRow from '@/components/ActionRow'
@@ -145,21 +145,11 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
           </div>
 
           <div className="mt-4 flex justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => goTo({ kind: 'create' })}
-              className="btn btn-secondary text-sm font-medium"
-            >
+            <Button variant="secondary" onClick={() => goTo({ kind: 'create' })}>
               <PlusIcon aria-hidden="true" className="size-4" />
               Agregar cancha
-            </button>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="btn btn-primary text-sm font-medium"
-            >
-              Listo
-            </button>
+            </Button>
+            <Button onClick={handleClose}>Listo</Button>
           </div>
         </div>
       )}
@@ -175,20 +165,12 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
             </p>
 
             <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setToDelete(null)}
-                className="btn btn-ghost"
-              >
+              <Button variant="secondary" onClick={() => setToDelete(null)}>
                 Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="btn btn-danger"
-              >
+              </Button>
+              <Button variant="danger" onClick={handleConfirmDelete}>
                 Eliminar
-              </button>
+              </Button>
             </div>
           </div>
         </Backdrop>

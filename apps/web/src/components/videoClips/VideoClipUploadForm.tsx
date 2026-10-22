@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { Match, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
+import Button from '@/components/Button'
 
 type UploadData = {
   matchId: string
@@ -219,20 +220,12 @@ export default function VideoClipUploadForm({
       </div>
 
       <div className="flex justify-end gap-2 pt-2 border-t">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-black shadow-sm hover:bg-gray-50 mt-4"
-        >
+        <Button variant="secondary" onClick={onCancel} className="mt-4">
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand/90 disabled:opacity-50 mt-4"
-        >
+        </Button>
+        <Button type="submit" disabled={!canSubmit} className="mt-4">
           {submitting ? 'Subiendo...' : 'Subir clip'}
-        </button>
+        </Button>
       </div>
     </form>
   )

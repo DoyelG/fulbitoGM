@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { AddressInput } from '@/store/useAddressStore'
+import Button from '@/components/Button'
 
 type Props = {
   initial?: AddressInput
@@ -77,27 +78,17 @@ export default function AddressForm({ initial, submitLabel, onCancel, onSubmit }
       {coords === null && <p className="mt-3 text-sm text-gray-500">No se encontró esa dirección.</p>}
 
       <div className="flex gap-3 mt-6">
-        <button type="button" onClick={onCancel} className="flex-1 rounded-md border py-2 text-sm">
+        <Button variant="secondary" block onClick={onCancel}>
           Cancelar
-        </button>
+        </Button>
         {coords === undefined ? (
-          <button
-            type="button"
-            onClick={async () => setCoords(await geocode(street))}
-            disabled={!name || !street}
-            className="flex-1 rounded-md bg-brand py-2 text-sm text-white disabled:opacity-50"
-          >
+          <Button block onClick={async () => setCoords(await geocode(street))} disabled={!name || !street}>
             Continuar
-          </button>
+          </Button>
         ) : (
-          <button
-            type="button"
-            onClick={() => onSubmit({ name, street })}
-            disabled={!coords}
-            className="flex-1 rounded-md bg-brand py-2 text-sm text-white disabled:opacity-50"
-          >
+          <Button block onClick={() => onSubmit({ name, street })} disabled={!coords}>
             {submitLabel}
-          </button>
+          </Button>
         )}
       </div>
     </div>
