@@ -185,7 +185,7 @@ export default function PlayerDetailPage() {
 
   if (!player) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="mb-4">Jugador no encontrado.</p>
           <Link href="/players" className="text-brand hover:underline">
@@ -265,7 +265,7 @@ export default function PlayerDetailPage() {
     4;
   const gkQuickValue = gkTouched ? form.goalkeeping : String(Math.round(avgPreview));
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6 flex gap-5 items-center justify-between">
         <div className="space-y-2 grow">
           <h1 className="text-3xl font-bold">{player.name}</h1>

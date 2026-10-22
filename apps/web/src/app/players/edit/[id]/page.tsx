@@ -13,7 +13,7 @@ export default function EditPlayerPage() {
   }, [loading, isAdmin, router])
   const { id } = useParams()
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold mb-6">Editar jugador</h1>
       <PlayerForm mode="edit" playerId={id as string} />
     </div>

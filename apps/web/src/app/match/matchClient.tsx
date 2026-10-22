@@ -260,7 +260,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const probB = combinedSkill > 0 ? 100 - probA : 50
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-6">Preparar partido</h1>
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
