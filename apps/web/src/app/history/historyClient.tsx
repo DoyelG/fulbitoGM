@@ -410,7 +410,7 @@ export default function HistoryClient() {
                             onClick={() => handleDelete(match.id)}
                             size="sm"
                             variant="ghost"
-                            className="text-red-600 px-1"
+                            className="text-red-600"
                           >
                             Eliminar
                           </Button>
