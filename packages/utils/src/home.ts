@@ -103,3 +103,18 @@ export function rankStatRows(rows: PlayerStatRow[], stat: 'goals' | 'mvps', limi
     rank: 1 + sorted.filter((o) => o[stat] > r[stat]).length,
   }))
 }
+
+export function pickNextMatch(matches: Match[], today: string): Match | null {
+  let next: Match | null = null
+  for (const m of matches) {
+    if (m.status !== 'draft' || m.date.slice(0, 10) < today) continue
+    if (!next || m.date < next.date) next = m
+  }
+  return next
+}
+
+export function daysUntilMatch(date: string, today: string): number {
+  const [y, m, d] = date.slice(0, 10).split('-').map(Number)
+  const [ty, tm, td] = today.split('-').map(Number)
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(ty, tm - 1, td)) / 86_400_000)
+}
