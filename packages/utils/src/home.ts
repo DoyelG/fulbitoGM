@@ -14,13 +14,13 @@ export type StreakLeader = {
 
 export type StreakLeaders = { winning: StreakLeader[]; losing: StreakLeader[] }
 
-export function parseMatchDate(date: string): Date {
+function parseLocalDate(date: string): Date {
   const [year, month, day] = date.slice(0, 10).split('-').map(Number)
   return new Date(year, month - 1, day)
 }
 
-export function formatMatchDate(date: string, locale = 'es-AR'): string {
-  return parseMatchDate(date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
+export function formatLongMatchDate(date: string, locale = 'es-AR'): string {
+  return parseLocalDate(date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 export function pickLatestFinalMatch(matches: Match[]): Match | null {
@@ -67,7 +67,12 @@ export function pickStreakLeaders(
   for (const p of players) {
     const s = streaks[p.id]
     if (!s || s.count < MIN_HOME_STREAK) continue
-    const leader: StreakLeader = { playerId: p.id, playerName: p.name, playerPhotoUrl: p.photoUrl, count: s.count }
+    const leader: StreakLeader = {
+      playerId: p.id,
+      playerName: p.name,
+      playerPhotoUrl: p.photoUrl ?? undefined,
+      count: s.count,
+    }
     if (s.kind === 'win') winning.push(leader)
     else if (s.kind === 'loss') losing.push(leader)
   }
@@ -93,7 +98,7 @@ export function rankStatRows(rows: PlayerStatRow[], stat: 'goals' | 'mvps', limi
   return sorted.slice(0, limit).map((r) => ({
     playerId: r.id,
     playerName: r.name,
-    playerPhotoUrl: r.photoUrl,
+    playerPhotoUrl: r.photoUrl ?? undefined,
     value: r[stat],
     rank: 1 + sorted.filter((o) => o[stat] > r[stat]).length,
   }))

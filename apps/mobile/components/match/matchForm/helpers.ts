@@ -1,12 +1,7 @@
-import type { MatchInput, Player } from '@fulbito/types'
+import type { MatchInput, Player, MatchLocation } from '@fulbito/types'
+import { buildMatchSchedule } from '@fulbito/utils'
 
 import type { MatchType, RecordingPlayer } from './types'
-
-export function formatDate(iso: string): string {
-  if (!iso) return ''
-  const [yy, mm, dd] = iso.split('-')
-  return `${dd}/${mm}/${yy}`
-}
 
 export function toPlayerInfo(p: Player) {
   return {
@@ -55,6 +50,7 @@ export function computeTeamStats(
 
 export type BuildPayloadInput = {
   matchDate: string
+  matchHour: number | null
   matchType: MatchType
   matchName: string
   matchDescription: string
@@ -70,6 +66,7 @@ export type BuildPayloadInput = {
   goalkeeperIds?: string[]
   mvpId?: string | null
   isMatchFriendly?: boolean
+  matchLocation?: MatchLocation | null
 }
 
 export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
@@ -86,9 +83,10 @@ export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
     }))
 
   return {
-    date: input.matchDate,
+    ...buildMatchSchedule(input.matchDate, input.matchHour),
     type: input.matchType,
     name: input.matchName.trim() || undefined,
+    location: input.matchLocation ?? undefined,
     description: input.matchDescription.trim() || undefined,
     teamAScore: input.teamAScore,
     teamBScore: input.teamBScore,

@@ -1,23 +1,23 @@
-import type { Match, MatchInput, Player } from '@fulbito/types'
+import type { Match, MatchInput, MatchLocation, Player } from '@fulbito/types'
 import {
   balanceRemainingPlayers,
   calculateAllCurrentStreaks,
   getGoalkeeping,
   getHotStreakIds,
   onlyFinalMatches,
+  parseMatchDate,
   seedPriorityPlayers,
 } from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
-
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { useAppTheme } from '@/hooks/use-theme'
-
 import { AutoGenerateButton } from './matchForm/autoGenerateButton'
 import { DateField } from './matchForm/dateField'
 import { DescriptionField } from './matchForm/descriptionField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
+import { HourField } from './matchForm/hourField'
 import { buildMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
 import { MvpSection } from './matchForm/mvpSection'
 import { NameField } from './matchForm/nameField'
@@ -32,6 +32,7 @@ import { usePool } from './matchForm/usePool'
 import { useScores } from './matchForm/useScores'
 import { pickShirtsResponsible, useShirts } from './matchForm/useShirts'
 import { useTeams } from './matchForm/useTeams'
+import { LocationField } from './matchForm/locationField'
 
 export type MatchFormProps = {
   mode: 'create' | 'edit'
@@ -58,8 +59,10 @@ export function MatchForm({
   const isAdmin = useIsAdmin()
 
   const [matchDate, setMatchDate] = useState<string>(
-    initial?.date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+    initial ? parseMatchDate(initial).date : new Date().toISOString().slice(0, 10),
   )
+  const [matchHour, setMatchHour] = useState<number | null>(initial ? parseMatchDate(initial).hour : null)
+  const [matchLocation, setMatchLocation] = useState<MatchLocation | null>(initial?.location ?? null)
   const [matchDescription, setMatchDescription] = useState<string>(initial?.description ?? '')
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) ?? '5v5')
   const [matchName, setMatchName] = useState(initial?.name ?? '')
@@ -155,6 +158,7 @@ export function MatchForm({
     try {
       const payload = buildMatchPayload({
         matchDate,
+        matchHour,
         matchType,
         matchName,
         matchDescription,
@@ -170,6 +174,7 @@ export function MatchForm({
         goalkeeperIds: [...goalkeeperIds],
         mvpId,
         isMatchFriendly,
+        matchLocation,
       })
       await onSave(payload)
     } catch (e) {
@@ -193,7 +198,12 @@ export function MatchForm({
 
       <DateField value={matchDate} onChange={setMatchDate} />
 
+      <HourField value={matchHour} onChange={setMatchHour} />
+
+      <LocationField value={matchLocation} onChange={setMatchLocation} />
+
       <DescriptionField value={matchDescription} onChange={setMatchDescription} />
+
       <ToggleFriendlyMatch isMatchFriendly={isMatchFriendly} setIsMatchFriendly={setIsMatchFriendly} />
 
       <TypeSelector value={matchType} onChange={handleTypeChange} />

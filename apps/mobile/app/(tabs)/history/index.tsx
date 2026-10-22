@@ -1,4 +1,5 @@
 import type { Match } from '@fulbito/types'
+import { parseMatchDate } from '@fulbito/utils'
 import { useRouter } from 'expo-router'
 import { useCallback, useMemo, useState } from 'react'
 import {
@@ -45,7 +46,7 @@ export default function HistoryScreen() {
   const filteredMatches = useMemo(
     () =>
       matches.filter((match) => {
-        const matchDateOnly = match.date.slice(0, 10)
+        const matchDateOnly = parseMatchDate(match).date
         if (fromDate && matchDateOnly < fromDate) return false
         if (toDate && matchDateOnly > toDate) return false
         if (searchQuery) {

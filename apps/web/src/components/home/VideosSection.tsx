@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { VideoClipCategory } from '@fulbito/types'
-import { formatMatchDate } from '@fulbito/utils'
+import { formatLongMatchDate } from '@fulbito/utils'
 import Modal from '@/components/Modal'
 import { useMatchStore } from '@/store/useMatchStore'
 import { useVideoClipStore } from '@/store/useVideoClipStore'
@@ -26,7 +26,7 @@ export default function VideosSection() {
     if (status === 'idle') void initLoad()
   }, [status, initLoad])
 
-  const dateByMatchId = useMemo(() => new Map(matches.map((m) => [m.id, formatMatchDate(m.date)])), [matches])
+  const dateByMatchId = useMemo(() => new Map(matches.map((m) => [m.id, formatLongMatchDate(m.date)])), [matches])
   const counts = useMemo(() => {
     const out: Partial<Record<VideoClipCategory, number>> = {}
     for (const c of clips) out[c.category] = (out[c.category] ?? 0) + 1

@@ -2,7 +2,7 @@ import Image from 'next/image'
 
 export type PlayerAvatarProps = {
   name: string
-  photoUrl?: string
+  photoUrl?: string | null
   size?: 'sm' | 'md' | 'lg'
 }
 

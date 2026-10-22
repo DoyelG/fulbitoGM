@@ -1,13 +1,14 @@
 import '@/lib/firebase'
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import {
+  deleteUser as firebaseDeleteUser,
+  register as firebaseRegister,
   signIn as firebaseSignIn,
   signOut as firebaseSignOut,
-  register as firebaseRegister,
   onAuthStateChanged,
   type AppUser,
 } from '@fulbito/firebase'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
 type AuthContextValue = {
   user: AppUser | null
@@ -16,6 +17,7 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<void>
   register: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
+  deleteUser: (password?: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -47,8 +49,15 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  const deleteUser = async () => {
+    await firebaseDeleteUser()
+    setUser(null)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin: user?.role === 'ADMIN', signIn, register, signOut }}>
+    <AuthContext.Provider
+      value={{ user, loading, isAdmin: user?.role === 'ADMIN', signIn, register, signOut, deleteUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

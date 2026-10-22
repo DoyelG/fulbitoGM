@@ -8,6 +8,7 @@ import { styles } from '@/components/statistics/styles/statics.styles'
 
 import { StatFilterTabs } from '@/components/statistics/stat-filter-tabs'
 import { StatPlayerCard } from '@/components/statistics/stat-player-card'
+import { StatStatusFilter, type PlayerStatusFilter } from '@/components/statistics/stat-status-filter'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useAnnualAwards } from '@/hooks/use-annual-awards'
@@ -23,8 +24,10 @@ export default function StatisticsScreen() {
   const { colors } = useAppTheme()
   const [view, setView] = useState<StatsView>('ranking')
   const [yearPickerOpen, setYearPickerOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<PlayerStatusFilter>('all')
   const { players, matches, loading, refreshing, error, refresh, reload } = usePlayersData()
-  const { activeTab, setActiveTab, sortedStats } = usePlayerStatistics(players, matches)
+  const { activeTab, setActiveTab, sortedStats, inactiveIds, activeStats, inactiveStats } =
+    usePlayerStatistics(players, matches)
   const {
     selection,
     isHallOfFame,
@@ -35,6 +38,16 @@ export default function StatisticsScreen() {
     hallOfFame,
     championship,
   } = useAnnualAwards(players, matches)
+
+  const filteredStats =
+    statusFilter === 'active' ? activeStats : statusFilter === 'inactive' ? inactiveStats : sortedStats
+
+  const emptyMessage =
+    statusFilter === 'active'
+      ? 'No hay estadísticas de jugadores activos.'
+      : statusFilter === 'inactive'
+        ? 'No hay estadísticas de jugadores inactivos.'
+        : 'No hay estadísticas disponibles.'
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -61,7 +74,10 @@ export default function StatisticsScreen() {
           })}
         </View>
         {view === 'ranking' ? (
-          <StatFilterTabs activeTab={activeTab} onChange={setActiveTab} />
+          <>
+            <StatStatusFilter value={statusFilter} onChange={setStatusFilter} />
+            <StatFilterTabs activeTab={activeTab} onChange={setActiveTab} />
+          </>
         ) : (
           <Pressable
             onPress={() => setYearPickerOpen(true)}
@@ -77,7 +93,18 @@ export default function StatisticsScreen() {
         )}
       </>
     ),
-    [view, activeTab, setActiveTab, colors.brand, colors.muted, colors.secondary, selection, isHallOfFame],
+    [
+      view,
+      activeTab,
+      setActiveTab,
+      statusFilter,
+      setStatusFilter,
+      colors.brand,
+      colors.muted,
+      colors.secondary,
+      selection,
+      isHallOfFame,
+    ],
   )
 
   if (loading) {
@@ -132,13 +159,11 @@ export default function StatisticsScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <ThemedView style={styles.screen}>
         <FlatList
-          data={sortedStats}
+          data={filteredStats}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={header}
           ListEmptyComponent={
-            <ThemedText style={[styles.stateText, { color: colors.muted }]}>
-              No hay estadísticas disponibles.
-            </ThemedText>
+            <ThemedText style={[styles.stateText, { color: colors.muted }]}>{emptyMessage}</ThemedText>
           }
           refreshControl={
             <RefreshControl
@@ -148,12 +173,13 @@ export default function StatisticsScreen() {
             />
           }
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          contentContainerStyle={sortedStats.length === 0 ? styles.emptyContent : styles.content}
+          contentContainerStyle={filteredStats.length === 0 ? styles.emptyContent : styles.content}
           renderItem={({ item, index }) => (
             <StatPlayerCard
               stat={item}
               rank={index + 1}
               activeTab={activeTab}
+              inactive={inactiveIds.has(item.id)}
               onPress={() => router.push(`/(tabs)/players/${item.id}`)}
             />
           )}

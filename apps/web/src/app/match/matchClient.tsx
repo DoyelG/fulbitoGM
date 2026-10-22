@@ -7,13 +7,17 @@ import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds, getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { balanceRemainingPlayers, balanceTeams, seedPriorityPlayers, getHotStreakIds, PlayerInfo, TeamResult } from '@/lib/teamUtils'
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
-import { onlyFinalMatches } from '@fulbito/utils'
+import { onlyFinalMatches, buildMatchSchedule } from '@fulbito/utils'
+import HourField from '@/components/HourField'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
-import type { MatchInput } from '@fulbito/types'
+import type { MatchInput, MatchLocation } from '@fulbito/types'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import AddressPicker from '@/components/AddressPicker'
+import Chevron from '../shared/Icons/Chevron'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
+const MAX_GOALKEEPERS = 2
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
   const router = useRouter()
@@ -31,6 +35,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const requiredPlayers = playersPerTeam * 2
 
   const [draftDate, setDraftDate] = useState<string>(() => new Date().toISOString().slice(0, 10))
+  const [draftHour, setDraftHour] = useState<number | null>(null)
   const [draftName, setDraftName] = useState<string>('')
   const [isCreatingDraft, setIsCreatingDraft] = useState(false)
 
@@ -46,6 +51,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }, [hydratePlayers, initialPlayers, resetAndReload, resetMatches])
 
   const [isFriendly, setIsFriendly] = useState(false)
+  const [matchLocation, setMatchLocation] = useState<MatchLocation | null>(null)
   const [selectionOpen, setSelectionOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(new Set())
@@ -60,8 +66,6 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
   const [playerQuery, setPlayerQuery] = useState('')
-
-  const MAX_GOALKEEPERS = 2
 
   const playedBefore = useMemo(() => buildPlayedBeforeSet(finalMatches), [finalMatches])
   const dutiesById = useMemo(() => getShirtDutiesByPlayerId(finalMatches), [finalMatches])
@@ -193,8 +197,9 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     setIsCreatingDraft(true)
     try {
       const draft: MatchInput = {
-        date: draftDate,
+        ...buildMatchSchedule(draftDate, draftHour),
         type: matchType,
+        location: matchLocation || undefined,
         status: 'draft',
         teamAScore: 0,
         teamBScore: 0,
@@ -322,30 +327,31 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {players
-              .filter(p => {
-                const q = playerQuery.trim().toLowerCase()
-                if (!q) return true
-                return p.name.toLowerCase().includes(q)
+              .filter(player => {
+                if (player.inactive) return false
+                const normalizedQuery = playerQuery.trim().toLowerCase()
+                if (!normalizedQuery) return true
+                return player.name.toLowerCase().includes(normalizedQuery)
               })
-              .map(p => (
-              <div key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
+              .map(player => (
+              <div key={player.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
                 <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
                   <input
                     type="checkbox"
-                    checked={selected.has(p.id)}
-                    onChange={() => toggleSelect(p.id)}
+                    checked={selected.has(player.id)}
+                    onChange={() => toggleSelect(player.id)}
                   />
-                  <span className="font-medium truncate">{p.name}</span>
+                  <span className="font-medium truncate">{player.name}</span>
                 </label>
-                {selected.has(p.id) && (
+                {selected.has(player.id) && (
                   <button
                     type="button"
-                    onClick={() => toggleGoalkeeper(p.id)}
-                    disabled={!goalkeeperIds.has(p.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
-                    aria-pressed={goalkeeperIds.has(p.id)}
-                    title={goalkeeperIds.has(p.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
+                    onClick={() => toggleGoalkeeper(player.id)}
+                    disabled={!goalkeeperIds.has(player.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
+                    aria-pressed={goalkeeperIds.has(player.id)}
+                    title={goalkeeperIds.has(player.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
                     className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                      goalkeeperIds.has(p.id)
+                      goalkeeperIds.has(player.id)
                         ? 'bg-brand text-white border-brand'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                     }`}
@@ -425,27 +431,30 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                 </div>
               </div>
               <div className="flex-1">
-                <select
-                  className="border rounded px-3 py-2 w-full"
-                  value={shirtsResponsibleId ?? ''}
-                  onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
-                >
-                  <option value="">(aleatorio entre elegibles con menos asignaciones)</option>
-                  {(() => {
-                    const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
-                    const played = new Set<string>()
-                    for (const m of finalMatches) {
-                      for (const p of m.teamA) played.add(p.id)
-                      for (const p of m.teamB) played.add(p.id)
-                    }
-                    const eligibleExists = current.some(p => played.has(p.id))
-                    return current.map(p => (
-                      <option key={p.id} value={p.id} disabled={eligibleExists && !played.has(p.id)}>
-                        {p.name} (#{dutiesById.get(p.id) ?? 0}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
-                      </option>
-                    ))
-                  })()}
-                </select>
+                <div className="relative">
+                  <select
+                    className="appearance-none border rounded pl-3 pr-8 py-2 w-full"
+                    value={shirtsResponsibleId ?? ''}
+                    onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
+                  >
+                    <option value="">(aleatorio entre elegibles con menos asignaciones)</option>
+                    {(() => {
+                      const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
+                      const played = new Set<string>()
+                      for (const m of finalMatches) {
+                        for (const p of m.teamA) played.add(p.id)
+                        for (const p of m.teamB) played.add(p.id)
+                      }
+                      const eligibleExists = current.some(p => played.has(p.id))
+                      return current.map(p => (
+                        <option key={p.id} value={p.id} disabled={eligibleExists && !played.has(p.id)}>
+                          {p.name} (#{dutiesById.get(p.id) ?? 0}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
+                        </option>
+                      ))
+                    })()}
+                  </select>
+                  <Chevron select />
+                </div>
               </div>
               <div>
                 <button
@@ -474,9 +483,9 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           </div>
 
           {isAdmin && (
-            <div>
-              <h4 className="font-semibold mb-1">Crear partido</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto_auto] gap-3 sm:items-end">
+            <div className="mt-6 border-t pt-4">
+              <h4 className="font-semibold mb-3">Crear partido</h4>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[auto_auto_minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]">
                 <div>
                   <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
                   <input
@@ -486,6 +495,11 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     onChange={(e) => setDraftDate(e.target.value)}
                     className="h-10 border rounded px-3 w-full"
                   />
+                </div>
+                <HourField id="draft-hour" value={draftHour} onChange={setDraftHour} labelClassName="block text-sm" />
+                <div>
+                  <label className="block text-sm mb-1">Cancha</label>
+                  <AddressPicker value={matchLocation} onChange={setMatchLocation} />
                 </div>
                 <div>
                   <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
@@ -538,7 +552,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   type="button"
                   onClick={createDraft}
                   disabled={isCreatingDraft}
-                  className={`h-10 w-full sm:w-auto px-4 flex items-center justify-center rounded text-white ${
+                  className={`h-10 w-full sm:col-span-2 lg:col-span-1 lg:w-auto px-4 flex items-center justify-center whitespace-nowrap rounded text-white ${
                     isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
                   }`}
                 >
