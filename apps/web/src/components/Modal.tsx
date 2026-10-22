@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Backdrop } from './Backdrop'
 
 type Props = {
   open: boolean
@@ -24,7 +23,15 @@ export default function Modal({ open, onClose, title, children, size = 'default'
   if (!open) return null
 
   return (
-    <Backdrop onClose={onClose} title={title}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+    >
       <div
         className={`bg-white rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto ${
           size === 'large' ? 'max-w-4xl' : 'max-w-lg'
@@ -43,6 +50,6 @@ export default function Modal({ open, onClose, title, children, size = 'default'
         </div>
         <div className="p-4">{children}</div>
       </div>
-    </Backdrop>
+    </div>
   )
 }
