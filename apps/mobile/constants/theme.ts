@@ -5,8 +5,6 @@ const FRIENDLYBRAND = '#0cb000'
 const tintColorLight = '#0a7ea4'
 const tintColorDark = '#fff'
 
-export const GOALKEEPER_COLOR = '#08969b'
-
 export const Colors = {
   light: {
     text: '#11181C',
@@ -37,6 +35,7 @@ export const Colors = {
     warning: '#f59e0b',
 
     secondary: '#f97316',
+    goalkeeper: '#08969b',
     shadow: '#4c1d95',
 
     onAccent: '#ffffff',
@@ -73,6 +72,7 @@ export const Colors = {
     warning: '#fbbf24',
 
     secondary: '#f97316',
+    goalkeeper: '#08969b',
 
     shadow: '#000',
 

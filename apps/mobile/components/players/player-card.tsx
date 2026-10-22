@@ -8,7 +8,6 @@ import { PlayerAvatar } from '@/components/players/player-avatar'
 import { SkillBig } from '@/components/players/skill-big'
 import { StreakBadge } from '@/components/players/streak-badge'
 import { ThemedText } from '@/components/themed-text'
-import { GOALKEEPER_COLOR } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type StreakKind = 'win' | 'loss' | null
@@ -46,7 +45,7 @@ export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeeping
       ]}>
       <LinearGradient
         pointerEvents="none"
-        colors={[isGoalkeepingMode ? GOALKEEPER_COLOR : colors.brand, colors.surface]}
+        colors={[isGoalkeepingMode ? colors.goalkeeper : colors.brand, colors.surface]}
         start={{ x: 1, y: 0 }}
         end={{ x: 0, y: 0 }}
         locations={[0, 0.6]}

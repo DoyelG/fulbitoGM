@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native'
 
 import { SortChip } from '@/components/players/sort-chip'
 import { ThemedText } from '@/components/themed-text'
-import { GOALKEEPER_COLOR } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
@@ -19,13 +18,13 @@ export function SkillFilterRow({ mode, dir, onSelect, playersCount }: Props) {
   return (
     <View style={styles.container}>
       <ThemedText style={[styles.count, { color: colors.muted }]}>{playersCount} jugadores</ThemedText>
-      <View style={styles.SortChipRow}>
+      <View style={styles.sortChipRow}>
         <SortChip
           label="🧤"
           accessibilityLabel="Ordenar por nivel de arquero"
           active={mode === 'goalkeeper'}
           dir={dir}
-          activeColor={GOALKEEPER_COLOR}
+          activeColor={colors.goalkeeper}
           onPress={() => onSelect('goalkeeper')}
         />
         <SortChip
@@ -52,7 +51,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
-  SortChipRow: {
+  sortChipRow: {
     flexDirection: 'row',
     gap: 8,
   },
