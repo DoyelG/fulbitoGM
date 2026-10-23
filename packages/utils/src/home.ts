@@ -23,14 +23,14 @@ export function formatLongMatchDate(date: string, locale = 'es-AR'): string {
   return parseLocalDate(date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
+export function pickLatestFinalMatches(matches: Match[], limit: number): Match[] {
+  return onlyFinalMatches(matches)
+    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))
+    .slice(0, limit)
+}
+
 export function pickLatestFinalMatch(matches: Match[]): Match | null {
-  let latest: Match | null = null
-  for (const m of onlyFinalMatches(matches)) {
-    if (!latest || m.date > latest.date || (m.date === latest.date && m.createdAt > latest.createdAt)) {
-      latest = m
-    }
-  }
-  return latest
+  return pickLatestFinalMatches(matches, 1)[0] ?? null
 }
 
 export function getTeamScorers(team: MatchPlayer[]): MatchPlayer[] {
