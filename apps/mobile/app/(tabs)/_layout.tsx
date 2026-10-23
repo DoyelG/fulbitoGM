@@ -35,6 +35,7 @@ export default function TabLayout() {
         <Tabs.Screen name="home" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="home" size={24} color={color} /> }} />
         <Tabs.Screen name="players" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="group" size={24} color={color} /> }} />
         <Tabs.Screen name="match" options={{ tabBarIcon: ({ color }) => <MaterialIcons name="sports-soccer" size={24} color={color} /> }} />
+        <Tabs.Screen name="notifications" options={{ href: null }} />
       </Tabs>
     </View>
   )
