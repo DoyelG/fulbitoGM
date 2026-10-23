@@ -1,4 +1,5 @@
 import type { Match, Player } from '@fulbito/types'
+import { onlyFinalMatches } from './match'
 import { getMvpCountsByPlayerId } from './mvp'
 import { getShirtDutiesByPlayerId } from './shirtDuty'
 import { calculateAllCurrentStreaks, calculateAllLongestLossStreaks, eventYear, findAllStreakEvents } from './playerStats'
@@ -21,7 +22,8 @@ export type PlayerStatRow = {
   lostFinals: number
 }
 
-export function computePlayerStatRows(players: Player[], matches: Match[]): PlayerStatRow[] {
+export function computePlayerStatRows(players: Player[], allMatches: Match[]): PlayerStatRow[] {
+  const matches = onlyFinalMatches(allMatches)
   const map: Record<string, PlayerStatRow> = {}
   const shirtCountById = getShirtDutiesByPlayerId(matches)
   const mvpCountById = getMvpCountsByPlayerId(matches)
