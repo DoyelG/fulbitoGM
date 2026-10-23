@@ -6,7 +6,7 @@ It reuses `@fulbito/firebase` (client SDK) and `@fulbito/utils` directly — no 
 
 ## Setup
 
-Requires Node 20.12+.
+Requires Node 22.23.4+.
 
 ```bash
 cp apps/mcp/.env.example apps/mcp/.env
