@@ -272,9 +272,9 @@ export default function PlayerForm({ mode, playerId }: Props) {
           type="file"
           accept="image/*"
           onChange={(event) => {
-            const f = event.target.files?.[0] || null
-            setPhotoFile(f)
-            setPhotoPreview(f ? URL.createObjectURL(f) : photoPreview)
+            const file = event.target.files?.[0] || null
+            setPhotoFile(file)
+            setPhotoPreview(file ? URL.createObjectURL(file) : photoPreview)
           }}
           className="hidden"
         />

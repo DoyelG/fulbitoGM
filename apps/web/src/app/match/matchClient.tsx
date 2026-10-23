@@ -75,53 +75,53 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
     return players
-      .filter(p => ids.has(p.id))
-      .map(p => ({
-        id: p.id,
-        name: p.name,
-        skill: goalkeeperIds.has(p.id)
-          ? getGoalkeeping(p)
-          : ((p.skill ?? 'unknown') as number | 'unknown'),
-        position: p.position,
-        physical: (p.skills?.physical ?? 'unknown') as number | 'unknown'
+      .filter(player => ids.has(player.id))
+      .map(player => ({
+        id: player.id,
+        name: player.name,
+        skill: goalkeeperIds.has(player.id)
+          ? getGoalkeeping(player)
+          : ((player.skill ?? 'unknown') as number | 'unknown'),
+        position: player.position,
+        physical: (player.skills?.physical ?? 'unknown') as number | 'unknown'
       }))
   }, [players, selected, goalkeeperIds])
 
   const unassignedManual = useMemo(() => {
-    const ids = new Set([...manualA, ...manualB].map(p => p.id))
-    return selectedPlayers.filter(p => !ids.has(p.id))
+    const ids = new Set([...manualA, ...manualB].map(player => player.id))
+    return selectedPlayers.filter(player => !ids.has(player.id))
   }, [selectedPlayers, manualA, manualB])
 
   const toggleSelect = (id: string) => {
     const wasSelected = selected.has(id)
     setSelected(prev => {
-      const s = new Set(prev)
-      if (s.has(id)) s.delete(id)
-      else s.add(id)
-      return s
+      const nextSelected = new Set(prev)
+      if (nextSelected.has(id)) nextSelected.delete(id)
+      else nextSelected.add(id)
+      return nextSelected
     })
     if (wasSelected) {
       setGoalkeeperIds(prev => {
         if (!prev.has(id)) return prev
-        const s = new Set(prev)
-        s.delete(id)
-        return s
+        const nextGoalkeeperIds = new Set(prev)
+        nextGoalkeeperIds.delete(id)
+        return nextGoalkeeperIds
       })
-      setManualA(prev => prev.filter(p => p.id !== id))
-      setManualB(prev => prev.filter(p => p.id !== id))
+      setManualA(prev => prev.filter(player => player.id !== id))
+      setManualB(prev => prev.filter(player => player.id !== id))
     }
   }
 
   const toggleGoalkeeper = (id: string) => {
     setGoalkeeperIds(prev => {
-      const s = new Set(prev)
-      if (s.has(id)) {
-        s.delete(id)
+      const nextGoalkeeperIds = new Set(prev)
+      if (nextGoalkeeperIds.has(id)) {
+        nextGoalkeeperIds.delete(id)
       } else {
-        if (s.size >= MAX_GOALKEEPERS) return prev
-        s.add(id)
+        if (nextGoalkeeperIds.size >= MAX_GOALKEEPERS) return prev
+        nextGoalkeeperIds.add(id)
       }
-      return s
+      return nextGoalkeeperIds
     })
   }
 
@@ -145,7 +145,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       openSelection()
       return
     }
-    setSelectionOpen(o => !o)
+    setSelectionOpen(isOpen => !isOpen)
   }
 
   const buildTeams = (
@@ -163,7 +163,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     if (seedA.length === 0 && seedB.length === 0) {
       return { teams: balanceTeams(pool, playersPerTeam), hadStreak: false }
     }
-    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map(p => p.id))
+    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map(player => player.id))
     const hotStreakIds = getHotStreakIds(pool, streaks)
     return {
       teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam, { hardLockedIds, goalkeeperIds, hotStreakIds }),
@@ -183,10 +183,10 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     const { teams, hadStreak } = buildTeams(shuffled, streaks, manualA, manualB)
     setAutoTeams(teams)
     setStreakSeparated(hadStreak)
-    const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(p => p.id)
+    const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(player => player.id)
     const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
     const { poolIds } = computeLeastAssignedPoolIds(consideredIds, dutiesById)
-    const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(p => poolIds.includes(p.id))
+    const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(player => poolIds.includes(player.id))
     setDutyPool(poolObjs)
     setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
     setManualOpen(false)
@@ -205,15 +205,15 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         status: 'draft',
         teamAScore: 0,
         teamBScore: 0,
-        teamA: autoTeams.teamA.players.map((p) => ({
-          id: p.id,
-          name: p.name,
+        teamA: autoTeams.teamA.players.map((player) => ({
+          id: player.id,
+          name: player.name,
           goals: 0,
           performance: 0,
         })),
-        teamB: autoTeams.teamB.players.map((p) => ({
-          id: p.id,
-          name: p.name,
+        teamB: autoTeams.teamB.players.map((player) => ({
+          id: player.id,
+          name: player.name,
           goals: 0,
           performance: 0,
         })),
@@ -234,8 +234,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }
 
   const moveManual = (player: PlayerInfo, target: 'unassigned' | 'a' | 'b') => {
-    setManualA(prev => prev.filter(p => p.id !== player.id))
-    setManualB(prev => prev.filter(p => p.id !== player.id))
+    setManualA(prev => prev.filter(assignedPlayer => assignedPlayer.id !== player.id))
+    setManualB(prev => prev.filter(assignedPlayer => assignedPlayer.id !== player.id))
     if (target === 'a') {
       setManualA(prev => (prev.length >= playersPerTeam ? prev : [...prev, player]))
     } else if (target === 'b') {
@@ -243,15 +243,15 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     }
   }
 
-  const onDrop = (e: React.DragEvent<HTMLDivElement>, target: 'unassigned' | 'a' | 'b') => {
-    const json = e.dataTransfer.getData('application/json')
+  const onDrop = (event: React.DragEvent<HTMLDivElement>, target: 'unassigned' | 'a' | 'b') => {
+    const json = event.dataTransfer.getData('application/json')
     if (!json) return
-    const p: PlayerInfo = JSON.parse(json)
-    moveManual(p, target)
+    const droppedPlayer: PlayerInfo = JSON.parse(json)
+    moveManual(droppedPlayer, target)
   }
 
-  const Draggable = ({ p }: { p: PlayerInfo}) => (
-    <DraggableItem data={p} label={p.name} isGoalkeeper={goalkeeperIds.has(p.id)}/>
+  const Draggable = ({ player }: { player: PlayerInfo }) => (
+    <DraggableItem data={player} label={player.name} isGoalkeeper={goalkeeperIds.has(player.id)}/>
   )
 
   const totalSkillA = autoTeams?.teamA.totalSkill ?? 0
@@ -269,10 +269,10 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           <label className="font-medium">Modo de partido</label>
           <select
             value={matchType}
-            onChange={e => setMatchType(e.target.value as MatchType)}
+            onChange={event => setMatchType(event.target.value as MatchType)}
             className="h-10 border rounded px-4 text-center appearance-none cursor-pointer"
           >
-            {MATCH_TYPES.map(m => <option key={m} value={m}>{m}</option>)}
+            {MATCH_TYPES.map(matchTypeOption => <option key={matchTypeOption} value={matchTypeOption}>{matchTypeOption}</option>)}
           </select>
           <Button className="ml-auto" onClick={toggleSelectionPanel}>
             {selected.size === 0 ? 'Seleccionar jugadores' : (selectionOpen ? 'Ocultar selección' : 'Modificar selección')}
@@ -319,7 +319,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             <input
               type="text"
               value={playerQuery}
-              onChange={e => setPlayerQuery(e.target.value)}
+              onChange={event => setPlayerQuery(event.target.value)}
               className="border rounded px-3 py-2 w-full"
               placeholder="Buscar jugadores por nombre..."
             />
@@ -384,13 +384,13 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <DropColumn title={`Jugadores disponibles · ${unassignedManual.length}`} onDrop={event => onDrop(event, 'unassigned')}>
-              {unassignedManual.map(p => <Draggable key={p.id} p={p} />)}
+              {unassignedManual.map(player => <Draggable key={player.id} player={player} />)}
             </DropColumn>
             <DropColumn title={`Equipo A (${manualA.length}/${playersPerTeam})`} onDrop={event => onDrop(event, 'a')}>
-              {manualA.map(p => <Draggable key={p.id} p={p} />)}
+              {manualA.map(player => <Draggable key={player.id} player={player} />)}
             </DropColumn>
             <DropColumn title={`Equipo B (${manualB.length}/${playersPerTeam})`} onDrop={event => onDrop(event, 'b')}>
-              {manualB.map(p => <Draggable key={p.id} p={p} />)}
+              {manualB.map(player => <Draggable key={player.id} player={player} />)}
             </DropColumn>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
@@ -434,9 +434,9 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                 <div className="font-semibold">Encargado de camisetas</div>
                 <div className="text-black">
                   {shirtsResponsibleId
-                    ? (players.find(p => p.id === shirtsResponsibleId)?.name ?? '—')
+                    ? (players.find(player => player.id === shirtsResponsibleId)?.name ?? '—')
                     : (dutyPool.length
-                      ? `${players.find(p => p.id === dutyPool[0].id)?.name ?? '—'} (entre ${dutyPool.length} con menos asignaciones)`
+                      ? `${players.find(player => player.id === dutyPool[0].id)?.name ?? '—'} (entre ${dutyPool.length} con menos asignaciones)`
                       : 'Seleccione jugadores y genere equipos')}
                 </div>
               </div>
@@ -445,20 +445,20 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   <select
                     className="appearance-none border rounded pl-3 pr-8 py-2 w-full"
                     value={shirtsResponsibleId ?? ''}
-                    onChange={(e) => setShirtsResponsibleId(e.target.value || null)}
+                    onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
                   >
                     <option value="">(aleatorio entre elegibles con menos asignaciones)</option>
                     {(() => {
                       const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
                       const played = new Set<string>()
-                      for (const m of finalMatches) {
-                        for (const p of m.teamA) played.add(p.id)
-                        for (const p of m.teamB) played.add(p.id)
+                      for (const match of finalMatches) {
+                        for (const player of match.teamA) played.add(player.id)
+                        for (const player of match.teamB) played.add(player.id)
                       }
-                      const eligibleExists = current.some(p => played.has(p.id))
-                      return current.map(p => (
-                        <option key={p.id} value={p.id} disabled={eligibleExists && !played.has(p.id)}>
-                          {p.name} (#{dutiesById.get(p.id) ?? 0}){eligibleExists && !played.has(p.id) ? ' — nuevo' : ''}
+                      const eligibleExists = current.some(player => played.has(player.id))
+                      return current.map(player => (
+                        <option key={player.id} value={player.id} disabled={eligibleExists && !played.has(player.id)}>
+                          {player.name} (#{dutiesById.get(player.id) ?? 0}){eligibleExists && !played.has(player.id) ? ' — nuevo' : ''}
                         </option>
                       ))
                     })()}
@@ -485,7 +485,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               <textarea
                 id="match-description"
                 value={matchDescription}
-                onChange={(e) => setMatchDescription(e.target.value)}
+                onChange={(event) => setMatchDescription(event.target.value)}
                 placeholder="Escribí la crónica del partido"
                 className="border rounded px-3 py-2 w-full"
               />
@@ -502,7 +502,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     id="draft-date"
                     type="date"
                     value={draftDate}
-                    onChange={(e) => setDraftDate(e.target.value)}
+                    onChange={(event) => setDraftDate(event.target.value)}
                     className="h-10 border rounded px-3 w-full"
                   />
                 </div>
@@ -517,7 +517,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     id="draft-name"
                     type="text"
                     value={draftName}
-                    onChange={(e) => setDraftName(e.target.value)}
+                    onChange={(event) => setDraftName(event.target.value)}
                     placeholder="Ej: Partido del miércoles"
                     className="h-10 border rounded px-3 w-full"
                   />
@@ -530,7 +530,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     role="switch"
                     aria-checked={isFriendly}
                     aria-label="Partido amistoso"
-                    onClick={() => setIsFriendly((v) => !v)}
+                    onClick={() => setIsFriendly((wasFriendly) => !wasFriendly)}
                     className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
                       isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
                     }`}
@@ -582,10 +582,10 @@ function TeamCard({ title, team, color, winProbability, goalkeeperIds }: { title
     <div className="border rounded-lg p-4">
       <h3 className={`text-center font-semibold mb-3 ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>{title}</h3>
       <div className="grid gap-2 mb-3">
-        {team.players.map((p: PlayerInfo) => (
-          <div key={p.id} className="bg-gray-50 rounded px-3 py-2 text-center">
-            <strong>{p.name}</strong>
-            {goalkeeperIds?.has(p.id) && <span className="ml-2" title="Arquero">🧤</span>}
+        {team.players.map((player: PlayerInfo) => (
+          <div key={player.id} className="bg-gray-50 rounded px-3 py-2 text-center">
+            <strong>{player.name}</strong>
+            {goalkeeperIds?.has(player.id) && <span className="ml-2" title="Arquero">🧤</span>}
           </div>
         ))}
       </div>

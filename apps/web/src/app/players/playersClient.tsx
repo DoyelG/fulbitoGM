@@ -113,7 +113,7 @@ export default function PlayersClient({
         <input
           type="text"
           value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          onChange={(event) => setGlobalFilter(event.target.value)}
           placeholder="Buscar por nombre..."
           aria-label="Buscar jugador por nombre"
           className="w-full sm:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"

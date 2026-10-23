@@ -14,8 +14,8 @@ export default function LoginPage() {
   const router = useRouter()
   const { signIn, register, signInWithGoogle } = useFirebaseAuth()
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     setError(null)
     setLoading(true)
     try {
@@ -55,7 +55,7 @@ export default function LoginPage() {
             <input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={event => setEmail(event.target.value)}
               className="w-full border rounded px-3 py-2"
               autoComplete="email"
               required
@@ -66,7 +66,7 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={event => setPassword(event.target.value)}
               className="w-full border rounded px-3 py-2"
               autoComplete="current-password"
               required

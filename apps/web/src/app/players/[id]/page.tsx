@@ -31,9 +31,9 @@ export default function PlayerDetailPage() {
   const fileRef = useRef<HTMLInputElement | null>(null)
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     if (!isAdmin) return
-    const f = event.target.files?.[0]
-    if (!f) return
-    setForm(prev => ({ ...prev, photo: f, photoUrl: URL.createObjectURL(f) }))
+    const file = event.target.files?.[0]
+    if (!file) return
+    setForm(prev => ({ ...prev, photo: file, photoUrl: URL.createObjectURL(file) }))
   }
   const deletePhoto = () => {
     setForm(prev => ({ ...prev, photo: null, photoUrl: null }))
@@ -127,13 +127,13 @@ export default function PlayerDetailPage() {
       const inB = match.teamB.find((playerRow) => playerRow.id === id);
       if (!inA && !inB) continue;
 
-      const me = inA || inB;
+      const playerInMatch = inA || inB;
       const team = inA ? ("A" as const) : ("B" as const);
       const teamAScore = match.teamAScore,
         teamBScore = match.teamBScore;
       res.matches++;
-      res.goals += me!.goals;
-      res.totalPerformance += me!.performance;
+      res.goals += playerInMatch!.goals;
+      res.totalPerformance += playerInMatch!.performance;
       if (team === "A") {
         if (teamAScore > teamBScore) res.wins++;
         else if (teamAScore < teamBScore) res.losses++;
@@ -147,8 +147,8 @@ export default function PlayerDetailPage() {
         date: match.date,
         type: match.type,
         team,
-        goals: me!.goals,
-        performance: me!.performance,
+        goals: playerInMatch!.goals,
+        performance: playerInMatch!.performance,
         score: `${teamAScore} - ${teamBScore}`,
         result: (team === "A"
           ? teamAScore > teamBScore

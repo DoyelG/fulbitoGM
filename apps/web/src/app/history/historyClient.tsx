@@ -83,7 +83,7 @@ export default function HistoryClient() {
   }, [videoClipsInit, initVideoClipsLoad]);
 
   const viewClips = useMemo(
-    () => (viewClipsMatch ? videoClips.filter((c) => c.matchId === viewClipsMatch.id) : []),
+    () => (viewClipsMatch ? videoClips.filter((clip) => clip.matchId === viewClipsMatch.id) : []),
     [videoClips, viewClipsMatch],
   );
   const viewMatchById = useMemo(
@@ -91,7 +91,7 @@ export default function HistoryClient() {
     [viewClipsMatch],
   );
   const viewPlaybackClip = viewPlaybackClipId
-    ? (viewClips.find((c) => c.id === viewPlaybackClipId) ?? null)
+    ? (viewClips.find((clip) => clip.id === viewPlaybackClipId) ?? null)
     : null;
 
   const handleViewDelete = async (clipId: string) => {
@@ -682,7 +682,7 @@ function RecordModal({
   const toggleGoalkeeper = (id: string) =>
     setGoalkeeperIds((prev) =>
       prev.includes(id)
-        ? prev.filter((x) => x !== id)
+        ? prev.filter((goalkeeperId) => goalkeeperId !== id)
         : prev.length >= MAX_GOALKEEPERS
           ? prev
           : [...prev, id],
@@ -1130,8 +1130,8 @@ function RecordModal({
                   </option>
                   {(() => {
                     const current = [...teamA, ...teamB];
-                    const eligibleExists = current.some((pp) =>
-                      playedBefore.has(pp.id),
+                    const eligibleExists = current.some((player) =>
+                      playedBefore.has(player.id),
                     );
                     return current.map((player) => (
                       <option

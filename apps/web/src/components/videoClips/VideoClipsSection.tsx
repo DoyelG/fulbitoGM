@@ -16,11 +16,11 @@ type Props = {
 }
 
 export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
-  const videoClips = useVideoClipStore(s => s.videoClips)
-  const videoClipsInit = useVideoClipStore(s => s.videoClipsInit)
-  const initLoad = useVideoClipStore(s => s.initLoad)
-  const addVideoClip = useVideoClipStore(s => s.addVideoClip)
-  const deleteVideoClip = useVideoClipStore(s => s.deleteVideoClip)
+  const videoClips = useVideoClipStore(state => state.videoClips)
+  const videoClipsInit = useVideoClipStore(state => state.videoClipsInit)
+  const initLoad = useVideoClipStore(state => state.initLoad)
+  const addVideoClip = useVideoClipStore(state => state.addVideoClip)
+  const deleteVideoClip = useVideoClipStore(state => state.deleteVideoClip)
 
   const [filter, setFilter] = useState<VideoClipCategory | 'all'>('all')
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -33,15 +33,15 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
   }, [videoClipsInit, initLoad])
 
   const playerClips = useMemo(
-    () => videoClips.filter(c => c.playerIds.includes(player.id)),
+    () => videoClips.filter(clip => clip.playerIds.includes(player.id)),
     [videoClips, player.id],
   )
   const filteredClips = useMemo(
-    () => (filter === 'all' ? playerClips : playerClips.filter(c => c.category === filter)),
+    () => (filter === 'all' ? playerClips : playerClips.filter(clip => clip.category === filter)),
     [playerClips, filter],
   )
-  const matchById = useMemo(() => new Map(matches.map(m => [m.id, m])), [matches])
-  const playbackClip = playbackClipId ? (playerClips.find(c => c.id === playbackClipId) ?? null) : null
+  const matchById = useMemo(() => new Map(matches.map(match => [match.id, match])), [matches])
+  const playbackClip = playbackClipId ? (playerClips.find(clip => clip.id === playbackClipId) ?? null) : null
 
   const handleUpload = async (data: NewVideoClipData, file: File) => {
     setUploadError(null)
@@ -109,18 +109,18 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
           >
             Todos
           </button>
-          {VIDEO_CLIP_CATEGORIES.map(c => (
+          {VIDEO_CLIP_CATEGORIES.map(clipCategory => (
             <button
-              key={c.value}
+              key={clipCategory.value}
               type="button"
               role="tab"
-              aria-selected={filter === c.value}
-              onClick={() => setFilter(c.value)}
+              aria-selected={filter === clipCategory.value}
+              onClick={() => setFilter(clipCategory.value)}
               className={`px-3 py-1 rounded text-sm border ${
-                filter === c.value ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
+                filter === clipCategory.value ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
               }`}
             >
-              {c.icon} {c.label}
+              {clipCategory.icon} {clipCategory.label}
             </button>
           ))}
         </div>

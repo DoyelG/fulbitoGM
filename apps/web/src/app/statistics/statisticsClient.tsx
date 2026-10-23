@@ -100,14 +100,14 @@ export default function StatisticsClient({
     }
     const dir = sortDir === 'asc' ? 1 : -1
     return [...stats].sort((a, b) => {
-      const av = getValue(a, sortKey)
-      const bv = getValue(b, sortKey)
-      if (typeof av === 'string' && typeof bv === 'string') return av.localeCompare(bv) * dir
-      const an = Number(av)
-      const bn = Number(bv)
-      if (Number.isNaN(an) || Number.isNaN(bn)) return 0
-      if (an === bn) return 0
-      return an > bn ? dir : -dir
+      const aValue = getValue(a, sortKey)
+      const bValue = getValue(b, sortKey)
+      if (typeof aValue === 'string' && typeof bValue === 'string') return aValue.localeCompare(bValue) * dir
+      const aNumber = Number(aValue)
+      const bNumber = Number(bValue)
+      if (Number.isNaN(aNumber) || Number.isNaN(bNumber)) return 0
+      if (aNumber === bNumber) return 0
+      return aNumber > bNumber ? dir : -dir
     })
   }, [stats, sortKey, sortDir])
 
