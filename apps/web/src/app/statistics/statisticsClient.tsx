@@ -2,9 +2,8 @@
 
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
-import { getMvpCountsByPlayerId, onlyFinalMatches } from '@fulbito/utils'
+import { computePlayerStatRows } from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
-import { getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import StatisticsTable, { type StatRow, type StatSortKey, type SortDir } from './StatisticsTable'
 
@@ -32,50 +31,7 @@ export default function StatisticsClient({
     resetPlayers()
   }, [hydrateMatches, propsMatches, hydratePlayers, propsPlayers, resetMatches, resetPlayers])
 
-  const stats = useMemo<StatRow[]>(() => {
-    const map: Record<string, StatRow> = {}
-    const finalMatches = onlyFinalMatches(matches)
-    const shirtCountById = getShirtDutiesByPlayerId(finalMatches)
-    const mvpCountById = getMvpCountsByPlayerId(finalMatches)
-    for (const match of finalMatches) {
-      const processPlayer =
-        (team: 'A' | 'B') => (player: { id: string; name: string; goals: number; performance: number }) => {
-          if (!map[player.id])
-            map[player.id] = {
-              id: player.id,
-              name: player.name,
-              matches: 0,
-              goals: 0,
-              totalPerformance: 0,
-              wins: 0,
-              losses: 0,
-              draws: 0,
-              shirts: shirtCountById.get(player.id) ?? 0,
-              mvps: mvpCountById.get(player.id) ?? 0,
-            }
-          map[player.id].matches++
-          map[player.id].goals += player.goals
-          map[player.id].totalPerformance += player.performance
-          const teamAScore = match.teamAScore
-          const teamBScore = match.teamBScore
-          if (team === 'A') {
-            if (teamAScore > teamBScore) map[player.id].wins++
-            else if (teamAScore < teamBScore) map[player.id].losses++
-            else map[player.id].draws++
-          } else {
-            if (teamBScore > teamAScore) map[player.id].wins++
-            else if (teamBScore < teamAScore) map[player.id].losses++
-            else map[player.id].draws++
-          }
-        }
-      match.teamA.forEach(processPlayer('A'))
-      match.teamB.forEach(processPlayer('B'))
-    }
-    Object.values(map).forEach((stat) => {
-      stat.totalPerformance = stat.matches === 0 ? 0 : stat.totalPerformance / stat.matches
-    })
-    return Object.values(map)
-  }, [matches])
+  const stats = useMemo<StatRow[]>(() => computePlayerStatRows(storePlayers, matches), [storePlayers, matches])
 
   const [sortKey, setSortKey] = useState<StatSortKey>('goals')
   const [sortDir, setSortDir] = useState<SortDir>('desc')

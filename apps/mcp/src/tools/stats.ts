@@ -1,7 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { computePlayerStats, getMatches, getPlayers } from '@fulbito/firebase'
+import { getMatches, getPlayers } from '@fulbito/firebase'
 import type { Match } from '@fulbito/types'
-import { calculateAllCurrentStreaks, getShirtDutiesByPlayerId, onlyFinalMatches } from '@fulbito/utils'
+import {
+  calculateAllCurrentStreaks,
+  computePlayerStatRows,
+  getShirtDutiesByPlayerId,
+  onlyFinalMatches,
+} from '@fulbito/utils'
 import { withFirebase } from '../firebase'
 import { jsonResult } from '../tool-result'
 
@@ -26,7 +31,21 @@ export function registerStatsTools(server: McpServer): void {
     },
     withFirebase(async () => {
       const [players, matches] = await Promise.all([getPlayers(), getMatches()])
-      return jsonResult(computePlayerStats(players, onlyFinalMatches(matches)))
+      const currentNames = new Map(players.map((player) => [player.id, player.name]))
+      return jsonResult(
+        computePlayerStatRows(players, matches)
+          .map((row) => ({
+            playerId: row.id,
+            name: currentNames.get(row.id) ?? row.name,
+            matches: row.matches,
+            goals: row.goals,
+            avgPerformance: row.totalPerformance,
+            wins: row.wins,
+            losses: row.losses,
+            draws: row.draws,
+          }))
+          .sort((a, b) => b.matches - a.matches),
+      )
     }),
   )
 
