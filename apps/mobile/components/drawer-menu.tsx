@@ -1,6 +1,7 @@
 import { styles } from '@/components/drawer-menu.styles'
 import { UserAvatar } from '@/components/user-avatar'
 import { Ionicons } from '@expo/vector-icons'
+import * as Application from 'expo-application'
 import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import Animated, { interpolate, useAnimatedStyle, type SharedValue } from 'react-native-reanimated'
@@ -42,7 +43,7 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDelete
           </View>
         </View>
 
-        <>
+        <View style={styles.optionsContainer}>
           <View style={styles.divider} />
           {user.role === 'USER' && (
             <Pressable onPress={() => {}} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
@@ -65,7 +66,12 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDelete
             </View>
             <Text style={styles.itemLabel}>Eliminar Usuario</Text>
           </Pressable>
-        </>
+          <View style={styles.appVersionInfo}>
+            <Text style={styles.appVersionText}>
+              v{Application.nativeApplicationVersion} ({Application.nativeBuildVersion})
+            </Text>
+          </View>
+        </View>
       </Animated.View>
     </View>
   )

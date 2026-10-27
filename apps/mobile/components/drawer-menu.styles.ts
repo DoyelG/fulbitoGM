@@ -133,4 +133,18 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 1.5,
   },
+  optionsContainer: {
+    flex: 1,
+  },
+  appVersionInfo: {
+    paddingHorizontal: 24,
+    gap: 6,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
+  },
+  appVersionText: {
+    fontSize: 10,
+    color: '#94A3B8',
+  },
 })
