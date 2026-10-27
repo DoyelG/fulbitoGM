@@ -1,4 +1,5 @@
 import { styles } from '@/components/drawer-menu.styles'
+import NotificationBadge from '@/components/ui/notification-badge/notification-badge'
 import { UserAvatar } from '@/components/user-avatar'
 import { Ionicons } from '@expo/vector-icons'
 import * as Application from 'expo-application'
@@ -19,11 +20,24 @@ interface DrawerMenuProps {
   onClose: () => void;
   progress: SharedValue<number>;
   user: User;
+  pendingCount: number;
+  onOpenProfile: () => void;
+  onOpenNotifications: () => void;
   onLogout: () => void;
   onDeleteUser: () => void;
 }
 
-export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDeleteUser }: DrawerMenuProps) {
+export function DrawerMenu({
+  isOpen,
+  onClose,
+  progress,
+  user,
+  pendingCount,
+  onOpenProfile,
+  onOpenNotifications,
+  onLogout,
+  onDeleteUser,
+}: DrawerMenuProps) {
   const insets = useSafeAreaInsets()
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -55,19 +69,41 @@ export function DrawerMenu({ isOpen, onClose, progress, user, onLogout, onDelete
 
         <View style={styles.optionsContainer}>
           <View style={styles.divider} />
-          {!user.role.includes('ADMIN') && (
-            <Pressable onPress={() => { }} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
-              <View style={styles.iconWrapper}>
-                <Ionicons name="shield-outline" size={20} color="#A78BFA" />
-              </View>
-              <Text style={styles.itemLabel}>Solicitar acceso administrador</Text>
-            </Pressable>
-          )}
-          <Pressable onPress={onLogout} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
+          <Pressable
+            onPress={onOpenProfile}
+            accessibilityRole="button"
+            accessibilityLabel="Ver perfil"
+            style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+          >
             <View style={styles.iconWrapper}>
-              <Ionicons name="log-out-outline" size={20} color="#A78BFA" />
+              <Ionicons name="person-outline" size={20} color="#A78BFA" />
             </View>
-            <Text style={styles.itemLabel}>Cerrar sesión</Text>
+            <Text style={styles.itemLabel}>Ver perfil</Text>
+          </Pressable>
+          <Pressable
+            onPress={onOpenNotifications}
+            accessibilityRole="button"
+            accessibilityLabel="Notificaciones"
+            style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+          >
+            <View style={styles.iconWrapper}>
+              <Ionicons name="notifications-outline" size={20} color="#A78BFA" />
+            </View>
+            <Text style={styles.itemLabel}>Notificaciones</Text>
+            <View style={styles.itemBadge}>
+              <NotificationBadge count={pendingCount} />
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={onLogout}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar sesión"
+            style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+          >
+            <View style={[styles.iconWrapper, styles.dangerIconWrapper]}>
+              <Ionicons name="log-out-outline" size={20} color="#F87171" />
+            </View>
+            <Text style={[styles.itemLabel, styles.dangerLabel]}>Cerrar sesión</Text>
           </Pressable>
 
           <Pressable onPress={onDeleteUser} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>

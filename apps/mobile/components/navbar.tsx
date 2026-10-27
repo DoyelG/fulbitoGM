@@ -1,12 +1,15 @@
 import { DrawerMenu } from '@/components/drawer-menu'
 import { styles } from '@/components/navbar.styles'
+import NotificationBadge from '@/components/ui/notification-badge/notification-badge'
 import { UserAvatar } from '@/components/user-avatar'
 import type { User } from '@/constants/auth'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useLinkedPlayer } from '@/hooks/use-linked-player'
+import { usePendingNotifications } from '@/hooks/use-pending-notifications'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import React, { useCallback, useMemo, useState } from 'react'
-import { Alert, Pressable, Text } from 'react-native'
+import { Alert, Pressable, Text, View } from 'react-native'
 import { Easing, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -17,15 +20,19 @@ const GRADIENT = ['#7C3AED', '#F97316'] as const
 export function Navbar() {
   const { user: authUser, signOut, deleteUser } = useFirebaseAuth()
 
+  const linkedPlayer = useLinkedPlayer(authUser?.linkedPlayerId)
+  const { notifications } = usePendingNotifications()
+  const pendingCount = notifications.length
+
   const user = useMemo<User | null>(() => {
     if (!authUser) return null
     return {
-      name: authUser.email.split('@')[0],
+      name: linkedPlayer?.name ?? authUser.email.split('@')[0],
       email: authUser.email,
       role: authUser.role,
-      image: null,
+      image: linkedPlayer?.photoUrl ?? null,
     }
-  }, [authUser])
+  }, [authUser, linkedPlayer])
 
   const onLogout = useCallback(async () => {
     await signOut()
@@ -75,6 +82,14 @@ export function Navbar() {
     progress.value = withTiming(0, CLOSE)
   }, [progress])
 
+  const goTo = useCallback(
+    (path: '/profile' | '/notifications') => {
+      close()
+      router.push(path)
+    },
+    [close],
+  )
+
   return (
     <>
       <LinearGradient
@@ -86,8 +101,19 @@ export function Navbar() {
         <Text style={styles.logo}>FULBITOAPP</Text>
 
         {user ? (
-          <Pressable onPress={toggle} hitSlop={12}>
+          <Pressable
+            onPress={toggle}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir menú de usuario"
+            accessibilityState={{ expanded: isOpen }}
+          >
             <UserAvatar imageUrl={user.image} size={34} ringColor="rgba(255,255,255,0.5)" />
+            {pendingCount > 0 && (
+              <View style={styles.badge}>
+                <NotificationBadge count={pendingCount} pulse />
+              </View>
+            )}
           </Pressable>
         ) : (
           <Pressable onPress={() => router.push('/login')} style={styles.enterBtn}>
@@ -102,6 +128,9 @@ export function Navbar() {
           onClose={close}
           progress={progress}
           user={user}
+          pendingCount={pendingCount}
+          onOpenProfile={() => goTo('/profile')}
+          onOpenNotifications={() => goTo('/notifications')}
           onLogout={onLogout}
           onDeleteUser={onDeleteUser}
         />
