@@ -59,7 +59,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow create: if isSignedIn()
         && request.auth.uid == userId
-        && request.resource.data.role == ['USER']
+        && (request.resource.data.role == ['USER'] || request.resource.data.role == 'USER')
         && !('linkedPlayerId' in request.resource.data);
       allow update: if isSignedIn() && (
         isAdmin()
