@@ -1,13 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi'
+import { FiAlertTriangle, FiCamera, FiCheckCircle, FiFilm, FiLink, FiUser } from 'react-icons/fi'
 import { cancelRoleRequest, createRoleRequest, RoleRequestError, type AppUser } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import Button from './Button'
+import LinkPlayerHero from './LinkPlayerHero'
+import LinkPlayerStepDots from './LinkPlayerStepDots'
 import PlayerSelector from './PlayerSelector'
 
 export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'revert'
+
+const benefits = [
+  { icon: FiUser, text: 'Tener tu propio perfil de jugador' },
+  { icon: FiFilm, text: 'Subir y borrar tus propios clips' },
+  { icon: FiCamera, text: 'Cambiar tu foto, tu nombre y tu posición' },
+]
 
 export const linkPlayerStepTitles: Record<LinkPlayerStep, string> = {
   question: '¿Sos jugador también?',
@@ -95,13 +103,28 @@ export default function LinkPlayerFlow({
   if (step === 'question') {
     return (
       <div>
-        <p className="text-gray-800">Si jugás en los partidos, podés vincular tu usuario con tu jugador.</p>
+        <LinkPlayerStepDots current={1} total={3} />
+        <LinkPlayerHero
+          icon={FiLink}
+          title="¿Sos jugador también?"
+          description="Si jugás en los partidos, vinculá tu usuario con tu jugador."
+        />
+        <ul className="mt-6 space-y-2">
+          {benefits.map(({ icon: Icon, text }) => (
+            <li key={text} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-900">
+              <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+                <Icon />
+              </span>
+              {text}
+            </li>
+          ))}
+        </ul>
         <div className="mt-6 flex justify-center gap-3">
           <Button type="button" variant="secondary" block onClick={onAnswerNo}>
-            No
+            Ahora no
           </Button>
           <Button type="button" block onClick={() => goToStep('select')}>
-            Sí
+            Sí, soy jugador
           </Button>
         </div>
       </div>
@@ -112,6 +135,7 @@ export default function LinkPlayerFlow({
     const [selectedPlayerId] = selectedIds
     return (
       <div>
+        <LinkPlayerStepDots current={2} total={3} />
         <PlayerSelector
           players={players}
           selectedIds={selectedIds}
@@ -151,6 +175,7 @@ export default function LinkPlayerFlow({
     const trimmedName = newPlayerName.trim()
     return (
       <div>
+        <LinkPlayerStepDots current={2} total={3} />
         <label htmlFor="new-player-name" className="mb-2 block font-medium">
           Escribí el nombre que querés tener
         </label>
@@ -181,13 +206,13 @@ export default function LinkPlayerFlow({
 
   if (step === 'revert') {
     return (
-      <div className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-          <FiAlertTriangle className="text-red-600" size={36} aria-hidden />
-        </div>
-        <p className="text-lg text-gray-900">
-          ¿Seguro que querés revertir la solicitud? Se va a cancelar y el administrador ya no la va a ver.
-        </p>
+      <div>
+        <LinkPlayerHero
+          icon={FiAlertTriangle}
+          tone="danger"
+          title="¿Revertir la solicitud?"
+          description="Se va a cancelar y el administrador ya no la va a ver."
+        />
         {errorAlert}
         <div className="mt-6 flex justify-center gap-3">
           <Button type="button" variant="secondary" block onClick={() => goToStep('sent')}>
@@ -202,11 +227,14 @@ export default function LinkPlayerFlow({
   }
 
   return (
-    <div className="text-center">
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-        <FiCheckCircle className="text-green-600" size={36} aria-hidden />
-      </div>
-      <p className="text-lg text-gray-900">Solicitud enviada. Un administrador la va a revisar.</p>
+    <div>
+      <LinkPlayerStepDots current={3} total={3} />
+      <LinkPlayerHero
+        icon={FiCheckCircle}
+        tone="success"
+        title="Solicitud enviada"
+        description="Un administrador la va a revisar. Cuando la acepte, volvé a iniciar sesión para ver el cambio."
+      />
       <div className="mt-6 flex justify-center gap-3">
         <Button type="button" variant="dangerousSecondary" block onClick={() => goToStep('revert')}>
           Revertir solicitud

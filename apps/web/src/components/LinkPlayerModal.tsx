@@ -28,7 +28,7 @@ function LinkPlayerModalContent({ user }: { user: AppUser }) {
       open={isOpen}
       onClose={() => setIsOpen(false)}
       title={linkPlayerStepTitles[step]}
-      hideHeader={step === 'sent' || step === 'revert'}
+      hideHeader={step === 'question' || step === 'sent' || step === 'revert'}
     >
       <LinkPlayerFlow
         user={user}

@@ -27,7 +27,7 @@ export default function Modal({ open, onClose, title, children, size = 'default'
   return (
     <Backdrop onClose={onClose} title={title}>
       <div
-        className={`bg-white rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto ${
+        className={`bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto ${
           size === 'large' ? 'max-w-4xl' : 'max-w-lg'
         }`}
       >
