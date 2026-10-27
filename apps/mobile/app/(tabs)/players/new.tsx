@@ -1,11 +1,11 @@
-import * as ImagePicker from 'expo-image-picker'
 import { useRouter } from 'expo-router'
 import { createPlayer, updatePlayer, uploadPlayerPhoto } from '@fulbito/firebase'
 import { useCallback, useState } from 'react'
-import { Alert, Linking, StyleSheet } from 'react-native'
+import { Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PlayerCreateForm, type PlayerCreateFormValues } from '@/components/players/new/player-create-form'
+import { usePickPhoto } from '@/hooks/use-pick-photo'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { useAppTheme } from '@/hooks/use-theme'
 
@@ -25,33 +25,11 @@ export default function NewPlayerScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
+  const pickPhoto = usePickPhoto()
   const handlePickPhoto = useCallback(async () => {
-    const { granted, canAskAgain } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if (!granted) {
-      if (!canAskAgain) {
-        Alert.alert(
-          'Permiso necesario',
-          'Habilitá el acceso a tus fotos desde la configuración del dispositivo para poder elegir una imagen.',
-          [
-            { text: 'Cancelar', style: 'cancel' },
-            { text: 'Abrir configuración', onPress: () => Linking.openSettings() },
-          ],
-        )
-        return
-      }
-      Alert.alert('Permiso necesario', 'Necesitamos acceso a tus fotos para elegir una imagen.')
-      return
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    })
-    if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri)
-    }
-  }, [])
+    const uri = await pickPhoto()
+    if (uri) setPhotoUri(uri)
+  }, [pickPhoto])
 
   const handleSave = useCallback(async () => {
     setSaving(true)
