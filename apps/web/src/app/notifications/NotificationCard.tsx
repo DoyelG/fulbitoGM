@@ -1,4 +1,5 @@
 import { FiCheck, FiLink, FiShield, FiX } from 'react-icons/fi'
+import PlayerAvatar from '@/components/home/PlayerAvatar'
 import type { RoleRequestNotification } from '@fulbito/types'
 import { getRoleRequestLabel, getRoleRequestSummary, getTimeAgo } from '@fulbito/utils'
 
@@ -23,12 +24,7 @@ export default function NotificationCard({ notification, index, disabled, onAcce
       <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${isAdminRequest ? 'bg-accent' : 'bg-brand'}`} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="flex flex-1 items-center gap-4">
-          <div
-            aria-hidden
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-lg font-bold uppercase text-white shadow-md"
-          >
-            {userEmail.charAt(0)}
-          </div>
+          <PlayerAvatar name={userEmail} size="md" />
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <span
