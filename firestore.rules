@@ -28,6 +28,7 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         isAdmin()
         || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['linkedUserId'])
+        || (resource.data.get('linkedUserId', null) == request.auth.uid && request.resource.data.linkedUserId == null)
       );
       allow delete: if isSignedIn();
     }

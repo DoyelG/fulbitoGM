@@ -96,8 +96,6 @@ async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
   if (sameRoleRequests.docs.some((request) => request.get('status') === 'pending')) {
     throw new RoleRequestError('Ya tenés una solicitud pendiente')
   }
-  // eslint-disable-next-line fulbito/no-comments
-  // If the status of the request is "Rejected" and that request was rejected before one day, we throw an error
   const wasRejectedRecently = sameRoleRequests.docs.some(
     (request) =>
       request.get('status') === 'rejected' && Date.now() - request.get('resolvedAt').toMillis() < ONE_DAY_IN_MS,

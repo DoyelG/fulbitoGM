@@ -11,7 +11,7 @@ import {
   signInWithPopup,
   type User as FirebaseUser,
 } from 'firebase/auth'
-import { deleteDoc, doc, getDoc, getFirestore, setDoc, Timestamp } from 'firebase/firestore'
+import { deleteDoc, doc, getDoc, getFirestore, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
 
 export type AppUser = {
   uid: string
@@ -86,7 +86,16 @@ export async function deleteUser(): Promise<void> {
     await reauthenticateWithPopup(user, new GoogleAuthProvider())
   }
 
-  await deleteDoc(doc(getFirestore(), 'users', user.uid))
+  const db = getFirestore()
+  const { linkedPlayerId } = await getUserProfile(user.uid)
+  if (linkedPlayerId) {
+    const playerRef = doc(db, 'players', linkedPlayerId)
+    if ((await getDoc(playerRef)).exists()) {
+      await updateDoc(playerRef, { linkedUserId: null, updatedAt: Timestamp.now() })
+    }
+  }
+
+  await deleteDoc(doc(db, 'users', user.uid))
   await firebaseDeleteUser(user)
 }
 
