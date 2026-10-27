@@ -45,7 +45,8 @@ service cloud.firestore {
 
     match /videoClips/{id} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isSignedIn();
+      allow delete: if isSignedIn() && (isAdmin() || resource.data.get('createdBy', null) == request.auth.uid);
     }
 
     match /addresses/{id} {
