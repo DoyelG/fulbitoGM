@@ -7,9 +7,17 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native'
 import PlayerSelector from '@/components/players/player-selector/player-selector'
 import { useAppTheme } from '@/hooks/use-theme'
 
+import LinkPlayerHero from './link-player-hero'
+import LinkPlayerStepDots from './link-player-step-dots'
 import { styles } from './link-player-flow.styles'
 
 export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'revert'
+
+const benefits: { icon: keyof typeof Feather.glyphMap; text: string }[] = [
+  { icon: 'user', text: 'Tener tu propio perfil de jugador' },
+  { icon: 'film', text: 'Subir y borrar tus propios clips' },
+  { icon: 'camera', text: 'Cambiar tu foto, tu nombre y tu posición' },
+]
 
 export const linkPlayerStepTitles: Record<LinkPlayerStep, string> = {
   question: '¿Sos jugador también?',
@@ -130,12 +138,25 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
   if (step === 'question') {
     return (
       <View style={styles.container}>
-        <Text style={[styles.text, { color: colors.text }]}>
-          Si jugás en los partidos, podés vincular tu usuario con tu jugador.
-        </Text>
+        <LinkPlayerStepDots current={1} total={3} />
+        <LinkPlayerHero
+          icon="link"
+          title="¿Sos jugador también?"
+          description="Si jugás en los partidos, vinculá tu usuario con tu jugador."
+        />
+        <View style={styles.benefits}>
+          {benefits.map(({ icon, text }) => (
+            <View key={text} style={[styles.benefit, { backgroundColor: colors.chipBg, borderRadius: radii.md }]}>
+              <View style={[styles.benefitIcon, { backgroundColor: colors.brandSoft }]}>
+                <Feather name={icon} size={16} color={colors.brand} accessible={false} />
+              </View>
+              <Text style={[styles.benefitText, { color: colors.text }]}>{text}</Text>
+            </View>
+          ))}
+        </View>
         <View style={styles.row}>
-          <FlowButton label="No" onPress={onAnswerNo} variant="secondary" />
-          <FlowButton label="Sí" onPress={() => goToStep('select')} />
+          <FlowButton label="Ahora no" onPress={onAnswerNo} variant="secondary" />
+          <FlowButton label="Sí, soy jugador" onPress={() => goToStep('select')} />
         </View>
       </View>
     )
@@ -145,6 +166,7 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
     const [selectedPlayerId] = selectedIds
     return (
       <View style={styles.container}>
+        <LinkPlayerStepDots current={2} total={3} />
         <PlayerSelector
           players={players}
           selectedIds={selectedIds}
@@ -180,6 +202,7 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
     const trimmedName = newPlayerName.trim()
     return (
       <View style={styles.container}>
+        <LinkPlayerStepDots current={2} total={3} />
         <Text style={[styles.label, { color: colors.text }]}>Escribí el nombre que querés tener</Text>
         <TextInput
           value={newPlayerName}
@@ -205,12 +228,12 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
   if (step === 'revert') {
     return (
       <View style={styles.container}>
-        <View style={[styles.stepIcon, { backgroundColor: colors.dangerBg }]}>
-          <Feather name="alert-triangle" size={40} color={colors.danger} accessible={false} />
-        </View>
-        <Text style={[styles.stepText, { color: colors.text }]}>
-          ¿Seguro que querés revertir la solicitud? Se va a cancelar y el administrador ya no la va a ver.
-        </Text>
+        <LinkPlayerHero
+          icon="alert-triangle"
+          tone="danger"
+          title="¿Revertir la solicitud?"
+          description="Se va a cancelar y el administrador ya no la va a ver."
+        />
         {errorText}
         <View style={styles.row}>
           <FlowButton label="Volver" onPress={() => goToStep('sent')} variant="secondary" />
@@ -222,12 +245,12 @@ export default function LinkPlayerFlow({ user, step, onStepChange, onAnswerNo, o
 
   return (
     <View style={styles.container}>
-      <View style={[styles.stepIcon, { backgroundColor: colors.brandSoft }]}>
-        <Feather name="check-circle" size={40} color={colors.brand} accessible={false} />
-      </View>
-      <Text style={[styles.stepText, { color: colors.text }]}>
-        Solicitud enviada. Un administrador la va a revisar.
-      </Text>
+      <LinkPlayerStepDots current={3} total={3} />
+      <LinkPlayerHero
+        icon="check-circle"
+        title="Solicitud enviada"
+        description="Un administrador la va a revisar. Cuando la acepte, volvé a iniciar sesión para ver el cambio."
+      />
       <View style={styles.row}>
         <FlowButton label="Revertir solicitud" onPress={() => goToStep('revert')} variant="dangerousSecondary" />
         <FlowButton label="Cerrar" onPress={onFinish} />

@@ -11,18 +11,26 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  stepIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: Radii.pill,
+  benefits: {
+    gap: Spacing.sm,
+  },
+  benefit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  benefitIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: Radii.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
   },
-  stepText: {
-    fontSize: 18,
-    lineHeight: 26,
-    textAlign: 'center',
+  benefitText: {
+    flex: 1,
+    fontSize: 14,
   },
   label: {
     fontSize: 14,

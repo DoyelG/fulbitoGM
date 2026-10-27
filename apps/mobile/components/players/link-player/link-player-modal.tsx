@@ -37,7 +37,7 @@ export default function LinkPlayerModal() {
     <BottomSheet
       visible={isOpen}
       title={linkPlayerStepTitles[step]}
-      hideTitle={step === 'sent' || step === 'revert'}
+      hideTitle={step === 'question' || step === 'sent' || step === 'revert'}
       closeLabel="Cerrar"
       onConfirm={() => setIsOpen(false)}
     >
