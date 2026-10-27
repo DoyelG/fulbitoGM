@@ -2,7 +2,7 @@
   "expo": {
     "name": "FulbitoApp",
     "slug": "fulbito-gm",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "fulbitoapp",
@@ -10,12 +10,16 @@
     "newArchEnabled": true,
     "ios": {
       "buildNumber": "4",
+      "infoPlist": {
+        "CFBundleShortVersionString": "1.0.1"
+      },
       "supportsTablet": true,
       "jsEngine": "hermes",
       "bundleIdentifier": "com.fulbitoapp.app"
     },
     "android": {
       "package": "com.fulbitoapp.app",
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#7C3AED",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -50,6 +54,15 @@
           "photosPermission": "La app accede a tus fotos para elegir la imagen del jugador.",
           "cameraPermission": false,
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
         }
       ],
       "expo-font",
