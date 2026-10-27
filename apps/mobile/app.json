@@ -14,7 +14,6 @@
         "CFBundleShortVersionString": "1.0.1"
       },
       "supportsTablet": true,
-      "jsEngine": "hermes",
       "bundleIdentifier": "com.fulbitoapp.app"
     },
     "android": {
@@ -62,12 +61,16 @@
           "android": {
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true
+          },
+          "ios": {
+            "enableSceneSupport": true
           }
         }
       ],
       "expo-font",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
