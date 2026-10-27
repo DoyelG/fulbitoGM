@@ -60,9 +60,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={[styles.title, { color: theme.text }]}>Fulbito</Text>
-          <Text style={[styles.subtitle, { color: theme.icon }]}>
-            Misma cuenta que en la web
-          </Text>
 
           <View style={styles.segment}>
             <Pressable
