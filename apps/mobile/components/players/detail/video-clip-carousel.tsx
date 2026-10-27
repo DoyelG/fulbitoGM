@@ -7,23 +7,20 @@ import { styles } from './video-clip-carousel.styles'
 type Props = {
   clips: VideoClip[]
   matchById: Map<string, Match>
-  isAdmin: boolean
+  canDelete: (clip: VideoClip) => boolean
   onOpen: (clipId: string) => void
   onDelete: (clipId: string) => void
 }
 
-export function VideoClipCarousel({ clips, matchById, isAdmin, onOpen, onDelete }: Props) {
+export function VideoClipCarousel({ clips, matchById, canDelete, onOpen, onDelete }: Props) {
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.track}>
-      {clips.map(clip => (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.track}>
+      {clips.map((clip) => (
         <VideoClipCard
           key={clip.id}
           clip={clip}
           match={matchById.get(clip.matchId)}
-          isAdmin={isAdmin}
+          canDelete={canDelete(clip)}
           onOpen={() => onOpen(clip.id)}
           onDelete={() => onDelete(clip.id)}
         />

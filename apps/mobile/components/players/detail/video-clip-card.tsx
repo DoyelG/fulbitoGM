@@ -11,17 +11,17 @@ import { styles } from './video-clip-card.styles'
 type Props = {
   clip: VideoClip
   match: Match | undefined
-  isAdmin: boolean
+  canDelete: boolean
   onOpen: () => void
   onDelete: () => void
 }
 
-export function VideoClipCard({ clip, match, isAdmin, onOpen, onDelete }: Props) {
+export function VideoClipCard({ clip, match, canDelete, onOpen, onDelete }: Props) {
   const { colors } = useAppTheme()
-  const meta = VIDEO_CLIP_CATEGORIES.find(c => c.value === clip.category)
+  const meta = VIDEO_CLIP_CATEGORIES.find((c) => c.value === clip.category)
   const label = clip.title || meta?.label || 'Clip'
 
-  const player = useVideoPlayer(clip.url, p => {
+  const player = useVideoPlayer(clip.url, (p) => {
     p.muted = true
   })
 
@@ -31,7 +31,8 @@ export function VideoClipCard({ clip, match, isAdmin, onOpen, onDelete }: Props)
         onPress={onOpen}
         style={styles.pressable}
         accessibilityRole="button"
-        accessibilityLabel={`Ver clip: ${label}`}>
+        accessibilityLabel={`Ver clip: ${label}`}
+      >
         <View style={styles.thumbnail}>
           <VideoView
             player={player}
@@ -56,12 +57,13 @@ export function VideoClipCard({ clip, match, isAdmin, onOpen, onDelete }: Props)
           )}
         </View>
       </Pressable>
-      {isAdmin && (
+      {canDelete && (
         <Pressable
           onPress={onDelete}
           style={[styles.deleteBtn, { backgroundColor: 'rgba(0,0,0,0.55)' }]}
           accessibilityRole="button"
-          accessibilityLabel={`Eliminar clip: ${label}`}>
+          accessibilityLabel={`Eliminar clip: ${label}`}
+        >
           <MaterialIcons name="delete" size={18} color="#fff" />
         </Pressable>
       )}

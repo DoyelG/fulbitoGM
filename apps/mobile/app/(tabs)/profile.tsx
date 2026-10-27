@@ -4,16 +4,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
 import { PlayerSection } from '@/components/profile/player-section'
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { styles } from '@/components/profile/profile-screen.styles'
+import { ProfileSection } from '@/components/profile/profile-section'
 import { RoleRequestSection } from '@/components/profile/role-request-section'
 import { ThemedView } from '@/components/themed-view'
 import EmptyState from '@/components/ui/empty-state/empty-state'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useMatchesData } from '@/hooks/use-matches-data'
 
 export default function ProfileScreen() {
   const { user, isAdmin } = useFirebaseAuth()
+  const { matches } = useMatchesData()
   const [player, setPlayer] = useState<Player | null>(null)
 
   const linkedPlayerId = user?.linkedPlayerId
@@ -45,7 +49,12 @@ export default function ProfileScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           <ProfileHeader email={user.email} roles={user.role} photoUrl={player?.photoUrl} />
           {player && <PlayerSection key={player.id} player={player} index={0} onSaved={() => void loadPlayer()} />}
-          <RoleRequestSection user={user} isAdmin={isAdmin} index={1} />
+          {player && (
+            <ProfileSection icon="film" title="Mis clips" index={1}>
+              <PlayerClipsSection playerId={player.id} matches={matches} canUpload />
+            </ProfileSection>
+          )}
+          <RoleRequestSection user={user} isAdmin={isAdmin} index={2} />
         </ScrollView>
       </ThemedView>
     </SafeAreaView>
