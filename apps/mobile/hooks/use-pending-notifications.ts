@@ -1,5 +1,5 @@
 import type { RoleRequestNotification } from '@fulbito/types'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { getPendingNotifications } from '@fulbito/firebase'
 
 import { useIsAdmin } from '@/hooks/use-is-admin'
@@ -12,15 +12,28 @@ export type PendingNotificationsState = {
   reload: () => Promise<void>
 }
 
+let sharedNotifications: RoleRequestNotification[] = []
+const listeners = new Set<() => void>()
+
+function setSharedNotifications(notifications: RoleRequestNotification[]) {
+  sharedNotifications = notifications
+  listeners.forEach((listener) => listener())
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
 export function usePendingNotifications(): PendingNotificationsState {
   const isAdmin = useIsAdmin()
-  const [notifications, setNotifications] = useState<RoleRequestNotification[]>([])
+  const notifications = useSyncExternalStore(subscribe, () => sharedNotifications)
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
     setError(null)
     try {
-      setNotifications(await getPendingNotifications())
+      setSharedNotifications(await getPendingNotifications())
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Error al cargar las notificaciones')
     }
