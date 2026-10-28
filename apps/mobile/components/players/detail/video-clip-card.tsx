@@ -38,7 +38,6 @@ export function VideoClipCard({ clip, match, isAdmin, onOpen, onDelete }: Props)
             style={{ width: '100%', height: '100%' }}
             contentFit="cover"
             nativeControls={false}
-            allowsFullscreen={false}
             allowsPictureInPicture={false}
             pointerEvents="none"
           />

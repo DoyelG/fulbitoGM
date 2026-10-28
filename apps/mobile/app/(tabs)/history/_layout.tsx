@@ -1,14 +1,11 @@
 import { Stack, Tabs } from 'expo-router'
 
-import { HapticTab } from '@/components/haptic-tab'
-
 export default function HistoryLayout() {
   return (
     <>
       <Tabs.Screen
         options={{
           title: 'Historial',
-          tabBarButton: HapticTab,
         }}
       />
       <Stack screenOptions={{ headerShown: false }}>
