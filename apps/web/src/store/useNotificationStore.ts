@@ -17,7 +17,6 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
   loadNotifications: async () => {
     if (isLoading) return
     isLoading = true
-    // Polling ticks refresh silently so the UI doesn't flash its loading state.
     if (get().notificationsInit !== 'loaded') set({ notificationsInit: 'loading' })
     try {
       const data = await getPendingNotifications()
