@@ -3,18 +3,33 @@
 import { useState, type FormEvent } from 'react'
 import Button from '@/components/Button'
 import type { TournamentInput } from '@/store/useTournamentStore'
+import TournamentPhotoField from './TournamentPhotoField'
 
 const MAX_NAME_LENGTH = 60
 const MAX_DESCRIPTION_LENGTH = 280
 
 type Props = {
+  initial?: TournamentInput
+  initialPhotoUrl?: string
+  submitLabel: string
+  submittingLabel: string
+  errorMessage: string
   onCancel: () => void
   onSubmit: (data: TournamentInput) => Promise<void>
 }
 
-export default function TournamentForm({ onCancel, onSubmit }: Props) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+export default function TournamentForm({
+  initial,
+  initialPhotoUrl,
+  submitLabel,
+  submittingLabel,
+  errorMessage,
+  onCancel,
+  onSubmit,
+}: Props) {
+  const [name, setName] = useState(initial?.name ?? '')
+  const [description, setDescription] = useState(initial?.description ?? '')
+  const [photoFile, setPhotoFile] = useState<File | null | undefined>(undefined)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,9 +42,9 @@ export default function TournamentForm({ onCancel, onSubmit }: Props) {
     setSubmitting(true)
     setError(null)
     try {
-      await onSubmit({ name, description })
+      await onSubmit({ name, description, photoFile })
     } catch {
-      setError('No se pudo crear el torneo. Intentá de nuevo.')
+      setError(errorMessage)
       setSubmitting(false)
     }
   }
@@ -64,6 +79,10 @@ export default function TournamentForm({ onCancel, onSubmit }: Props) {
         className="border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-brand/50"
       />
 
+      <div className="mt-3">
+        <TournamentPhotoField currentUrl={initialPhotoUrl} value={photoFile} onChange={setPhotoFile} />
+      </div>
+
       {error && (
         <p id="tournament-form-error" role="alert" className="mt-3 text-sm text-red-700">
           {error}
@@ -75,7 +94,7 @@ export default function TournamentForm({ onCancel, onSubmit }: Props) {
           Cancelar
         </Button>
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Creando...' : 'Crear torneo'}
+          {submitting ? submittingLabel : submitLabel}
         </Button>
       </div>
     </form>

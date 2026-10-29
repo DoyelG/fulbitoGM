@@ -50,6 +50,16 @@ pnpm --filter @fulbito/mobile start
 pnpm --silent --filter @fulbito/mcp start
 ```
 
+### Local Firebase emulators
+
+Use the emulators (Auth, Firestore, Storage) to try rule changes without touching the shared Firebase project. They need Java 11+.
+
+```bash
+pnpm emulators
+```
+
+Then add `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true` to `apps/web/.env.local` and restart the web dev server. The emulator UI is at http://127.0.0.1:4000. Data is saved to `.firebase-emulator/` on exit and loaded on the next start.
+
 ## Apps
 
 | App           | Port  | Description                                      |

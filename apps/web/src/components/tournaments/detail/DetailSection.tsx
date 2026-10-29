@@ -1,0 +1,33 @@
+import type { ComponentType, ReactNode } from 'react'
+import Link from 'next/link'
+
+type Props = {
+  id: string
+  title: string
+  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
+  action?: { label: string; href: string }
+  className?: string
+  children: ReactNode
+}
+
+export default function DetailSection({ id, title, icon: Icon, action, className = '', children }: Props) {
+  return (
+    <section aria-labelledby={id} className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm ${className}`}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 id={id} className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <Icon className="h-5 w-5 text-brand" aria-hidden />
+          {title}
+        </h2>
+        {action && (
+          <Link
+            href={action.href}
+            className="rounded text-sm font-medium text-brand hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            {action.label}
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  )
+}

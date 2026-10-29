@@ -125,11 +125,7 @@ export async function getTournamentInvitations(tournamentId: string): Promise<In
 }
 
 export async function getMyInvitations(email: string): Promise<Invitation[]> {
-  const invitations = await getPendingInvitations('email', normalizeEmail(email))
-  const tournamentIds = [...new Set(invitations.map((invitation) => invitation.tournamentId))]
-  const tournaments = await Promise.all(tournamentIds.map((tournamentId) => getTournament(tournamentId)))
-  const activeTournamentIds = new Set(tournaments.flatMap((tournament) => (tournament ? [tournament.id] : [])))
-  return invitations.filter((invitation) => activeTournamentIds.has(invitation.tournamentId))
+  return getPendingInvitations('email', normalizeEmail(email))
 }
 
 type InvitedUser = {
@@ -149,16 +145,12 @@ export async function acceptInvitation(invitationId: string, user: InvitedUser):
     if (invitation.email !== email) throw new Error('This invitation belongs to another email')
 
     const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, invitation.tournamentId)
-    const tournamentSnap = await transaction.get(tournamentRef)
-    if (!tournamentSnap.exists() || tournamentSnap.get('deletedAt')) throw new Error('Tournament not found')
-
     const memberRef = doc(db, TOURNAMENTS_COLLECTION, invitation.tournamentId, MEMBERS_COLLECTION, user.uid)
     const memberSnap = await transaction.get(memberRef)
     if (memberSnap.exists()) throw new Error('You are already a member of this tournament')
 
-    const playerRef = invitation.playerId ? doc(db, PLAYERS_COLLECTION, invitation.playerId) : null
-    if (playerRef) {
-      const playerSnap = await transaction.get(playerRef)
+    if (invitation.playerId) {
+      const playerSnap = await transaction.get(doc(db, PLAYERS_COLLECTION, invitation.playerId))
       if (!playerSnap.exists()) throw new Error('Player not found')
       const linkedUserId = playerSnap.get('linkedUserId')
       if (linkedUserId && linkedUserId !== user.uid) throw new Error('This player is already linked to an account')
@@ -171,11 +163,11 @@ export async function acceptInvitation(invitationId: string, user: InvitedUser):
       email,
       role: invitation.role,
       playerId: invitation.playerId ?? null,
+      invitationId,
       joinedAt: now,
       updatedAt: now,
     })
     transaction.update(tournamentRef, { memberUids: arrayUnion(user.uid), updatedAt: now })
-    if (playerRef) transaction.update(playerRef, { linkedUserId: user.uid, updatedAt: now })
     transaction.update(invitationSnap.ref, { status: 'accepted', resolvedAt: now, updatedAt: now })
   })
 }

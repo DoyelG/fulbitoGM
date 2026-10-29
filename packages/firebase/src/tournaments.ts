@@ -1,4 +1,5 @@
 import {
+  arrayRemove,
   getFirestore,
   collection,
   doc,
@@ -129,7 +130,13 @@ export async function getTournament(tournamentId: string): Promise<Tournament | 
 
 export async function getMyTournaments(uid: string): Promise<MyTournament[]> {
   const db = getFirestore()
-  const snap = await getDocs(query(collection(db, TOURNAMENTS_COLLECTION), where('memberUids', 'array-contains', uid)))
+  const snap = await getDocs(
+    query(
+      collection(db, TOURNAMENTS_COLLECTION),
+      where('memberUids', 'array-contains', uid),
+      where('deletedAt', '==', null),
+    ),
+  )
   const tournaments = snap.docs
     .map((tournamentDoc) => docToTournament(tournamentDoc.id, tournamentDoc.data()))
     .filter((tournament) => !tournament.deletedAt)
@@ -164,6 +171,17 @@ export async function deleteTournament(tournamentId: string, uid: string): Promi
     const now = Timestamp.now()
     transaction.update(snap.ref, { deletedAt: now, deletedBy: uid, updatedAt: now })
   })
+}
+
+export async function leaveTournament(tournamentId: string, uid: string): Promise<void> {
+  const member = await getDoc(memberRef(tournamentId, uid))
+  if (!member.exists()) throw new Error('Not a member of the tournament')
+  if (member.get('role') === 'OWNER') throw new Error('The owner cannot leave the tournament')
+
+  const batch = writeBatch(getFirestore())
+  batch.delete(member.ref)
+  batch.update(tournamentRef(tournamentId), { memberUids: arrayRemove(uid), updatedAt: Timestamp.now() })
+  await batch.commit()
 }
 
 export async function getTournamentMember(tournamentId: string, uid: string): Promise<TournamentMember | null> {

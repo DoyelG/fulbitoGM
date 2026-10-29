@@ -235,3 +235,24 @@ export function listAvailableSeasons(matches: Match[]): number[] {
   years.add(new Date().getFullYear())
   return Array.from(years).sort((a, b) => b - a)
 }
+
+export type CurrentChampion = {
+  playerId: string
+  playerName: string
+  playerPhotoUrl?: string | null
+  wonAt: string
+}
+
+export function pickCurrentChampion(players: Player[], matches: Match[]): CurrentChampion | null {
+  const eventsById = findAllStreakEvents(matches, CHAMPIONSHIP_THRESHOLD)
+  let latest: CurrentChampion | null = null
+
+  for (const p of players) {
+    for (const e of eventsById[p.id] ?? []) {
+      if (e.kind !== 'title' || (latest && e.date <= latest.wonAt)) continue
+      latest = { playerId: p.id, playerName: p.name, playerPhotoUrl: p.photoUrl, wonAt: e.date }
+    }
+  }
+
+  return latest
+}

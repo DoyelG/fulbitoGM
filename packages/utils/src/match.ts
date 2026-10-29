@@ -35,3 +35,13 @@ export function formatMatchDate(day: string): string {
   if (!year || !month || !date) return ''
   return `${date}/${month}/${year}`
 }
+
+export function toLocalDay(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+export function pickRecentMatches<T extends Pick<Match, 'date' | 'status'>>(matches: T[], limit: number): T[] {
+  return [...onlyFinalMatches(matches)].sort((a, b) => b.date.localeCompare(a.date)).slice(0, limit)
+}

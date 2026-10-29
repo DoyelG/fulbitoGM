@@ -45,3 +45,12 @@ export type MyTournament = {
   tournament: Tournament
   membership: TournamentMember
 }
+
+export type TournamentComment = {
+  id: string
+  tournamentId: string
+  authorUid: string
+  authorName: string
+  text: string
+  createdAt: Date
+}

@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
 import NavAuth from "./shared/NavAuth"
+import ActiveTournamentLink from "./shared/ActiveTournamentLink"
 import Link from "next/link"
 
 const navigation = [
@@ -10,12 +11,6 @@ const navigation = [
     location: "/",
     style: "md:hidden",
     color: "from-sky-500/20 to-blue-500/20",
-  },
-  {
-    name: "Mis torneos",
-    location: "/tournaments",
-    style: "whitespace-nowrap",
-    color: "from-sky-500/20 to-indigo-500/20",
   },
   {
     name: "Estadísticas",
@@ -75,10 +70,12 @@ export default function NavBar() {
       </Link>
 
       <nav
-        className={`fixed top-0 left-0 h-full w-64 flex flex-col gap-4 bg-gray-50 text-gray-900 p-4 pt-18 z-20 transform transition-transform duration-300 ${
+        className={`fixed top-0 left-0 h-full w-64 flex flex-col gap-4 md:gap-1 xl:gap-4 bg-gray-50 text-gray-900 p-4 pt-18 z-20 transform transition-transform duration-300 ${
           menuChecked ? "translate-x-0" : "-translate-x-full"
         } md:static md:h-auto md:w-auto md:flex-row md:translate-x-0 md:bg-transparent md:text-white md:p-0 md:items-center`}
       >
+        <ActiveTournamentLink onNavigate={closeNavBar} />
+        <div className="hidden md:block w-px h-6 bg-white/30" aria-hidden />
         {navigation.map((item) => (
           <Link
             key={item.location}

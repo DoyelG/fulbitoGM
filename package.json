@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "emulators": "pnpm dlx firebase-tools@15.32.0 emulators:start --import=.firebase-emulator --export-on-exit=.firebase-emulator"
   },
   "devDependencies": {
     "prettier": "^3.8.1",

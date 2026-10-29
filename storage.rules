@@ -25,5 +25,26 @@ service firebase.storage {
         || firestore.get(/databases/(default)/documents/videoClips/$(fileName)).data.get('createdBy', null) == request.auth.uid
       );
     }
+
+    function tournamentMember(tournamentId) {
+      return firestore.get(/databases/(default)/documents/tournaments/$(tournamentId)/members/$(request.auth.uid));
+    }
+
+    function isTournamentMember(tournamentId) {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/tournaments/$(tournamentId)/members/$(request.auth.uid));
+    }
+
+    function isTournamentAdmin(tournamentId) {
+      return isTournamentMember(tournamentId) && tournamentMember(tournamentId).data.role in ['OWNER', 'ADMIN'];
+    }
+
+    match /tournaments/{tournamentId}/{fileName} {
+      allow read: if isTournamentMember(tournamentId);
+      allow create, update: if isTournamentAdmin(tournamentId)
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size <= 5 * 1024 * 1024;
+      allow delete: if isTournamentAdmin(tournamentId);
+    }
   }
 }
