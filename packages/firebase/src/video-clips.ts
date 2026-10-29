@@ -69,7 +69,6 @@ export async function createVideoClip(data: NewVideoClipData, file: File | Blob)
   }
 }
 
-// The storage rule reads the clip document to check its author, so the file goes first.
 export async function deleteVideoClip(clipId: string): Promise<void> {
   await deleteObject(ref(getStorage(), `videoClips/${clipId}`)).catch((error: { code?: string }) => {
     if (error.code !== 'storage/object-not-found') throw error
