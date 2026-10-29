@@ -33,16 +33,22 @@ export function RoleRequestSection({ user, isAdmin, index }: Props) {
   const [requests, setRequests] = useState<RoleRequest[]>([])
   const [players, setPlayers] = useState<Player[]>([])
   const [isSending, setIsSending] = useState(false)
+  const [areRequestsLoaded, setAreRequestsLoaded] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkStep, setLinkStep] = useState<LinkPlayerStep>('select')
 
   const loadRequests = useCallback(async () => {
-    setRequests(await getMyRoleRequests(user.uid))
+    try {
+      setRequests(await getMyRoleRequests(user.uid))
+      setAreRequestsLoaded(true)
+    } catch {
+      setErrorMessage('No se pudieron cargar tus solicitudes. Probá de nuevo más tarde.')
+    }
   }, [user.uid])
 
   useEffect(() => {
-    loadRequests().catch(() => setRequests([]))
+    void loadRequests()
     getPlayers()
       .then(setPlayers)
       .catch(() => setPlayers([]))
@@ -65,7 +71,9 @@ export function RoleRequestSection({ user, isAdmin, index }: Props) {
     }
   }
 
-  const cancelRequest = (request: RoleRequest | null) => void run(() => cancelRoleRequest(request!.id))
+  const cancelRequest = (request: RoleRequest | null) => {
+    if (request) void run(() => cancelRoleRequest(request.id))
+  }
 
   const requestAdmin = () =>
     void run(() => createRoleRequest({ userId: user.uid, userEmail: user.email, requestedRole: 'ADMIN' }))
@@ -98,7 +106,7 @@ export function RoleRequestSection({ user, isAdmin, index }: Props) {
             description="Conectá tu usuario con tu jugador para editar tu foto, nombre y posición."
             request={playerRequest}
             detail={requestedPlayerName ? `Jugador: ${requestedPlayerName}` : undefined}
-            isSending={isSending}
+            isSending={isSending || !areRequestsLoaded}
             onRequest={() => setIsLinkModalOpen(true)}
             onCancel={() => cancelRequest(playerRequest)}
           />
@@ -108,7 +116,7 @@ export function RoleRequestSection({ user, isAdmin, index }: Props) {
             title="Rol de administrador"
             description="Podés gestionar jugadores, partidos y solicitudes."
             request={adminRequest}
-            isSending={isSending}
+            isSending={isSending || !areRequestsLoaded}
             onRequest={requestAdmin}
             onCancel={() => cancelRequest(adminRequest)}
           />

@@ -51,6 +51,7 @@ export async function createVideoClip(data: NewVideoClipData, file: File | Blob)
   await uploadBytes(storageRef, file)
   const url = await getDownloadURL(storageRef)
 
+  const now = Timestamp.now()
   try {
     await setDoc(doc(db, 'videoClips', clipId), {
       matchId: data.matchId,
@@ -59,8 +60,8 @@ export async function createVideoClip(data: NewVideoClipData, file: File | Blob)
       title: data.title ?? null,
       url,
       createdBy: getAuth().currentUser?.uid ?? null,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: now,
+      updatedAt: now,
     })
   } catch (error) {
     await deleteVideoClipFile(clipId)
@@ -68,7 +69,10 @@ export async function createVideoClip(data: NewVideoClipData, file: File | Blob)
   }
 }
 
+// The storage rule reads the clip document to check its author, so the file goes first.
 export async function deleteVideoClip(clipId: string): Promise<void> {
+  await deleteObject(ref(getStorage(), `videoClips/${clipId}`)).catch((error: { code?: string }) => {
+    if (error.code !== 'storage/object-not-found') throw error
+  })
   await deleteDoc(doc(getFirestore(), 'videoClips', clipId))
-  await deleteVideoClipFile(clipId)
 }

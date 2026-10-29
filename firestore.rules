@@ -30,7 +30,7 @@ service cloud.firestore {
         || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['linkedUserId'])
         || (resource.data.get('linkedUserId', null) == request.auth.uid && request.resource.data.linkedUserId == null)
       );
-      allow delete: if isSignedIn();
+      allow delete: if isAdmin();
     }
 
     match /matches/{id} {
@@ -45,7 +45,12 @@ service cloud.firestore {
 
     match /videoClips/{id} {
       allow read: if true;
-      allow create, update: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAdmin() || (
+        isSignedIn()
+        && resource.data.get('createdBy', null) == request.auth.uid
+        && request.resource.data.createdBy == request.auth.uid
+      );
       allow delete: if isSignedIn() && (isAdmin() || resource.data.get('createdBy', null) == request.auth.uid);
     }
 

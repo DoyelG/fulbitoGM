@@ -9,16 +9,23 @@ type NotificationStore = {
   clearNotifications: () => void
 }
 
-export const useNotificationStore = create<NotificationStore>()((set) => ({
+let isLoading = false
+
+export const useNotificationStore = create<NotificationStore>()((set, get) => ({
   notifications: [],
   notificationsInit: 'idle',
   loadNotifications: async () => {
-    set({ notificationsInit: 'loading' })
+    if (isLoading) return
+    isLoading = true
+    // Polling ticks refresh silently so the UI doesn't flash its loading state.
+    if (get().notificationsInit !== 'loaded') set({ notificationsInit: 'loading' })
     try {
       const data = await getPendingNotifications()
       set({ notifications: data, notificationsInit: 'loaded' })
     } catch {
       set({ notificationsInit: 'error' })
+    } finally {
+      isLoading = false
     }
   },
   clearNotifications: () => {

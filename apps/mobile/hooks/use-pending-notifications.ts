@@ -25,6 +25,27 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener)
 }
 
+let pollingSubscribers = 0
+let pollingIntervalId: ReturnType<typeof setInterval> | null = null
+
+async function loadSharedNotifications() {
+  setSharedNotifications(await getPendingNotifications())
+}
+
+function startPolling() {
+  pollingSubscribers += 1
+  if (pollingSubscribers > 1) return
+  loadSharedNotifications().catch(() => undefined)
+  pollingIntervalId = setInterval(() => loadSharedNotifications().catch(() => undefined), POLLING_INTERVAL_IN_MS)
+}
+
+function stopPolling() {
+  pollingSubscribers -= 1
+  if (pollingSubscribers > 0 || !pollingIntervalId) return
+  clearInterval(pollingIntervalId)
+  pollingIntervalId = null
+}
+
 export function usePendingNotifications(): PendingNotificationsState {
   const isAdmin = useIsAdmin()
   const notifications = useSyncExternalStore(subscribe, () => sharedNotifications)
@@ -41,10 +62,9 @@ export function usePendingNotifications(): PendingNotificationsState {
 
   useEffect(() => {
     if (!isAdmin) return
-    void reload()
-    const intervalId = setInterval(reload, POLLING_INTERVAL_IN_MS)
-    return () => clearInterval(intervalId)
-  }, [isAdmin, reload])
+    startPolling()
+    return stopPolling
+  }, [isAdmin])
 
   return { notifications: isAdmin ? notifications : [], error, reload }
 }
