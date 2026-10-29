@@ -10,6 +10,7 @@ import { usePlayerStore } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
 import PlayersTable, { type PlayerRow } from './PlayersTable'
+import LinkPlayerAlert from '@/components/LinkPlayerAlert'
 import Modal from '@/components/Modal'
 import Chevron from '../shared/Icons/Chevron'
 
@@ -94,6 +95,7 @@ export default function PlayersClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <LinkPlayerAlert />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Jugadores</h1>
         {isAdmin && (

@@ -1,11 +1,15 @@
+'use client'
+
+import { createPortal } from 'react-dom'
+
 type Props = {
   onClose: () => void
   title: string
   children: React.ReactNode
 }
 
-export function Backdrop ({onClose, title, children}: Props) {
-  return (
+export function Backdrop({ onClose, title, children }: Props) {
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
       role="dialog"
@@ -16,6 +20,7 @@ export function Backdrop ({onClose, title, children}: Props) {
       }}
     >
       {children}
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -75,6 +75,15 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  itemBadge: {
+    marginLeft: 'auto',
+  },
+  dangerIconWrapper: {
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+  },
+  dangerLabel: {
+    color: '#F87171',
+  },
   itemLabel: {
     fontSize: 16,
     fontWeight: '600',

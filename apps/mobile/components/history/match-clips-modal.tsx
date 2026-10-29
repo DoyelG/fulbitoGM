@@ -1,11 +1,13 @@
 import type { Match, VideoClip } from '@fulbito/types'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import { canDeleteVideoClip } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
 import { Alert, Modal, Pressable, View } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
 import { VideoClipCarousel } from '@/components/players/detail/video-clip-carousel'
 import { VideoClipPlaybackModal } from '@/components/video-clip-playback-modal'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useAppTheme } from '@/hooks/use-theme'
 import { styles } from './match-clips-modal.styles'
 
@@ -21,6 +23,7 @@ type Props = {
 
 export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAddVideo, onClose }: Props) {
   const { colors } = useAppTheme()
+  const { user } = useFirebaseAuth()
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
 
   const matchById = useMemo(() => (match ? new Map([[match.id, match]]) : new Map()), [match])
@@ -55,7 +58,8 @@ export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAd
                 onPress={onClose}
                 style={styles.closeBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Cerrar">
+                accessibilityLabel="Cerrar"
+              >
                 <MaterialIcons name="close" size={24} color={colors.text} />
               </Pressable>
             </View>
@@ -65,7 +69,8 @@ export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAd
                 onPress={onAddVideo}
                 style={[styles.addVideoBtn, { backgroundColor: colors.brand }]}
                 accessibilityRole="button"
-                accessibilityLabel="Subir clip">
+                accessibilityLabel="Subir clip"
+              >
                 <ThemedText style={styles.addVideoBtnText}>+ Subir clip</ThemedText>
               </Pressable>
             )}
@@ -73,17 +78,15 @@ export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAd
             {clips.length === 0 ? (
               <View style={styles.emptyWrap}>
                 <MaterialIcons name="movie" size={32} color={colors.muted} />
-                <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
-                  Sin clips para este partido
-                </ThemedText>
+                <ThemedText style={[styles.emptyText, { color: colors.muted }]}>Sin clips para este partido</ThemedText>
               </View>
             ) : (
               <VideoClipCarousel
                 clips={clips}
                 matchById={matchById}
-                isAdmin={isAdmin}
-                onOpen={clipId => {
-                  const clip = clips.find(c => c.id === clipId)
+                canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
+                onOpen={(clipId) => {
+                  const clip = clips.find((c) => c.id === clipId)
                   if (clip) setPlaybackUrl(clip.url)
                 }}
                 onDelete={handleDelete}

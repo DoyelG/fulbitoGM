@@ -6,7 +6,8 @@ import {
   getDoc,
   addDoc,
   updateDoc,
-  deleteDoc,
+  deleteField,
+  writeBatch,
   Timestamp,
 } from 'firebase/firestore'
 import type { Player } from '@fulbito/types'
@@ -31,6 +32,7 @@ export function docToPlayer(id: string, data: Record<string, unknown>): Player {
     photoUrl: (data['photoUrl'] as string | null) ?? undefined,
     inactive: (data['inactive'] as boolean | null) ?? false,
     goalkeeping: (data['goalkeeping'] as number | null) ?? undefined,
+    linkedUserId: (data['linkedUserId'] as string | null) ?? undefined,
     createdAt: toDate(data['createdAt']),
     updatedAt: toDate(data['updatedAt']),
   }
@@ -74,5 +76,13 @@ export async function updatePlayer(id: string, data: Partial<Omit<Player, 'id' |
 
 export async function deletePlayer(id: string): Promise<void> {
   const db = getFirestore()
-  await deleteDoc(doc(db, 'players', id))
+  const playerRef = doc(db, 'players', id)
+  const linkedUserId = (await getDoc(playerRef)).get('linkedUserId') as string | null | undefined
+
+  const batch = writeBatch(db)
+  batch.delete(playerRef)
+  if (linkedUserId) {
+    batch.update(doc(db, 'users', linkedUserId), { linkedPlayerId: deleteField(), updatedAt: Timestamp.now() })
+  }
+  await batch.commit()
 }

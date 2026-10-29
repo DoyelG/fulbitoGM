@@ -6,7 +6,8 @@ import CardTitle from './CardTitle'
 export type WidgetCardProps = {
   id: string
   title: string
-  emoji: string
+  emoji?: string
+  icon?: ReactNode
   tone: CardTone
   href?: string
   linkLabel?: string
@@ -18,6 +19,7 @@ export default function WidgetCard({
   id,
   title,
   emoji,
+  icon,
   tone,
   href,
   linkLabel,
@@ -32,7 +34,7 @@ export default function WidgetCard({
       className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
     >
       <header className="mb-4 flex items-center justify-between gap-3">
-        <CardTitle id={titleId} title={title} emoji={emoji} tone={tone} />
+        <CardTitle id={titleId} title={title} emoji={emoji} icon={icon} tone={tone} />
         {href && linkLabel && (
           <Link
             href={href}

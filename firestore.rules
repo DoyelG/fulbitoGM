@@ -9,10 +9,28 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && ((userRole() is list && 'ADMIN' in userRole()) || userRole() == 'ADMIN');
+    }
+
     // Public game data: anyone may read; only signed-in users may write.
     match /players/{id} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if isSignedIn() && (isAdmin() || !('linkedUserId' in request.resource.data));
+      allow update: if isSignedIn() && (
+        isAdmin()
+        || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['linkedUserId'])
+        || (resource.data.get('linkedUserId', null) == request.auth.uid && request.resource.data.linkedUserId == null)
+      );
+      allow delete: if isAdmin();
     }
 
     match /matches/{id} {
@@ -27,7 +45,13 @@ service cloud.firestore {
 
     match /videoClips/{id} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAdmin() || (
+        isSignedIn()
+        && resource.data.get('createdBy', null) == request.auth.uid
+        && request.resource.data.createdBy == request.auth.uid
+      );
+      allow delete: if isSignedIn() && (isAdmin() || resource.data.get('createdBy', null) == request.auth.uid);
     }
 
     match /addresses/{id} {
@@ -38,9 +62,66 @@ service cloud.firestore {
     // User profiles hold roles and emails — never public.
     // Each user can only access their own document.
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update, delete: if request.auth != null && request.auth.uid == userId;
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && (request.resource.data.role == ['USER'] || request.resource.data.role == 'USER')
+        && !('linkedPlayerId' in request.resource.data);
+      allow update: if isSignedIn() && (
+        isAdmin()
+        || (
+          request.auth.uid == userId
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'linkedPlayerId'])
+        )
+      );
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /roleRequests/{requestId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          'userId', 'requestedRole', 'playerId', 'newPlayerName', 'status',
+          'resolvedAt', 'resolvedBy', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.resolvedAt == null
+        && request.resource.data.resolvedBy == null
+        && request.resource.data.requestedRole in ['ADMIN', 'PLAYER']
+        && (
+          request.resource.data.requestedRole == 'ADMIN'
+            ? (request.resource.data.playerId == null && request.resource.data.newPlayerName == null)
+            : ((request.resource.data.playerId == null) != (request.resource.data.newPlayerName == null))
+        )
+        && (
+          request.resource.data.newPlayerName == null
+          || (request.resource.data.newPlayerName is string && request.resource.data.newPlayerName.size() <= 50)
+        );
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid && resource.data.status == 'pending';
+    }
+
+    // A notification is only valid as the mirror of the roleRequest with the same id, written in the same batch.
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn()
+        && request.resource.data.type == 'ROLE_REQUEST'
+        && request.resource.data.audience == 'ADMIN'
+        && request.resource.data.status == 'pending'
+        && notificationId == request.resource.data.data.requestId
+        && request.resource.data.data.userId == request.auth.uid
+        && request.resource.data.data.userEmail == request.auth.token.email
+        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.userId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.requestedRole
+          == request.resource.data.data.requestedRole
+        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.playerId
+          == request.resource.data.data.playerId;
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && (
+        resource == null
+        || (resource.data.data.userId == request.auth.uid && resource.data.status == 'pending')
+      );
     }
   }
 }

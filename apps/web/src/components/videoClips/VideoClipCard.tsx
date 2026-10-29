@@ -6,13 +6,13 @@ import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 type Props = {
   clip: VideoClip
   match: Match | undefined
-  isAdmin: boolean
+  canDelete: boolean
   onOpen: () => void
   onDelete: () => void
 }
 
-export default function VideoClipCard({ clip, match, isAdmin, onOpen, onDelete }: Props) {
-  const meta = VIDEO_CLIP_CATEGORIES.find(c => c.value === clip.category)
+export default function VideoClipCard({ clip, match, canDelete, onOpen, onDelete }: Props) {
+  const meta = VIDEO_CLIP_CATEGORIES.find((c) => c.value === clip.category)
   const label = clip.title || meta?.label || 'Clip'
 
   return (
@@ -41,14 +41,10 @@ export default function VideoClipCard({ clip, match, isAdmin, onOpen, onDelete }
         </div>
         <div className="px-2 pb-2 pt-1 text-center">
           <div className="text-xs font-medium truncate">{label}</div>
-          {match && (
-            <div className="text-[10px] text-gray-700">
-              {new Date(match.date).toLocaleDateString()}
-            </div>
-          )}
+          {match && <div className="text-[10px] text-gray-700">{new Date(match.date).toLocaleDateString()}</div>}
         </div>
       </button>
-      {isAdmin && (
+      {canDelete && (
         <button
           type="button"
           onClick={onDelete}

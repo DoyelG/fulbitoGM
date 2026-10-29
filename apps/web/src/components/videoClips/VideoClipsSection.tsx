@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Match, Player, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
+import { canDeleteVideoClip } from '@fulbito/utils'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
@@ -11,15 +13,16 @@ import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
 type Props = {
   player: Player
   matches: Match[]
-  isAdmin: boolean
+  canUpload: boolean
 }
 
-export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
-  const videoClips = useVideoClipStore(s => s.videoClips)
-  const videoClipsInit = useVideoClipStore(s => s.videoClipsInit)
-  const initLoad = useVideoClipStore(s => s.initLoad)
-  const addVideoClip = useVideoClipStore(s => s.addVideoClip)
-  const deleteVideoClip = useVideoClipStore(s => s.deleteVideoClip)
+export default function VideoClipsSection({ player, matches, canUpload }: Props) {
+  const { user, isAdmin } = useFirebaseAuth()
+  const videoClips = useVideoClipStore((s) => s.videoClips)
+  const videoClipsInit = useVideoClipStore((s) => s.videoClipsInit)
+  const initLoad = useVideoClipStore((s) => s.initLoad)
+  const addVideoClip = useVideoClipStore((s) => s.addVideoClip)
+  const deleteVideoClip = useVideoClipStore((s) => s.deleteVideoClip)
 
   const [filter, setFilter] = useState<VideoClipCategory | 'all'>('all')
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -31,16 +34,13 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
     if (videoClipsInit !== 'loaded') initLoad()
   }, [videoClipsInit, initLoad])
 
-  const playerClips = useMemo(
-    () => videoClips.filter(c => c.playerIds.includes(player.id)),
-    [videoClips, player.id],
-  )
+  const playerClips = useMemo(() => videoClips.filter((c) => c.playerIds.includes(player.id)), [videoClips, player.id])
   const filteredClips = useMemo(
-    () => (filter === 'all' ? playerClips : playerClips.filter(c => c.category === filter)),
+    () => (filter === 'all' ? playerClips : playerClips.filter((c) => c.category === filter)),
     [playerClips, filter],
   )
-  const matchById = useMemo(() => new Map(matches.map(m => [m.id, m])), [matches])
-  const playbackClip = playbackClipId ? (playerClips.find(c => c.id === playbackClipId) ?? null) : null
+  const matchById = useMemo(() => new Map(matches.map((m) => [m.id, m])), [matches])
+  const playbackClip = playbackClipId ? (playerClips.find((c) => c.id === playbackClipId) ?? null) : null
 
   const handleUpload = async (data: NewVideoClipData, file: File) => {
     setUploadError(null)
@@ -67,7 +67,7 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
     <div className="bg-white rounded-lg shadow">
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold">Clips</h2>
-        {isAdmin && (
+        {canUpload && (
           <button
             type="button"
             onClick={() => {
@@ -109,7 +109,7 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
           >
             Todos
           </button>
-          {VIDEO_CLIP_CATEGORIES.map(c => (
+          {VIDEO_CLIP_CATEGORIES.map((c) => (
             <button
               key={c.value}
               type="button"
@@ -137,7 +137,7 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
           <VideoClipCarousel
             clips={filteredClips}
             matchById={matchById}
-            isAdmin={isAdmin}
+            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
             onOpen={setPlaybackClipId}
             onDelete={handleDelete}
           />

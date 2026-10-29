@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { VideoClip, VideoClipCategory } from '@fulbito/types'
 import { getApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
 import {
   getFirestore, collection, doc, getDocs, setDoc, deleteDoc,
   query, orderBy, Timestamp, type DocumentData,
@@ -22,6 +23,7 @@ function docToVideoClip(id: string, data: DocumentData): VideoClip {
     category: data.category,
     title: data.title ?? undefined,
     url: data.url,
+    createdBy: data.createdBy ?? undefined,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
     updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(data.updatedAt),
   }
@@ -75,6 +77,7 @@ export const useVideoClipStore = create<VideoClipStore>()((set, get) => ({
         category: data.category,
         title: data.title ?? null,
         url,
+        createdBy: getAuth(getApp()).currentUser?.uid ?? null,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       })

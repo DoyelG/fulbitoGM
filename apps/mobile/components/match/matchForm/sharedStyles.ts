@@ -19,6 +19,9 @@ export const sheetStyles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(0,0,0,0.1)',
   },
+  headerEnd: {
+    justifyContent: 'flex-end',
+  },
   title: {
     fontSize: 15,
     fontWeight: '700',
