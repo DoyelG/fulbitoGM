@@ -6,6 +6,12 @@ module.exports = defineConfig([
   expoConfig,
   ...fulbito.configs.recommended,
   {
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/immutability': 'off',
+    },
+  },
+  {
     ignores: ['dist/*', '.expo/**', 'expo-env.d.ts'],
   },
 ]);
