@@ -12,6 +12,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { User } from '@/constants/auth';
+import { useAppTheme } from '@/hooks/use-theme'
 
 
 
@@ -39,6 +40,7 @@ export function DrawerMenu({
   onDeleteUser,
 }: DrawerMenuProps) {
   const insets = useSafeAreaInsets()
+  const { colors } = useAppTheme()
 
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1]),
@@ -106,9 +108,14 @@ export function DrawerMenu({
             <Text style={[styles.itemLabel, styles.dangerLabel]}>Cerrar sesión</Text>
           </Pressable>
 
-          <Pressable onPress={onDeleteUser} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
+          <Pressable
+            onPress={onDeleteUser}
+            accessibilityRole="button"
+            accessibilityLabel="Eliminar usuario"
+            accessibilityHint="Elimina tu cuenta de forma permanente"
+            style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
             <View style={styles.iconWrapper}>
-              <Ionicons name="trash-outline" size={20} color="#FF0000" />
+              <Ionicons name="trash-outline" size={20} color={colors.danger} />
             </View>
             <Text style={styles.itemLabel}>Eliminar Usuario</Text>
           </Pressable>

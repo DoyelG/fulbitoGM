@@ -12,7 +12,7 @@ import {
 import type { RoleRequest, RoleRequestType } from '@fulbito/types'
 import LinkPlayerFlow, { linkPlayerStepTitles, type LinkPlayerStep } from '@/components/LinkPlayerFlow'
 import Modal from '@/components/Modal'
-import { dismissPrompt } from '@/lib/dismissedPrompts'
+import { dismissPrompt } from '@/lib/dismissed-prompts'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import ProfileSection from './ProfileSection'
 import RoleRequestRow from './RoleRequestRow'

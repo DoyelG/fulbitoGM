@@ -10,9 +10,16 @@ import {
   runTransaction,
   Timestamp,
 } from 'firebase/firestore'
+import { normalizeRoles } from './roles'
 import type { Role, RoleRequest, RoleRequestStatus, RoleRequestType } from '@fulbito/types'
 
-export class RoleRequestError extends Error {}
+export class RoleRequestError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'RoleRequestError'
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
+}
 
 type RoleRequestDoc = {
   userId: string
@@ -98,13 +105,13 @@ async function saveRoleRequest(input: CreateRoleRequestInput): Promise<string> {
   }
   const wasRejectedRecently = sameRoleRequests.docs.some(
     (request) =>
-      request.get('status') === 'rejected' && Date.now() - request.get('resolvedAt').toMillis() < ONE_DAY_IN_MS,
+      request.get('status') === 'rejected' && Date.now() - (request.get('resolvedAt')?.toMillis() ?? 0) < ONE_DAY_IN_MS,
   )
   if (wasRejectedRecently) throw new RoleRequestError('Podés volver a pedir este rol después de 1 día')
 
   const userDocument = await getDoc(doc(db, 'users', userId))
   const storedUserRole = userDocument.get('role') as Role[] | Role | undefined
-  const currentRoles = Array.isArray(storedUserRole) ? storedUserRole : [storedUserRole]
+  const currentRoles = normalizeRoles(storedUserRole)
   if (currentRoles.includes(requestedRole)) throw new RoleRequestError('Ya tenés este rol')
   if (requestedRole === 'PLAYER' && userDocument.get('linkedPlayerId')) {
     throw new RoleRequestError('Ya estás vinculado a un jugador')
@@ -212,6 +219,10 @@ export async function resolveRoleRequest(
       throw new RoleRequestError('Este jugador ya está vinculado a otro usuario')
     }
 
+    if (action === 'accepted' && request.requestedRole === 'PLAYER' && userDocument?.get('linkedPlayerId')) {
+      throw new RoleRequestError('El usuario ya está vinculado a un jugador')
+    }
+
     const now = Timestamp.now()
     transaction.update(requestRef, { status: action, resolvedAt: now, resolvedBy: adminId, updatedAt: now })
     requestNotifications.docs.forEach((notificationDocument) => {
@@ -221,11 +232,7 @@ export async function resolveRoleRequest(
     if (action !== 'accepted' || !userDocument) return
 
     const storedUserRole = userDocument.get('role') as Role[] | Role | undefined
-    const currentRoles: Role[] = Array.isArray(storedUserRole)
-      ? storedUserRole
-      : storedUserRole
-        ? [storedUserRole]
-        : ['USER']
+    const currentRoles = normalizeRoles(storedUserRole)
     const updatedRoles = currentRoles.includes(request.requestedRole)
       ? currentRoles
       : [...currentRoles, request.requestedRole]

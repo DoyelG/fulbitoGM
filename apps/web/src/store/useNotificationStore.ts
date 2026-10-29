@@ -13,6 +13,7 @@ export const useNotificationStore = create<NotificationStore>()((set) => ({
   notifications: [],
   notificationsInit: 'idle',
   loadNotifications: async () => {
+    set({ notificationsInit: 'loading' })
     try {
       const data = await getPendingNotifications()
       set({ notifications: data, notificationsInit: 'loaded' })

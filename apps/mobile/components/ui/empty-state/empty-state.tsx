@@ -32,7 +32,7 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
       <View style={[styles.iconWrap, { backgroundColor: colors.brandSoft }]}>
         <Feather name={icon} size={36} color={colors.brand} accessible={false} />
       </View>
-      <ThemedText type="defaultSemiBold" style={styles.title}>
+      <ThemedText type="defaultSemiBold" style={styles.title} accessibilityRole="header">
         {title}
       </ThemedText>
       {description && <ThemedText style={[styles.description, { color: colors.muted }]}>{description}</ThemedText>}
@@ -43,7 +43,7 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
           accessibilityLabel={action.label}
           style={({ pressed }) => [styles.action, { backgroundColor: colors.brand }, pressed && { opacity: 0.9 }]}
         >
-          <ThemedText style={styles.actionText}>{action.label}</ThemedText>
+          <ThemedText style={[styles.actionText, { color: colors.onBrand }]}>{action.label}</ThemedText>
         </Pressable>
       )}
     </View>

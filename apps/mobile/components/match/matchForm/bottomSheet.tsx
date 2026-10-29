@@ -34,7 +34,7 @@ export function BottomSheet({
     <Modal transparent animationType="fade" visible>
       <Pressable style={sheetStyles.backdrop} onPress={onDismiss ?? onConfirm} />
       <View style={[sheetStyles.container, { backgroundColor: colors.surface }, containerStyle]}>
-        <View style={[sheetStyles.header, hideTitle && { justifyContent: 'flex-end' }]}>
+        <View style={[sheetStyles.header, hideTitle && sheetStyles.headerEnd]}>
           {!hideTitle && <Text style={[sheetStyles.title, { color: colors.text }]}>{title}</Text>}
           <TouchableOpacity onPress={onConfirm}>
             <Text style={[sheetStyles.close, { color: colors.brand }]}>{closeLabel}</Text>

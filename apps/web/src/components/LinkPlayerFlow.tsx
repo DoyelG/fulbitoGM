@@ -44,7 +44,7 @@ export default function LinkPlayerFlow({
   onFinish,
   onCancel,
 }: LinkPlayerFlowProps) {
-  const { players } = usePlayerStore()
+  const players = usePlayerStore((state) => state.players)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [newPlayerName, setNewPlayerName] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -134,7 +134,7 @@ export default function LinkPlayerFlow({
   }
 
   if (step === 'select') {
-    const [selectedPlayerId] = selectedIds
+    const selectedPlayerId = [...selectedIds][0]
     return (
       <div>
         <LinkPlayerStepDots current={2} total={3} />

@@ -49,9 +49,9 @@ type FlowButtonProps = {
 function FlowButton({ label, onPress, variant = 'primary', disabled = false }: FlowButtonProps) {
   const { colors } = useAppTheme()
   const buttonColors: Record<FlowButtonVariant, { background: string; text: string; border: string }> = {
-    primary: { background: colors.brand, text: '#fff', border: colors.brand },
+    primary: { background: colors.brand, text: colors.onBrand, border: colors.brand },
     secondary: { background: colors.brandSoft, text: colors.brand, border: colors.brandSoft },
-    danger: { background: colors.danger, text: '#fff', border: colors.danger },
+    danger: { background: colors.danger, text: colors.onBrand, border: colors.danger },
     dangerousSecondary: { background: colors.surface, text: colors.danger, border: colors.danger },
   }
   const { background, text, border } = buttonColors[variant]
@@ -172,7 +172,7 @@ export default function LinkPlayerFlow({
   }
 
   if (step === 'select') {
-    const [selectedPlayerId] = selectedIds
+    const selectedPlayerId = [...selectedIds][0]
     return (
       <View style={styles.container}>
         <LinkPlayerStepDots current={2} total={3} />
@@ -189,6 +189,7 @@ export default function LinkPlayerFlow({
           <Text
             onPress={() => goToStep('newPlayer')}
             accessibilityRole="link"
+            accessibilityLabel="Solicitar un jugador nuevo"
             style={[styles.link, { color: colors.brand }]}
           >
             Solicitar un jugador nuevo

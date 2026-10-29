@@ -34,7 +34,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actionText: {
-    color: '#fff',
     fontWeight: '700',
     fontSize: 16,
   },

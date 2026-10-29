@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { AppUser } from '@fulbito/firebase'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import { dismissPrompt, isPromptDismissed } from '@/lib/dismissedPrompts'
+import { dismissPrompt, isPromptDismissed } from '@/lib/dismissed-prompts'
 import LinkPlayerFlow, { linkPlayerStepTitles, type LinkPlayerStep } from './LinkPlayerFlow'
 import Modal from './Modal'
 

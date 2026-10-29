@@ -1,4 +1,5 @@
 import type { Role } from '@fulbito/types'
+import { normalizeRoles } from './roles'
 import {
   createUserWithEmailAndPassword,
   deleteUser as firebaseDeleteUser,
@@ -25,7 +26,7 @@ async function getUserProfile(uid: string): Promise<Pick<AppUser, 'role' | 'link
   const snap = await getDoc(doc(db, 'users', uid))
   const { role, linkedPlayerId } = snap.data() ?? {}
   return {
-    role: !role ? ['USER'] : Array.isArray(role) ? role : [role],
+    role: normalizeRoles(role),
     linkedPlayerId: linkedPlayerId ?? undefined,
   }
 }
@@ -77,6 +78,8 @@ export async function signOut(): Promise<void> {
   await firebaseSignOut(getAuth())
 }
 
+const RECENT_LOGIN_WINDOW_IN_MS = 5 * 60 * 1000
+
 export async function deleteUser(): Promise<void> {
   const auth = getAuth()
   const user = auth.currentUser
@@ -84,6 +87,8 @@ export async function deleteUser(): Promise<void> {
 
   if (user.providerData.some((p) => p.providerId === 'google.com')) {
     await reauthenticateWithPopup(user, new GoogleAuthProvider())
+  } else if (Date.now() - Date.parse(user.metadata.lastSignInTime ?? '') > RECENT_LOGIN_WINDOW_IN_MS) {
+    throw new Error('Volvé a iniciar sesión para eliminar tu cuenta')
   }
 
   const db = getFirestore()

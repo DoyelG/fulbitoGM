@@ -54,10 +54,8 @@ export function Navbar() {
           onPress: async () => {
             try {
               await deleteUser()
-              await signOut()
               router.replace('/login')
-            } catch (error) {
-              console.error('Error al eliminar el usuario:', error)
+            } catch {
               Alert.alert('Error', 'No se pudo eliminar la cuenta. Intenta nuevamente.')
             }
           },
@@ -65,7 +63,7 @@ export function Navbar() {
       ],
       { cancelable: true },
     )
-  }, [signOut, deleteUser])
+  }, [deleteUser])
 
   const [isOpen, setIsOpen] = useState(false)
   const progress = useSharedValue(0)

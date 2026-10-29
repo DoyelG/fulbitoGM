@@ -75,20 +75,48 @@ service cloud.firestore {
     match /roleRequests/{requestId} {
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          'userId', 'requestedRole', 'playerId', 'newPlayerName', 'status',
+          'resolvedAt', 'resolvedBy', 'createdAt', 'updatedAt'
+        ])
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == 'pending'
-        && request.resource.data.requestedRole in ['ADMIN', 'PLAYER'];
+        && request.resource.data.resolvedAt == null
+        && request.resource.data.resolvedBy == null
+        && request.resource.data.requestedRole in ['ADMIN', 'PLAYER']
+        && (
+          request.resource.data.requestedRole == 'ADMIN'
+            ? (request.resource.data.playerId == null && request.resource.data.newPlayerName == null)
+            : ((request.resource.data.playerId == null) != (request.resource.data.newPlayerName == null))
+        )
+        && (
+          request.resource.data.newPlayerName == null
+          || (request.resource.data.newPlayerName is string && request.resource.data.newPlayerName.size() <= 50)
+        );
       allow update: if isAdmin();
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid && resource.data.status == 'pending';
     }
 
+    // A notification is only valid as the mirror of the roleRequest with the same id, written in the same batch.
     match /notifications/{notificationId} {
       allow read: if isAdmin();
       allow create: if isSignedIn()
+        && request.resource.data.type == 'ROLE_REQUEST'
+        && request.resource.data.audience == 'ADMIN'
         && request.resource.data.status == 'pending'
-        && request.resource.data.data.userId == request.auth.uid;
+        && notificationId == request.resource.data.data.requestId
+        && request.resource.data.data.userId == request.auth.uid
+        && request.resource.data.data.userEmail == request.auth.token.email
+        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.userId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.requestedRole
+          == request.resource.data.data.requestedRole
+        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.playerId
+          == request.resource.data.data.playerId;
       allow update: if isAdmin();
-      allow delete: if isSignedIn() && resource.data.data.userId == request.auth.uid && resource.data.status == 'pending';
+      allow delete: if isSignedIn() && (
+        resource == null
+        || (resource.data.data.userId == request.auth.uid && resource.data.status == 'pending')
+      );
     }
   }
 }

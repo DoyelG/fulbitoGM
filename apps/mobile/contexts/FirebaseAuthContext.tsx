@@ -18,7 +18,7 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<void>
   register: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
-  deleteUser: (password?: string) => Promise<void>
+  deleteUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
