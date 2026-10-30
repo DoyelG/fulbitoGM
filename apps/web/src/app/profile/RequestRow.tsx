@@ -1,32 +1,30 @@
-import type { RoleRequest, RoleRequestStatus } from '@fulbito/types'
+import type { TournamentPlayerRequestStatus } from '@fulbito/types'
 import Button from '@/components/Button'
 
-type RoleRequestRowProps = {
+type RequestRowProps = {
   title: string
   description: string
-  request: RoleRequest | null
+  status?: TournamentPlayerRequestStatus
   detail?: string
   isSending: boolean
   onRequest: () => void
   onCancel: () => void
 }
 
-const statusBadges: Record<RoleRequestStatus, { label: string; className: string }> = {
+const statusBadges: Record<TournamentPlayerRequestStatus, { label: string; className: string }> = {
   pending: { label: 'Pendiente de aprobación', className: 'bg-amber-100 text-amber-800' },
   rejected: { label: 'Solicitud rechazada', className: 'bg-red-100 text-red-800' },
-  accepted: { label: 'Solicitud aprobada', className: 'bg-green-100 text-green-800' },
 }
 
-export default function RoleRequestRow({
+export default function RequestRow({
   title,
   description,
-  request,
+  status,
   detail,
   isSending,
   onRequest,
   onCancel,
-}: RoleRequestRowProps) {
-  const status = request?.status
+}: RequestRowProps) {
   const badge = status && statusBadges[status]
 
   return (
@@ -39,17 +37,13 @@ export default function RoleRequestRow({
             {badge.label}
           </span>
         )}
-        {detail && status !== 'accepted' && <p className="mt-1 text-sm text-gray-700">{detail}</p>}
-        {status === 'accepted' && (
-          <p className="mt-1 text-sm text-gray-700">Cerrá sesión y volvé a entrar para ver el cambio.</p>
-        )}
+        {detail && <p className="mt-1 text-sm text-gray-700">{detail}</p>}
       </div>
-      {status === 'pending' && (
+      {status === 'pending' ? (
         <Button type="button" variant="dangerousSecondary" disabled={isSending} onClick={onCancel}>
           Cancelar solicitud
         </Button>
-      )}
-      {status !== 'pending' && status !== 'accepted' && (
+      ) : (
         <Button type="button" disabled={isSending} onClick={onRequest}>
           {status === 'rejected' ? 'Solicitar de nuevo' : 'Solicitar'}
         </Button>

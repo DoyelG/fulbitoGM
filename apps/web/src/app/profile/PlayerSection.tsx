@@ -54,7 +54,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
     setIsSaving(true)
     setErrorMessage(null)
     try {
-      const photoUrl = photoFile ? await uploadPlayerPhoto(photoFile, player.id) : undefined
+      const photoUrl = photoFile ? await uploadPlayerPhoto(photoFile, player.tournamentId, player.id) : undefined
       await updatePlayer(player.id, { name: trimmedName, position, ...(photoUrl ? { photoUrl } : {}) })
       setPhotoFile(null)
       setIsSaved(true)

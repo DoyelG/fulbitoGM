@@ -5,6 +5,7 @@ import type { Match, Player, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 import { canDeleteVideoClip } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
@@ -17,7 +18,8 @@ type Props = {
 }
 
 export default function VideoClipsSection({ player, matches, canUpload }: Props) {
-  const { user, isAdmin } = useFirebaseAuth()
+  const { user } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
   const videoClips = useVideoClipStore((s) => s.videoClips)
   const videoClipsInit = useVideoClipStore((s) => s.videoClipsInit)
   const initLoad = useVideoClipStore((s) => s.initLoad)
@@ -137,7 +139,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
           <VideoClipCarousel
             clips={filteredClips}
             matchById={matchById}
-            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
+            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, canManage)}
             onOpen={setPlaybackClipId}
             onDelete={handleDelete}
           />

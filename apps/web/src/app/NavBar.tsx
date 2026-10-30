@@ -4,6 +4,9 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
 import NavAuth from "./shared/NavAuth"
 import ActiveTournamentLink from "./shared/ActiveTournamentLink"
 import Link from "next/link"
+import Image from "next/image"
+import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext"
+import { selectActiveTournament, useTournamentStore } from "@/store/useTournamentStore"
 
 const navigation = [
   {
@@ -40,10 +43,37 @@ const navigation = [
   },
 ]
 
+function BrandLogo() {
+  return (
+    <Image
+      src="/logo-ball.png"
+      alt=""
+      width={36}
+      height={36}
+      priority
+      unoptimized
+      className="hidden h-9 w-9 md:block"
+    />
+  )
+}
+
 export default function NavBar() {
   const [menuChecked, setMenuChecked] = useState(false)
   const toggleNavBar = () => setMenuChecked((prev) => !prev)
   const closeNavBar = () => setMenuChecked(false)
+  const { user } = useFirebaseAuth()
+  const hasActiveTournament = useTournamentStore(selectActiveTournament) !== null
+
+  if (!user) {
+    return (
+      <div className="flex items-center w-full">
+        <h1 className="flex items-center gap-2 px-3 py-2 text-2xl font-bold whitespace-nowrap">
+          <BrandLogo />
+          FulbitoApp
+        </h1>
+      </div>
+    )
+  }
 
   return (
     <div className="relative flex items-center justify-between w-full">
@@ -66,7 +96,10 @@ export default function NavBar() {
         href="/"
         className="absolute right-0 md:static md:right-auto px-3 py-2 rounded"
       >
-        <h1 className="text-2xl font-bold whitespace-nowrap">FulbitoApp</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-bold whitespace-nowrap">
+          <BrandLogo />
+          FulbitoApp
+        </h1>
       </Link>
 
       <nav
@@ -75,21 +108,25 @@ export default function NavBar() {
         } md:static md:h-auto md:w-auto md:flex-row md:translate-x-0 md:bg-transparent md:text-white md:p-0 md:items-center`}
       >
         <ActiveTournamentLink onNavigate={closeNavBar} />
-        <div className="hidden md:block w-px h-6 bg-white/30" aria-hidden />
-        {navigation.map((item) => (
-          <Link
-            key={item.location}
-            href={item.location}
-            onClick={closeNavBar}
-            className={`group relative overflow-hidden px-4 md:px-1 py-2 rounded lg:px-3 ${item.style ?? ""}`}
-          >
-            <span
-              className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-100 transition-opacity`}
-              aria-hidden
-            />
-            <span className="relative">{item.name}</span>
-          </Link>
-        ))}
+        {hasActiveTournament && (
+          <>
+            <div className="hidden md:block w-px h-6 bg-white/30" aria-hidden />
+            {navigation.map((item) => (
+              <Link
+                key={item.location}
+                href={item.location}
+                onClick={closeNavBar}
+                className={`group relative overflow-hidden px-4 md:px-1 py-2 rounded lg:px-3 ${item.style ?? ""}`}
+              >
+                <span
+                  className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-100 transition-opacity`}
+                  aria-hidden
+                />
+                <span className="relative">{item.name}</span>
+              </Link>
+            ))}
+          </>
+        )}
         <div className="hidden md:block w-px h-6 bg-white/30" />
 
         <div className="mt-auto">

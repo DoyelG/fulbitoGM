@@ -6,6 +6,7 @@ import {
   deleteTournamentPhoto,
   getMyTournaments,
   leaveTournament,
+  setMemberPlayer,
   updateTournament,
   uploadTournamentPhoto,
 } from '@fulbito/firebase'
@@ -28,6 +29,7 @@ type TournamentStore = {
   editTournament: (tournamentId: string, data: TournamentInput) => Promise<void>
   removeTournament: (tournamentId: string) => Promise<void>
   exitTournament: (tournamentId: string) => Promise<void>
+  assignMyPlayer: (tournamentId: string, playerId: string | null) => Promise<void>
   setActiveTournament: (tournamentId: string) => void
   clearTournaments: () => void
 }
@@ -111,6 +113,12 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
     await leaveTournament(tournamentId, uid)
     await get().loadMyTournaments(uid)
   },
+  assignMyPlayer: async (tournamentId, playerId) => {
+    const uid = get().myTournamentsUid
+    if (!uid) throw new Error('Not signed in')
+    await setMemberPlayer(tournamentId, uid, playerId)
+    await get().loadMyTournaments(uid)
+  },
   setActiveTournament: (tournamentId) => {
     const uid = get().myTournamentsUid
     if (uid) storeActiveTournament(uid, tournamentId)
@@ -123,4 +131,8 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
 
 export function selectActiveTournament(state: TournamentStore): MyTournament | null {
   return state.myTournaments.find(({ tournament }) => tournament.id === state.activeTournamentId) ?? null
+}
+
+export function selectMyPlayerId(state: TournamentStore): string | null {
+  return selectActiveTournament(state)?.membership.playerId ?? null
 }

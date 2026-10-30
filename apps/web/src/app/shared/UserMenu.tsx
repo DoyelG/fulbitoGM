@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FiBell, FiLogOut, FiUser } from 'react-icons/fi'
+import { FiLogOut, FiUser } from 'react-icons/fi'
 import PlayerAvatar from '@/components/home/PlayerAvatar'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import { useNotificationStore } from '@/store/useNotificationStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
+import { selectMyPlayerId, useTournamentStore } from '@/store/useTournamentStore'
 
 type UserMenuProps = {
   closeNavBar?: () => void
@@ -18,8 +18,8 @@ const itemClassName =
 
 export default function UserMenu({ closeNavBar }: UserMenuProps) {
   const { user, signOut } = useFirebaseAuth()
-  const { players } = usePlayerStore()
-  const pendingCount = useNotificationStore((state) => state.notifications.length)
+  const myPlayerId = useTournamentStore(selectMyPlayerId)
+  const linkedPlayer = usePlayerStore((state) => state.players.find((player) => player.id === myPlayerId))
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -42,7 +42,6 @@ export default function UserMenu({ closeNavBar }: UserMenuProps) {
 
   if (!user) return null
 
-  const linkedPlayer = players.find((player) => player.id === user.linkedPlayerId)
   const displayName = linkedPlayer?.name ?? user.email.split('@')[0]
 
   const closeAll = () => {
@@ -60,21 +59,13 @@ export default function UserMenu({ closeNavBar }: UserMenuProps) {
     <div ref={containerRef} className="relative">
       <button
         type="button"
-        aria-label={pendingCount > 0 ? `Menú de usuario, ${pendingCount} notificaciones pendientes` : 'Menú de usuario'}
+        aria-label="Menú de usuario"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
         className="relative block rounded-full ring-2 ring-white/40 transition hover:ring-white/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <PlayerAvatar name={displayName} photoUrl={linkedPlayer?.photoUrl} size="base" onDark />
-        {pendingCount > 0 && (
-          <span aria-hidden className="absolute -right-1 -top-1 flex h-5 min-w-5">
-            <span className="absolute inset-0 animate-ping rounded-full bg-accent opacity-75" />
-            <span className="relative flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold text-white ring-2 ring-night">
-              {pendingCount}
-            </span>
-          </span>
-        )}
       </button>
       {isOpen && (
         <div
@@ -92,15 +83,6 @@ export default function UserMenu({ closeNavBar }: UserMenuProps) {
           <Link href="/profile" role="menuitem" onClick={closeAll} className={itemClassName}>
             <FiUser aria-hidden className="text-brand" />
             Ver perfil
-          </Link>
-          <Link href="/notifications" role="menuitem" onClick={closeAll} className={itemClassName}>
-            <FiBell aria-hidden className="text-brand" />
-            Notificaciones
-            {pendingCount > 0 && (
-              <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
-                {pendingCount}
-              </span>
-            )}
           </Link>
           <div className="my-1 h-px bg-gray-200" />
           <button

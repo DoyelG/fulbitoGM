@@ -22,6 +22,7 @@ type Props = {
   onEdit: (item: MyTournament) => void
   onDelete: (item: MyTournament) => void
   onLeave: (item: MyTournament) => void
+  onLinkPlayer: (item: MyTournament) => void
   nextMatch?: Pick<Match, 'date' | 'hasTime'> | null
   playerName?: string | null
 }
@@ -67,6 +68,7 @@ export default function TournamentCard({
   onEdit,
   onDelete,
   onLeave,
+  onLinkPlayer,
   nextMatch = null,
   playerName = null,
 }: Props) {
@@ -109,6 +111,7 @@ export default function TournamentCard({
           </div>
           {tournament.description && <p className="mt-1 text-sm text-gray-700">{tournament.description}</p>}
           <TournamentCardStats
+            tournamentId={tournament.id}
             members={tournament.memberUids.length}
             playerId={membership.playerId}
             playerName={playerName}
@@ -116,6 +119,7 @@ export default function TournamentCard({
             onNavigate={() => {
               if (!active) onActivate(tournament.id)
             }}
+            onLinkPlayer={() => onLinkPlayer(item)}
           />
         </div>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-0.5 border-t border-gray-100 px-2 py-1 sm:flex-col sm:self-center sm:border-0 sm:p-0">

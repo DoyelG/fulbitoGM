@@ -6,8 +6,9 @@ import {
   getDoc,
   addDoc,
   updateDoc,
-  deleteField,
-  writeBatch,
+  deleteDoc,
+  query,
+  where,
   Timestamp,
 } from 'firebase/firestore'
 import type { Player } from '@fulbito/types'
@@ -22,9 +23,14 @@ function toDate(value: unknown): Date {
   return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed
 }
 
+export const PLAYERS_COLLECTION = 'players'
+
+export type PlayerInput = Omit<Player, 'id' | 'tournamentId' | 'createdAt' | 'updatedAt'>
+
 export function docToPlayer(id: string, data: Record<string, unknown>): Player {
   return {
     id,
+    tournamentId: typeof data['tournamentId'] === 'string' ? data['tournamentId'] : '',
     name: typeof data['name'] === 'string' ? data['name'] : '',
     position: typeof data['position'] === 'string' ? data['position'] : '',
     skill: (data['skill'] as number | null) ?? null,
@@ -38,9 +44,12 @@ export function docToPlayer(id: string, data: Record<string, unknown>): Player {
   }
 }
 
-export async function getPlayers(): Promise<Player[]> {
-  const db = getFirestore()
-  const snap = await getDocs(collection(db, 'players'))
+export function tournamentPlayersQuery(tournamentId: string) {
+  return query(collection(getFirestore(), PLAYERS_COLLECTION), where('tournamentId', '==', tournamentId))
+}
+
+export async function getPlayers(tournamentId: string): Promise<Player[]> {
+  const snap = await getDocs(tournamentPlayersQuery(tournamentId))
   return snap.docs
     .map((d) => docToPlayer(d.id, d.data()))
     .sort((a, b) => (b.skill ?? -Infinity) - (a.skill ?? -Infinity))
@@ -48,14 +57,21 @@ export async function getPlayers(): Promise<Player[]> {
 
 export async function getPlayer(id: string): Promise<Player | null> {
   const db = getFirestore()
-  const snap = await getDoc(doc(db, 'players', id))
+  const snap = await getDoc(doc(db, PLAYERS_COLLECTION, id))
   return snap.exists() ? docToPlayer(snap.id, snap.data()) : null
 }
 
-export async function createPlayer(data: Omit<Player, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export async function playerNameExists(tournamentId: string, name: string): Promise<boolean> {
+  const snap = await getDocs(tournamentPlayersQuery(tournamentId))
+  const normalizedName = name.trim().toLowerCase()
+  return snap.docs.some((playerDoc) => playerDoc.get('name')?.trim().toLowerCase() === normalizedName)
+}
+
+export async function createPlayer(tournamentId: string, data: PlayerInput): Promise<string> {
   if (!data.name.trim()) throw new Error('Player name is required')
   const db = getFirestore()
-  const ref = await addDoc(collection(db, 'players'), {
+  const ref = await addDoc(collection(db, PLAYERS_COLLECTION), {
+    tournamentId,
     name: data.name,
     position: data.position,
     skill: data.skill ?? null,
@@ -69,20 +85,11 @@ export async function createPlayer(data: Omit<Player, 'id' | 'createdAt' | 'upda
   return ref.id
 }
 
-export async function updatePlayer(id: string, data: Partial<Omit<Player, 'id' | 'createdAt'>>): Promise<void> {
+export async function updatePlayer(id: string, data: Partial<PlayerInput>): Promise<void> {
   const db = getFirestore()
-  await updateDoc(doc(db, 'players', id), { ...data, updatedAt: Timestamp.now() })
+  await updateDoc(doc(db, PLAYERS_COLLECTION, id), { ...data, updatedAt: Timestamp.now() })
 }
 
 export async function deletePlayer(id: string): Promise<void> {
-  const db = getFirestore()
-  const playerRef = doc(db, 'players', id)
-  const linkedUserId = (await getDoc(playerRef)).get('linkedUserId') as string | null | undefined
-
-  const batch = writeBatch(db)
-  batch.delete(playerRef)
-  if (linkedUserId) {
-    batch.update(doc(db, 'users', linkedUserId), { linkedPlayerId: deleteField(), updatedAt: Timestamp.now() })
-  }
-  await batch.commit()
+  await deleteDoc(doc(getFirestore(), PLAYERS_COLLECTION, id))
 }

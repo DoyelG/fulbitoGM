@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { onlyFinalMatches } from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
@@ -10,7 +10,6 @@ import { usePlayerStore } from '@/store/usePlayerStore'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
 import PlayersTable, { type PlayerRow } from './PlayersTable'
-import LinkPlayerAlert from '@/components/LinkPlayerAlert'
 import Modal from '@/components/Modal'
 import Chevron from '../shared/Icons/Chevron'
 
@@ -21,7 +20,7 @@ export default function PlayersClient({
   players: Player[]
   matches: Match[]
 }) {
-  const { isAdmin } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
   const [showModal, setShowModal] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [showInactiveTable, setShowInactiveTable] = useState(false)
@@ -95,10 +94,9 @@ export default function PlayersClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <LinkPlayerAlert />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Jugadores</h1>
-        {isAdmin && (
+        {canManage && (
           <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">
             Agregar jugador
           </Link>
@@ -117,14 +115,14 @@ export default function PlayersClient({
       </div>
       <PlayersTable
         players={activePlayers}
-        isAdmin={isAdmin}
+        canManage={canManage}
         globalFilter={globalFilter}
         setGlobalFilter={setGlobalFilter}
         onDelete={handleDelete}
         onToggleActive={handleToggleActive}
         emptyMessage="No hay jugadores activos aún."
       />
-      {isAdmin && (
+      {canManage && (
         <div className="bg-white rounded-lg border border-gray-200">
           <button
             type="button"
@@ -139,7 +137,7 @@ export default function PlayersClient({
             <div className="px-4 pb-4 pt-1 border-t border-gray-100">
               <PlayersTable
                 players={inactivePlayers}
-                isAdmin={isAdmin}
+                canManage={canManage}
                 onDelete={handleDelete}
                 onToggleActive={handleToggleActive}
                 globalFilter={globalFilter}

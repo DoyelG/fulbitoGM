@@ -12,7 +12,7 @@ export type EmptyStateProps = {
 }
 
 const linkClassName =
-  'inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium ' +
+  'mt-3 inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium ' +
   'text-white shadow-sm hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2'
 
 export default function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
@@ -27,7 +27,7 @@ export default function EmptyState({ icon: Icon, title, description, action }: E
         </Link>
       )}
       {action && 'onClick' in action && (
-        <Button type="button" onClick={action.onClick}>
+        <Button type="button" className="mt-3" onClick={action.onClick}>
           {action.label}
         </Button>
       )}

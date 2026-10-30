@@ -11,7 +11,7 @@ import { onlyFinalMatches, buildMatchSchedule } from '@fulbito/utils'
 import HourField from '@/components/HourField'
 import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
 import type { MatchInput, MatchLocation } from '@fulbito/types'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import AddressPicker from '@/components/AddressPicker'
 import Chevron from '../shared/Icons/Chevron'
 import PlayerSelector from '@/components/PlayerSelector'
@@ -22,7 +22,7 @@ const MAX_GOALKEEPERS = 2
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
   const router = useRouter()
-  const { isAdmin } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()
   const {
     matches: allMatches,
@@ -448,7 +448,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             </div>
           </div>
 
-          {isAdmin && (
+          {canManage && (
             <div className="mt-6 border-t pt-4">
               <h4 className="font-semibold mb-3">Crear partido</h4>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[auto_auto_minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]">

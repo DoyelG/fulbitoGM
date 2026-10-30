@@ -196,21 +196,3 @@ export async function getTournamentMembers(tournamentId: string): Promise<Tourna
     .map((member) => docToTournamentMember(tournamentId, member.id, member.data()))
     .sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role] || a.email.localeCompare(b.email))
 }
-
-export async function setMemberRole(
-  tournamentId: string,
-  uid: string,
-  role: Exclude<TournamentRole, 'OWNER'>,
-): Promise<void> {
-  const db = getFirestore()
-  await runTransaction(db, async (transaction) => {
-    const snap = await transaction.get(memberRef(tournamentId, uid))
-    if (!snap.exists()) throw new Error('Member not found')
-    if (snap.get('role') === 'OWNER') throw new Error('The owner role cannot be changed')
-    if (role === 'MEMBER' && !snap.get('playerId')) {
-      throw new Error('Link this admin to a player before making them a member')
-    }
-
-    transaction.update(snap.ref, { role, updatedAt: Timestamp.now() })
-  })
-}

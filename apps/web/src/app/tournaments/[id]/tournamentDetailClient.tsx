@@ -14,8 +14,6 @@ import {
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
 import { useTournamentDetailStore } from '@/store/useTournamentDetailStore'
-import { usePlayerStore } from '@/store/usePlayerStore'
-import { useMatchStore } from '@/store/useMatchStore'
 import EmptyState from '@/components/EmptyState'
 import Modal from '@/components/Modal'
 import TournamentForm from '@/components/tournaments/TournamentForm'
@@ -26,6 +24,8 @@ import LeadersPanel from '@/components/tournaments/detail/LeadersPanel'
 import RecentMatchesPanel from '@/components/tournaments/detail/RecentMatchesPanel'
 import OrganizersPanel from '@/components/tournaments/detail/OrganizersPanel'
 import CommentsPanel from '@/components/tournaments/detail/CommentsPanel'
+import PlayerRequestsPanel from '@/components/tournaments/detail/PlayerRequestsPanel'
+import InvitationsPanel from '@/components/tournaments/detail/InvitationsPanel'
 
 const RECENT_MATCHES_LIMIT = 5
 
@@ -50,8 +50,6 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
   const setActiveTournament = useTournamentStore((state) => state.setActiveTournament)
   const editTournament = useTournamentStore((state) => state.editTournament)
   const detail = useTournamentDetailStore()
-  const { players, initLoad: initPlayers } = usePlayerStore()
-  const { matches, initLoad: initMatches } = useMatchStore()
   const [editing, setEditing] = useState(false)
 
   useEffect(() => {
@@ -65,10 +63,19 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
   useEffect(() => {
     if (!isMember) return
     loadDetail(tournamentId)
-    initPlayers()
-    initMatches()
-  }, [isMember, tournamentId, loadDetail, initPlayers, initMatches])
+  }, [isMember, tournamentId, loadDetail])
 
+  const isModerator = item !== null && item.membership.role !== 'MEMBER'
+  const isDetailLoaded = detail.tournamentId === tournamentId && detail.status === 'loaded'
+  const { loadPlayerRequests, loadInvitations } = detail
+
+  useEffect(() => {
+    if (!isModerator || !isDetailLoaded) return
+    loadPlayerRequests(tournamentId).catch(() => undefined)
+    loadInvitations(tournamentId).catch(() => undefined)
+  }, [isModerator, isDetailLoaded, tournamentId, loadPlayerRequests, loadInvitations])
+
+  const { players, matches } = detail
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players])
   const playerNameById = useMemo(() => new Map(players.map((player) => [player.id, player.name])), [players])
   const finalMatches = useMemo(() => onlyFinalMatches(matches), [matches])
@@ -80,6 +87,10 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
     }
     return photos
   }, [detail.members, playerById])
+  const invitablePlayers = useMemo(() => {
+    const linkedPlayerIds = new Set(detail.members.map((member) => member.playerId))
+    return players.filter((player) => !player.inactive && !linkedPlayerIds.has(player.id))
+  }, [detail.members, players])
   const statRows = useMemo(() => computePlayerStatRows(players, finalMatches), [players, finalMatches])
   const today = toLocalDay(new Date())
   const nextMatch = useMemo(() => pickNextMatch(matches, today), [matches, today])
@@ -126,13 +137,16 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
   }
 
   const { tournament, membership } = item
-  const canModerate = membership.role === 'OWNER' || membership.role === 'ADMIN'
   const authorName = (membership.playerId && playerNameById.get(membership.playerId)) || user.email.split('@')[0]
-  const detailReady = detail.tournamentId === tournamentId && detail.status === 'loaded'
 
   const handleEdit = async (data: TournamentInput) => {
     await editTournament(tournament.id, data)
     setEditing(false)
+  }
+
+  const handleResolvePlayerRequest = async (uid: string, action: 'accepted' | 'rejected') => {
+    await detail.resolvePlayerRequest(uid, action, user.uid)
+    if (uid === user.uid && action === 'accepted') await loadMyTournaments(user.uid)
   }
 
   return (
@@ -173,24 +187,41 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
             <RecentMatchesPanel matches={recentMatches} />
           </div>
           <div className="flex flex-col gap-5 lg:min-h-[40rem] lg:[contain:size]">
-            {detailReady && (
+            {isDetailLoaded && isModerator && (
+              <PlayerRequestsPanel
+                requests={detail.playerRequests}
+                playerNameById={playerNameById}
+                onResolve={handleResolvePlayerRequest}
+              />
+            )}
+            {isDetailLoaded && isModerator && (
+              <InvitationsPanel
+                invitations={detail.invitations}
+                availablePlayers={invitablePlayers}
+                playerNameById={playerNameById}
+                onInvite={(input) => detail.invite(input, user.uid)}
+                onRevoke={detail.revokeInvitation}
+              />
+            )}
+            {isDetailLoaded && (
               <OrganizersPanel
                 members={detail.members}
                 currentUid={user.uid}
                 playerNameById={playerNameById}
                 photoByUid={photoByUid}
+                membersHref={`/tournaments/${tournament.id}/members`}
               />
             )}
-            {detailReady && (
+            {isDetailLoaded && (
               <CommentsPanel
                 comments={detail.comments}
                 photoByUid={photoByUid}
-                canModerate={canModerate}
+                canModerate={isModerator}
                 onSubmit={(text) => detail.addComment(text, { uid: user.uid, name: authorName })}
                 onDelete={detail.removeComment}
               />
             )}
-            {!detailReady && detail.status !== 'error' && (
+            {!isDetailLoaded && detail.status !== 'error' && (
               <div className="h-64 rounded-xl bg-gray-200 animate-pulse" aria-hidden />
             )}
           </div>

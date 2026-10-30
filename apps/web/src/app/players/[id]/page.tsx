@@ -16,10 +16,12 @@ import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
 import { getMvpCountsByPlayerId, getGoalkeeping } from "@fulbito/utils";
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import { selectMyPlayerId, useTournamentStore } from '@/store/useTournamentStore'
 
 export default function PlayerDetailPage() {
-  const { user, isAdmin } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
+  const myPlayerId = useTournamentStore(selectMyPlayerId)
   const { id } = useParams();
   const router = useRouter();
   const updatePlayer = usePlayerStore((state) => state.updatePlayer);
@@ -28,7 +30,7 @@ export default function PlayerDetailPage() {
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
   const fileRef = useRef<HTMLInputElement | null>(null)
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
-    if (!isAdmin) return
+    if (!canManage) return
     const f = event.target.files?.[0]
     if (!f) return
     setForm(prev => ({ ...prev, photo: f, photoUrl: URL.createObjectURL(f) }))
@@ -221,7 +223,7 @@ export default function PlayerDetailPage() {
 
     let uploadedUrl: string | undefined
     if (form.photo) {
-      uploadedUrl = await uploadPlayerPhoto(form.photo, player.id)
+      uploadedUrl = await uploadPlayerPhoto(form.photo, player.tournamentId, player.id)
     }
     const photoChanged = form.photoUrl !== originalForm.photoUrl
 
@@ -299,7 +301,7 @@ export default function PlayerDetailPage() {
           </button>
           {!editMode ? (
             <>
-              {isAdmin && (
+              {canManage && (
                 <>
                   <Link
                     href={`/players/edit/${player.id}`}
@@ -317,7 +319,7 @@ export default function PlayerDetailPage() {
               )}
             </>
           ) : (
-            isAdmin ? (
+            canManage ? (
               <button
                 className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
                 onClick={handleCancel}
@@ -340,7 +342,7 @@ export default function PlayerDetailPage() {
               editMode={editMode}
               deletePhoto={deletePhoto}
             />
-            {editMode && isAdmin && (
+            {editMode && canManage && (
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
             )}
           </div>
@@ -354,7 +356,7 @@ export default function PlayerDetailPage() {
           />
       </div>
 
-      {editMode && isAdmin && (
+      {editMode && canManage && (
         <form
           onSubmit={handleSave}
           className="bg-white rounded-lg shadow p-4 mb-6 grid sm:grid-cols-3 gap-4 items-end"
@@ -606,7 +608,7 @@ export default function PlayerDetailPage() {
         <VideoClipsSection
           player={player}
           matches={matches}
-          canUpload={isAdmin || user?.linkedPlayerId === player.id}
+          canUpload={canManage || myPlayerId === player.id}
         />
       </div>
     </div>

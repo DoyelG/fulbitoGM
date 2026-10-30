@@ -7,23 +7,9 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Player photos: anyone may view; only signed-in users may upload.
-    match /players/{fileName} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    // Video clips: anyone may view; signed-in users may upload new videos (no overwrite).
-    // Only the clip's author or an admin may delete the file.
-    match /videoClips/{fileName} {
-      allow read: if true;
-      allow create: if request.auth != null
-        && request.resource.contentType.matches('video/.*')
-        && request.resource.size < 200 * 1024 * 1024;
-      allow delete: if request.auth != null && (
-        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role.hasAny(['ADMIN'])
-        || firestore.get(/databases/(default)/documents/videoClips/$(fileName)).data.get('createdBy', null) == request.auth.uid
-      );
+    function isSuperAdmin() {
+      return request.auth != null
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role.hasAny(['ADMIN']);
     }
 
     function tournamentMember(tournamentId) {
@@ -39,11 +25,55 @@ service firebase.storage {
       return isTournamentMember(tournamentId) && tournamentMember(tournamentId).data.role in ['OWNER', 'ADMIN'];
     }
 
+    function canManageTournament(tournamentId) {
+      return isTournamentAdmin(tournamentId) || isSuperAdmin();
+    }
+
+    function isImageUnder(megabytes) {
+      return request.resource.contentType.matches('image/.*') && request.resource.size <= megabytes * 1024 * 1024;
+    }
+
+    function isVideoUnder(megabytes) {
+      return request.resource.contentType.matches('video/.*') && request.resource.size < megabytes * 1024 * 1024;
+    }
+
+    // Files uploaded before tournaments existed. Their download URLs keep working; nothing new is written here.
+    match /players/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
+    }
+
+    match /videoClips/{fileName} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null && (
+        isSuperAdmin()
+        || firestore.get(/databases/(default)/documents/videoClips/$(fileName)).data.get('createdBy', null) == request.auth.uid
+        || canManageTournament(firestore.get(/databases/(default)/documents/videoClips/$(fileName)).data.tournamentId)
+      );
+    }
+
+    // A member may only replace the photo of the player linked to their own membership.
+    match /players/{tournamentId}/{fileName} {
+      allow read: if isTournamentMember(tournamentId) || isSuperAdmin();
+      allow create, update: if isImageUnder(5) && (
+        canManageTournament(tournamentId)
+        || (isTournamentMember(tournamentId) && fileName == tournamentMember(tournamentId).data.get('playerId', '') + '.jpg')
+      );
+      allow delete: if canManageTournament(tournamentId);
+    }
+
+    match /videoClips/{tournamentId}/{clipId} {
+      allow read: if isTournamentMember(tournamentId) || isSuperAdmin();
+      allow create: if isTournamentMember(tournamentId) && isVideoUnder(200);
+      allow delete: if canManageTournament(tournamentId) || (
+        isTournamentMember(tournamentId)
+        && firestore.get(/databases/(default)/documents/videoClips/$(clipId)).data.get('createdBy', null) == request.auth.uid
+      );
+    }
+
     match /tournaments/{tournamentId}/{fileName} {
       allow read: if isTournamentMember(tournamentId);
-      allow create, update: if isTournamentAdmin(tournamentId)
-        && request.resource.contentType.matches('image/.*')
-        && request.resource.size <= 5 * 1024 * 1024;
+      allow create, update: if isTournamentAdmin(tournamentId) && isImageUnder(5);
       allow delete: if isTournamentAdmin(tournamentId);
     }
   }

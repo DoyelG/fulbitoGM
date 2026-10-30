@@ -4,14 +4,18 @@ import { useEffect, useState } from 'react'
 import { PlusIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import type { MyTournament } from '@fulbito/types'
+import { getPlayer } from '@fulbito/firebase'
 import { useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
-import { usePlayerStore } from '@/store/usePlayerStore'
 import Button from '@/components/Button'
 import EmptyState from '@/components/EmptyState'
 import Modal from '@/components/Modal'
 import TournamentCard from '@/components/tournaments/TournamentCard'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import TournamentConfirmDialog from '@/components/tournaments/TournamentConfirmDialog'
+import PendingInvitations from '@/components/tournaments/PendingInvitations'
+import VerifyEmailNotice from '@/components/tournaments/VerifyEmailNotice'
+import LinkPlayerDialog from '@/components/tournaments/LinkPlayerDialog'
+import AssignMyPlayerDialog from '@/components/tournaments/AssignMyPlayerDialog'
 
 function TournamentsSkeleton() {
   return (
@@ -37,24 +41,34 @@ export default function TournamentsClient() {
     exitTournament,
     setActiveTournament,
   } = useTournamentStore()
-  const players = usePlayerStore((state) => state.players)
-  const initPlayers = usePlayerStore((state) => state.initLoad)
+  const [playerNameById, setPlayerNameById] = useState<Map<string, string>>(new Map())
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<MyTournament | null>(null)
   const [deleting, setDeleting] = useState<MyTournament | null>(null)
   const [leaving, setLeaving] = useState<MyTournament | null>(null)
+  const [linking, setLinking] = useState<MyTournament | null>(null)
 
   useEffect(() => {
     if (user && (myTournamentsInit === 'idle' || myTournamentsUid !== user.uid)) loadMyTournaments(user.uid)
   }, [user, myTournamentsInit, myTournamentsUid, loadMyTournaments])
 
-  const hasLinkedPlayer = myTournaments.some(({ membership }) => membership.playerId)
+  const linkedPlayerIds = myTournaments.flatMap(({ membership }) => (membership.playerId ? [membership.playerId] : []))
+  const linkedPlayerIdsKey = linkedPlayerIds.join(',')
   useEffect(() => {
-    if (hasLinkedPlayer) initPlayers()
-  }, [hasLinkedPlayer, initPlayers])
+    if (!linkedPlayerIdsKey) return
+    let isCurrent = true
+    Promise.all(linkedPlayerIdsKey.split(',').map((playerId) => getPlayer(playerId)))
+      .then((linkedPlayers) => {
+        if (!isCurrent) return
+        setPlayerNameById(new Map(linkedPlayers.flatMap((player) => (player ? [[player.id, player.name]] : []))))
+      })
+      .catch(() => undefined)
+    return () => {
+      isCurrent = false
+    }
+  }, [linkedPlayerIdsKey])
 
-  const playerName = (playerId: string | null) =>
-    playerId ? (players.find((player) => player.id === playerId)?.name ?? null) : null
+  const playerName = (playerId: string | null) => (playerId ? (playerNameById.get(playerId) ?? null) : null)
 
   const handleCreate = async (data: TournamentInput) => {
     if (!user) return
@@ -80,6 +94,11 @@ export default function TournamentsClient() {
     setLeaving(null)
   }
 
+  const handleLinkPlayer = (item: MyTournament) => {
+    if (item.tournament.id !== activeTournamentId) setActiveTournament(item.tournament.id)
+    setLinking(item)
+  }
+
   const isLoading =
     authLoading ||
     (Boolean(user) &&
@@ -96,6 +115,13 @@ export default function TournamentsClient() {
           </Button>
         )}
       </div>
+
+      {user &&
+        (user.emailVerified ? (
+          <PendingInvitations key={user.uid} user={user} />
+        ) : (
+          <VerifyEmailNotice email={user.email} />
+        ))}
 
       <section aria-label="Lista de torneos" aria-busy={isLoading} aria-live="polite">
         {isLoading && <TournamentsSkeleton />}
@@ -138,6 +164,7 @@ export default function TournamentsClient() {
                   onEdit={setEditing}
                   onDelete={setDeleting}
                   onLeave={setLeaving}
+                  onLinkPlayer={handleLinkPlayer}
                   playerName={playerName(item.membership.playerId)}
                 />
               </li>
@@ -202,6 +229,19 @@ export default function TournamentsClient() {
         onCancel={() => setLeaving(null)}
         onConfirm={handleLeave}
       />
+
+      {user &&
+        linking &&
+        (linking.membership.role === 'MEMBER' ? (
+          <LinkPlayerDialog
+            key={linking.tournament.id}
+            user={user}
+            tournamentId={linking.tournament.id}
+            onClose={() => setLinking(null)}
+          />
+        ) : (
+          <AssignMyPlayerDialog key={linking.tournament.id} item={linking} onClose={() => setLinking(null)} />
+        ))}
     </div>
   )
 }

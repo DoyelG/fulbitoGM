@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore/lite'
 import { connectStorageEmulator, getStorage } from 'firebase/storage'
 
-const EMULATOR_PORTS = { auth: 9099, firestore: 8080, storage: 9199 } as const
+const EMULATOR_PORTS = { auth: 9099, firestore: 8181, storage: 9199 } as const
 
 export type InitFirebaseOptions = {
   emulatorHost?: string

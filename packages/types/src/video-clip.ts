@@ -2,6 +2,7 @@ export type VideoClipCategory = 'goal' | 'blooper' | 'highlight' | 'other'
 
 export type VideoClip = {
   id: string
+  tournamentId: string
   matchId: string
   playerIds: string[]
   category: VideoClipCategory

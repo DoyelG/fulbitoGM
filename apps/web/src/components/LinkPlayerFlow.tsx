@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { FiAlertTriangle, FiCamera, FiCheckCircle, FiFilm, FiLink, FiUser } from 'react-icons/fi'
-import { cancelRoleRequest, createRoleRequest, RoleRequestError, type AppUser } from '@fulbito/firebase'
+import type { Player } from '@fulbito/types'
+import { TournamentPlayerRequestError } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import Button from './Button'
 import LinkPlayerHero from './LinkPlayerHero'
@@ -25,48 +26,55 @@ export const linkPlayerStepTitles: Record<LinkPlayerStep, string> = {
   revert: 'Vincular con un jugador',
 }
 
+export type LinkPlayerRequest = { playerId: string } | { newPlayerName: string }
+
+export type LinkPlayerActions = {
+  send: (request: LinkPlayerRequest) => Promise<void>
+  cancel: () => Promise<void>
+  isPlayerUnavailable: (player: Player) => boolean
+  reviewerDescription: string
+}
+
 type LinkPlayerFlowProps = {
-  user: AppUser
   step: LinkPlayerStep
   onStepChange: (step: LinkPlayerStep) => void
   onAnswerNo: () => void
   onRequestSent: () => void
   onFinish: () => void
   onCancel?: () => void
+  actions: LinkPlayerActions
+}
+
+function isKnownRequestError(error: unknown): error is Error {
+  return error instanceof TournamentPlayerRequestError
 }
 
 export default function LinkPlayerFlow({
-  user,
   step,
   onStepChange,
   onAnswerNo,
   onRequestSent,
   onFinish,
   onCancel,
+  actions,
 }: LinkPlayerFlowProps) {
   const players = usePlayerStore((state) => state.players)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [newPlayerName, setNewPlayerName] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
-  const [sentRequestId, setSentRequestId] = useState<string | null>(null)
+  const { send, cancel, isPlayerUnavailable, reviewerDescription } = actions
 
-  const sendRequest = async (request: { playerId: string } | { newPlayerName: string }) => {
+  const sendRequest = async (request: LinkPlayerRequest) => {
     setIsSending(true)
     setErrorMessage(null)
     try {
-      const requestId = await createRoleRequest({
-        userId: user.uid,
-        userEmail: user.email,
-        requestedRole: 'PLAYER',
-        ...request,
-      })
-      setSentRequestId(requestId)
+      await send(request)
       onRequestSent()
       onStepChange('sent')
     } catch (error) {
       setErrorMessage(
-        error instanceof RoleRequestError ? error.message : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
+        isKnownRequestError(error) ? error.message : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
       )
     } finally {
       setIsSending(false)
@@ -74,17 +82,14 @@ export default function LinkPlayerFlow({
   }
 
   const revertRequest = async () => {
-    if (!sentRequestId) return
     setIsSending(true)
     setErrorMessage(null)
     try {
-      await cancelRoleRequest(sentRequestId)
+      await cancel()
       onStepChange('select')
     } catch (error) {
       setErrorMessage(
-        error instanceof RoleRequestError
-          ? error.message
-          : 'No se pudo revertir la solicitud. Probá de nuevo más tarde.',
+        isKnownRequestError(error) ? error.message : 'No se pudo revertir la solicitud. Probá de nuevo más tarde.',
       )
     } finally {
       setIsSending(false)
@@ -143,7 +148,7 @@ export default function LinkPlayerFlow({
           selectedIds={selectedIds}
           onChange={setSelectedIds}
           isMultiSelector={false}
-          hidePlayerCondition={(player) => !!player.inactive || !!player.linkedUserId}
+          hidePlayerCondition={(player) => !!player.inactive || isPlayerUnavailable(player)}
           maxHeight={240}
         />
         <p className="mt-4 text-sm text-gray-800">
@@ -213,7 +218,7 @@ export default function LinkPlayerFlow({
           icon={FiAlertTriangle}
           tone="danger"
           title="¿Revertir la solicitud?"
-          description="Se va a cancelar y el administrador ya no la va a ver."
+          description="Se va a cancelar y los organizadores ya no la van a ver."
         />
         {errorAlert}
         <div className="mt-6 flex justify-center gap-3">
@@ -231,12 +236,7 @@ export default function LinkPlayerFlow({
   return (
     <div>
       <LinkPlayerStepDots current={3} total={3} />
-      <LinkPlayerHero
-        icon={FiCheckCircle}
-        tone="success"
-        title="Solicitud enviada"
-        description="Un administrador la va a revisar. Cuando la acepte, volvé a iniciar sesión para ver el cambio."
-      />
+      <LinkPlayerHero icon={FiCheckCircle} tone="success" title="Solicitud enviada" description={reviewerDescription} />
       <div className="mt-6 flex justify-center gap-3">
         <Button type="button" variant="dangerousSecondary" block onClick={() => goToStep('revert')}>
           Revertir solicitud

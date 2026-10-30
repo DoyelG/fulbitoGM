@@ -1,10 +1,14 @@
-import '@/lib/firebase'
-import { getPlayersServer, getMatchesServer } from '@fulbito/firebase'
+'use client'
+
+import { usePlayerStore } from '@/store/usePlayerStore'
+import { useMatchStore } from '@/store/useMatchStore'
+import Loading from '@/app/loading'
 import { AwardsClient } from './awardsClient'
 
-export const dynamic = 'force-dynamic'
+export default function AwardsPage() {
+  const { players, playersInit } = usePlayerStore()
+  const { matches, matchesInit } = useMatchStore()
 
-export default async function AwardsPage() {
-  const [players, matches] = await Promise.all([getPlayersServer(), getMatchesServer()])
+  if (playersInit !== 'loaded' || matchesInit !== 'loaded') return <Loading />
   return <AwardsClient players={players} matches={matches} />
 }

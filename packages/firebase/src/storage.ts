@@ -1,16 +1,14 @@
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 
-export async function uploadPlayerPhoto(file: File | Blob, playerId: string): Promise<string> {
+export async function uploadPlayerPhoto(file: File | Blob, tournamentId: string, playerId: string): Promise<string> {
   const storage = getStorage()
-  const storageRef = ref(storage, `players/${playerId}.jpg`)
+  const storageRef = ref(storage, `players/${tournamentId}/${playerId}.jpg`)
   await uploadBytes(storageRef, file)
   return getDownloadURL(storageRef)
 }
 
-export async function deletePlayerPhoto(playerId: string): Promise<void> {
-  const storage = getStorage()
-  const storageRef = ref(storage, `players/${playerId}.jpg`)
-  await deleteObject(storageRef).catch(() => undefined)
+export async function deletePlayerPhoto(photoUrl: string): Promise<void> {
+  await deleteObject(ref(getStorage(), photoUrl)).catch(() => undefined)
 }
 
 export const TOURNAMENT_PHOTO_MAX_BYTES = 5 * 1024 * 1024

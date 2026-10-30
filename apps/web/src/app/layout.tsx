@@ -3,6 +3,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import AppBootstrap from "./shared/AppBootstrap"
 import AuthProvider from "./shared/AuthProvider"
+import AuthGate from "./shared/AuthGate"
+import ActiveTournamentGate from "./shared/ActiveTournamentGate"
 import NavBar from "./NavBar"
 import LinkPlayerModal from "@/components/LinkPlayerModal"
 
@@ -30,7 +32,11 @@ export default function RootLayout({
                 </div>
               </div>
             </header>
-            <main>{children}</main>
+            <main>
+              <AuthGate>
+                <ActiveTournamentGate>{children}</ActiveTournamentGate>
+              </AuthGate>
+            </main>
             <AppBootstrap />
             <LinkPlayerModal />
           </div>

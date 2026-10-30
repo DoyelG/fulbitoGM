@@ -13,16 +13,24 @@ import {
 } from 'firebase/firestore'
 import type { Invitation, InvitationRole, InvitationStatus } from '@fulbito/types'
 import { toDate, toOptionalDate } from './dates'
+import { PLAYERS_COLLECTION } from './players'
 import { MEMBERS_COLLECTION, TOURNAMENTS_COLLECTION, getTournament, getTournamentMembers } from './tournaments'
 
 const INVITATIONS_COLLECTION = 'invitations'
-const PLAYERS_COLLECTION = 'players'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+export class InvitationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvitationError'
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
+}
+
 export function normalizeEmail(email: string): string {
   const normalized = email.trim().toLowerCase()
-  if (!EMAIL_PATTERN.test(normalized)) throw new Error('Enter a valid email')
+  if (!EMAIL_PATTERN.test(normalized)) throw new InvitationError('Ingresá un email válido')
   return normalized
 }
 
@@ -64,29 +72,28 @@ export async function createInvitation(input: CreateInvitationInput): Promise<st
   const { tournamentId, role, playerId, invitedBy } = input
   const email = normalizeEmail(input.email)
 
-  if (role === 'MEMBER' && !playerId) throw new Error('A member invitation needs a player')
-
   const tournament = await getTournament(tournamentId)
-  if (!tournament) throw new Error('Tournament not found')
+  if (!tournament) throw new InvitationError('No se encontró el torneo')
 
   const [members, pendingInvitations] = await Promise.all([
     getTournamentMembers(tournamentId),
     getPendingInvitations('tournamentId', tournamentId),
   ])
   if (members.some((member) => member.email === email)) {
-    throw new Error('This email is already a member of the tournament')
+    throw new InvitationError('Ese email ya es miembro del torneo')
   }
   if (pendingInvitations.some((invitation) => invitation.email === email)) {
-    throw new Error('This email already has a pending invitation')
+    throw new InvitationError('Ese email ya tiene una invitación pendiente')
   }
 
   const db = getFirestore()
 
   if (playerId) {
     const player = await getDoc(doc(db, PLAYERS_COLLECTION, playerId))
-    if (!player.exists()) throw new Error('Player not found')
-    if (player.get('linkedUserId') || members.some((member) => member.playerId === playerId)) {
-      throw new Error('This player is already linked to an account')
+    if (!player.exists() || player.get('tournamentId') !== tournamentId)
+      throw new InvitationError('No se encontró el jugador')
+    if (members.some((member) => member.playerId === playerId)) {
+      throw new InvitationError('Ese jugador ya está vinculado a otro miembro del torneo')
     }
   }
 
@@ -139,22 +146,15 @@ export async function acceptInvitation(invitationId: string, user: InvitedUser):
 
   await runTransaction(db, async (transaction) => {
     const invitationSnap = await transaction.get(doc(db, INVITATIONS_COLLECTION, invitationId))
-    if (!invitationSnap.exists()) throw new Error('Invitation not found')
+    if (!invitationSnap.exists()) throw new InvitationError('No se encontró la invitación')
     const invitation = docToInvitation(invitationSnap.id, invitationSnap.data())
-    if (invitation.status !== 'pending') throw new Error('This invitation is no longer pending')
-    if (invitation.email !== email) throw new Error('This invitation belongs to another email')
+    if (invitation.status !== 'pending') throw new InvitationError('Esta invitación ya no está pendiente')
+    if (invitation.email !== email) throw new InvitationError('Esta invitación es para otro email')
 
     const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, invitation.tournamentId)
     const memberRef = doc(db, TOURNAMENTS_COLLECTION, invitation.tournamentId, MEMBERS_COLLECTION, user.uid)
     const memberSnap = await transaction.get(memberRef)
-    if (memberSnap.exists()) throw new Error('You are already a member of this tournament')
-
-    if (invitation.playerId) {
-      const playerSnap = await transaction.get(doc(db, PLAYERS_COLLECTION, invitation.playerId))
-      if (!playerSnap.exists()) throw new Error('Player not found')
-      const linkedUserId = playerSnap.get('linkedUserId')
-      if (linkedUserId && linkedUserId !== user.uid) throw new Error('This player is already linked to an account')
-    }
+    if (memberSnap.exists()) throw new InvitationError('Ya sos miembro de este torneo')
 
     const now = Timestamp.now()
     transaction.set(memberRef, {
@@ -180,10 +180,11 @@ async function closeInvitation(
   const db = getFirestore()
   await runTransaction(db, async (transaction) => {
     const snap = await transaction.get(doc(db, INVITATIONS_COLLECTION, invitationId))
-    if (!snap.exists()) throw new Error('Invitation not found')
-    if (snap.get('status') !== 'pending') throw new Error('This invitation is no longer pending')
-    if (email && snap.get('email') !== normalizeEmail(email))
-      throw new Error('This invitation belongs to another email')
+    if (!snap.exists()) throw new InvitationError('No se encontró la invitación')
+    if (snap.get('status') !== 'pending') throw new InvitationError('Esta invitación ya no está pendiente')
+    if (email && snap.get('email') !== normalizeEmail(email)) {
+      throw new InvitationError('Esta invitación es para otro email')
+    }
 
     const now = Timestamp.now()
     transaction.update(snap.ref, { status, resolvedAt: now, updatedAt: now })

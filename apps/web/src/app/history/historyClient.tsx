@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
+import { useCanManageTournament } from "@/hooks/use-can-manage-tournament";
 import type { Match, MatchInput, MatchLocation } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
@@ -43,7 +44,8 @@ const MAX_GOALKEEPERS = 2;
 type RecordingPlayer = { id: string; name: string };
 
 export default function HistoryClient() {
-  const { user, isAdmin } = useFirebaseAuth();
+  const { user } = useFirebaseAuth();
+  const canManage = useCanManageTournament();
   const {
     addMatch,
     updateMatch,
@@ -165,7 +167,7 @@ export default function HistoryClient() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Historial de partidos</h1>
-        {isAdmin && (
+        {canManage && (
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             onClick={() => setOpen({ mode: "create" })}
@@ -402,7 +404,7 @@ export default function HistoryClient() {
                           </span>
                         )}
                       </button>
-                      {isAdmin && (
+                      {canManage && (
                         <>
                           {isDraft ? (
                             <>
@@ -538,7 +540,7 @@ export default function HistoryClient() {
         title={`Clips${viewClipsMatch?.name ? `: ${viewClipsMatch.name}` : ""}`}
         size="large"
       >
-        {isAdmin && viewClipsMatch && (
+        {canManage && viewClipsMatch && (
           <div className="flex justify-end mb-4">
             <button
               type="button"
@@ -581,7 +583,7 @@ export default function HistoryClient() {
           <VideoClipCarousel
             clips={viewClips}
             matchById={viewMatchById}
-            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
+            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, canManage)}
             onOpen={setViewPlaybackClipId}
             onDelete={handleViewDelete}
           />

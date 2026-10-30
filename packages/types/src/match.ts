@@ -15,6 +15,7 @@ export type MatchLocation = {
 
 export type Match = {
   id: string
+  tournamentId: string
   date: string
   hasTime?: boolean
   type: string
@@ -34,7 +35,7 @@ export type Match = {
   location?: MatchLocation | null
 }
 
-export type MatchInput = Omit<Match, 'id' | 'createdAt' | 'updatedAt'>
+export type MatchInput = Omit<Match, 'id' | 'tournamentId' | 'createdAt' | 'updatedAt'>
 
 export type MatchLike = {
   date: string

@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext"
-import UserMenu from "./UserMenu"
+import Link from 'next/link'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import UserMenu from './UserMenu'
 
 type Props = {
   closeNavBar?: () => void

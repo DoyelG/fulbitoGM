@@ -3,34 +3,33 @@
 import { useEffect } from 'react'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
-import { useNotificationStore } from '@/store/useNotificationStore'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useVideoClipStore } from '@/store/useVideoClipStore'
+import { useAddressStore } from '@/store/useAddressStore'
+import { useTournamentStore } from '@/store/useTournamentStore'
 
-const NOTIFICATIONS_POLLING_INTERVAL_IN_MS = 30_000
+function resetTournamentData() {
+  usePlayerStore.getState().reset()
+  useMatchStore.getState().reset()
+  useVideoClipStore.getState().reset()
+  useAddressStore.getState().reset()
+}
 
 export default function AppBootstrap() {
   const { initLoad: initPlayers, playersInit } = usePlayerStore()
   const { initLoad: initMatches, matchesInit } = useMatchStore()
-  const { isAdmin } = useFirebaseAuth()
-  const { loadNotifications, clearNotifications } = useNotificationStore()
+  const activeTournamentId = useTournamentStore((state) => state.activeTournamentId)
 
   useEffect(() => {
-    if (playersInit === 'idle' || playersInit === 'error') initPlayers()
-  }, [playersInit, initPlayers])
+    resetTournamentData()
+  }, [activeTournamentId])
 
   useEffect(() => {
-    if (matchesInit === 'idle' || matchesInit === 'error') initMatches()
-  }, [matchesInit, initMatches])
+    if (activeTournamentId && (playersInit === 'idle' || playersInit === 'error')) initPlayers()
+  }, [activeTournamentId, playersInit, initPlayers])
 
   useEffect(() => {
-    if (!isAdmin) {
-      clearNotifications()
-      return
-    }
-    loadNotifications()
-    const intervalId = setInterval(loadNotifications, NOTIFICATIONS_POLLING_INTERVAL_IN_MS)
-    return () => clearInterval(intervalId)
-  }, [isAdmin, loadNotifications, clearNotifications])
+    if (activeTournamentId && (matchesInit === 'idle' || matchesInit === 'error')) initMatches()
+  }, [activeTournamentId, matchesInit, initMatches])
 
   return null
 }

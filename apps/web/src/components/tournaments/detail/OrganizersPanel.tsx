@@ -9,6 +9,7 @@ type Props = {
   currentUid: string
   playerNameById: Map<string, string>
   photoByUid: Map<string, string>
+  membersHref: string
 }
 
 function initials(label: string): string {
@@ -20,11 +21,16 @@ function initials(label: string): string {
     .join('')
 }
 
-export default function OrganizersPanel({ members, currentUid, playerNameById, photoByUid }: Props) {
+export default function OrganizersPanel({ members, currentUid, playerNameById, photoByUid, membersHref }: Props) {
   const organizers = members.filter((member) => member.role !== 'MEMBER')
 
   return (
-    <DetailSection id="organizers-title" title="Organizadores" icon={ShieldCheckIcon}>
+    <DetailSection
+      id="organizers-title"
+      title="Organizadores"
+      icon={ShieldCheckIcon}
+      action={{ label: 'Ver miembros', href: membersHref }}
+    >
       <ul className="space-y-3">
         {organizers.map((member) => {
           const playerName = member.playerId ? playerNameById.get(member.playerId) : undefined

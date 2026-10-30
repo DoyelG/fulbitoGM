@@ -46,6 +46,20 @@ export type MyTournament = {
   membership: TournamentMember
 }
 
+export type TournamentPlayerRequestStatus = 'pending' | 'rejected'
+
+export type TournamentPlayerRequest = {
+  uid: string
+  tournamentId: string
+  email: string
+  playerId?: string
+  newPlayerName?: string
+  status: TournamentPlayerRequestStatus
+  resolvedBy?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export type TournamentComment = {
   id: string
   tournamentId: string

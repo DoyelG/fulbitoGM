@@ -13,3 +13,7 @@ export function dismissPrompt(storageKey: string): void {
     return
   }
 }
+
+export function linkPlayerPromptKey(uid: string, tournamentId: string): string {
+  return `linkPlayerPromptDismissed:${uid}:${tournamentId}`
+}
