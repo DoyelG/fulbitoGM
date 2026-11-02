@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import type { Match, MatchInput, MatchLocation } from "@fulbito/types";
+import type { Match, MatchInput, MatchLocation, MatchType } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
 import Modal from "@/components/Modal";
@@ -25,6 +25,8 @@ import {
   parseMatchDate,
   formatMatchHour,
   formatMatchDate,
+  MATCH_TYPES,
+  MAX_GOALKEEPERS,
 } from "@fulbito/utils";
 import HourField from "@/components/HourField";
 import { usePlayerStore } from "@/store/usePlayerStore";
@@ -37,10 +39,6 @@ import AddressPicker from "@/components/AddressPicker";
 import MatchLocationLink from "@/components/MatchLocationLink";
 import { FiTrash2 } from "react-icons/fi";
 import Chevron from "../shared/Icons/Chevron";
-
-type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
-const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
-const MAX_GOALKEEPERS = 2;
 
 type RecordingPlayer = { id: string; name: string };
 
@@ -935,6 +933,8 @@ function RecordModal({
         <div className="grid md:grid-cols-3 gap-3 mb-4">
           <DropColumn
             title="Jugadores Disponibles"
+            target="unassigned"
+            playersCount={unassigned.length}
             onDrop={(event) => onDrop(event, "unassigned")}
           >
             {unassigned.map((player) => (
@@ -942,7 +942,11 @@ function RecordModal({
             ))}
           </DropColumn>
           <DropColumn
-            title={`Equipo A (${teamA.length}/${playersPerTeam})`}
+            title="Equipo A"
+            target="a"
+            playersCount={teamA.length}
+            limit={playersPerTeam}
+            listClassName="max-h-96 overflow-y-auto"
             onDrop={(event) => onDrop(event, "a")}
           >
             {teamA.map((player) => (
@@ -950,7 +954,11 @@ function RecordModal({
             ))}
           </DropColumn>
           <DropColumn
-            title={`Equipo B (${teamB.length}/${playersPerTeam})`}
+            title="Equipo B"
+            target="b"
+            playersCount={teamB.length}
+            limit={playersPerTeam}
+            listClassName="max-h-96 overflow-y-auto"
             onDrop={(event) => onDrop(event, "b")}
           >
             {teamB.map((player) => (

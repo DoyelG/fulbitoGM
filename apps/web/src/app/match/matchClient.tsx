@@ -1,45 +1,49 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { usePlayerStore , Player} from '@/store/usePlayerStore'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { usePlayerStore, Player } from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
-import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds, getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
-import { balanceRemainingPlayers, balanceTeams, seedPriorityPlayers, getHotStreakIds, PlayerInfo, TeamResult } from '@/lib/teamUtils'
+import {
+  balanceRemainingPlayers,
+  balanceTeams,
+  seedPriorityPlayers,
+  getHotStreakIds,
+  type PlayerInfo,
+  type TeamResult,
+} from '@/lib/teamUtils'
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
-import { onlyFinalMatches, buildMatchSchedule } from '@fulbito/utils'
-import HourField from '@/components/HourField'
+import { onlyFinalMatches } from '@fulbito/utils'
 import Button from '@/components/Button'
 import PageTitle from '@/components/PageTitle'
-import { DropColumn, DraggableItem } from '@/components/DragAndDrop'
-import type { MatchInput, MatchLocation } from '@fulbito/types'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import AddressPicker from '@/components/AddressPicker'
-import Chevron from '../shared/Icons/Chevron'
+import type { MatchType } from '@fulbito/types'
+import { Stepper } from './stepper'
+import { usePlayerSelection } from './use-player-selection'
+import PlayersStep from './playersStep'
+import TeamsStep from './teamsStep'
+import DataStep, { type DraftForm } from './dataStep'
 
-type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
-const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
-const MAX_GOALKEEPERS = 2
+export type Step = 1 | 2 | 3
 
 export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
-  const router = useRouter()
-  const { isAdmin } = useFirebaseAuth()
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()
-  const {
-    matches: allMatches,
-    initLoad: initMatchesLoad,
-    resetAndReload: resetMatches,
-    addMatch,
-  } = useMatchStore()
-  const finalMatches = useMemo(() => onlyFinalMatches(allMatches), [allMatches])
-  const [matchType, setMatchType] = useState<MatchType>('5v5')
-  const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
-  const requiredPlayers = playersPerTeam * 2
+  const { initLoad: initMatchesLoad, resetAndReload: resetMatches } = useMatchStore()
+  const [currentStep, setCurrentStep] = useState<Step>(1)
+  const [stepHistory, setStepHistory] = useState<Step[]>([])
+  const [matchType, setMatchType] = useState<MatchType | null>(null)
+  const [isFriendly, setIsFriendly] = useState(false)
+  const [draft, setDraft] = useState<DraftForm>(() => ({
+    date: new Date().toISOString().slice(0, 10),
+    hour: null,
+    name: '',
+    location: null,
+    description: '',
+  }))
 
-  const [draftDate, setDraftDate] = useState<string>(() => new Date().toISOString().slice(0, 10))
-  const [draftHour, setDraftHour] = useState<number | null>(null)
-  const [draftName, setDraftName] = useState<string>('')
-  const [isCreatingDraft, setIsCreatingDraft] = useState(false)
+  const playersPerTeam = useMemo(() => {
+    if (!matchType) return 0
+    return parseInt(matchType.split('v')[0], 10)
+  }, [matchType])
+  const requiredPlayers = playersPerTeam * 2
 
   const initialized = useRef(false)
 
@@ -52,101 +56,41 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     resetMatches()
   }, [hydratePlayers, initialPlayers, resetAndReload, resetMatches])
 
-  const [isFriendly, setIsFriendly] = useState(false)
-  const [matchLocation, setMatchLocation] = useState<MatchLocation | null>(null)
-  const [selectionOpen, setSelectionOpen] = useState(false)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(new Set())
-  const [autoTeams, setAutoTeams] = useState<{ teamA: TeamResult, teamB: TeamResult } | null>(null)
+  const [autoTeams, setAutoTeams] = useState<{ teamA: TeamResult; teamB: TeamResult } | null>(null)
   const [streakSeparated, setStreakSeparated] = useState(false)
-  const [shirtsResponsibleId, setShirtsResponsibleId] = useState<string | null>(null)
-  const [dutyPool, setDutyPool] = useState<PlayerInfo[]>([])
-  const [matchDescription, setMatchDescription] = useState<string>('')
-
-  const [manualOpen, setManualOpen] = useState(false)
+  const [generation, setGeneration] = useState(0)
   const [manualA, setManualA] = useState<PlayerInfo[]>([])
   const [manualB, setManualB] = useState<PlayerInfo[]>([])
 
-  const [playerQuery, setPlayerQuery] = useState('')
-
-  const playedBefore = useMemo(() => buildPlayedBeforeSet(finalMatches), [finalMatches])
-  const dutiesById = useMemo(() => getShirtDutiesByPlayerId(finalMatches), [finalMatches])
+  const selection = usePlayerSelection({
+    onDeselect: (playerId) => {
+      setManualA((prev) => prev.filter((player) => player.id !== playerId))
+      setManualB((prev) => prev.filter((player) => player.id !== playerId))
+    },
+  })
+  const { selected, goalkeeperIds } = selection
 
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
     return players
-      .filter(player => ids.has(player.id))
-      .map(player => ({
+      .filter((player) => ids.has(player.id))
+      .map((player) => ({
         id: player.id,
         name: player.name,
         skill: goalkeeperIds.has(player.id)
           ? getGoalkeeping(player)
           : ((player.skill ?? 'unknown') as number | 'unknown'),
         position: player.position,
-        physical: (player.skills?.physical ?? 'unknown') as number | 'unknown'
+        physical: (player.skills?.physical ?? 'unknown') as number | 'unknown',
       }))
   }, [players, selected, goalkeeperIds])
 
-  const unassignedManual = useMemo(() => {
-    const ids = new Set([...manualA, ...manualB].map(player => player.id))
-    return selectedPlayers.filter(player => !ids.has(player.id))
-  }, [selectedPlayers, manualA, manualB])
+  const manualIds = useMemo(() => new Set([...manualA, ...manualB].map((player) => player.id)), [manualA, manualB])
 
-  const toggleSelect = (id: string) => {
-    const wasSelected = selected.has(id)
-    setSelected(prev => {
-      const nextSelected = new Set(prev)
-      if (nextSelected.has(id)) nextSelected.delete(id)
-      else nextSelected.add(id)
-      return nextSelected
-    })
-    if (wasSelected) {
-      setGoalkeeperIds(prev => {
-        if (!prev.has(id)) return prev
-        const nextGoalkeeperIds = new Set(prev)
-        nextGoalkeeperIds.delete(id)
-        return nextGoalkeeperIds
-      })
-      setManualA(prev => prev.filter(player => player.id !== id))
-      setManualB(prev => prev.filter(player => player.id !== id))
-    }
-  }
-
-  const toggleGoalkeeper = (id: string) => {
-    setGoalkeeperIds(prev => {
-      const nextGoalkeeperIds = new Set(prev)
-      if (nextGoalkeeperIds.has(id)) {
-        nextGoalkeeperIds.delete(id)
-      } else {
-        if (nextGoalkeeperIds.size >= MAX_GOALKEEPERS) return prev
-        nextGoalkeeperIds.add(id)
-      }
-      return nextGoalkeeperIds
-    })
-  }
-
-  const openSelection = () => {
-    if (players.length < requiredPlayers) {
-      alert(`Necesitas al menos ${requiredPlayers} jugadores para ${matchType}. Actualmente tienes ${players.length}.`)
-      return
-    }
-    setSelected(new Set())
-    setGoalkeeperIds(new Set())
-    setAutoTeams(null)
-    setStreakSeparated(false)
-    setManualOpen(false)
-    setManualA([])
-    setManualB([])
-    setSelectionOpen(true)
-  }
-
-  const toggleSelectionPanel = () => {
-    if (selected.size === 0) {
-      openSelection()
-      return
-    }
-    setSelectionOpen(isOpen => !isOpen)
-  }
+  const unassignedManual = useMemo(
+    () => selectedPlayers.filter((player) => !manualIds.has(player.id)),
+    [selectedPlayers, manualIds],
+  )
 
   const buildTeams = (
     pool: PlayerInfo[],
@@ -163,442 +107,152 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     if (seedA.length === 0 && seedB.length === 0) {
       return { teams: balanceTeams(pool, playersPerTeam), hadStreak: false }
     }
-    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map(player => player.id))
+    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map((player) => player.id))
     const hotStreakIds = getHotStreakIds(pool, streaks)
     return {
-      teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam, { hardLockedIds, goalkeeperIds, hotStreakIds }),
+      teams: balanceRemainingPlayers(rest, seedA, seedB, playersPerTeam, {
+        hardLockedIds,
+        goalkeeperIds,
+        hotStreakIds,
+      }),
       hadStreak: hadStreakSeed,
     }
   }
 
-  const generateTeams = async () => {
+  const isSelectionComplete = matchType !== null && selected.size === requiredPlayers
+
+  const generateTeams = async (): Promise<boolean> => {
+    if (!isSelectionComplete) return false
     await initMatchesLoad()
-    if (selected.size !== requiredPlayers) {
-      alert(`Por favor, selecciona exactamente ${requiredPlayers} jugadores para ${matchType}.`)
-      return
-    }
     const currentFinalMatches = onlyFinalMatches(useMatchStore.getState().matches)
     const streaks = calculateAllCurrentStreaks(currentFinalMatches)
     const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5)
     const { teams, hadStreak } = buildTeams(shuffled, streaks, manualA, manualB)
     setAutoTeams(teams)
     setStreakSeparated(hadStreak)
-    const teamIds = [...teams.teamA.players, ...teams.teamB.players].map(player => player.id)
-    const consideredIds = getEligiblePlayerIds(teamIds, playedBefore)
-    const { poolIds } = computeLeastAssignedPoolIds(consideredIds, dutiesById)
-    const poolObjs = [...teams.teamA.players, ...teams.teamB.players].filter(player => poolIds.includes(player.id))
-    setDutyPool(poolObjs)
-    setShirtsResponsibleId(poolIds.length ? poolIds[Math.floor(Math.random() * poolIds.length)] : null)
-    setManualOpen(false)
-    setSelectionOpen(false)
+    setGeneration((count) => count + 1)
+    return true
   }
 
-  const createDraft = async () => {
-    if (!autoTeams) return
-    if (isCreatingDraft) return
-    setIsCreatingDraft(true)
-    try {
-      const draft: MatchInput = {
-        ...buildMatchSchedule(draftDate, draftHour),
-        type: matchType,
-        location: matchLocation || undefined,
-        status: 'draft',
-        teamAScore: 0,
-        teamBScore: 0,
-        teamA: autoTeams.teamA.players.map((player) => ({
-          id: player.id,
-          name: player.name,
-          goals: 0,
-          performance: 0,
-        })),
-        teamB: autoTeams.teamB.players.map((player) => ({
-          id: player.id,
-          name: player.name,
-          goals: 0,
-          performance: 0,
-        })),
-        name: draftName.trim() || undefined,
-        shirtsResponsibleId: shirtsResponsibleId ?? null,
-        description: matchDescription.trim() || undefined,
-        mvpId: null,
-        isFriendly,
-      }
-      await addMatch(draft)
-      router.push('/history')
-    } catch (err) {
-      console.error(err)
-      alert('Error al crear el partido')
-    } finally {
-      setIsCreatingDraft(false)
-    }
+  const goToStep = (step: Step) => {
+    setStepHistory((prev) => [...prev, currentStep])
+    setCurrentStep(step)
+  }
+
+  const goBack = () => {
+    const previousStep = stepHistory[stepHistory.length - 1]
+    if (previousStep === undefined) return
+    setStepHistory((prev) => prev.slice(0, -1))
+    setCurrentStep(previousStep)
+  }
+
+  const returnToStep = (step: Step) => {
+    if (step >= currentStep) return
+    setStepHistory((prev) => prev.filter((previousStep) => previousStep < step))
+    setCurrentStep(step)
+  }
+
+  const generateAndContinue = async () => {
+    if (await generateTeams()) goToStep(3)
+  }
+
+  const changeMatchType = (type: MatchType | null) => {
+    setMatchType(type)
+    setManualA([])
+    setManualB([])
   }
 
   const moveManual = (player: PlayerInfo, target: 'unassigned' | 'a' | 'b') => {
-    setManualA(prev => prev.filter(assignedPlayer => assignedPlayer.id !== player.id))
-    setManualB(prev => prev.filter(assignedPlayer => assignedPlayer.id !== player.id))
+    setManualA((prev) => prev.filter((assignedPlayer) => assignedPlayer.id !== player.id))
+    setManualB((prev) => prev.filter((assignedPlayer) => assignedPlayer.id !== player.id))
     if (target === 'a') {
-      setManualA(prev => (prev.length >= playersPerTeam ? prev : [...prev, player]))
+      setManualA((prev) => (prev.length >= playersPerTeam ? prev : [...prev, player]))
     } else if (target === 'b') {
-      setManualB(prev => (prev.length >= playersPerTeam ? prev : [...prev, player]))
+      setManualB((prev) => (prev.length >= playersPerTeam ? prev : [...prev, player]))
     }
   }
 
-  const onDrop = (event: React.DragEvent<HTMLDivElement>, target: 'unassigned' | 'a' | 'b') => {
-    const json = event.dataTransfer.getData('application/json')
-    if (!json) return
-    const droppedPlayer: PlayerInfo = JSON.parse(json)
-    moveManual(droppedPlayer, target)
+  const renderStep = (): ReactNode => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <PlayersStep
+            players={players}
+            matchType={matchType}
+            onMatchTypeChange={changeMatchType}
+            requiredPlayers={requiredPlayers}
+            isFriendly={isFriendly}
+            selection={selection}
+            isSelectionComplete={isSelectionComplete}
+            onManual={() => goToStep(2)}
+            onAuto={generateAndContinue}
+          />
+        )
+      case 2:
+        return (
+          <TeamsStep
+            unassigned={unassignedManual}
+            teamA={manualA}
+            teamB={manualB}
+            playersPerTeam={playersPerTeam}
+            goalkeeperIds={goalkeeperIds}
+            onMove={moveManual}
+            onReset={() => {
+              setManualA([])
+              setManualB([])
+            }}
+            onContinue={generateAndContinue}
+          />
+        )
+      case 3:
+        if (!autoTeams || !matchType) return null
+        return (
+          <DataStep
+            key={generation}
+            teamA={autoTeams.teamA}
+            teamB={autoTeams.teamB}
+            matchType={matchType}
+            players={players}
+            goalkeeperIds={goalkeeperIds}
+            manualIds={manualIds}
+            streakSeparated={streakSeparated}
+            isFriendly={isFriendly}
+            onFriendlyToggle={() => setIsFriendly((wasFriendly) => !wasFriendly)}
+            draft={draft}
+            onDraftChange={(changes) => setDraft((prev) => ({ ...prev, ...changes }))}
+            onRegenerate={generateTeams}
+          />
+        )
+    }
   }
 
-  const Draggable = ({ player }: { player: PlayerInfo }) => (
-    <DraggableItem data={player} label={player.name} isGoalkeeper={goalkeeperIds.has(player.id)}/>
-  )
-
-  const totalSkillA = autoTeams?.teamA.totalSkill ?? 0
-  const totalSkillB = autoTeams?.teamB.totalSkill ?? 0
-  const combinedSkill = totalSkillA + totalSkillB
-  const probA = combinedSkill > 0 ? Math.round((totalSkillA / combinedSkill) * 100) : 50
-  const probB = combinedSkill > 0 ? 100 - probA : 50
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <PageTitle>Preparar partido</PageTitle>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      <PageTitle
+        spacing={0}
+        actions={
+          stepHistory.length > 0 && (
+            <Button variant="secondary" onClick={goBack}>
+              Volver
+            </Button>
+          )
+        }
+      >
+        Preparar partido
+      </PageTitle>
 
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <label className="font-medium">Modo de partido</label>
-          <select
-            value={matchType}
-            onChange={event => setMatchType(event.target.value as MatchType)}
-            className="h-10 border rounded px-4 text-center appearance-none cursor-pointer"
-          >
-            {MATCH_TYPES.map(matchTypeOption => <option key={matchTypeOption} value={matchTypeOption}>{matchTypeOption}</option>)}
-          </select>
-          <Button className="ml-auto" onClick={toggleSelectionPanel}>
-            {selected.size === 0 ? 'Seleccionar jugadores' : (selectionOpen ? 'Ocultar selección' : 'Modificar selección')}
-          </Button>
-        </div>
-        <div className="mt-3 text-sm text-gray-800">
-          {(() => {
-            const selectedCount = selected.size
-            const missing = Math.max(0, requiredPlayers - selectedCount)
-            return (
-              <span>
-                Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
-                <span className={`ml-3 px-2 py-0.5 rounded ${missing === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                  Faltan: {missing}
-                </span>
-              </span>
-            )
-          })()}
-        </div>
+      <div className="sticky top-0 z-10 bg-gray-50 pt-4">
+        <Stepper
+          currentStep={matchType ? currentStep : 0}
+          className="sticky z-10"
+          requiredPlayers={requiredPlayers}
+          selectedCount={selected.size}
+          unassignedManual={unassignedManual.length}
+          onStepClick={returnToStep}
+        />
       </div>
 
-      {selectionOpen && (
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="text-xl font-semibold mb-4">Seleccionar jugadores</h3>
-          <div className="mb-2 text-sm text-gray-800">
-            {(() => {
-              const selectedCount = selected.size
-              const missing = Math.max(0, requiredPlayers - selectedCount)
-              return (
-                <span>
-                  Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
-                  <span className={`ml-3 px-2 py-0.5 rounded ${missing === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    Faltan: {missing}
-                  </span>
-                  <span className="ml-3 px-2 py-0.5 rounded bg-purple-100 text-purple-800">
-                    🧤 Arqueros: {goalkeeperIds.size} / {MAX_GOALKEEPERS}
-                  </span>
-                  {isFriendly && <span className="ml-3 px-2 py-0.5 rounded bg-green-100 text-green-800">Amistoso</span>}
-                </span>
-              )
-            })()}
-          </div>
-          <div className="mb-3">
-            <input
-              type="text"
-              value={playerQuery}
-              onChange={event => setPlayerQuery(event.target.value)}
-              className="border rounded px-3 py-2 w-full"
-              placeholder="Buscar jugadores por nombre..."
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {players
-              .filter(player => {
-                if (player.inactive) return false
-                const normalizedQuery = playerQuery.trim().toLowerCase()
-                if (!normalizedQuery) return true
-                return player.name.toLowerCase().includes(normalizedQuery)
-              })
-              .map(player => (
-              <div key={player.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-3 py-2">
-                <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(player.id)}
-                    onChange={() => toggleSelect(player.id)}
-                  />
-                  <span className="font-medium truncate">{player.name}</span>
-                </label>
-                {selected.has(player.id) && (
-                  <button
-                    type="button"
-                    onClick={() => toggleGoalkeeper(player.id)}
-                    disabled={!goalkeeperIds.has(player.id) && goalkeeperIds.size >= MAX_GOALKEEPERS}
-                    aria-pressed={goalkeeperIds.has(player.id)}
-                    title={goalkeeperIds.has(player.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
-                    className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                      goalkeeperIds.has(player.id)
-                        ? 'bg-brand text-white border-brand'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                    }`}
-                  >
-                    🧤 Arquero
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {selected.size === requiredPlayers && !manualOpen && (
-        <div className="flex gap-3 justify-center mb-6">
-          <Button onClick={() => setManualOpen(true)}>
-            Generación manual
-          </Button>
-          <Button onClick={generateTeams}>
-            {autoTeams ? 'Re-generación automática' : 'Generación automática'}
-          </Button>
-        </div>
-      )}
-
-      {manualOpen && (
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="text-xl font-semibold mb-2">Configuración manual de equipos</h3>
-          <p className="text-black mb-4">
-            Arrastre jugadores para asignarlos a equipos. Los jugadores no asignados se completarán
-            automáticamente al generar equipos.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <DropColumn title={`Jugadores disponibles · ${unassignedManual.length}`} onDrop={event => onDrop(event, 'unassigned')}>
-              {unassignedManual.map(player => <Draggable key={player.id} player={player} />)}
-            </DropColumn>
-            <DropColumn title={`Equipo A (${manualA.length}/${playersPerTeam})`} onDrop={event => onDrop(event, 'a')}>
-              {manualA.map(player => <Draggable key={player.id} player={player} />)}
-            </DropColumn>
-            <DropColumn title={`Equipo B (${manualB.length}/${playersPerTeam})`} onDrop={event => onDrop(event, 'b')}>
-              {manualB.map(player => <Draggable key={player.id} player={player} />)}
-            </DropColumn>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
-            <div className="flex gap-3">
-              <Button variant="secondary" onClick={() => { setManualA([]); setManualB([]) }}>
-                Reiniciar
-              </Button>
-              <Button variant="secondary" onClick={() => setManualOpen(false)}>
-                Cerrar manual
-              </Button>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="tertiary" onClick={generateTeams} disabled={unassignedManual.length === 0}>
-                <span aria-hidden="true">✦</span>
-                Completar el resto
-              </Button>
-              <Button onClick={generateTeams} disabled={unassignedManual.length > 0}>
-                Confirmar equipos
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {autoTeams && (
-        <div className="bg-white rounded-lg shadow p-4">
-          {streakSeparated && (
-            <div className="mb-4 px-3 py-2 rounded bg-orange-50 border border-orange-200 text-orange-800 text-sm">
-              🔥 Jugadores en racha de 4+ victorias fueron distribuidos en equipos distintos
-            </div>
-          )}
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <TeamCard title="Team A" team={autoTeams.teamA} color="blue" winProbability={probA} goalkeeperIds={goalkeeperIds} />
-            <TeamCard title="Team B" team={autoTeams.teamB} color="red" winProbability={probB} goalkeeperIds={goalkeeperIds} />
-          </div>
-
-          <div className="pt-4">
-            <div className="flex flex-col md:flex-row gap-3 md:items-center">
-              <div className="text-sm">
-                <div className="font-semibold">Encargado de camisetas</div>
-                <div className="text-black">
-                  {shirtsResponsibleId
-                    ? (players.find(player => player.id === shirtsResponsibleId)?.name ?? '—')
-                    : (dutyPool.length
-                      ? `${players.find(player => player.id === dutyPool[0].id)?.name ?? '—'} (entre ${dutyPool.length} con menos asignaciones)`
-                      : 'Seleccione jugadores y genere equipos')}
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="relative">
-                  <select
-                    className="appearance-none border rounded pl-3 pr-8 py-2 w-full"
-                    value={shirtsResponsibleId ?? ''}
-                    onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
-                  >
-                    <option value="">(aleatorio entre elegibles con menos asignaciones)</option>
-                    {(() => {
-                      const current = [...(autoTeams.teamA.players), ...(autoTeams.teamB.players)]
-                      const played = new Set<string>()
-                      for (const match of finalMatches) {
-                        for (const player of match.teamA) played.add(player.id)
-                        for (const player of match.teamB) played.add(player.id)
-                      }
-                      const eligibleExists = current.some(player => played.has(player.id))
-                      return current.map(player => (
-                        <option key={player.id} value={player.id} disabled={eligibleExists && !played.has(player.id)}>
-                          {player.name} (#{dutiesById.get(player.id) ?? 0}){eligibleExists && !played.has(player.id) ? ' — nuevo' : ''}
-                        </option>
-                      ))
-                    })()}
-                  </select>
-                  <Chevron select />
-                </div>
-              </div>
-              <div>
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    if (!dutyPool.length) return
-                    setShirtsResponsibleId(dutyPool[Math.floor(Math.random() * dutyPool.length)].id)
-                  }}
-                >
-                  🎲 Elegir aleatorio
-                </Button>
-              </div>
-            </div>
-            <div className="py-2">
-              <label htmlFor="match-description" className="block text-sm font-semibold mb-1">
-                Crónica
-              </label>
-              <textarea
-                id="match-description"
-                value={matchDescription}
-                onChange={(event) => setMatchDescription(event.target.value)}
-                placeholder="Escribí la crónica del partido"
-                className="border rounded px-3 py-2 w-full"
-              />
-            </div>
-          </div>
-
-          {isAdmin && (
-            <div className="mt-6 border-t pt-4">
-              <h4 className="font-semibold mb-3">Crear partido</h4>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[auto_auto_minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]">
-                <div>
-                  <label htmlFor="draft-date" className="block text-sm mb-1">Fecha</label>
-                  <input
-                    id="draft-date"
-                    type="date"
-                    value={draftDate}
-                    onChange={(event) => setDraftDate(event.target.value)}
-                    className="h-10 border rounded px-3 w-full"
-                  />
-                </div>
-                <HourField id="draft-hour" value={draftHour} onChange={setDraftHour} labelClassName="block text-sm" />
-                <div>
-                  <label className="block text-sm mb-1">Cancha</label>
-                  <AddressPicker value={matchLocation} onChange={setMatchLocation} />
-                </div>
-                <div>
-                  <label htmlFor="draft-name" className="block text-sm mb-1">Nombre (opcional)</label>
-                  <input
-                    id="draft-name"
-                    type="text"
-                    value={draftName}
-                    onChange={(event) => setDraftName(event.target.value)}
-                    placeholder="Ej: Partido del miércoles"
-                    className="h-10 border rounded px-3 w-full"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="friendly-match" className="block text-sm mb-1">Tipo de partido</label>
-                  <button
-                    id='friendly-match'
-                    type="button"
-                    role="switch"
-                    aria-checked={isFriendly}
-                    aria-label="Partido amistoso"
-                    onClick={() => setIsFriendly((wasFriendly) => !wasFriendly)}
-                    className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
-                      isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
-                    }`}
-                  >
-                    <span
-                      className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                        isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                      }`}
-                    >
-                      Competitivo
-                    </span>
-                    <span
-                      className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                        isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                      }`}
-                    >
-                      Amistoso
-                    </span>
-                    <span
-                      className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
-                        isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                      }`}
-                    >
-                      <span className="text-md">{isFriendly ? '🤝' : '⚔️'}</span>
-                    </span>
-                  </button>
-                </div>
-                <Button
-                  onClick={createDraft}
-                  disabled={isCreatingDraft}
-                  className="h-10 w-full sm:col-span-2 lg:col-span-1 lg:w-auto whitespace-nowrap"
-                >
-                  {isCreatingDraft ? 'Creando...' : 'Crear partido'}
-                </Button>
-              </div>
-              <p className="mt-2 text-xs text-gray-500">
-                Se guarda como borrador en el historial. Más tarde podés completar el resultado.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function TeamCard({ title, team, color, winProbability, goalkeeperIds }: { title: string, team: TeamResult, color: 'blue' | 'red', winProbability?: number, goalkeeperIds?: Set<string> }) {
-  return (
-    <div className="border rounded-lg p-4">
-      <h3 className={`text-center font-semibold mb-3 ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>{title}</h3>
-      <div className="grid gap-2 mb-3">
-        {team.players.map((player: PlayerInfo) => (
-          <div key={player.id} className="bg-gray-50 rounded px-3 py-2 text-center">
-            <strong>{player.name}</strong>
-            {goalkeeperIds?.has(player.id) && <span className="ml-2" title="Arquero">🧤</span>}
-          </div>
-        ))}
-      </div>
-      <div className="bg-gray-100 rounded px-3 py-2 text-center font-semibold">
-        <span className="mr-2">Total habilidad:</span>
-        {team.totalSkill}
-        <span className="mx-2">|</span>
-        <span className="mr-2">Total físico:</span>
-        {team.totalPhysical}
-        <span className="mx-2">|</span>
-        <span className="mr-2">Probabilidad de victoria:</span>
-        {winProbability != null ? `${winProbability}%` : '—'}
-      </div>
+      {renderStep()}
     </div>
   )
 }
