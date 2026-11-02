@@ -1,4 +1,8 @@
-import type { Match } from '@fulbito/types'
+import type { Match, MatchType } from '@fulbito/types'
+
+export const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
+
+export const MAX_GOALKEEPERS = 2
 
 export function onlyFinalMatches<T extends Pick<Match, 'status'>>(matches: T[]): T[] {
   return matches.filter((m) => m.status !== 'draft')
