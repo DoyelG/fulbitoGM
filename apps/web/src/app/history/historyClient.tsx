@@ -37,6 +37,7 @@ import { InfiniteScrollSentinel } from "../shared/InfiniteScrollSentinel";
 import { usePagination } from "../shared/use-pagination";
 import { MatchDescription } from "./matchDescription";
 import AddressPicker from "@/components/AddressPicker";
+import FriendlySwitch from "@/components/FriendlySwitch";
 import MatchLocationLink from "@/components/MatchLocationLink";
 import { FiTrash2 } from "react-icons/fi";
 import Chevron from "../shared/Icons/Chevron";
@@ -878,46 +879,11 @@ function RecordModal({
             </label>
             <AddressPicker value={matchLocation} onChange={setMatchLocation} />
           </div>
-          <div>
-            <label htmlFor="fiendly-match" className="block text-sm font-medium mb-1">
-              Tipo de partido
-            </label>
-            <button
-              id="fiendly-match"
-              type="button"
-              role="switch"
-              aria-checked={isFriendly}
-              aria-label="Partido amistoso"
-              onClick={() => setIsFriendly((current) => !current)}
-              className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
-                isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
-              }`}
-            >
-              <span
-                className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
-                }`}
-              >
-                Competitivo
-              </span>
-
-              <span
-                className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
-                }`}
-              >
-                Amistoso
-              </span>
-
-              <span
-                className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
-                  isFriendly ? "translate-x-[76px]" : "translate-x-0"
-                }`}
-              >
-                <span className="text-md">{isFriendly ? "🤝" : "⚔️"}</span>
-              </span>
-            </button>
-          </div>
+          <FriendlySwitch
+            isFriendly={isFriendly}
+            onToggle={() => setIsFriendly((current) => !current)}
+            labelClassName="block text-sm font-medium mb-1"
+          />
           <div className="sm:col-span-5">
             <label className="block text-lg font-medium mb-1">
               Nombre del Partido

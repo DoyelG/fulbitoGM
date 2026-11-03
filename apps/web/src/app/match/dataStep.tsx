@@ -16,9 +16,10 @@ import {
 import type { PlayerInfo, TeamResult } from '@/lib/teamUtils'
 import { Card } from '@/components/Card'
 import Button from '@/components/Button'
+import FriendlySwitch from '@/components/FriendlySwitch'
 import HourField from '@/components/HourField'
 import AddressPicker from '@/components/AddressPicker'
-import { FiAward, FiRefreshCw, FiSmile } from 'react-icons/fi'
+import { FiRefreshCw } from 'react-icons/fi'
 import { LuDices } from 'react-icons/lu'
 import Chevron from '../shared/Icons/Chevron'
 
@@ -276,49 +277,6 @@ export default function DataStep({
         </div>
       )}
     </Card>
-  )
-}
-
-function FriendlySwitch({ isFriendly, onToggle }: { isFriendly: boolean; onToggle: () => void }) {
-  const knobPosition = isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-
-  return (
-    <div>
-      <label htmlFor="friendly-match" className="block text-sm mb-1">
-        Tipo de partido
-      </label>
-      <button
-        id="friendly-match"
-        type="button"
-        role="switch"
-        aria-checked={isFriendly}
-        aria-label="Partido amistoso"
-        onClick={onToggle}
-        className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-          isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
-        }`}
-      >
-        <span
-          className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${knobPosition}`}
-        >
-          Competitivo
-        </span>
-        <span
-          className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${knobPosition}`}
-        >
-          Amistoso
-        </span>
-        <span
-          className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${knobPosition}`}
-        >
-          {isFriendly ? (
-            <FiSmile size={16} aria-hidden="true" className="text-green-600" />
-          ) : (
-            <FiAward size={16} aria-hidden="true" className="text-brand" />
-          )}
-        </span>
-      </button>
-    </div>
   )
 }
 
