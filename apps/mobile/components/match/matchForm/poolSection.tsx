@@ -1,12 +1,12 @@
 import type { Player } from '@fulbito/types'
 import { useState } from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
+import PlayerSelector from '@/components/players/player-selector/player-selector'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { BottomSheet } from './bottomSheet'
 import { FormLabel } from './formLabel'
-import { sheetStyles } from './sharedStyles'
 
 type Props = {
   players: Player[]
@@ -24,15 +24,6 @@ export function PoolSection({ players, poolPlayers, poolIds, maxSize, onConfirm 
   const openModal = () => {
     setDraftIds(new Set(poolIds))
     setOpen(true)
-  }
-
-  const toggle = (id: string) => {
-    setDraftIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else if (next.size < maxSize) next.add(id)
-      return next
-    })
   }
 
   const confirm = () => {
@@ -74,25 +65,13 @@ export function PoolSection({ players, poolPlayers, poolIds, maxSize, onConfirm 
         onConfirm={confirm}
         onDismiss={() => setOpen(false)}
       >
-        <ScrollView keyboardShouldPersistTaps="handled">
-          {players
-            .filter((player) => !player.inactive)
-            .map((player) => {
-            const selected = draftIds.has(player.id)
-            return (
-              <TouchableOpacity
-                key={player.id}
-                style={[sheetStyles.option, { borderBottomColor: colors.border }]}
-                onPress={() => toggle(player.id)}
-              >
-                <Text style={[sheetStyles.optionText, { color: colors.text }]}>{player.name}</Text>
-                {selected && (
-                  <Text style={{ color: colors.brand, fontWeight: '700', fontSize: 16 }}>✓</Text>
-                )}
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
+        <PlayerSelector
+          players={players}
+          selectedIds={draftIds}
+          onChange={setDraftIds}
+          hidePlayerCondition={(player) => !!player.inactive}
+          maxSelectedCount={maxSize}
+        />
       </BottomSheet>
     </>
   )

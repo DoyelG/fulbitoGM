@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 type Props = {
   open: boolean
@@ -8,9 +9,10 @@ type Props = {
   title: string
   children: React.ReactNode
   size?: 'default' | 'large'
+  hideHeader?: boolean
 }
 
-export default function Modal({ open, onClose, title, children, size = 'default' }: Props) {
+export default function Modal({ open, onClose, title, children, size = 'default', hideHeader = false }: Props) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -22,7 +24,7 @@ export default function Modal({ open, onClose, title, children, size = 'default'
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
       role="dialog"
@@ -33,12 +35,12 @@ export default function Modal({ open, onClose, title, children, size = 'default'
       }}
     >
       <div
-        className={`bg-white rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto ${
-          size === 'large' ? 'max-w-4xl' : 'max-w-lg'
-        }`}
+        className={`bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto ${size === 'large' ? 'max-w-4xl' : 'max-w-lg'}`}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">{title}</h2>
+        <div
+          className={`flex items-center px-4 ${hideHeader ? 'justify-end pt-3' : 'justify-between py-3 border-b border-gray-200'}`}
+        >
+          {!hideHeader && <h2 className="text-lg font-semibold">{title}</h2>}
           <button
             type="button"
             onClick={onClose}
@@ -50,6 +52,7 @@ export default function Modal({ open, onClose, title, children, size = 'default'
         </div>
         <div className="p-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

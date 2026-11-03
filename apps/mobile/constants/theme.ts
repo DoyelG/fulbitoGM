@@ -15,6 +15,7 @@ export const Colors = {
     tabIconSelected: tintColorLight,
 
     brand: BRAND,
+    onBrand: '#ffffff',
     brandAccent: BRAND,
     brandSoft: 'rgba(124, 58, 237, 0.12)',
     brandSoftStrong: 'rgba(124, 58, 237, 0.12)',
@@ -51,6 +52,7 @@ export const Colors = {
     tabIconSelected: tintColorDark,
 
     brand: BRAND,
+    onBrand: '#ffffff',
     brandAccent: '#e9d5ff',
     brandSoft: 'rgba(124, 58, 237, 0.2)',
     brandSoftStrong: 'rgba(124, 58, 237, 0.28)',

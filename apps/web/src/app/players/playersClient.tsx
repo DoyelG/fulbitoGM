@@ -13,6 +13,7 @@ import PlayersTable, { type PlayerRow } from './PlayersTable'
 import ConfirmModal from '@/components/ConfirmModal'
 import PageTitle from '@/components/PageTitle'
 import { buttonClasses } from '@/components/Button'
+import LinkPlayerAlert from '@/components/LinkPlayerAlert'
 import Chevron from '../shared/Icons/Chevron'
 
 export default function PlayersClient({
@@ -96,6 +97,7 @@ export default function PlayersClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <LinkPlayerAlert />
       <PageTitle
         spacing={8}
         actions={

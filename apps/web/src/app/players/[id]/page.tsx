@@ -21,7 +21,7 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import Chevron from "@/app/shared/Icons/Chevron";
 
 export default function PlayerDetailPage() {
-  const { isAdmin } = useFirebaseAuth()
+  const { user, isAdmin } = useFirebaseAuth()
   const { id } = useParams();
   const router = useRouter();
   const updatePlayer = usePlayerStore((state) => state.updatePlayer);
@@ -614,7 +614,11 @@ export default function PlayerDetailPage() {
       </div>
 
       <div className="mt-6">
-        <VideoClipsSection player={player} matches={matches} isAdmin={isAdmin} />
+        <VideoClipsSection
+          player={player}
+          matches={matches}
+          canUpload={isAdmin || user?.linkedPlayerId === player.id}
+        />
       </div>
     </div>
   );

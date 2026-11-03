@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Match, Player, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
+import { canDeleteVideoClip } from '@fulbito/utils'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
 import Button from '@/components/Button'
@@ -12,15 +14,16 @@ import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
 type Props = {
   player: Player
   matches: Match[]
-  isAdmin: boolean
+  canUpload: boolean
 }
 
-export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
-  const videoClips = useVideoClipStore(state => state.videoClips)
-  const videoClipsInit = useVideoClipStore(state => state.videoClipsInit)
-  const initLoad = useVideoClipStore(state => state.initLoad)
-  const addVideoClip = useVideoClipStore(state => state.addVideoClip)
-  const deleteVideoClip = useVideoClipStore(state => state.deleteVideoClip)
+export default function VideoClipsSection({ player, matches, canUpload }: Props) {
+  const { user, isAdmin } = useFirebaseAuth()
+  const videoClips = useVideoClipStore((s) => s.videoClips)
+  const videoClipsInit = useVideoClipStore((s) => s.videoClipsInit)
+  const initLoad = useVideoClipStore((s) => s.initLoad)
+  const addVideoClip = useVideoClipStore((s) => s.addVideoClip)
+  const deleteVideoClip = useVideoClipStore((s) => s.deleteVideoClip)
 
   const [filter, setFilter] = useState<VideoClipCategory | 'all'>('all')
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -33,15 +36,15 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
   }, [videoClipsInit, initLoad])
 
   const playerClips = useMemo(
-    () => videoClips.filter(clip => clip.playerIds.includes(player.id)),
+    () => videoClips.filter((clip) => clip.playerIds.includes(player.id)),
     [videoClips, player.id],
   )
   const filteredClips = useMemo(
-    () => (filter === 'all' ? playerClips : playerClips.filter(clip => clip.category === filter)),
+    () => (filter === 'all' ? playerClips : playerClips.filter((clip) => clip.category === filter)),
     [playerClips, filter],
   )
-  const matchById = useMemo(() => new Map(matches.map(match => [match.id, match])), [matches])
-  const playbackClip = playbackClipId ? (playerClips.find(clip => clip.id === playbackClipId) ?? null) : null
+  const matchById = useMemo(() => new Map(matches.map((match) => [match.id, match])), [matches])
+  const playbackClip = playbackClipId ? (playerClips.find((clip) => clip.id === playbackClipId) ?? null) : null
 
   const handleUpload = async (data: NewVideoClipData, file: File) => {
     setUploadError(null)
@@ -68,9 +71,9 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
     <div className="bg-white rounded-lg shadow">
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold">Clips</h2>
-        {isAdmin && (
+        {canUpload && (
           <Button
-            size="sm"
+            type="button"
             onClick={() => {
               setUploadError(null)
               setUploadOpen(true)
@@ -109,7 +112,7 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
           >
             Todos
           </button>
-          {VIDEO_CLIP_CATEGORIES.map(clipCategory => (
+          {VIDEO_CLIP_CATEGORIES.map((clipCategory) => (
             <button
               key={clipCategory.value}
               type="button"
@@ -137,7 +140,7 @@ export default function VideoClipsSection({ player, matches, isAdmin }: Props) {
           <VideoClipCarousel
             clips={filteredClips}
             matchById={matchById}
-            isAdmin={isAdmin}
+            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
             onOpen={setPlaybackClipId}
             onDelete={handleDelete}
           />

@@ -1,21 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useMemo, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { getGoalkeeping } from '@fulbito/utils'
-import type { VideoClipCategory } from '@fulbito/types'
-import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 
 import { PlayerAvatar } from '@/components/players/player-avatar'
 import { StreakBadge } from '@/components/players/streak-badge'
@@ -23,14 +11,12 @@ import { InactiveBadge } from '@/components/players/inactive-badge'
 import { PlayerSkillBars } from '@/components/players/detail/player-skill-bars'
 import { PlayerStatsGrid } from '@/components/players/detail/player-stats-grid'
 import { RecentMatchRow } from '@/components/players/detail/recent-match-row'
-import { VideoClipCarousel } from '@/components/players/detail/video-clip-carousel'
-import { VideoClipUploadModal } from '@/components/players/detail/video-clip-upload-modal'
-import { VideoClipPlaybackModal } from '@/components/video-clip-playback-modal'
+import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useIsAdmin } from '@/hooks/use-is-admin'
 import { usePlayerDetail } from '@/hooks/use-player-detail'
-import { useVideoClipsData } from '@/hooks/use-video-clips-data'
 import { useAppTheme } from '@/hooks/use-theme'
 import { Fonts, Radii, Spacing } from '@/constants/theme'
 
@@ -41,6 +27,7 @@ export default function PlayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const isAdmin = useIsAdmin()
+  const { user } = useFirebaseAuth()
   const { colors, isDark, shadows } = useAppTheme()
 
   const {
@@ -56,28 +43,6 @@ export default function PlayerDetailScreen() {
     refresh,
     reload,
   } = usePlayerDetail(id)
-
-  const { videoClips, addVideoClip, deleteVideoClip, error: videoClipsError } = useVideoClipsData()
-  const [clipFilter, setClipFilter] = useState<VideoClipCategory | 'all'>('all')
-  const [uploadVisible, setUploadVisible] = useState(false)
-  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
-
-  const playerClips = useMemo(
-    () => videoClips.filter(c => c.playerIds.includes(id)),
-    [videoClips, id],
-  )
-  const filteredClips = useMemo(
-    () => (clipFilter === 'all' ? playerClips : playerClips.filter(c => c.category === clipFilter)),
-    [playerClips, clipFilter],
-  )
-  const matchById = useMemo(() => new Map(allMatches.map(m => [m.id, m])), [allMatches])
-
-  const handleDeleteClip = (clipId: string, label: string) => {
-    Alert.alert('Eliminar clip', `¿Eliminar "${label}"?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => void deleteVideoClip(clipId) },
-    ])
-  }
 
   if (loading) {
     return (
@@ -118,27 +83,22 @@ export default function PlayerDetailScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scroll}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => void refresh()}
-              tintColor={colors.brand}
-            />
-          }>
-
+            <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.brand} />
+          }
+        >
           <LinearGradient
             colors={['#7C3AED', '#F97316']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.hero}>
+            style={styles.hero}
+          >
             <View style={styles.heroLeft}>
               <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={AVATAR_SIZE} />
               <View style={styles.heroInfo}>
                 <Text style={styles.playerName}>{player.name}</Text>
                 <View style={styles.heroMeta}>
                   <Text style={styles.position}>{player.position}</Text>
-                  {streak.kind ? (
-                    <StreakBadge kind={streak.kind} count={streak.count} />
-                  ) : null}
+                  {streak.kind ? <StreakBadge kind={streak.kind} count={streak.count} /> : null}
                   <InactiveBadge inactive={player.inactive} />
                 </View>
               </View>
@@ -153,7 +113,8 @@ export default function PlayerDetailScreen() {
                   onPress={() => router.push(`/(tabs)/players/edit/${id}`)}
                   style={styles.editBtn}
                   accessibilityRole="button"
-                  accessibilityLabel="Editar jugador">
+                  accessibilityLabel="Editar jugador"
+                >
                   <MaterialIcons name="edit" size={18} color="#fff" />
                 </Pressable>
               )}
@@ -165,11 +126,8 @@ export default function PlayerDetailScreen() {
 
           <SectionTitle title="Habilidades" />
           <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-              shadows.card(isDark),
-            ]}>
+            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, shadows.card(isDark)]}
+          >
             <PlayerSkillBars skills={catSkills} goalkeeping={getGoalkeeping(player)} />
           </View>
 
@@ -182,13 +140,10 @@ export default function PlayerDetailScreen() {
                   styles.matchesCard,
                   { backgroundColor: colors.surface, borderColor: colors.border },
                   shadows.card(isDark),
-                ]}>
+                ]}
+              >
                 {recentSlice.map((m, i) => (
-                  <RecentMatchRow
-                    key={m.id}
-                    match={m}
-                    showBorder={i < recentSlice.length - 1}
-                  />
+                  <RecentMatchRow key={m.id} match={m} showBorder={i < recentSlice.length - 1} />
                 ))}
               </View>
             </>
@@ -197,92 +152,15 @@ export default function PlayerDetailScreen() {
               <SectionTitle title="Últimos partidos" />
               <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <MaterialIcons name="sports-soccer" size={32} color={colors.muted} />
-                <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
-                  Sin partidos registrados
-                </ThemedText>
+                <ThemedText style={[styles.emptyText, { color: colors.muted }]}>Sin partidos registrados</ThemedText>
               </View>
             </>
           )}
 
           <SectionTitle title="Clips" />
-          <View style={styles.clipFilterRow}>
-            <Pressable
-              onPress={() => setClipFilter('all')}
-              style={[styles.clipFilterChip, { borderColor: clipFilter === 'all' ? colors.brand : colors.border }]}
-              accessibilityRole="button"
-              accessibilityLabel="Todos los clips"
-              accessibilityState={{ selected: clipFilter === 'all' }}>
-              <ThemedText style={{ color: colors.text }}>Todos</ThemedText>
-            </Pressable>
-            {VIDEO_CLIP_CATEGORIES.map(c => (
-              <Pressable
-                key={c.value}
-                onPress={() => setClipFilter(c.value)}
-                style={[styles.clipFilterChip, { borderColor: clipFilter === c.value ? colors.brand : colors.border }]}
-                accessibilityRole="button"
-                accessibilityLabel={c.label}
-                accessibilityState={{ selected: clipFilter === c.value }}>
-                <ThemedText style={{ color: colors.text }}>{c.icon} {c.label}</ThemedText>
-              </Pressable>
-            ))}
+          <View style={styles.clipsWrap}>
+            <PlayerClipsSection playerId={id} matches={allMatches} canUpload={isAdmin || user?.linkedPlayerId === id} />
           </View>
-
-          {isAdmin && (
-            <Pressable
-              onPress={() => setUploadVisible(true)}
-              style={[styles.uploadClipBtn, { backgroundColor: colors.brand }]}
-              accessibilityRole="button"
-              accessibilityLabel="Subir clip">
-              <ThemedText style={styles.uploadClipBtnText}>+ Subir clip</ThemedText>
-            </Pressable>
-          )}
-
-          {videoClipsError ? (
-            <View
-              style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              accessibilityLiveRegion="polite">
-              <MaterialIcons name="error-outline" size={32} color={colors.muted} />
-              <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
-                No se pudieron cargar los clips
-              </ThemedText>
-            </View>
-          ) : filteredClips.length === 0 ? (
-            <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <MaterialIcons name="movie" size={32} color={colors.muted} />
-              <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
-                Sin clips para este jugador
-              </ThemedText>
-            </View>
-          ) : (
-            <View style={styles.clipsCarouselWrap}>
-              <VideoClipCarousel
-                clips={filteredClips}
-                matchById={matchById}
-                isAdmin={isAdmin}
-                onOpen={clipId => {
-                  const clip = filteredClips.find(c => c.id === clipId)
-                  if (clip) setPlaybackUrl(clip.url)
-                }}
-                onDelete={clipId => {
-                  const clip = filteredClips.find(c => c.id === clipId)
-                  handleDeleteClip(clipId, clip?.title || 'clip')
-                }}
-              />
-            </View>
-          )}
-
-          <VideoClipUploadModal
-            visible={uploadVisible}
-            matches={allMatches}
-            currentPlayerId={id}
-            onSubmit={async (data, uri) => {
-              await addVideoClip(data, uri)
-              setUploadVisible(false)
-            }}
-            onClose={() => setUploadVisible(false)}
-          />
-
-          <VideoClipPlaybackModal url={playbackUrl} onClose={() => setPlaybackUrl(null)} />
 
           <View style={styles.bottomPad} />
         </ScrollView>
@@ -293,9 +171,7 @@ export default function PlayerDetailScreen() {
 
 function SectionTitle({ title }: { title: string }) {
   const { colors } = useAppTheme()
-  return (
-    <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>{title.toUpperCase()}</ThemedText>
-  )
+  return <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>{title.toUpperCase()}</ThemedText>
 }
 
 const styles = StyleSheet.create({
@@ -417,6 +293,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
+  clipsWrap: {
+    marginBottom: Spacing.xl,
+  },
   bottomPad: { height: 16 },
 
   heroRight: {
@@ -433,34 +312,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.18)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
-  },
-  clipFilterRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  clipFilterChip: {
-    borderWidth: 1,
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  uploadClipBtn: {
-    borderRadius: Radii.sm,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  uploadClipBtnText: {
-    color: '#fff',
-    fontFamily: Fonts.semiBold,
-  },
-  clipsCarouselWrap: {
-    marginBottom: Spacing.xl,
   },
 })

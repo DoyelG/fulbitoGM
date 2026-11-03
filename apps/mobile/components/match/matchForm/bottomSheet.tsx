@@ -13,6 +13,7 @@ type Props = {
   onDismiss?: () => void
   children: ReactNode
   containerStyle?: StyleProp<ViewStyle>
+  hideTitle?: boolean
 }
 
 export function BottomSheet({
@@ -23,6 +24,7 @@ export function BottomSheet({
   onDismiss,
   children,
   containerStyle,
+  hideTitle = false,
 }: Props) {
   const { colors } = useAppTheme()
 
@@ -32,8 +34,8 @@ export function BottomSheet({
     <Modal transparent animationType="fade" visible>
       <Pressable style={sheetStyles.backdrop} onPress={onDismiss ?? onConfirm} />
       <View style={[sheetStyles.container, { backgroundColor: colors.surface }, containerStyle]}>
-        <View style={sheetStyles.header}>
-          <Text style={[sheetStyles.title, { color: colors.text }]}>{title}</Text>
+        <View style={[sheetStyles.header, hideTitle && sheetStyles.headerEnd]}>
+          {!hideTitle && <Text style={[sheetStyles.title, { color: colors.text }]}>{title}</Text>}
           <TouchableOpacity onPress={onConfirm}>
             <Text style={[sheetStyles.close, { color: colors.brand }]}>{closeLabel}</Text>
           </TouchableOpacity>

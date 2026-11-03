@@ -13,10 +13,17 @@ service firebase.storage {
       allow write: if request.auth != null;
     }
 
-    // Video clips: anyone may view; only signed-in users may upload.
+    // Video clips: anyone may view; signed-in users may upload new videos (no overwrite).
+    // Only the clip's author or an admin may delete the file.
     match /videoClips/{fileName} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.contentType.matches('video/.*')
+        && request.resource.size < 200 * 1024 * 1024;
+      allow delete: if request.auth != null && (
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role.hasAny(['ADMIN'])
+        || firestore.get(/databases/(default)/documents/videoClips/$(fileName)).data.get('createdBy', null) == request.auth.uid
+      );
     }
   }
 }

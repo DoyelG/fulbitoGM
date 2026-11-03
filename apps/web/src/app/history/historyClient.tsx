@@ -27,6 +27,7 @@ import {
   formatMatchDate,
   MATCH_TYPES,
   MAX_GOALKEEPERS,
+  canDeleteVideoClip,
 } from "@fulbito/utils";
 import HourField from "@/components/HourField";
 import { usePlayerStore } from "@/store/usePlayerStore";
@@ -43,7 +44,7 @@ import Chevron from "../shared/Icons/Chevron";
 type RecordingPlayer = { id: string; name: string };
 
 export default function HistoryClient() {
-  const { isAdmin } = useFirebaseAuth();
+  const { user, isAdmin } = useFirebaseAuth();
   const {
     addMatch,
     updateMatch,
@@ -544,7 +545,7 @@ export default function HistoryClient() {
           <VideoClipCarousel
             clips={viewClips}
             matchById={viewMatchById}
-            isAdmin={isAdmin}
+            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
             onOpen={setViewPlaybackClipId}
             onDelete={handleViewDelete}
           />

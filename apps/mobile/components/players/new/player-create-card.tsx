@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   ratingBox: {
     position: 'absolute',

@@ -12,7 +12,7 @@ Monorepo for managing football matches. Includes web app, mobile app, and an MCP
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 20.12+
+- [Node.js](https://nodejs.org/) 22.23.4+ (older versions are affected by a critical Brotli vulnerability)
 - [pnpm](https://pnpm.io/) — `npm install -g pnpm`
 - Xcode + iOS Simulator (only for iOS mobile development)
 

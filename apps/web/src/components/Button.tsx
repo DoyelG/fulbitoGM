@@ -2,7 +2,7 @@
 
 import type { ButtonHTMLAttributes } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'tertiary' | 'soft' | 'softDanger' | 'danger' | 'ghost'
+type Variant = 'primary' | 'secondary' | 'tertiary' | 'soft' | 'softDanger' | 'danger' | 'dangerousSecondary' | 'ghost'
 type Size = 'xs' | 'sm' | 'md'
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -24,6 +24,7 @@ const variantStyles: Record<Variant, string> = {
   softDanger:
     'border-brand/30 bg-transparent text-brand enabled:hover:bg-red-50 enabled:hover:text-red-600 focus-visible:ring-red-600',
   danger: 'border-transparent bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600',
+  dangerousSecondary: 'border-red-600 bg-white text-red-600 hover:bg-red-50 focus-visible:ring-red-600',
   ghost: 'border-transparent bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-brand',
 }
 

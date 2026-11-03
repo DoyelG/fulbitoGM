@@ -46,6 +46,11 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 1.5,
   },
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+  },
   navLeft: {
     flexDirection: 'row',
     gap: 12,

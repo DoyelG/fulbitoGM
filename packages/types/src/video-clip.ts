@@ -7,6 +7,7 @@ export type VideoClip = {
   category: VideoClipCategory
   title?: string
   url: string
+  createdBy?: string
   createdAt: Date
   updatedAt: Date
 }

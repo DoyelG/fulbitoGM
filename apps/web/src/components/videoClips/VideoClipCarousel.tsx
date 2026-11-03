@@ -7,14 +7,14 @@ import VideoClipCard from '@/components/videoClips/VideoClipCard'
 type Props = {
   clips: VideoClip[]
   matchById: Map<string, Match>
-  isAdmin: boolean
+  canDelete: (clip: VideoClip) => boolean
   onOpen: (clipId: string) => void
   onDelete: (clipId: string) => void
 }
 
 const SCROLL_AMOUNT = 320
 
-export default function VideoClipCarousel({ clips, matchById, isAdmin, onOpen, onDelete }: Props) {
+export default function VideoClipCarousel({ clips, matchById, canDelete, onOpen, onDelete }: Props) {
   const trackRef = useRef<HTMLDivElement | null>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
@@ -51,12 +51,12 @@ export default function VideoClipCarousel({ clips, matchById, isAdmin, onOpen, o
         onScroll={updateScrollState}
         className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1"
       >
-        {clips.map(clip => (
+        {clips.map((clip) => (
           <div key={clip.id} className="w-32 flex-shrink-0 snap-start">
             <VideoClipCard
               clip={clip}
               match={matchById.get(clip.matchId)}
-              isAdmin={isAdmin}
+              canDelete={canDelete(clip)}
               onOpen={() => onOpen(clip.id)}
               onDelete={() => onDelete(clip.id)}
             />

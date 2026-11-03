@@ -16,6 +16,7 @@ export type Player = {
   photoUrl?: string | null
   goalkeeping?: number
   inactive?: boolean
+  linkedUserId?: string
   createdAt: Date
   updatedAt: Date
 }

@@ -75,6 +75,15 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  itemBadge: {
+    marginLeft: 'auto',
+  },
+  dangerIconWrapper: {
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+  },
+  dangerLabel: {
+    color: '#F87171',
+  },
   itemLabel: {
     fontSize: 16,
     fontWeight: '600',
@@ -132,5 +141,19 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#FFFFFF',
     letterSpacing: 1.5,
+  },
+  optionsContainer: {
+    flex: 1,
+  },
+  appVersionInfo: {
+    paddingHorizontal: 24,
+    gap: 6,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
+  },
+  appVersionText: {
+    fontSize: 10,
+    color: '#94A3B8',
   },
 })

@@ -4,6 +4,7 @@ import "./globals.css"
 import AppBootstrap from "./shared/AppBootstrap"
 import AuthProvider from "./shared/AuthProvider"
 import NavBar from "./NavBar"
+import LinkPlayerModal from "@/components/LinkPlayerModal"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,7 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <div className="min-h-screen bg-gray-50">
-            <header className="bg-gradient-to-r from-brand to-accent text-white shadow-md">
+            <header className="bg-scoreboard border-b border-white/10 text-white shadow-md">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center">
                   <NavBar />
@@ -31,6 +32,7 @@ export default function RootLayout({
             </header>
             <main>{children}</main>
             <AppBootstrap />
+            <LinkPlayerModal />
           </div>
         </AuthProvider>
       </body>

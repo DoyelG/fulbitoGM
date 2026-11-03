@@ -9,6 +9,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { useColorScheme } from '@/hooks/use-color-scheme'
 import { FirebaseAuthProvider, useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import AnimatedSplash from '@/components/AnimatedSplash'
+import LinkPlayerModal from '@/components/players/link-player/link-player-modal'
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -75,6 +76,7 @@ export default function RootLayout() {
     <FirebaseAuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <AuthGuard />
+        <LinkPlayerModal />
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
