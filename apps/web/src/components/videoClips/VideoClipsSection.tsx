@@ -74,6 +74,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
         {canUpload && (
           <Button
             type="button"
+            size="sm"
             onClick={() => {
               setUploadError(null)
               setUploadOpen(true)
