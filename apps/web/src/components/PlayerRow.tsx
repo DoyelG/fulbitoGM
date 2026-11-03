@@ -10,7 +10,9 @@ type Props = {
   isGoalkeeper: boolean
   isGoalkeeperDisabled: boolean
   onToggleSelect: () => void
-  onToggleGoalkeeper: () => void
+  onToggleGoalkeeper?: () => void
+  isMultiSelector: boolean
+  groupName: string
 }
 
 type Origin = { x: number; y: number; radius: number }
@@ -22,6 +24,8 @@ export default function PlayerRow({
   isGoalkeeperDisabled,
   onToggleSelect,
   onToggleGoalkeeper,
+  isMultiSelector,
+  groupName,
 }: Props) {
   const [origin, setOrigin] = useState<Origin | null>(null)
 
@@ -53,10 +57,16 @@ export default function PlayerRow({
         style={circleStyle}
       />
       <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
-        <input type="checkbox" checked={isSelected} onChange={onToggleSelect} className="accent-brand" />
+        <input
+          type={isMultiSelector ? 'checkbox' : 'radio'}
+          name={groupName}
+          checked={isSelected}
+          onChange={onToggleSelect}
+          className="accent-brand"
+        />
         <span className="truncate font-medium">{player.name}</span>
       </label>
-      {isSelected && (
+      {isSelected && onToggleGoalkeeper && (
         <Button
           variant={isGoalkeeper ? 'primary' : 'soft'}
           size="xs"

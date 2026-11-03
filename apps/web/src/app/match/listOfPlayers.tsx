@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { Player } from '@/store/usePlayerStore'
 import PlayersHeader from './playersHeader'
-import PlayersGrid from './playersGrid'
+import PlayersGrid from '@/components/PlayersGrid'
 
 type Props = {
   players: Player[]
@@ -28,14 +28,12 @@ export default function ListOfPlayers({
 }: Props) {
   const [playerQuery, setPlayerQuery] = useState('')
 
+  const availablePlayers = useMemo(() => players.filter((player) => !player.inactive), [players])
+
   const visiblePlayers = useMemo(() => {
     const normalizedQuery = playerQuery.trim().toLowerCase()
-    return players.filter((player) => {
-      if (player.inactive) return false
-      if (!normalizedQuery) return true
-      return player.name.toLowerCase().includes(normalizedQuery)
-    })
-  }, [players, playerQuery])
+    return availablePlayers.filter((player) => player.name.toLowerCase().includes(normalizedQuery))
+  }, [availablePlayers, playerQuery])
 
   return (
     <section className="relative z-2 my-6 motion-safe:transition-all motion-safe:duration-900 motion-safe:ease-in-out starting:-translate-y-24">
@@ -49,7 +47,8 @@ export default function ListOfPlayers({
         onReset={reset}
       />
       <PlayersGrid
-        players={visiblePlayers}
+        visiblePlayers={visiblePlayers}
+        availablePlayers={availablePlayers}
         selected={selected}
         goalkeeperIds={goalkeeperIds}
         toggleSelect={toggleSelect}
