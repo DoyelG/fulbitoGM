@@ -20,7 +20,8 @@ import { Stepper } from './stepper'
 import { usePlayerSelection } from './use-player-selection'
 import PlayersStep from './playersStep'
 import TeamsStep from './teamsStep'
-import DataStep, { type DraftForm } from './dataStep'
+import DataStep from './dataStep'
+import type { DraftForm } from './draftForm'
 
 export type Step = 1 | 2 | 3
 
