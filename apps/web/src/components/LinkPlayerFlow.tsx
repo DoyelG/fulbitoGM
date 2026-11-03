@@ -7,7 +7,7 @@ import { usePlayerStore } from '@/store/usePlayerStore'
 import Button from './Button'
 import LinkPlayerHero from './LinkPlayerHero'
 import LinkPlayerStepDots from './LinkPlayerStepDots'
-import PlayerSelector from './PlayerSelector'
+import PlayersGrid from './PlayersGrid'
 
 export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'revert'
 
@@ -46,6 +46,7 @@ export default function LinkPlayerFlow({
 }: LinkPlayerFlowProps) {
   const players = usePlayerStore((state) => state.players)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [playerQuery, setPlayerQuery] = useState('')
   const [newPlayerName, setNewPlayerName] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
@@ -135,16 +136,31 @@ export default function LinkPlayerFlow({
 
   if (step === 'select') {
     const selectedPlayerId = [...selectedIds][0]
+    const linkablePlayers = players.filter((player) => !player.inactive && !player.linkedUserId)
+    const normalizedQuery = playerQuery.trim().toLowerCase()
+    const visiblePlayers = linkablePlayers.filter((player) => player.name.toLowerCase().includes(normalizedQuery))
     return (
       <div>
         <LinkPlayerStepDots current={2} total={3} />
-        <PlayerSelector
-          players={players}
-          selectedIds={selectedIds}
-          onChange={setSelectedIds}
+        {linkablePlayers.length > 0 && (
+          <input
+            type="text"
+            value={playerQuery}
+            onChange={(event) => setPlayerQuery(event.target.value)}
+            placeholder="Buscar jugadores por nombre..."
+            aria-label="Buscar jugadores por nombre"
+            className="mb-3 h-10 w-full rounded border border-gray-300 px-3"
+          />
+        )}
+        <PlayersGrid
+          visiblePlayers={visiblePlayers}
+          availablePlayers={linkablePlayers}
+          selected={selectedIds}
+          toggleSelect={(playerId) => setSelectedIds(new Set([playerId]))}
           isMultiSelector={false}
-          hidePlayerCondition={(player) => !!player.inactive || !!player.linkedUserId}
-          maxHeight={240}
+          columnsClassName="sm:grid-cols-2 md:grid-cols-3"
+          embedded
+          maxHeight="40vh"
         />
         <p className="mt-4 text-sm text-gray-800">
           ¿No encontrás tu nombre?{' '}
@@ -186,7 +202,7 @@ export default function LinkPlayerFlow({
           type="text"
           value={newPlayerName}
           onChange={(e) => setNewPlayerName(e.target.value)}
-          className="w-full rounded border px-3 py-2"
+          className="w-full rounded border border-gray-300 px-3 py-2"
           placeholder="Tu nombre"
         />
         {errorAlert}
