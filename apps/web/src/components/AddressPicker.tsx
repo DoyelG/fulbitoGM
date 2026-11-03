@@ -49,7 +49,7 @@ export default function AddressPicker({ id, value, onChange }: AddressPickerProp
 
   return (
     <div className="relative w-full">
-      <div className="flex h-10 w-full items-center rounded border">
+      <div className="flex h-10 w-full items-center rounded border border-gray-300">
         <div className="relative h-full min-w-0 flex-1">
           <select
             id={id}
@@ -70,7 +70,7 @@ export default function AddressPicker({ id, value, onChange }: AddressPickerProp
           </select>
           <Chevron select />
         </div>
-        <div className="h-7 w-px shrink-0 bg-gray-400" aria-hidden="true" />
+        <div className="h-7 w-px shrink-0 bg-gray-300" aria-hidden="true" />
         <AddressActionsMenu
           onAdd={() => {
             setCreateError(null)

@@ -66,7 +66,7 @@ export function AwardsClient({ players, matches }: Props) {
                 onChange={(event) =>
                   onSelectSeason(event.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(event.target.value))
                 }
-                className="appearance-none rounded border py-2 pl-3 pr-9"
+                className="appearance-none rounded border border-gray-300 py-2 pl-3 pr-9"
               >
                 {availableYears.map((year) => (
                   <option key={year} value={year}>

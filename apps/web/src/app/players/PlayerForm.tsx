@@ -17,6 +17,10 @@ type Props = {
   playerId?: string
 }
 
+const fieldClassName =
+  'block h-10 w-full rounded border border-gray-300 px-3 focus-visible:outline-1 focus-visible:outline-brand'
+const selectClassName = `${fieldClassName} appearance-none pr-9`
+
 const positionLabels: Record<string, string> = {
   GK: 'Arquero',
   DEF: 'Defensor',
@@ -204,7 +208,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
           required
           value={formData.name}
           onChange={(event) => setFormData({...formData, name: event.target.value})}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
+          className={`mt-1 ${fieldClassName}`}
         />
       </div>
 
@@ -221,7 +225,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
               <select
                 value={(formData as unknown as { [key: string]: number | string })[cat.key]}
                 onChange={(event) => setFormData({ ...formData, [cat.key]: event.target.value })}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand pr-9 appearance-none"
+                className={selectClassName}
               >
                 {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
               </select>
@@ -289,7 +293,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
             id="goalkeeping"
             value={gkValue}
             onChange={(event) => { setGkTouched(true); setGoalkeeping(event.target.value) }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand pr-9 appearance-none"
+            className={selectClassName}
           >
             {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
           </select>
@@ -305,7 +309,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
             id="position"
             value={formData.position}
             onChange={(event) => setFormData({...formData, position: event.target.value})}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand pr-9 appearance-none"
+            className={selectClassName}
           >
             <option value="GK">Arquero</option>
             <option value="DEF">Defensor</option>
