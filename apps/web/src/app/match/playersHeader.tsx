@@ -56,21 +56,30 @@ export default function PlayersHeader({
   const goalkeeperStyle = hasAllGoalkeepers ? GOALKEEPER_STYLES.complete : GOALKEEPER_STYLES.missing
 
   return (
-    <Card className="sticky top-26 z-10">
-      <h3 className="mb-4 text-xl font-semibold">Seleccionar jugadores</h3>
-      <div className="mb-2 flex flex-wrap items-center gap-3 text-sm text-gray-800">
+    <Card className="sticky top-20 z-10 sm:top-26">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="text-xl font-semibold">Seleccionar jugadores</h3>
+        <Button
+          variant="softDanger"
+          size="sm"
+          className="shrink-0"
+          onClick={onReset}
+          disabled={selectedCount === 0}
+          aria-label="Limpiar selección"
+        >
+          <FiTrash2 size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">Limpiar selección</span>
+        </Button>
+      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-gray-800 sm:gap-3">
         <span>
           Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
         </span>
         <span className={`rounded px-2 py-0.5 ${playersStyle}`}>{playersLabel}</span>
         <span className={`rounded px-2 py-0.5 ${goalkeeperStyle}`}>
-          🧤 Arqueros: {goalkeeperCount} / {MAX_GOALKEEPERS}
+          🧤 <span className="sr-only sm:not-sr-only">Arqueros:</span> {goalkeeperCount} / {MAX_GOALKEEPERS}
         </span>
         {isFriendly && <span className="rounded bg-green-100 px-2 py-0.5 text-green-800">Amistoso</span>}
-        <Button variant="softDanger" size="sm" className="ml-auto" onClick={onReset} disabled={selectedCount === 0}>
-          <FiTrash2 size={16} aria-hidden="true" />
-          Limpiar selección
-        </Button>
       </div>
       <input
         type="text"
