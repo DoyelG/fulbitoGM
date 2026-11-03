@@ -8,8 +8,14 @@ type Props = {
   onClose: () => void
   title: string
   children: React.ReactNode
-  size?: 'default' | 'large'
+  size?: 'default' | 'medium' | 'large'
   hideHeader?: boolean
+}
+
+const MODAL_WIDTHS = {
+  default: 'max-w-lg',
+  medium: 'max-w-2xl',
+  large: 'max-w-4xl',
 }
 
 export default function Modal({ open, onClose, title, children, size = 'default', hideHeader = false }: Props) {
@@ -34,9 +40,7 @@ export default function Modal({ open, onClose, title, children, size = 'default'
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <div
-        className={`bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto ${size === 'large' ? 'max-w-4xl' : 'max-w-lg'}`}
-      >
+      <div className={`bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto ${MODAL_WIDTHS[size]}`}>
         <div
           className={`flex items-center px-4 ${hideHeader ? 'justify-end pt-3' : 'justify-between py-3 border-b border-gray-200'}`}
         >
