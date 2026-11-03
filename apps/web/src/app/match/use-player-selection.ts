@@ -11,17 +11,17 @@ export function usePlayerSelection({ onDeselect }: Options = {}) {
 
   const toggleSelect = (id: string) => {
     const wasSelected = selected.has(id)
-    setSelected((prev) => {
-      const nextSelected = new Set(prev)
+    setSelected((previousSelected) => {
+      const nextSelected = new Set(previousSelected)
       if (nextSelected.has(id)) nextSelected.delete(id)
       else nextSelected.add(id)
       return nextSelected
     })
     if (!wasSelected) return
 
-    setGoalkeeperIds((prev) => {
-      if (!prev.has(id)) return prev
-      const nextGoalkeeperIds = new Set(prev)
+    setGoalkeeperIds((previousGoalkeeperIds) => {
+      if (!previousGoalkeeperIds.has(id)) return previousGoalkeeperIds
+      const nextGoalkeeperIds = new Set(previousGoalkeeperIds)
       nextGoalkeeperIds.delete(id)
       return nextGoalkeeperIds
     })
@@ -29,12 +29,12 @@ export function usePlayerSelection({ onDeselect }: Options = {}) {
   }
 
   const toggleGoalkeeper = (id: string) => {
-    setGoalkeeperIds((prev) => {
-      const nextGoalkeeperIds = new Set(prev)
+    setGoalkeeperIds((previousGoalkeeperIds) => {
+      const nextGoalkeeperIds = new Set(previousGoalkeeperIds)
       if (nextGoalkeeperIds.has(id)) {
         nextGoalkeeperIds.delete(id)
       } else {
-        if (nextGoalkeeperIds.size >= MAX_GOALKEEPERS) return prev
+        if (nextGoalkeeperIds.size >= MAX_GOALKEEPERS) return previousGoalkeeperIds
         nextGoalkeeperIds.add(id)
       }
       return nextGoalkeeperIds

@@ -33,10 +33,10 @@ export default function PlayerDetailPage() {
     if (!isAdmin) return
     const file = event.target.files?.[0]
     if (!file) return
-    setForm(prev => ({ ...prev, photo: file, photoUrl: URL.createObjectURL(file) }))
+    setForm(previousForm => ({ ...previousForm, photo: file, photoUrl: URL.createObjectURL(file) }))
   }
   const deletePhoto = () => {
-    setForm(prev => ({ ...prev, photo: null, photoUrl: null }))
+    setForm(previousForm => ({ ...previousForm, photo: null, photoUrl: null }))
     if (fileRef.current) fileRef.current.value = ''
   }
 

@@ -60,7 +60,7 @@ export default function VideoClipUploadForm({
   }
 
   const togglePlayer = (id: string) => {
-    setPlayerIds(prev => (prev.includes(id) ? prev.filter(playerId => playerId !== id) : [...prev, id]))
+    setPlayerIds(previousPlayerIds => (previousPlayerIds.includes(id) ? previousPlayerIds.filter(playerId => playerId !== id) : [...previousPlayerIds, id]))
   }
 
   const canSubmit = matchId !== '' && playerIds.length > 0 && file !== null && !submitting

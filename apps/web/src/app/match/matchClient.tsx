@@ -65,8 +65,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
 
   const selection = usePlayerSelection({
     onDeselect: (playerId) => {
-      setManualA((prev) => prev.filter((player) => player.id !== playerId))
-      setManualB((prev) => prev.filter((player) => player.id !== playerId))
+      setManualA((previousManualA) => previousManualA.filter((player) => player.id !== playerId))
+      setManualB((previousManualB) => previousManualB.filter((player) => player.id !== playerId))
     },
   })
   const { selected, goalkeeperIds } = selection
@@ -136,20 +136,20 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }
 
   const goToStep = (step: Step) => {
-    setStepHistory((prev) => [...prev, currentStep])
+    setStepHistory((previousHistory) => [...previousHistory, currentStep])
     setCurrentStep(step)
   }
 
   const goBack = () => {
     const previousStep = stepHistory[stepHistory.length - 1]
     if (previousStep === undefined) return
-    setStepHistory((prev) => prev.slice(0, -1))
+    setStepHistory((previousHistory) => previousHistory.slice(0, -1))
     setCurrentStep(previousStep)
   }
 
   const returnToStep = (step: Step) => {
     if (step >= currentStep) return
-    setStepHistory((prev) => prev.filter((previousStep) => previousStep < step))
+    setStepHistory((previousHistory) => previousHistory.filter((previousStep) => previousStep < step))
     setCurrentStep(step)
   }
 
@@ -164,12 +164,16 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   }
 
   const moveManual = (player: PlayerInfo, target: 'unassigned' | 'a' | 'b') => {
-    setManualA((prev) => prev.filter((assignedPlayer) => assignedPlayer.id !== player.id))
-    setManualB((prev) => prev.filter((assignedPlayer) => assignedPlayer.id !== player.id))
+    setManualA((previousManualA) => previousManualA.filter((assignedPlayer) => assignedPlayer.id !== player.id))
+    setManualB((previousManualB) => previousManualB.filter((assignedPlayer) => assignedPlayer.id !== player.id))
     if (target === 'a') {
-      setManualA((prev) => (prev.length >= playersPerTeam ? prev : [...prev, player]))
+      setManualA((previousManualA) =>
+        previousManualA.length >= playersPerTeam ? previousManualA : [...previousManualA, player],
+      )
     } else if (target === 'b') {
-      setManualB((prev) => (prev.length >= playersPerTeam ? prev : [...prev, player]))
+      setManualB((previousManualB) =>
+        previousManualB.length >= playersPerTeam ? previousManualB : [...previousManualB, player],
+      )
     }
   }
 
@@ -220,7 +224,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             isFriendly={isFriendly}
             onFriendlyToggle={() => setIsFriendly((wasFriendly) => !wasFriendly)}
             draft={draft}
-            onDraftChange={(changes) => setDraft((prev) => ({ ...prev, ...changes }))}
+            onDraftChange={(changes) => setDraft((previousDraft) => ({ ...previousDraft, ...changes }))}
             onRegenerate={generateTeams}
           />
         )
@@ -242,7 +246,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         Preparar partido
       </PageTitle>
 
-      <div className="sticky top-0 z-10 bg-gray-50 pt-4">
+      <div className="sticky top-0 z-10 bg-gray-50 sm:pt-4">
         <Stepper
           currentStep={matchType ? currentStep : 0}
           className="sticky z-10"
