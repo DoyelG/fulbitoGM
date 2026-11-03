@@ -235,6 +235,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
       <PageTitle
         spacing={0}
+        className="mb-4 sm:mb-0"
         actions={
           stepHistory.length > 0 && (
             <Button variant="secondary" onClick={goBack}>

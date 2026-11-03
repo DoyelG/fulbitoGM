@@ -56,39 +56,41 @@ export default function PlayersHeader({
   const goalkeeperStyle = hasAllGoalkeepers ? GOALKEEPER_STYLES.complete : GOALKEEPER_STYLES.missing
 
   return (
-    <Card className="sticky top-20 z-10 sm:top-26">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="text-xl font-semibold">Seleccionar jugadores</h3>
-        <Button
-          variant="softDanger"
-          size="sm"
-          className="shrink-0"
-          onClick={onReset}
-          disabled={selectedCount === 0}
-          aria-label="Limpiar selección"
-        >
-          <FiTrash2 size={16} aria-hidden="true" />
-          <span className="hidden sm:inline">Limpiar selección</span>
-        </Button>
-      </div>
-      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-gray-800 sm:gap-3">
-        <span>
-          Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
-        </span>
-        <span className={`rounded px-2 py-0.5 ${playersStyle}`}>{playersLabel}</span>
-        <span className={`rounded px-2 py-0.5 ${goalkeeperStyle}`}>
-          🧤 <span className="sr-only sm:not-sr-only">Arqueros:</span> {goalkeeperCount} / {MAX_GOALKEEPERS}
-        </span>
-        {isFriendly && <span className="rounded bg-green-100 px-2 py-0.5 text-green-800">Amistoso</span>}
-      </div>
-      <input
-        type="text"
-        value={query}
-        onChange={(event) => onQueryChange(event.target.value)}
-        aria-label="Buscar jugadores por nombre"
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-1 focus-visible:outline-brand"
-        placeholder="Buscar jugadores por nombre..."
-      />
-    </Card>
+    <div className="sticky top-18 z-10 bg-gray-50 pt-2 sm:top-22 sm:pt-4">
+      <Card>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-xl font-semibold">Seleccionar jugadores</h3>
+          <Button
+            variant="softDanger"
+            size="sm"
+            className="shrink-0"
+            onClick={onReset}
+            disabled={selectedCount === 0}
+            aria-label="Limpiar selección"
+          >
+            <FiTrash2 size={16} aria-hidden="true" />
+            <span className="hidden sm:inline">Limpiar selección</span>
+          </Button>
+        </div>
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-gray-800 sm:gap-3">
+          <span>
+            Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
+          </span>
+          <span className={`rounded px-2 py-0.5 ${playersStyle}`}>{playersLabel}</span>
+          <span className={`rounded px-2 py-0.5 ${goalkeeperStyle}`}>
+            🧤 <span className="sr-only sm:not-sr-only">Arqueros:</span> {goalkeeperCount} / {MAX_GOALKEEPERS}
+          </span>
+          {isFriendly && <span className="rounded bg-green-100 px-2 py-0.5 text-green-800">Amistoso</span>}
+        </div>
+        <input
+          type="text"
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          aria-label="Buscar jugadores por nombre"
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-1 focus-visible:outline-brand"
+          placeholder="Buscar jugadores por nombre..."
+        />
+      </Card>
+    </div>
   )
 }
