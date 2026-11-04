@@ -1,7 +1,7 @@
 'use client'
 
 import type { DragEvent, ReactNode } from 'react'
-import { MdDragIndicator } from 'react-icons/md'
+import { FiMove } from 'react-icons/fi'
 
 export type DropTarget = 'unassigned' | 'a' | 'b'
 
@@ -99,11 +99,7 @@ export function DraggableItem<T>({ data, label, onClick, isGoalkeeper }: Draggab
       className="relative cursor-grab rounded border border-gray-200 bg-white px-8 py-2 hover:shadow active:cursor-grabbing"
       onClick={onClick}
     >
-      <MdDragIndicator
-        size={18}
-        aria-hidden="true"
-        className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-      />
+      <FiMove size={16} aria-hidden="true" className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
       <span className="block text-center font-medium">
         {label}
         {isGoalkeeper ? ' 🧤' : ''}

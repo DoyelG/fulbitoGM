@@ -18,7 +18,7 @@ import Button from '@/components/Button'
 import FriendlySwitch from '@/components/FriendlySwitch'
 import HourField from '@/components/HourField'
 import AddressPicker from '@/components/AddressPicker'
-import { LuDices } from 'react-icons/lu'
+import { FiShuffle } from 'react-icons/fi'
 import Chevron from '../shared/Icons/Chevron'
 import { fieldClassName, selectClassName, textareaClassName } from '@/lib/field-styles'
 
@@ -155,7 +155,7 @@ export default function CreateDraftForm({
               className="h-10 whitespace-nowrap"
               onClick={() => setShirtsResponsibleId((currentId) => pickRandomId(dutyPool) ?? currentId)}
             >
-              <LuDices size={16} aria-hidden="true" />
+              <FiShuffle size={16} aria-hidden="true" />
               Elegir aleatorio
             </Button>
           </div>

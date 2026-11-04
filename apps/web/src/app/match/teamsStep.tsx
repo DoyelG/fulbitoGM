@@ -1,7 +1,7 @@
 'use client'
 
 import type { DragEvent } from 'react'
-import { PiStarFourFill } from 'react-icons/pi'
+import { SparklesIcon } from '@heroicons/react/24/outline'
 import type { PlayerInfo } from '@/lib/teamUtils'
 import { Card } from '@/components/Card'
 import Button from '@/components/Button'
@@ -79,7 +79,7 @@ export default function TeamsStep({
           </Button>
         </div>
         <Button variant={allAssigned ? 'primary' : 'tertiary'} onClick={onContinue}>
-          {!allAssigned && <PiStarFourFill size={14} aria-hidden="true" />}
+          {!allAssigned && <SparklesIcon className="h-4 w-4" aria-hidden="true" />}
           {allAssigned ? 'Confirmar equipos' : 'Completar el resto'}
         </Button>
       </div>
