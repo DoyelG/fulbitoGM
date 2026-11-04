@@ -14,9 +14,14 @@ import {
 import type { TournamentPlayerRequest } from '@fulbito/types'
 import { toDate } from './dates'
 import { PLAYERS_COLLECTION, playerNameExists } from './players'
-import { isPlayerLinked, MEMBERS_COLLECTION, playerLinkRef, TOURNAMENTS_COLLECTION } from './tournaments'
+import {
+  isPlayerLinked,
+  MEMBERS_COLLECTION,
+  PLAYER_REQUESTS_COLLECTION,
+  playerLinkRef,
+  TOURNAMENTS_COLLECTION,
+} from './tournaments'
 
-export const PLAYER_REQUESTS_COLLECTION = 'playerRequests'
 export const NEW_PLAYER_NAME_MAX_LENGTH = 50
 
 export class TournamentPlayerRequestError extends Error {

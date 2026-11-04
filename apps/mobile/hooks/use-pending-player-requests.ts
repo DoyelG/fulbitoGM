@@ -1,13 +1,14 @@
 import { getPendingTournamentPlayerRequests } from '@fulbito/firebase'
 import type { TournamentPlayerRequest } from '@fulbito/types'
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useSyncExternalStore } from 'react'
 
 import { useActiveTournamentId } from '@/contexts/TournamentContext'
 import { useCanManageTournamentMembers } from '@/hooks/use-can-manage-tournament'
 
 const POLLING_INTERVAL_IN_MS = 30_000
+const LOAD_ERROR_MESSAGE = 'No se pudieron cargar las solicitudes. Probá de nuevo más tarde.'
 
-type SharedRequests = { tournamentId: string | null; requests: TournamentPlayerRequest[] }
+type SharedRequests = { tournamentId: string | null; requests: TournamentPlayerRequest[]; error: string | null }
 
 export type PendingPlayerRequestsState = {
   requests: TournamentPlayerRequest[]
@@ -15,7 +16,7 @@ export type PendingPlayerRequestsState = {
   reload: () => Promise<void>
 }
 
-let sharedRequests: SharedRequests = { tournamentId: null, requests: [] }
+let sharedRequests: SharedRequests = { tournamentId: null, requests: [], error: null }
 const listeners = new Set<() => void>()
 const pollers = new Map<string, { subscribers: number; intervalId: ReturnType<typeof setInterval> }>()
 
@@ -30,8 +31,13 @@ function subscribe(listener: () => void) {
 }
 
 async function loadSharedRequests(tournamentId: string) {
-  const requests = await getPendingTournamentPlayerRequests(tournamentId)
-  setSharedRequests({ tournamentId, requests })
+  try {
+    const requests = await getPendingTournamentPlayerRequests(tournamentId)
+    setSharedRequests({ tournamentId, requests, error: null })
+  } catch {
+    const requests = sharedRequests.tournamentId === tournamentId ? sharedRequests.requests : []
+    setSharedRequests({ tournamentId, requests, error: LOAD_ERROR_MESSAGE })
+  }
 }
 
 function startPolling(tournamentId: string): () => void {
@@ -39,11 +45,8 @@ function startPolling(tournamentId: string): () => void {
   if (poller) {
     poller.subscribers += 1
   } else {
-    loadSharedRequests(tournamentId).catch(() => undefined)
-    const intervalId = setInterval(
-      () => loadSharedRequests(tournamentId).catch(() => undefined),
-      POLLING_INTERVAL_IN_MS,
-    )
+    void loadSharedRequests(tournamentId)
+    const intervalId = setInterval(() => void loadSharedRequests(tournamentId), POLLING_INTERVAL_IN_MS)
     pollers.set(tournamentId, { subscribers: 1, intervalId })
   }
 
@@ -61,17 +64,10 @@ export function usePendingPlayerRequests(): PendingPlayerRequestsState {
   const tournamentId = useActiveTournamentId()
   const canManage = useCanManageTournamentMembers()
   const shared = useSyncExternalStore(subscribe, () => sharedRequests)
-  const [error, setError] = useState<string | null>(null)
   const isEnabled = canManage && tournamentId !== null
 
   const reload = useCallback(async () => {
-    if (!tournamentId) return
-    setError(null)
-    try {
-      await loadSharedRequests(tournamentId)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Error al cargar las solicitudes')
-    }
+    if (tournamentId) await loadSharedRequests(tournamentId)
   }, [tournamentId])
 
   useEffect(() => {
@@ -79,6 +75,6 @@ export function usePendingPlayerRequests(): PendingPlayerRequestsState {
     return startPolling(tournamentId)
   }, [isEnabled, tournamentId])
 
-  const requests = isEnabled && shared.tournamentId === tournamentId ? shared.requests : []
-  return { requests, error, reload }
+  const isCurrent = isEnabled && shared.tournamentId === tournamentId
+  return { requests: isCurrent ? shared.requests : [], error: isCurrent ? shared.error : null, reload }
 }

@@ -156,7 +156,9 @@ export async function acceptInvitation(invitationId: string, user: InvitedUser):
     await acceptInvitationTransaction(db, invitationId, user.uid, email)
   } catch (error) {
     if (error instanceof FirebaseError && error.code === 'permission-denied') {
-      throw new InvitationError('Esta invitación ya no es válida. Puede que el torneo se haya eliminado.')
+      throw new InvitationError(
+        'Esta invitación ya no es válida. Puede que el torneo se haya eliminado o que quien te invitó ya no sea administrador.',
+      )
     }
     throw error
   }

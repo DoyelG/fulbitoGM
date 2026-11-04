@@ -17,7 +17,7 @@ export default function RequestsScreen() {
   const { user } = useFirebaseAuth()
   const { colors } = useAppTheme()
   const { activeTournament, reload: reloadTournaments } = useTournaments()
-  const { reload, requests } = usePendingPlayerRequests()
+  const { reload, requests, error: loadError } = usePendingPlayerRequests()
   const [playerNameById, setPlayerNameById] = useState<Map<string, string>>(new Map())
   const [resolvingUid, setResolvingUid] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -59,9 +59,9 @@ export default function RequestsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       <ThemedView style={styles.screen}>
-        {errorMessage && (
+        {(errorMessage ?? loadError) && (
           <Text style={[styles.error, { color: colors.danger }]} accessibilityLiveRegion="polite">
-            {errorMessage}
+            {errorMessage ?? loadError}
           </Text>
         )}
         <FlatList
@@ -72,11 +72,13 @@ export default function RequestsScreen() {
           keyExtractor={(item) => item.uid}
           contentContainerStyle={requests.length === 0 ? styles.emptyList : styles.list}
           ListEmptyComponent={
-            <EmptyState
-              icon="inbox"
-              title="No hay solicitudes"
-              description="Cuando un miembro pida vincularse con un jugador, la vas a ver acá."
-            />
+            loadError ? undefined : (
+              <EmptyState
+                icon="inbox"
+                title="No hay solicitudes"
+                description="Cuando un miembro pida vincularse con un jugador, la vas a ver acá."
+              />
+            )
           }
           renderItem={({ item, index }) => (
             <PlayerRequestCard

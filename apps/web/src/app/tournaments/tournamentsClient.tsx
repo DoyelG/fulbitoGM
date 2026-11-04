@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { PlusIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import type { MyTournament } from '@fulbito/types'
-import { getPlayer } from '@fulbito/firebase'
+import { getPlayersByIds } from '@fulbito/firebase'
 import { useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
 import Button from '@/components/Button'
 import EmptyState from '@/components/EmptyState'
@@ -54,12 +54,9 @@ export default function TournamentsClient() {
   useEffect(() => {
     if (!linkedPlayerIdsKey) return
     let isCurrent = true
-    Promise.all(linkedPlayerIdsKey.split(',').map((playerId) => getPlayer(playerId)))
-      .then((linkedPlayers) => {
-        if (!isCurrent) return
-        setPlayerNameById(new Map(linkedPlayers.flatMap((player) => (player ? [[player.id, player.name]] : []))))
-      })
-      .catch(() => undefined)
+    getPlayersByIds(linkedPlayerIdsKey.split(',')).then((linkedPlayers) => {
+      if (isCurrent) setPlayerNameById(new Map(linkedPlayers.map((player) => [player.id, player.name])))
+    })
     return () => {
       isCurrent = false
     }

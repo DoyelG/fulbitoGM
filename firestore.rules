@@ -273,6 +273,9 @@ service cloud.firestore {
               && get(invitationPath(request.resource.data.invitationId)).data.tournamentId == tournamentId
               && get(invitationPath(request.resource.data.invitationId)).data.email == myEmail()
               && get(invitationPath(request.resource.data.invitationId)).data.role == request.resource.data.role
+              // The inviter may have left or been demoted since sending it, so their authority is checked on accept.
+              && get(memberPath(tournamentId, get(invitationPath(request.resource.data.invitationId)).data.invitedBy))
+                .data.role in ['OWNER', 'ADMIN']
               && (
                 request.resource.data.playerId == null
                 || (

@@ -21,6 +21,7 @@ export const TOURNAMENTS_COLLECTION = 'tournaments'
 export const MEMBERS_COLLECTION = 'members'
 export const PLAYER_LINKS_COLLECTION = 'playerLinks'
 export const INVITATIONS_COLLECTION = 'invitations'
+export const PLAYER_REQUESTS_COLLECTION = 'playerRequests'
 
 const MAX_NAME_LENGTH = 60
 const MAX_DESCRIPTION_LENGTH = 280

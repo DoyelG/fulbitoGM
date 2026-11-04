@@ -6,12 +6,21 @@ import {
   getDoc,
   addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
+  runTransaction,
   Timestamp,
 } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
 import type { Player } from '@fulbito/types'
+import {
+  INVITATIONS_COLLECTION,
+  MEMBERS_COLLECTION,
+  PLAYER_REQUESTS_COLLECTION,
+  playerLinkRef,
+  revokePendingInvitations,
+  TOURNAMENTS_COLLECTION,
+} from './tournaments'
 
 function isTimestampLike(value: unknown): value is { toDate(): Date } {
   return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
@@ -61,6 +70,11 @@ export async function getPlayer(id: string): Promise<Player | null> {
   return snap.exists() ? docToPlayer(snap.id, snap.data()) : null
 }
 
+export async function getPlayersByIds(ids: string[]): Promise<Player[]> {
+  const results = await Promise.allSettled([...new Set(ids)].map((id) => getPlayer(id)))
+  return results.flatMap((result) => (result.status === 'fulfilled' && result.value ? [result.value] : []))
+}
+
 export async function playerNameExists(tournamentId: string, name: string): Promise<boolean> {
   const snap = await getDocs(tournamentPlayersQuery(tournamentId))
   const normalizedName = name.trim().toLowerCase()
@@ -90,6 +104,60 @@ export async function updatePlayer(id: string, data: Partial<PlayerInput>): Prom
   await updateDoc(doc(db, PLAYERS_COLLECTION, id), { ...data, updatedAt: Timestamp.now() })
 }
 
+async function getPendingRefsForPlayer(tournamentId: string, playerId: string) {
+  const db = getFirestore()
+  const [invitations, requests] = await Promise.all([
+    getDocs(
+      query(
+        collection(db, INVITATIONS_COLLECTION),
+        where('tournamentId', '==', tournamentId),
+        where('status', '==', 'pending'),
+        where('playerId', '==', playerId),
+      ),
+    ),
+    getDocs(
+      query(
+        collection(db, TOURNAMENTS_COLLECTION, tournamentId, PLAYER_REQUESTS_COLLECTION),
+        where('status', '==', 'pending'),
+        where('playerId', '==', playerId),
+      ),
+    ),
+  ])
+  return {
+    invitationRefs: invitations.docs.map((invitation) => invitation.ref),
+    requestRefs: requests.docs.map((request) => request.ref),
+  }
+}
+
 export async function deletePlayer(id: string): Promise<void> {
-  await deleteDoc(doc(getFirestore(), PLAYERS_COLLECTION, id))
+  const db = getFirestore()
+  const player = await getPlayer(id)
+  if (!player) return
+  const { tournamentId } = player
+  const { invitationRefs, requestRefs } = await getPendingRefsForPlayer(tournamentId, id)
+  const actorUid = getAuth().currentUser?.uid
+
+  await runTransaction(db, async (transaction) => {
+    const playerSnap = await transaction.get(doc(db, PLAYERS_COLLECTION, id))
+    if (!playerSnap.exists()) return
+    const linkSnap = await transaction.get(playerLinkRef(tournamentId, id))
+    const linkedUid: string | null = linkSnap.exists() ? linkSnap.get('uid') : null
+    const memberSnap = linkedUid
+      ? await transaction.get(doc(db, TOURNAMENTS_COLLECTION, tournamentId, MEMBERS_COLLECTION, linkedUid))
+      : null
+    const requestSnaps = await Promise.all(requestRefs.map((ref) => transaction.get(ref)))
+
+    const now = Timestamp.now()
+    await revokePendingInvitations(transaction, invitationRefs, now)
+    requestSnaps
+      .filter((request) => actorUid && request.get('status') === 'pending' && request.get('playerId') === id)
+      .forEach((request) => {
+        transaction.update(request.ref, { status: 'rejected', resolvedBy: actorUid, updatedAt: now })
+      })
+    if (memberSnap?.exists() && memberSnap.get('playerId') === id) {
+      transaction.update(memberSnap.ref, { playerId: null, updatedAt: now })
+    }
+    if (linkSnap.exists()) transaction.delete(linkSnap.ref)
+    transaction.delete(playerSnap.ref)
+  })
 }

@@ -1,4 +1,4 @@
-import { getPlayer } from '@fulbito/firebase'
+import { getPlayersByIds } from '@fulbito/firebase'
 import type { MyTournament } from '@fulbito/types'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -27,12 +27,9 @@ function useLinkedPlayerNames(myTournaments: MyTournament[]): Map<string, string
   useEffect(() => {
     if (!playerIdsKey) return
     let isCurrent = true
-    Promise.all(playerIdsKey.split(',').map((playerId) => getPlayer(playerId)))
-      .then((players) => {
-        if (!isCurrent) return
-        setNames(new Map(players.flatMap((player) => (player ? [[player.id, player.name] as const] : []))))
-      })
-      .catch(() => undefined)
+    getPlayersByIds(playerIdsKey.split(',')).then((players) => {
+      if (isCurrent) setNames(new Map(players.map((player) => [player.id, player.name])))
+    })
     return () => {
       isCurrent = false
     }
