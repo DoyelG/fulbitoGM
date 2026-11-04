@@ -9,7 +9,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 import { styles } from './player-request-card.styles'
 import { PrimaryGradient } from '@/components/primary-gradient'
-import { PrimaryColors } from '@/constants/theme'
+import { ContrastColors, PrimaryColors } from '@/constants/theme'
 
 type Props = {
   request: TournamentPlayerRequest
@@ -77,8 +77,8 @@ export function PlayerRequestCard({ request, playerName, index, disabled, onAcce
             style={[styles.button, { borderColor: PrimaryColors.border, opacity: buttonOpacity }]}
           >
             <PrimaryGradient />
-            <Feather name="check" size={16} color="#fff" />
-            <Text style={[styles.buttonText, { color: '#fff' }]}>Aceptar</Text>
+            <Feather name="check" size={16} color={ContrastColors.onColor} />
+            <Text style={[styles.buttonText, { color: ContrastColors.onColor }]}>Aceptar</Text>
           </TouchableOpacity>
         </View>
       </View>

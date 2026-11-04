@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 14,
     fontWeight: '700',
   },

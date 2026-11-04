@@ -3,7 +3,7 @@ import type { TournamentPlayerRequest } from '@fulbito/types'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 
 import { useActiveTournamentId } from '@/contexts/TournamentContext'
-import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import { useCanManageTournamentMembers } from '@/hooks/use-can-manage-tournament'
 
 const POLLING_INTERVAL_IN_MS = 30_000
 
@@ -59,7 +59,7 @@ function startPolling(tournamentId: string): () => void {
 
 export function usePendingPlayerRequests(): PendingPlayerRequestsState {
   const tournamentId = useActiveTournamentId()
-  const canManage = useCanManageTournament()
+  const canManage = useCanManageTournamentMembers()
   const shared = useSyncExternalStore(subscribe, () => sharedRequests)
   const [error, setError] = useState<string | null>(null)
   const isEnabled = canManage && tournamentId !== null

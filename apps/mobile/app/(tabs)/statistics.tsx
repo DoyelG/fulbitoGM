@@ -178,7 +178,7 @@ export default function StatisticsScreen() {
               tintColor={colors.primaryText}
             />
           }
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
           contentContainerStyle={filteredStats.length === 0 ? styles.emptyContent : styles.content}
           renderItem={({ item, index }) => (
             <StatPlayerCard

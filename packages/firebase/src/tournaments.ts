@@ -11,12 +11,16 @@ import {
   updateDoc,
   runTransaction,
   Timestamp,
+  type DocumentReference,
+  type Transaction,
 } from 'firebase/firestore'
 import type { MyTournament, Tournament, TournamentMember, TournamentRole } from '@fulbito/types'
 import { toDate, toOptionalDate } from './dates'
 
 export const TOURNAMENTS_COLLECTION = 'tournaments'
 export const MEMBERS_COLLECTION = 'members'
+export const PLAYER_LINKS_COLLECTION = 'playerLinks'
+export const INVITATIONS_COLLECTION = 'invitations'
 
 const MAX_NAME_LENGTH = 60
 const MAX_DESCRIPTION_LENGTH = 280
@@ -80,6 +84,14 @@ function tournamentRef(tournamentId: string) {
 
 function memberRef(tournamentId: string, uid: string) {
   return doc(getFirestore(), TOURNAMENTS_COLLECTION, tournamentId, MEMBERS_COLLECTION, uid)
+}
+
+export function playerLinkRef(tournamentId: string, playerId: string) {
+  return doc(getFirestore(), TOURNAMENTS_COLLECTION, tournamentId, PLAYER_LINKS_COLLECTION, playerId)
+}
+
+export async function isPlayerLinked(tournamentId: string, playerId: string): Promise<boolean> {
+  return (await getDoc(playerLinkRef(tournamentId, playerId))).exists()
 }
 
 type CreateTournamentInput = {
@@ -161,14 +173,43 @@ export async function updateTournament(tournamentId: string, data: UpdateTournam
   await updateDoc(tournamentRef(tournamentId), changes)
 }
 
+export async function getPendingInvitationRefs(tournamentId: string, invitedBy?: string): Promise<DocumentReference[]> {
+  const snap = await getDocs(
+    query(
+      collection(getFirestore(), INVITATIONS_COLLECTION),
+      where('tournamentId', '==', tournamentId),
+      where('status', '==', 'pending'),
+    ),
+  )
+  return snap.docs
+    .filter((invitation) => invitedBy === undefined || invitation.get('invitedBy') === invitedBy)
+    .map((invitation) => invitation.ref)
+}
+
+export async function revokePendingInvitations(
+  transaction: Transaction,
+  invitationRefs: DocumentReference[],
+  now: Timestamp,
+): Promise<void> {
+  const invitationSnaps = await Promise.all(invitationRefs.map((ref) => transaction.get(ref)))
+  invitationSnaps
+    .filter((invitation) => invitation.get('status') === 'pending')
+    .forEach((invitation) => {
+      transaction.update(invitation.ref, { status: 'revoked', resolvedAt: now, updatedAt: now })
+    })
+}
+
 export async function deleteTournament(tournamentId: string, uid: string): Promise<void> {
   const db = getFirestore()
+  const invitationRefs = await getPendingInvitationRefs(tournamentId)
+
   await runTransaction(db, async (transaction) => {
     const snap = await transaction.get(tournamentRef(tournamentId))
     if (!snap.exists() || snap.get('deletedAt')) throw new Error('Tournament not found')
     if (snap.get('ownerUid') !== uid) throw new Error('Only the owner can delete the tournament')
 
     const now = Timestamp.now()
+    await revokePendingInvitations(transaction, invitationRefs, now)
     transaction.update(snap.ref, { deletedAt: now, deletedBy: uid, updatedAt: now })
   })
 }
@@ -177,11 +218,16 @@ export async function leaveTournament(tournamentId: string, uid: string): Promis
   const member = await getDoc(memberRef(tournamentId, uid))
   if (!member.exists()) throw new Error('Not a member of the tournament')
   if (member.get('role') === 'OWNER') throw new Error('The owner cannot leave the tournament')
+  const invitationRefs = member.get('role') === 'ADMIN' ? await getPendingInvitationRefs(tournamentId, uid) : []
 
-  const batch = writeBatch(getFirestore())
-  batch.delete(member.ref)
-  batch.update(tournamentRef(tournamentId), { memberUids: arrayRemove(uid), updatedAt: Timestamp.now() })
-  await batch.commit()
+  await runTransaction(getFirestore(), async (transaction) => {
+    const now = Timestamp.now()
+    await revokePendingInvitations(transaction, invitationRefs, now)
+    const playerId = member.get('playerId')
+    if (playerId) transaction.delete(playerLinkRef(tournamentId, playerId))
+    transaction.delete(member.ref)
+    transaction.update(tournamentRef(tournamentId), { memberUids: arrayRemove(uid), updatedAt: now })
+  })
 }
 
 export async function getTournamentMember(tournamentId: string, uid: string): Promise<TournamentMember | null> {

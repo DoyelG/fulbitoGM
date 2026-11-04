@@ -14,7 +14,7 @@ import {
 import type { TournamentPlayerRequest } from '@fulbito/types'
 import { toDate } from './dates'
 import { PLAYERS_COLLECTION, playerNameExists } from './players'
-import { getTournamentMembers, MEMBERS_COLLECTION, TOURNAMENTS_COLLECTION } from './tournaments'
+import { isPlayerLinked, MEMBERS_COLLECTION, playerLinkRef, TOURNAMENTS_COLLECTION } from './tournaments'
 
 export const PLAYER_REQUESTS_COLLECTION = 'playerRequests'
 export const NEW_PLAYER_NAME_MAX_LENGTH = 50
@@ -57,11 +57,6 @@ export function docToTournamentPlayerRequest(
   }
 }
 
-async function isPlayerTakenInTournament(tournamentId: string, playerId: string): Promise<boolean> {
-  const members = await getTournamentMembers(tournamentId)
-  return members.some((member) => member.playerId === playerId)
-}
-
 type CreateTournamentPlayerRequestInput = {
   tournamentId: string
   uid: string
@@ -87,7 +82,7 @@ export async function createTournamentPlayerRequest(input: CreateTournamentPlaye
     throw new TournamentPlayerRequestError('Ya tenés una solicitud pendiente')
   }
 
-  if (playerId && (await isPlayerTakenInTournament(tournamentId, playerId))) {
+  if (playerId && (await isPlayerLinked(tournamentId, playerId))) {
     throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
   }
   if (newPlayerName && (await playerNameExists(tournamentId, newPlayerName))) {
@@ -148,7 +143,7 @@ export async function resolveTournamentPlayerRequest(
   if (!request || request.status !== 'pending') throw new TournamentPlayerRequestError('Esta solicitud ya fue resuelta')
 
   if (action === 'accepted') {
-    if (request.playerId && (await isPlayerTakenInTournament(tournamentId, request.playerId))) {
+    if (request.playerId && (await isPlayerLinked(tournamentId, request.playerId))) {
       throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
     }
     if (request.newPlayerName && (await playerNameExists(tournamentId, request.newPlayerName))) {
@@ -158,7 +153,8 @@ export async function resolveTournamentPlayerRequest(
 
   await runTransaction(db, async (transaction) => {
     const requestSnap = await transaction.get(requestRef(tournamentId, uid))
-    if (requestSnap.get('status') !== 'pending') throw new TournamentPlayerRequestError('Esta solicitud ya fue resuelta')
+    if (requestSnap.get('status') !== 'pending')
+      throw new TournamentPlayerRequestError('Esta solicitud ya fue resuelta')
 
     const now = Timestamp.now()
     if (action === 'rejected') {
@@ -168,13 +164,20 @@ export async function resolveTournamentPlayerRequest(
 
     const memberSnap = await transaction.get(memberRef(tournamentId, uid))
     if (!memberSnap.exists()) throw new TournamentPlayerRequestError('El usuario ya no es miembro del torneo')
-    if (memberSnap.get('playerId')) throw new TournamentPlayerRequestError('El usuario ya tiene un jugador en este torneo')
+    if (memberSnap.get('playerId'))
+      throw new TournamentPlayerRequestError('El usuario ya tiene un jugador en este torneo')
 
     let playerId = request.playerId
     if (playerId) {
-      const playerSnap = await transaction.get(doc(db, PLAYERS_COLLECTION, playerId))
+      const [playerSnap, linkSnap] = await Promise.all([
+        transaction.get(doc(db, PLAYERS_COLLECTION, playerId)),
+        transaction.get(playerLinkRef(tournamentId, playerId)),
+      ])
       if (!playerSnap.exists() || playerSnap.get('tournamentId') !== tournamentId) {
         throw new TournamentPlayerRequestError('No se encontró el jugador')
+      }
+      if (linkSnap.exists()) {
+        throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
       }
     } else {
       const newPlayerRef = doc(collection(db, PLAYERS_COLLECTION))
@@ -193,6 +196,7 @@ export async function resolveTournamentPlayerRequest(
       playerId = newPlayerRef.id
     }
 
+    transaction.set(playerLinkRef(tournamentId, playerId), { uid })
     transaction.update(memberSnap.ref, { playerId, updatedAt: now })
     transaction.delete(requestSnap.ref)
   })

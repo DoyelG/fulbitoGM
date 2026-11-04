@@ -1,3 +1,4 @@
+import { AccountDeletionError } from '@fulbito/firebase'
 import { DrawerMenu } from '@/components/drawer-menu'
 import { styles } from '@/components/navbar.styles'
 import { PrimaryGradient } from '@/components/primary-gradient'
@@ -7,7 +8,7 @@ import type { User } from '@/constants/auth'
 import { PrimaryColors, Spacing } from '@/constants/theme'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournaments } from '@/contexts/TournamentContext'
-import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import { useCanManageTournamentMembers } from '@/hooks/use-can-manage-tournament'
 import { useLinkedPlayer } from '@/hooks/use-linked-player'
 import { usePendingPlayerRequests } from '@/hooks/use-pending-player-requests'
 import { Ionicons } from '@expo/vector-icons'
@@ -27,7 +28,7 @@ export function Navbar() {
   const { user: authUser, signOut, deleteUser } = useFirebaseAuth()
 
   const { activeTournament } = useTournaments()
-  const canManage = useCanManageTournament()
+  const canManageMembers = useCanManageTournamentMembers()
   const linkedPlayer = useLinkedPlayer(activeTournament?.membership.playerId ?? undefined)
   const { requests } = usePendingPlayerRequests()
   const pendingCount = requests.length
@@ -64,8 +65,13 @@ export function Navbar() {
             try {
               await deleteUser()
               router.replace('/login')
-            } catch {
-              Alert.alert('Error', 'No se pudo eliminar la cuenta. Intenta nuevamente.')
+            } catch (error) {
+              Alert.alert(
+                'Error',
+                error instanceof AccountDeletionError
+                  ? error.message
+                  : 'No se pudo eliminar la cuenta. Intenta nuevamente.',
+              )
             }
           },
         },
@@ -188,7 +194,7 @@ export function Navbar() {
           progress={progress}
           user={user}
           tournamentName={activeTournament?.tournament.name ?? null}
-          canManage={canManage}
+          canManage={canManageMembers}
           pendingCount={pendingCount}
           onOpenTournaments={openTournaments}
           onOpenMembers={() =>

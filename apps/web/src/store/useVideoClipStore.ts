@@ -20,7 +20,7 @@ export const useVideoClipStore = create<VideoClipStore>()((set, get) => ({
   videoClipsInit: 'idle',
   initLoad: async () => {
     const state = get().videoClipsInit
-    if (state === 'loading' || state === 'loaded' || state === 'error') return
+    if (state === 'loading' || state === 'loaded') return
     set({ videoClipsInit: 'loading' })
     try {
       await get().resetAndReload()

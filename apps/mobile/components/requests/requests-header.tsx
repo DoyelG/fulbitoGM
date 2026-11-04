@@ -1,6 +1,7 @@
 import Feather from '@expo/vector-icons/Feather'
 import { View } from 'react-native'
 
+import { PrimaryColors } from '@/constants/theme'
 import GradientHeader from '@/components/ui/gradient-header/gradient-header'
 
 import { styles } from './requests-header.styles'
@@ -19,7 +20,7 @@ export function RequestsHeader({ pendingCount, tournamentName }: Props) {
     <GradientHeader
       leading={
         <View style={styles.iconWrap}>
-          <Feather name="inbox" size={28} color="#fff" />
+          <Feather name="inbox" size={28} color={PrimaryColors.onPrimary} />
         </View>
       }
       title="Solicitudes"

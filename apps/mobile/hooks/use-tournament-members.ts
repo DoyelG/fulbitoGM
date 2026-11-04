@@ -6,6 +6,7 @@ export function useTournamentMembers(tournamentId: string | null): TournamentMem
   const [members, setMembers] = useState<TournamentMember[]>([])
 
   useEffect(() => {
+    setMembers([])
     if (!tournamentId) return
     let isCurrent = true
     getTournamentMembers(tournamentId)

@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   fromDate: string
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: ContrastColors.scrimLight,
   },
   iosSheet: {
     paddingBottom: 30,

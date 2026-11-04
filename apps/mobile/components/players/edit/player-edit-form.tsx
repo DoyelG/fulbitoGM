@@ -12,7 +12,7 @@ import {
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
-import { Fonts, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Spacing } from '@/constants/theme'
 
 export type PlayerEditFormValues = {
   name: string
@@ -136,7 +136,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
                   },
                 ]}>
                 <ThemedText
-                  style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
+                  style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>
                   {position.label}
                 </ThemedText>
               </TouchableOpacity>
@@ -190,7 +190,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
             { value: true, label: 'Inactivo' },
           ].map((option, index) => {
             const active = values.inactive === option.value
-            const selectedColor = option.value ? '#6b7280' : colors.primary
+            const selectedColor = option.value ? colors.muted : colors.primary
             return (
               <TouchableOpacity
                 key={option.label}
@@ -202,7 +202,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
                   index > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border },
                   { backgroundColor: active ? selectedColor : 'transparent' },
                 ]}>
-                <ThemedText style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
+                <ThemedText style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>
                   {option.label}
                 </ThemedText>
               </TouchableOpacity>
@@ -227,7 +227,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
               },
             ]}>
             {saving ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={ContrastColors.onColor} size="small" />
             ) : (
               <ThemedText style={styles.saveText}>Actualizar jugador</ThemedText>
             )}
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 14,
     fontFamily: Fonts.bold,
   },

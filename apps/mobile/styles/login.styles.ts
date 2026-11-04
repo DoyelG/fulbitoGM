@@ -1,6 +1,6 @@
 import { Platform, StyleSheet } from 'react-native'
 
-import { PrimaryColors } from '@/constants/theme'
+import { Colors, ContrastColors, PrimaryColors } from '@/constants/theme'
 
 const PRIMARY = PrimaryColors.border
 
@@ -31,13 +31,13 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: Colors.light.chipBorder,
   },
   segmentBtn: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: Colors.light.chipBg,
   },
   segmentBtnActive: {
     backgroundColor: PRIMARY,
@@ -45,10 +45,10 @@ export const styles = StyleSheet.create({
   segmentText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#374151',
+    color: Colors.light.textSecondary,
   },
   segmentTextActive: {
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
   field: { marginBottom: 16 },
   label: {
@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   error: {
-    color: '#c2410c',
+    color: Colors.light.danger,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -77,7 +77,7 @@ export const styles = StyleSheet.create({
   },
   primaryBtnDisabled: { opacity: 0.7 },
   primaryBtnText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -90,5 +90,8 @@ export const styles = StyleSheet.create({
     marginTop: 24,
     alignSelf: 'center',
     padding: 8,
+  },
+  linkText: {
+    fontSize: 14,
   },
 })

@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowLeftIcon, PlusIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline'
-import type { InvitationRole, TournamentMember } from '@fulbito/types'
-import { getAssignablePlayers } from '@fulbito/utils'
+import type { InvitationInput, InvitationRole, TournamentMember } from '@fulbito/types'
+import { getAssignablePlayers, getInvitablePlayers, isTournamentAdminRole } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournamentStore } from '@/store/useTournamentStore'
-import { useTournamentDetailStore, type InvitationInput } from '@/store/useTournamentDetailStore'
+import { useTournamentDetailStore } from '@/store/useTournamentDetailStore'
 import Button from '@/components/Button'
 import EmptyState from '@/components/EmptyState'
 import Modal from '@/components/Modal'
@@ -31,10 +31,6 @@ export default function MembersClient({ tournamentId }: { tournamentId: string }
   const [inviting, setInviting] = useState(false)
   const [invitedEmail, setInvitedEmail] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (user && (myTournamentsInit === 'idle' || myTournamentsUid !== user.uid)) loadMyTournaments(user.uid)
-  }, [user, myTournamentsInit, myTournamentsUid, loadMyTournaments])
-
   const item = myTournaments.find(({ tournament }) => tournament.id === tournamentId) ?? null
   const isMember = item !== null
   const loadDetail = detail.load
@@ -49,10 +45,7 @@ export default function MembersClient({ tournamentId }: { tournamentId: string }
     () => (assigning ? getAssignablePlayers(players, members, assigning) : []),
     [assigning, members, players],
   )
-  const invitablePlayers = useMemo(() => {
-    const linkedPlayerIds = new Set(members.map((member) => member.playerId))
-    return players.filter((player) => !player.inactive && !linkedPlayerIds.has(player.id))
-  }, [members, players])
+  const invitablePlayers = useMemo(() => getInvitablePlayers(players, members), [members, players])
 
   const loadingTournaments =
     authLoading ||
@@ -94,7 +87,7 @@ export default function MembersClient({ tournamentId }: { tournamentId: string }
 
   const isLoaded = detail.tournamentId === tournamentId && detail.status === 'loaded'
   const hasError = detail.tournamentId === tournamentId && detail.status === 'error'
-  const canManage = item.membership.role !== 'MEMBER'
+  const canManage = isTournamentAdminRole(item.membership.role)
 
   const handleAssign = async (playerId: string | null) => {
     if (!assigning) return

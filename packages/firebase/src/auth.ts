@@ -13,7 +13,16 @@ import {
   signInWithPopup,
   type User as FirebaseUser,
 } from 'firebase/auth'
-import { deleteDoc, doc, getDoc, getFirestore, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
+import { deleteDoc, doc, getDoc, getFirestore, setDoc, Timestamp } from 'firebase/firestore'
+import { getMyTournaments, leaveTournament } from './tournaments'
+
+export class AccountDeletionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AccountDeletionError'
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
+}
 
 export type AppUser = {
   uid: string
@@ -91,19 +100,16 @@ export async function deleteUser(): Promise<void> {
   if (user.providerData.some((p) => p.providerId === 'google.com')) {
     await reauthenticateWithPopup(user, new GoogleAuthProvider())
   } else if (Date.now() - Date.parse(user.metadata.lastSignInTime ?? '') > RECENT_LOGIN_WINDOW_IN_MS) {
-    throw new Error('Volvé a iniciar sesión para eliminar tu cuenta')
+    throw new AccountDeletionError('Volvé a iniciar sesión para eliminar tu cuenta')
   }
 
-  const db = getFirestore()
-  const { linkedPlayerId } = await getUserProfile(user.uid)
-  if (linkedPlayerId) {
-    const playerRef = doc(db, 'players', linkedPlayerId)
-    if ((await getDoc(playerRef)).exists()) {
-      await updateDoc(playerRef, { linkedUserId: null, updatedAt: Timestamp.now() })
-    }
+  const tournaments = await getMyTournaments(user.uid)
+  if (tournaments.some(({ membership }) => membership.role === 'OWNER')) {
+    throw new AccountDeletionError('Eliminá los torneos que creaste antes de eliminar tu cuenta')
   }
+  for (const { tournament } of tournaments) await leaveTournament(tournament.id, user.uid)
 
-  await deleteDoc(doc(db, 'users', user.uid))
+  await deleteDoc(doc(getFirestore(), 'users', user.uid))
   await firebaseDeleteUser(user)
 }
 

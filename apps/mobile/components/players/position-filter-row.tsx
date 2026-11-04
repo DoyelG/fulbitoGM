@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 export type PositionFilter = string | null
 
@@ -69,7 +70,7 @@ function Chip({
       <ThemedText
         style={[
           styles.chipText,
-          { color: active ? '#fff' : colors.muted },
+          { color: active ? ContrastColors.onColor : colors.muted },
         ]}>
         {label}
       </ThemedText>

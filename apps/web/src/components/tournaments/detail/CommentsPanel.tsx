@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import Image from 'next/image'
 import type { TournamentComment } from '@fulbito/types'
-import { TOURNAMENT_COMMENT_MAX_LENGTH } from '@fulbito/firebase'
+import { TOURNAMENT_COMMENT_MAX_LENGTH, TOURNAMENT_COMMENTS_PAGE_SIZE } from '@fulbito/firebase'
 import { ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/react/24/outline'
 import Button from '@/components/Button'
 import CommentsPagination from './CommentsPagination'
@@ -11,10 +11,12 @@ import DetailSection from './DetailSection'
 
 type Props = {
   comments: TournamentComment[]
+  hasMore: boolean
   photoByUid: Map<string, string>
   canModerate: boolean
   onSubmit: (text: string) => Promise<void>
   onDelete: (commentId: string) => Promise<void>
+  onLoadMore: () => Promise<void>
 }
 
 const timeFormatter = new Intl.DateTimeFormat('es-AR', {
@@ -23,8 +25,6 @@ const timeFormatter = new Intl.DateTimeFormat('es-AR', {
   hour: '2-digit',
   minute: '2-digit',
 })
-
-const COMMENTS_PER_PAGE = 50
 
 function CommentAvatar({ name, photoUrl }: { name: string; photoUrl?: string }) {
   if (photoUrl) {
@@ -44,16 +44,46 @@ function CommentAvatar({ name, photoUrl }: { name: string; photoUrl?: string }) 
   )
 }
 
-export default function CommentsPanel({ comments, photoByUid, canModerate, onSubmit, onDelete }: Props) {
+export default function CommentsPanel({
+  comments,
+  hasMore,
+  photoByUid,
+  canModerate,
+  onSubmit,
+  onDelete,
+  onLoadMore,
+}: Props) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [page, setPage] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
 
-  const pageCount = Math.max(1, Math.ceil(comments.length / COMMENTS_PER_PAGE))
+  const loadedPageCount = Math.ceil(comments.length / TOURNAMENT_COMMENTS_PAGE_SIZE)
+  const pageCount = Math.max(1, loadedPageCount + (hasMore ? 1 : 0))
   const currentPage = Math.min(page, pageCount - 1)
-  const pageComments = comments.slice(currentPage * COMMENTS_PER_PAGE, (currentPage + 1) * COMMENTS_PER_PAGE)
+  const pageComments = comments.slice(
+    currentPage * TOURNAMENT_COMMENTS_PAGE_SIZE,
+    (currentPage + 1) * TOURNAMENT_COMMENTS_PAGE_SIZE,
+  )
+
+  const handlePageChange = async (nextPage: number) => {
+    if (nextPage < loadedPageCount || !hasMore) {
+      setPage(nextPage)
+      return
+    }
+    setLoadingMore(true)
+    setError(null)
+    try {
+      await onLoadMore()
+      setPage(nextPage)
+    } catch {
+      setError('No se pudieron cargar más comentarios. Intentá de nuevo.')
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -126,6 +156,7 @@ export default function CommentsPanel({ comments, photoByUid, canModerate, onSub
           role="region"
           aria-label="Lista de comentarios"
           tabIndex={0}
+          aria-busy={loadingMore}
           className="-mx-1 mt-5 rounded-lg px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:min-h-0 lg:flex-1 lg:overflow-y-auto"
         >
           <ul className="space-y-4" aria-live="polite">
@@ -163,7 +194,12 @@ export default function CommentsPanel({ comments, photoByUid, canModerate, onSub
         </div>
       )}
 
-      <CommentsPagination page={currentPage} pageCount={pageCount} onPageChange={setPage} />
+      <CommentsPagination
+        page={currentPage}
+        pageCount={pageCount}
+        disabled={loadingMore}
+        onPageChange={(nextPage) => void handlePageChange(nextPage)}
+      />
     </DetailSection>
   )
 }

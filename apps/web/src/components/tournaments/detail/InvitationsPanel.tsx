@@ -2,23 +2,33 @@
 
 import { useState } from 'react'
 import { EnvelopeIcon, PlusIcon } from '@heroicons/react/24/outline'
-import type { Invitation, Player } from '@fulbito/types'
+import type { Invitation, InvitationInput, Player } from '@fulbito/types'
 import Button from '@/components/Button'
+import WidgetError from '@/components/home/WidgetError'
 import Modal from '@/components/Modal'
-import type { InvitationInput } from '@/store/useTournamentDetailStore'
 import { ROLE_LABELS } from '../tournament-roles'
 import DetailSection from './DetailSection'
 import InviteMemberForm from './InviteMemberForm'
 
 type Props = {
   invitations: Invitation[]
+  loadFailed: boolean
+  onRetry: () => Promise<void>
   availablePlayers: Player[]
   playerNameById: Map<string, string>
   onInvite: (input: InvitationInput) => Promise<void>
   onRevoke: (invitationId: string) => Promise<void>
 }
 
-export default function InvitationsPanel({ invitations, availablePlayers, playerNameById, onInvite, onRevoke }: Props) {
+export default function InvitationsPanel({
+  invitations,
+  loadFailed,
+  onRetry,
+  availablePlayers,
+  playerNameById,
+  onInvite,
+  onRevoke,
+}: Props) {
   const [inviting, setInviting] = useState(false)
   const [revokingId, setRevokingId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -42,7 +52,9 @@ export default function InvitationsPanel({ invitations, availablePlayers, player
 
   return (
     <DetailSection id="invitations-title" title="Invitaciones" icon={EnvelopeIcon}>
-      {invitations.length === 0 ? (
+      {loadFailed ? (
+        <WidgetError message="No se pudieron cargar las invitaciones." onRetry={() => void onRetry()} />
+      ) : invitations.length === 0 ? (
         <p className="text-sm text-gray-700">No hay invitaciones pendientes.</p>
       ) : (
         <ul className="space-y-3">

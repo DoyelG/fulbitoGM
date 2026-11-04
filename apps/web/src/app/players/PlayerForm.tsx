@@ -93,6 +93,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [linkError, setLinkError] = useState<string | null>(null)
+  const [createdPlayerId, setCreatedPlayerId] = useState<string | null>(null)
   const [originalData, setOriginalData] = useState<OriginalPlayerData | null>(null)
 
   useEffect(() => {
@@ -195,7 +196,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
     try {
       let uploadedUrl: string | undefined
       if (photoFile) {
-        const photoId = mode === 'edit' && playerId ? playerId : crypto.randomUUID()
+        const photoId = (mode === 'edit' && playerId) || createdPlayerId || crypto.randomUUID()
         uploadedUrl = await uploadPlayerPhoto(photoFile, getActiveTournamentId(), photoId)
       }
 
@@ -213,8 +214,12 @@ export default function PlayerForm({ mode, playerId }: Props) {
         inactive: formData.inactive,
       }
 
-      if (mode === 'create') {
+      if (mode === 'create' && createdPlayerId) {
+        await updatePlayer(createdPlayerId, { ...playerData, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+        savedPlayerId = createdPlayerId
+      } else if (mode === 'create') {
         savedPlayerId = await addPlayer({ ...playerData, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+        setCreatedPlayerId(savedPlayerId)
       } else if (playerId) {
         await updatePlayer(playerId, { ...playerData, ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}) })
         savedPlayerId = playerId

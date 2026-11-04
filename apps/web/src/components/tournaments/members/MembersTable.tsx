@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { FiLink, FiShield, FiTrash2 } from 'react-icons/fi'
 import type { TournamentMember, TournamentRole } from '@fulbito/types'
-import { canChangeMemberRole, canRemoveMember } from '@fulbito/utils'
+import { canChangeMemberRole, canRemoveMember, isTournamentAdminRole } from '@fulbito/utils'
 import Tooltip from '@/components/Tooltip'
 import { ROLE_LABELS, ROLE_STYLES } from '../tournament-roles'
 
@@ -55,7 +55,7 @@ export default function MembersTable({
   onChangeRole,
   onRemove,
 }: Props) {
-  const canManage = currentRole !== 'MEMBER'
+  const canManage = isTournamentAdminRole(currentRole)
 
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow-md">

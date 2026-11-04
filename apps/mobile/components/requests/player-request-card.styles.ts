@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   card: {
@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
   avatarText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: ContrastColors.onColor,
     textTransform: 'uppercase',
   },
   info: {

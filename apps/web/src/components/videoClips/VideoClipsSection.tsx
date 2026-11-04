@@ -10,6 +10,7 @@ import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipSt
 import Modal from '@/components/Modal'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
 import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
+import WidgetError from '@/components/home/WidgetError'
 
 type Props = {
   player: Player
@@ -33,7 +34,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (videoClipsInit !== 'loaded') initLoad()
+    if (videoClipsInit === 'idle') initLoad()
   }, [videoClipsInit, initLoad])
 
   const playerClips = useMemo(() => videoClips.filter((c) => c.playerIds.includes(player.id)), [videoClips, player.id])
@@ -128,9 +129,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
         </div>
 
         {videoClipsInit === 'error' ? (
-          <div role="alert" className="text-orange-800">
-            No se pudieron cargar los clips.
-          </div>
+          <WidgetError message="No se pudieron cargar los clips." onRetry={() => void initLoad()} />
         ) : filteredClips.length === 0 ? (
           <div className="text-gray-800">
             {videoClipsInit === 'loading' ? 'Cargando clips...' : 'No hay clips para este jugador todavía.'}

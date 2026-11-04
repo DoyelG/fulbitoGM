@@ -1,4 +1,5 @@
 import {
+  type Firestore,
   getFirestore,
   collection,
   doc,
@@ -11,12 +12,19 @@ import {
   arrayUnion,
   Timestamp,
 } from 'firebase/firestore'
+import { FirebaseError } from 'firebase/app'
 import type { Invitation, InvitationRole, InvitationStatus } from '@fulbito/types'
 import { toDate, toOptionalDate } from './dates'
 import { PLAYERS_COLLECTION } from './players'
-import { MEMBERS_COLLECTION, TOURNAMENTS_COLLECTION, getTournament, getTournamentMembers } from './tournaments'
-
-const INVITATIONS_COLLECTION = 'invitations'
+import {
+  INVITATIONS_COLLECTION,
+  MEMBERS_COLLECTION,
+  TOURNAMENTS_COLLECTION,
+  getTournament,
+  getTournamentMembers,
+  isPlayerLinked,
+  playerLinkRef,
+} from './tournaments'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -92,7 +100,7 @@ export async function createInvitation(input: CreateInvitationInput): Promise<st
     const player = await getDoc(doc(db, PLAYERS_COLLECTION, playerId))
     if (!player.exists() || player.get('tournamentId') !== tournamentId)
       throw new InvitationError('No se encontró el jugador')
-    if (members.some((member) => member.playerId === playerId)) {
+    if (await isPlayerLinked(tournamentId, playerId)) {
       throw new InvitationError('Ese jugador ya está vinculado a otro miembro del torneo')
     }
   }
@@ -144,6 +152,17 @@ export async function acceptInvitation(invitationId: string, user: InvitedUser):
   const db = getFirestore()
   const email = normalizeEmail(user.email)
 
+  try {
+    await acceptInvitationTransaction(db, invitationId, user.uid, email)
+  } catch (error) {
+    if (error instanceof FirebaseError && error.code === 'permission-denied') {
+      throw new InvitationError('Esta invitación ya no es válida. Puede que el torneo se haya eliminado.')
+    }
+    throw error
+  }
+}
+
+async function acceptInvitationTransaction(db: Firestore, invitationId: string, uid: string, email: string) {
   await runTransaction(db, async (transaction) => {
     const invitationSnap = await transaction.get(doc(db, INVITATIONS_COLLECTION, invitationId))
     if (!invitationSnap.exists()) throw new InvitationError('No se encontró la invitación')
@@ -152,22 +171,28 @@ export async function acceptInvitation(invitationId: string, user: InvitedUser):
     if (invitation.email !== email) throw new InvitationError('Esta invitación es para otro email')
 
     const tournamentRef = doc(db, TOURNAMENTS_COLLECTION, invitation.tournamentId)
-    const memberRef = doc(db, TOURNAMENTS_COLLECTION, invitation.tournamentId, MEMBERS_COLLECTION, user.uid)
+    const memberRef = doc(db, TOURNAMENTS_COLLECTION, invitation.tournamentId, MEMBERS_COLLECTION, uid)
     const memberSnap = await transaction.get(memberRef)
     if (memberSnap.exists()) throw new InvitationError('Ya sos miembro de este torneo')
 
+    const invitedPlayerId = invitation.playerId ?? null
+    const linkRef = invitedPlayerId ? playerLinkRef(invitation.tournamentId, invitedPlayerId) : null
+    const isPlayerTaken = linkRef ? (await transaction.get(linkRef)).exists() : false
+    const playerId = isPlayerTaken ? null : invitedPlayerId
+
     const now = Timestamp.now()
+    if (linkRef && playerId) transaction.set(linkRef, { uid })
     transaction.set(memberRef, {
-      uid: user.uid,
+      uid,
       tournamentId: invitation.tournamentId,
       email,
       role: invitation.role,
-      playerId: invitation.playerId ?? null,
+      playerId,
       invitationId,
       joinedAt: now,
       updatedAt: now,
     })
-    transaction.update(tournamentRef, { memberUids: arrayUnion(user.uid), updatedAt: now })
+    transaction.update(tournamentRef, { memberUids: arrayUnion(uid), updatedAt: now })
     transaction.update(invitationSnap.ref, { status: 'accepted', resolvedAt: now, updatedAt: now })
   })
 }

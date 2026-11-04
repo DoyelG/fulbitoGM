@@ -58,7 +58,7 @@ export function MvpSection({ teamA, teamB, mvpId, onChange, goalsA, goalsB, perf
       </TouchableOpacity>
 
       <BottomSheet visible={open} title="MVP del partido" closeLabel="Listo" onConfirm={() => setOpen(false)}>
-        <ScrollView style={{ maxHeight: 320 }}>
+        <ScrollView style={sheetStyles.scrollTall}>
           <TouchableOpacity
             onPress={() => {
               onChange(null)

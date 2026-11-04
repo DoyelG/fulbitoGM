@@ -18,7 +18,7 @@ import { useMyPlayerId } from '@/contexts/TournamentContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { usePlayerDetail } from '@/hooks/use-player-detail'
 import { useAppTheme } from '@/hooks/use-theme'
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 import { PrimaryGradient } from '@/components/primary-gradient'
 
 const AVATAR_SIZE = 80
@@ -118,7 +118,7 @@ export default function PlayerDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Editar jugador"
                 >
-                  <MaterialIcons name="edit" size={18} color="#fff" />
+                  <MaterialIcons name="edit" size={18} color={ContrastColors.onColor} />
                 </Pressable>
               )}
             </View>
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: Fonts.extraBold,
     letterSpacing: -0.3,
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
   heroMeta: {
     flexDirection: 'row',
@@ -227,26 +227,26 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-    color: 'rgba(255,255,255,0.75)',
+    color: ContrastColors.onColorFaded,
   },
   skillPill: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: ContrastColors.onColorFill,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radii.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: ContrastColors.onColorBorder,
     alignItems: 'center',
     gap: 2,
   },
   skillPillLabel: {
-    color: 'rgba(255,255,255,0.7)',
+    color: ContrastColors.onColorMuted,
     fontSize: 9,
     fontFamily: Fonts.bold,
     letterSpacing: 1,
   },
   skillPillText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 16,
     fontFamily: Fonts.black,
     letterSpacing: 0.2,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     borderRadius: Radii.pill,
   },
   retryText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontFamily: Fonts.semiBold,
     fontSize: 15,
   },
@@ -313,8 +313,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: ContrastColors.onColorFill,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: ContrastColors.onColorBorder,
   },
 })

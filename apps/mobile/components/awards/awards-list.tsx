@@ -80,7 +80,7 @@ export function AwardsList({
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} tintColor={colors.primaryText} />
           }
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
           contentContainerStyle={podiums.length === 0 && !isHallOfFame ? styles.emptyContent : styles.content}
           renderItem={({ item }) => (
             <AwardCard
@@ -121,7 +121,7 @@ export function AwardsList({
                 accessibilityState={{ selected }}>
                 <ThemedText style={[sheetStyles.optionText, { color: colors.text }]}>TEMPORADA {y}</ThemedText>
                 {selected && (
-                  <ThemedText style={{ color: colors.primaryText, fontWeight: '700', fontSize: 16 }}>✓</ThemedText>
+                  <ThemedText style={[sheetStyles.checkMark, { color: colors.primaryText }]}>✓</ThemedText>
                 )}
               </Pressable>
             )
@@ -138,7 +138,7 @@ export function AwardsList({
             accessibilityState={{ selected: isHallOfFame }}>
             <ThemedText style={[sheetStyles.optionText, { color: colors.text }]}>🏆 HALL OF FAME</ThemedText>
             {isHallOfFame && (
-              <ThemedText style={{ color: colors.primaryText, fontWeight: '700', fontSize: 16 }}>✓</ThemedText>
+              <ThemedText style={[sheetStyles.checkMark, { color: colors.primaryText }]}>✓</ThemedText>
             )}
           </Pressable>
         </ScrollView>

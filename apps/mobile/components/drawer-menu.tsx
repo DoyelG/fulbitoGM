@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, { useAnimatedStyle, interpolate, type SharedValue } from 'react-native-reanimated'
 import { User } from '@/constants/auth'
+import { DrawerColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type DrawerMenuProps = {
@@ -58,7 +59,7 @@ function DrawerItem({
       style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
     >
       <View style={[styles.iconWrapper, isDanger && !iconColor && styles.dangerIconWrapper]}>
-        <Ionicons name={icon} size={20} color={iconColor ?? (isDanger ? '#FB923C' : '#A78BFA')} />
+        <Ionicons name={icon} size={20} color={iconColor ?? (isDanger ? DrawerColors.danger : DrawerColors.icon)} />
       </View>
       <View style={styles.itemText}>
         <Text style={[styles.itemLabel, isDanger && !iconColor && styles.dangerLabel]}>{label}</Text>

@@ -2,6 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 import { PrimaryGradient } from '@/components/primary-gradient'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   message: string
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   btnText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontWeight: '700',
     fontSize: 14,
   },

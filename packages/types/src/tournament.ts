@@ -41,6 +41,17 @@ export type Invitation = {
   updatedAt: Date
 }
 
+export type InvitationInput = {
+  email: string
+  role: InvitationRole
+  playerId?: string
+}
+
+export type CreatedTournament = {
+  id: string
+  photoSaved: boolean
+}
+
 export type MyTournament = {
   tournament: Tournament
   membership: TournamentMember

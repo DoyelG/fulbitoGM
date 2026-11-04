@@ -61,7 +61,7 @@ export function ShirtsSection({
   return (
     <>
       <FormLabel text="Encargado de camisetas" />
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={fieldStyles.row}>
         <TouchableOpacity
           onPress={() => setOpen(true)}
           style={[fieldStyles.inputBtn, { borderColor: colors.border, borderRadius: radii.sm, flex: 1 }]}
@@ -70,12 +70,10 @@ export function ShirtsSection({
         </TouchableOpacity>
         <TouchableOpacity
           onPress={pickRandom}
-          style={[
-            { borderRadius: radii.sm, paddingHorizontal: 14, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
-          ]}
+          style={[fieldStyles.randomBtn, { borderRadius: radii.sm }]}
         >
           <PrimaryGradient />
-          <Text style={{ fontSize: 18, color: '#fff' }}>✦</Text>
+          <Text style={fieldStyles.randomIcon}>✦</Text>
         </TouchableOpacity>
       </View>
 
@@ -85,7 +83,7 @@ export function ShirtsSection({
         closeLabel="Cerrar"
         onConfirm={() => setOpen(false)}
       >
-        <ScrollView style={{ maxHeight: 300 }}>
+        <ScrollView style={sheetStyles.scroll}>
           {options.map((opt) => (
             <TouchableOpacity
               key={opt.id}

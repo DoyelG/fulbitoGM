@@ -8,10 +8,8 @@ import {
   setMemberPlayer,
   setMemberRole,
 } from '@fulbito/firebase'
-import type { Invitation, InvitationRole, Player, TournamentMember } from '@fulbito/types'
-import { useCallback, useEffect, useState } from 'react'
-
-export type InvitationInput = { email: string; role: InvitationRole; playerId?: string }
+import type { Invitation, InvitationInput, InvitationRole, Player, TournamentMember } from '@fulbito/types'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type TournamentMembersDataState = {
   members: TournamentMember[]
@@ -31,32 +29,56 @@ export function useTournamentMembersData(tournamentId: string, canManage: boolea
   const [players, setPlayers] = useState<Player[]>([])
   const [invitations, setInvitations] = useState<Invitation[]>([])
   const [status, setStatus] = useState<TournamentMembersDataState['status']>('loading')
+  const currentTournamentId = useRef(tournamentId)
+  const latestLoadId = useRef(0)
+
+  useEffect(() => {
+    currentTournamentId.current = tournamentId
+  }, [tournamentId])
+
+  const fetchInvitations = useCallback(
+    async () => (canManage ? getTournamentInvitations(tournamentId) : []),
+    [tournamentId, canManage],
+  )
 
   const loadInvitations = useCallback(async () => {
-    if (canManage) setInvitations(await getTournamentInvitations(tournamentId))
-  }, [tournamentId, canManage])
+    const nextInvitations = await fetchInvitations()
+    if (currentTournamentId.current === tournamentId) setInvitations(nextInvitations)
+  }, [tournamentId, fetchInvitations])
 
   const reload = useCallback(async () => {
+    const loadId = ++latestLoadId.current
+    const isLatestLoad = () => loadId === latestLoadId.current && currentTournamentId.current === tournamentId
     try {
-      const [nextMembers, nextPlayers] = await Promise.all([
+      const [nextMembers, nextPlayers, nextInvitations] = await Promise.all([
         getTournamentMembers(tournamentId),
         getPlayers(tournamentId),
-        loadInvitations(),
+        fetchInvitations(),
       ])
+      if (!isLatestLoad()) return
       setMembers(nextMembers)
       setPlayers(nextPlayers)
+      setInvitations(nextInvitations)
       setStatus('loaded')
     } catch {
-      setStatus('error')
+      if (isLatestLoad()) setStatus('error')
     }
-  }, [tournamentId, loadInvitations])
+  }, [tournamentId, fetchInvitations])
+
+  useEffect(() => {
+    setMembers([])
+    setPlayers([])
+    setInvitations([])
+    setStatus('loading')
+  }, [tournamentId])
 
   useEffect(() => {
     void reload()
   }, [reload])
 
   const reloadMembers = useCallback(async () => {
-    setMembers(await getTournamentMembers(tournamentId))
+    const nextMembers = await getTournamentMembers(tournamentId)
+    if (currentTournamentId.current === tournamentId) setMembers(nextMembers)
   }, [tournamentId])
 
   const assignPlayer = useCallback(

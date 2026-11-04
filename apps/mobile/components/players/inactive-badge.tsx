@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
+import { ContrastColors } from '@/constants/theme'
 
 export function InactiveBadge({ inactive }: { inactive?: boolean }) {
   if (!inactive) return null
@@ -15,10 +16,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: ContrastColors.scrim,
   },
   text: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '700',

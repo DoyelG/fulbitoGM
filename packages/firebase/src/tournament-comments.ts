@@ -9,6 +9,9 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  startAfter,
+  type QueryConstraint,
+  type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import type { TournamentComment } from '@fulbito/types'
 import { toDate } from './dates'
@@ -16,7 +19,13 @@ import { TOURNAMENTS_COLLECTION } from './tournaments'
 
 export const COMMENTS_COLLECTION = 'comments'
 export const TOURNAMENT_COMMENT_MAX_LENGTH = 500
-const COMMENTS_FETCH_LIMIT = 200
+export const TOURNAMENT_COMMENTS_PAGE_SIZE = 50
+
+export type TournamentCommentsCursor = QueryDocumentSnapshot
+export type TournamentCommentsPage = {
+  comments: TournamentComment[]
+  nextCursor: TournamentCommentsCursor | null
+}
 
 function commentsRef(tournamentId: string) {
   return collection(getFirestore(), TOURNAMENTS_COLLECTION, tournamentId, COMMENTS_COLLECTION)
@@ -37,11 +46,21 @@ export function docToTournamentComment(
   }
 }
 
-export async function getTournamentComments(tournamentId: string): Promise<TournamentComment[]> {
-  const snap = await getDocs(
-    query(commentsRef(tournamentId), orderBy('createdAt', 'desc'), limit(COMMENTS_FETCH_LIMIT)),
-  )
-  return snap.docs.map((comment) => docToTournamentComment(tournamentId, comment.id, comment.data()))
+export async function getTournamentComments(
+  tournamentId: string,
+  after: TournamentCommentsCursor | null = null,
+): Promise<TournamentCommentsPage> {
+  const constraints: QueryConstraint[] = [
+    orderBy('createdAt', 'desc'),
+    ...(after ? [startAfter(after)] : []),
+    limit(TOURNAMENT_COMMENTS_PAGE_SIZE + 1),
+  ]
+  const snap = await getDocs(query(commentsRef(tournamentId), ...constraints))
+  const docs = snap.docs.slice(0, TOURNAMENT_COMMENTS_PAGE_SIZE)
+  return {
+    comments: docs.map((comment) => docToTournamentComment(tournamentId, comment.id, comment.data())),
+    nextCursor: snap.docs.length > TOURNAMENT_COMMENTS_PAGE_SIZE ? (docs[docs.length - 1] ?? null) : null,
+  }
 }
 
 type AddTournamentCommentInput = {

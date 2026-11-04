@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type {
   Invitation,
+  InvitationInput,
   InvitationRole,
   Match,
   Player,
@@ -23,22 +24,24 @@ import {
   revokeInvitation,
   setMemberPlayer,
   setMemberRole,
+  type TournamentCommentsCursor,
 } from '@fulbito/firebase'
 
 type LoadStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
 type CommentAuthor = { uid: string; name: string }
 
-export type InvitationInput = { email: string; role: InvitationRole; playerId?: string }
-
 type TournamentDetailStore = {
   tournamentId: string | null
   members: TournamentMember[]
   comments: TournamentComment[]
+  commentsCursor: TournamentCommentsCursor | null
   players: Player[]
   matches: Match[]
   playerRequests: TournamentPlayerRequest[]
   invitations: Invitation[]
+  playerRequestsFailed: boolean
+  invitationsFailed: boolean
   status: LoadStatus
   load: (tournamentId: string) => Promise<void>
   loadPlayerRequests: (tournamentId: string) => Promise<void>
@@ -49,6 +52,7 @@ type TournamentDetailStore = {
   assignMemberPlayer: (uid: string, playerId: string | null) => Promise<void>
   changeMemberRole: (uid: string, role: InvitationRole) => Promise<void>
   removeMember: (uid: string, actorUid: string) => Promise<void>
+  loadMoreComments: () => Promise<void>
   addComment: (text: string, author: CommentAuthor) => Promise<void>
   removeComment: (commentId: string) => Promise<void>
 }
@@ -57,10 +61,13 @@ export const useTournamentDetailStore = create<TournamentDetailStore>()((set, ge
   tournamentId: null,
   members: [],
   comments: [],
+  commentsCursor: null,
   players: [],
   matches: [],
   playerRequests: [],
   invitations: [],
+  playerRequestsFailed: false,
+  invitationsFailed: false,
   status: 'idle',
   load: async (tournamentId) => {
     set({
@@ -68,27 +75,41 @@ export const useTournamentDetailStore = create<TournamentDetailStore>()((set, ge
       status: 'loading',
       members: [],
       comments: [],
+      commentsCursor: null,
       players: [],
       matches: [],
       playerRequests: [],
       invitations: [],
+      playerRequestsFailed: false,
+      invitationsFailed: false,
     })
     try {
-      const [members, comments, players, matches] = await Promise.all([
+      const [members, commentsPage, players, matches] = await Promise.all([
         getTournamentMembers(tournamentId),
         getTournamentComments(tournamentId),
         getPlayers(tournamentId),
         getMatches(tournamentId),
       ])
       if (get().tournamentId !== tournamentId) return
-      set({ members, comments, players, matches, status: 'loaded' })
+      set({
+        members,
+        comments: commentsPage.comments,
+        commentsCursor: commentsPage.nextCursor,
+        players,
+        matches,
+        status: 'loaded',
+      })
     } catch {
       if (get().tournamentId === tournamentId) set({ status: 'error' })
     }
   },
   loadPlayerRequests: async (tournamentId) => {
-    const playerRequests = await getPendingTournamentPlayerRequests(tournamentId)
-    if (get().tournamentId === tournamentId) set({ playerRequests })
+    try {
+      const playerRequests = await getPendingTournamentPlayerRequests(tournamentId)
+      if (get().tournamentId === tournamentId) set({ playerRequests, playerRequestsFailed: false })
+    } catch {
+      if (get().tournamentId === tournamentId) set({ playerRequestsFailed: true })
+    }
   },
   resolvePlayerRequest: async (uid, action, adminUid) => {
     const tournamentId = get().tournamentId
@@ -102,8 +123,12 @@ export const useTournamentDetailStore = create<TournamentDetailStore>()((set, ge
     if (get().tournamentId === tournamentId) set({ members, playerRequests, players })
   },
   loadInvitations: async (tournamentId) => {
-    const invitations = await getTournamentInvitations(tournamentId)
-    if (get().tournamentId === tournamentId) set({ invitations })
+    try {
+      const invitations = await getTournamentInvitations(tournamentId)
+      if (get().tournamentId === tournamentId) set({ invitations, invitationsFailed: false })
+    } catch {
+      if (get().tournamentId === tournamentId) set({ invitationsFailed: true })
+    }
   },
   invite: async (input, invitedBy) => {
     const tournamentId = get().tournamentId
@@ -135,12 +160,19 @@ export const useTournamentDetailStore = create<TournamentDetailStore>()((set, ge
     await removeMember(tournamentId, uid, actorUid)
     set((state) => ({ members: state.members.filter((member) => member.uid !== uid) }))
   },
+  loadMoreComments: async () => {
+    const { tournamentId, commentsCursor } = get()
+    if (!tournamentId || !commentsCursor) return
+    const { comments, nextCursor } = await getTournamentComments(tournamentId, commentsCursor)
+    if (get().tournamentId !== tournamentId || get().commentsCursor !== commentsCursor) return
+    set((state) => ({ comments: [...state.comments, ...comments], commentsCursor: nextCursor }))
+  },
   addComment: async (text, author) => {
     const tournamentId = get().tournamentId
     if (!tournamentId) throw new Error('No tournament loaded')
     await addTournamentComment({ tournamentId, authorUid: author.uid, authorName: author.name, text })
-    const comments = await getTournamentComments(tournamentId)
-    if (get().tournamentId === tournamentId) set({ comments })
+    const { comments, nextCursor } = await getTournamentComments(tournamentId)
+    if (get().tournamentId === tournamentId) set({ comments, commentsCursor: nextCursor })
   },
   removeComment: async (commentId) => {
     const tournamentId = get().tournamentId

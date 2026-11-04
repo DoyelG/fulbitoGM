@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View } from 'react-native'
 
 import { PrimaryGradient } from '@/components/primary-gradient'
 import { ThemedText } from '@/components/themed-text'
-import { PrimaryColors } from '@/constants/theme'
+import { ContrastColors, PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 import type { SortTabKey } from '@/hooks/use-player-statistics'
 import { styles } from './styles/stat-filter-tabs.styles'
@@ -53,7 +53,7 @@ export function StatFilterTabs({ activeTab, onChange, leading }: Props) {
                 type="defaultSemiBold"
                 style={[
                   styles.tabText,
-                  { color: selected ? '#ffffff' : isDark ? colors.text : '#4b5563' },
+                  { color: selected ? ContrastColors.onColor : isDark ? colors.text : colors.subtleText },
                 ]}>
                 {tab.label}
               </ThemedText>

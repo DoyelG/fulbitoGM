@@ -1,5 +1,5 @@
 import type { Match, MyTournament } from '@fulbito/types'
-import { formatMatchDate, formatMatchHour, parseMatchDate } from '@fulbito/utils'
+import { formatMatchDate, formatMatchHour, isTournamentAdminRole, parseMatchDate } from '@fulbito/utils'
 import type { ComponentType } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -73,7 +73,7 @@ export default function TournamentCard({
   playerName = null,
 }: Props) {
   const { tournament, membership } = item
-  const canEdit = membership.role === 'OWNER' || membership.role === 'ADMIN'
+  const canEdit = isTournamentAdminRole(membership.role)
   const canDelete = membership.role === 'OWNER'
 
   return (

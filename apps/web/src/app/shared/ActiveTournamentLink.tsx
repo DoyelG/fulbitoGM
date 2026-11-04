@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronRightIcon, TrophyIcon } from '@heroicons/react/24/outline'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
 
 type Props = {
@@ -11,21 +9,7 @@ type Props = {
 }
 
 export default function ActiveTournamentLink({ onNavigate }: Props) {
-  const { user, loading } = useFirebaseAuth()
-  const myTournamentsInit = useTournamentStore((state) => state.myTournamentsInit)
-  const myTournamentsUid = useTournamentStore((state) => state.myTournamentsUid)
-  const loadMyTournaments = useTournamentStore((state) => state.loadMyTournaments)
-  const clearTournaments = useTournamentStore((state) => state.clearTournaments)
   const activeTournament = useTournamentStore(selectActiveTournament)
-
-  useEffect(() => {
-    if (loading) return
-    if (!user) {
-      if (myTournamentsUid) clearTournaments()
-      return
-    }
-    if (myTournamentsInit === 'idle' || myTournamentsUid !== user.uid) loadMyTournaments(user.uid)
-  }, [loading, user, myTournamentsInit, myTournamentsUid, loadMyTournaments, clearTournaments])
 
   const name = activeTournament?.tournament.name
 

@@ -119,7 +119,7 @@ function TeamColumn({
             {pinned.has(player.id) ? ' ⭐' : ''}
           </Text>
           <TouchableOpacity onPress={() => onRemove(player.id)}>
-            <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 14 }}>✕</Text>
+            <Text style={[styles.removeText, { color: colors.danger }]}>✕</Text>
           </TouchableOpacity>
         </View>
       ))}
@@ -127,7 +127,7 @@ function TeamColumn({
         onPress={onAdd}
         style={[styles.addBtn, { borderColor: addColor, borderRadius: radii.sm }]}
       >
-        <Text style={{ color: addColor, fontWeight: '600', fontSize: 13 }}>+ Agregar</Text>
+        <Text style={[styles.addText, { color: addColor }]}>+ Agregar</Text>
       </TouchableOpacity>
       {team.length > 0 && (
         <View style={[styles.statBox, { borderTopColor: colors.border }]}>
@@ -217,6 +217,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     flex: 1,
     marginRight: 4,
+  },
+  removeText: {
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  addText: {
+    fontWeight: '600',
+    fontSize: 13,
   },
   addBtn: {
     borderWidth: 1,

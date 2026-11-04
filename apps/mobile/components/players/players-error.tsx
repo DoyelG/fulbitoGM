@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useAppTheme } from '@/hooks/use-theme'
 import { PrimaryGradient } from '@/components/primary-gradient'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   message: string
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   retryBtnText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontWeight: '700',
     fontSize: 16,
   },

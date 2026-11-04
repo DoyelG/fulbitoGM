@@ -1,6 +1,6 @@
 import Feather from '@expo/vector-icons/Feather'
-import type { InvitationRole, TournamentMember } from '@fulbito/types'
-import { getAssignablePlayers } from '@fulbito/utils'
+import type { InvitationInput, InvitationRole, TournamentMember } from '@fulbito/types'
+import { getAssignablePlayers, getInvitablePlayers, isTournamentAdminRole } from '@fulbito/utils'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
@@ -17,7 +17,7 @@ import { styles } from '@/components/tournaments/members-screen.styles'
 import EmptyState from '@/components/ui/empty-state/empty-state'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournaments } from '@/contexts/TournamentContext'
-import { useTournamentMembersData, type InvitationInput } from '@/hooks/use-tournament-members-data'
+import { useTournamentMembersData } from '@/hooks/use-tournament-members-data'
 import { useAppTheme } from '@/hooks/use-theme'
 
 export default function MembersScreen() {
@@ -45,11 +45,11 @@ export default function MembersScreen() {
 function MembersContent({ tournamentId }: { tournamentId: string }) {
   const router = useRouter()
   const { colors } = useAppTheme()
-  const { user, isAdmin } = useFirebaseAuth()
+  const { user } = useFirebaseAuth()
   const { myTournaments, reload: reloadTournaments } = useTournaments()
   const item = myTournaments.find(({ tournament }) => tournament.id === tournamentId)
   const role = item?.membership.role ?? 'MEMBER'
-  const canManage = isAdmin || role !== 'MEMBER'
+  const canManage = isTournamentAdminRole(role)
   const data = useTournamentMembersData(tournamentId, canManage)
   const [assigning, setAssigning] = useState<TournamentMember | null>(null)
   const [changingRole, setChangingRole] = useState<TournamentMember | null>(null)
@@ -59,13 +59,7 @@ function MembersContent({ tournamentId }: { tournamentId: string }) {
 
   const { members, players, invitations } = data
   const playerNameById = useMemo(() => new Map(players.map((player) => [player.id, player.name])), [players])
-  const invitablePlayers = useMemo(() => {
-    const linkedPlayerIds = new Set(members.map((member) => member.playerId))
-    const invitedPlayerIds = new Set(invitations.map((invitation) => invitation.playerId))
-    return players
-      .filter((player) => !player.inactive && !linkedPlayerIds.has(player.id) && !invitedPlayerIds.has(player.id))
-      .sort((a, b) => a.name.localeCompare(b.name, 'es'))
-  }, [members, players, invitations])
+  const invitablePlayers = useMemo(() => getInvitablePlayers(players, members), [members, players])
 
   if (!user || !item) return null
 

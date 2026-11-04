@@ -184,7 +184,7 @@ export function MatchForm({
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={[styles.scroll, { backgroundColor: colors.background }]}
       contentContainerStyle={[styles.container, { padding: spacing.lg }]}
       keyboardShouldPersistTaps="handled"
     >
@@ -305,6 +305,9 @@ export function MatchForm({
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
   container: {
     paddingBottom: 40,
   },

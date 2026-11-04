@@ -47,10 +47,7 @@ export default function TournamentsClient() {
   const [deleting, setDeleting] = useState<MyTournament | null>(null)
   const [leaving, setLeaving] = useState<MyTournament | null>(null)
   const [linking, setLinking] = useState<MyTournament | null>(null)
-
-  useEffect(() => {
-    if (user && (myTournamentsInit === 'idle' || myTournamentsUid !== user.uid)) loadMyTournaments(user.uid)
-  }, [user, myTournamentsInit, myTournamentsUid, loadMyTournaments])
+  const [photoFailed, setPhotoFailed] = useState(false)
 
   const linkedPlayerIds = myTournaments.flatMap(({ membership }) => (membership.playerId ? [membership.playerId] : []))
   const linkedPlayerIdsKey = linkedPlayerIds.join(',')
@@ -72,7 +69,8 @@ export default function TournamentsClient() {
 
   const handleCreate = async (data: TournamentInput) => {
     if (!user) return
-    await addTournament(data, user)
+    const { photoSaved } = await addTournament(data, user)
+    setPhotoFailed(!photoSaved)
     setCreateOpen(false)
   }
 
@@ -115,6 +113,12 @@ export default function TournamentsClient() {
           </Button>
         )}
       </div>
+
+      {photoFailed && (
+        <p role="status" className="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+          Creamos el torneo, pero no se pudo subir la imagen. Podés agregarla editándolo.
+        </p>
+      )}
 
       {user &&
         (user.emailVerified ? (

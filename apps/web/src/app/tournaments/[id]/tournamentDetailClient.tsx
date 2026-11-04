@@ -5,10 +5,12 @@ import Link from 'next/link'
 import { ArrowLeftIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import {
   computePlayerStatRows,
+  getInvitablePlayers,
   onlyFinalMatches,
   pickCurrentChampion,
   pickNextMatch,
   pickRecentMatches,
+  isTournamentAdminRole,
   toLocalDay,
 } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -52,10 +54,6 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
   const detail = useTournamentDetailStore()
   const [editing, setEditing] = useState(false)
 
-  useEffect(() => {
-    if (user && (myTournamentsInit === 'idle' || myTournamentsUid !== user.uid)) loadMyTournaments(user.uid)
-  }, [user, myTournamentsInit, myTournamentsUid, loadMyTournaments])
-
   const item = myTournaments.find(({ tournament }) => tournament.id === tournamentId) ?? null
   const isMember = item !== null
   const loadDetail = detail.load
@@ -65,14 +63,14 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
     loadDetail(tournamentId)
   }, [isMember, tournamentId, loadDetail])
 
-  const isModerator = item !== null && item.membership.role !== 'MEMBER'
+  const isModerator = item !== null && isTournamentAdminRole(item.membership.role)
   const isDetailLoaded = detail.tournamentId === tournamentId && detail.status === 'loaded'
   const { loadPlayerRequests, loadInvitations } = detail
 
   useEffect(() => {
     if (!isModerator || !isDetailLoaded) return
-    loadPlayerRequests(tournamentId).catch(() => undefined)
-    loadInvitations(tournamentId).catch(() => undefined)
+    void loadPlayerRequests(tournamentId)
+    void loadInvitations(tournamentId)
   }, [isModerator, isDetailLoaded, tournamentId, loadPlayerRequests, loadInvitations])
 
   const { players, matches } = detail
@@ -87,10 +85,7 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
     }
     return photos
   }, [detail.members, playerById])
-  const invitablePlayers = useMemo(() => {
-    const linkedPlayerIds = new Set(detail.members.map((member) => member.playerId))
-    return players.filter((player) => !player.inactive && !linkedPlayerIds.has(player.id))
-  }, [detail.members, players])
+  const invitablePlayers = useMemo(() => getInvitablePlayers(players, detail.members), [detail.members, players])
   const statRows = useMemo(() => computePlayerStatRows(players, finalMatches), [players, finalMatches])
   const today = toLocalDay(new Date())
   const nextMatch = useMemo(() => pickNextMatch(matches, today), [matches, today])
@@ -190,13 +185,17 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
             {isDetailLoaded && isModerator && (
               <PlayerRequestsPanel
                 requests={detail.playerRequests}
+                loadFailed={detail.playerRequestsFailed}
                 playerNameById={playerNameById}
                 onResolve={handleResolvePlayerRequest}
+                onRetry={() => loadPlayerRequests(tournamentId)}
               />
             )}
             {isDetailLoaded && isModerator && (
               <InvitationsPanel
                 invitations={detail.invitations}
+                loadFailed={detail.invitationsFailed}
+                onRetry={() => loadInvitations(tournamentId)}
                 availablePlayers={invitablePlayers}
                 playerNameById={playerNameById}
                 onInvite={(input) => detail.invite(input, user.uid)}
@@ -215,10 +214,12 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
             {isDetailLoaded && (
               <CommentsPanel
                 comments={detail.comments}
+                hasMore={detail.commentsCursor !== null}
                 photoByUid={photoByUid}
                 canModerate={isModerator}
                 onSubmit={(text) => detail.addComment(text, { uid: user.uid, name: authorName })}
                 onDelete={detail.removeComment}
+                onLoadMore={detail.loadMoreComments}
               />
             )}
             {!isDetailLoaded && detail.status !== 'error' && (

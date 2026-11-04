@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { MyTournament } from '@fulbito/types'
+import type { CreatedTournament, MyTournament } from '@fulbito/types'
+import { activeTournamentStorageKey, resolveActiveTournamentId } from '@fulbito/utils'
 import {
   createTournament,
   deleteTournament,
@@ -25,7 +26,7 @@ type TournamentStore = {
   myTournamentsUid: string | null
   activeTournamentId: string | null
   loadMyTournaments: (uid: string) => Promise<void>
-  addTournament: (data: TournamentInput, owner: TournamentOwner) => Promise<string>
+  addTournament: (data: TournamentInput, owner: TournamentOwner) => Promise<CreatedTournament>
   editTournament: (tournamentId: string, data: TournamentInput) => Promise<void>
   removeTournament: (tournamentId: string) => Promise<void>
   exitTournament: (tournamentId: string) => Promise<void>
@@ -34,11 +35,9 @@ type TournamentStore = {
   clearTournaments: () => void
 }
 
-const activeTournamentKey = (uid: string) => `fulbito:activeTournament:${uid}`
-
 function readStoredActiveTournament(uid: string): string | null {
   try {
-    return window.localStorage.getItem(activeTournamentKey(uid))
+    return window.localStorage.getItem(activeTournamentStorageKey(uid))
   } catch {
     return null
   }
@@ -46,16 +45,13 @@ function readStoredActiveTournament(uid: string): string | null {
 
 function storeActiveTournament(uid: string, tournamentId: string): void {
   try {
-    window.localStorage.setItem(activeTournamentKey(uid), tournamentId)
+    window.localStorage.setItem(activeTournamentStorageKey(uid), tournamentId)
   } catch {
     return
   }
 }
 
-function resolveActiveTournament(tournaments: MyTournament[], preferredId: string | null): string | null {
-  if (preferredId && tournaments.some(({ tournament }) => tournament.id === preferredId)) return preferredId
-  return tournaments[0]?.tournament.id ?? null
-}
+let latestLoadId = 0
 
 export const useTournamentStore = create<TournamentStore>()((set, get) => ({
   myTournaments: [],
@@ -63,16 +59,18 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
   myTournamentsUid: null,
   activeTournamentId: null,
   loadMyTournaments: async (uid) => {
+    const loadId = ++latestLoadId
+    const isLatestLoad = () => loadId === latestLoadId && get().myTournamentsUid === uid
     const { myTournamentsInit, myTournamentsUid } = get()
-    if (myTournamentsInit === 'loading') return
     const isRefresh = myTournamentsInit === 'loaded' && myTournamentsUid === uid
     if (!isRefresh) set({ myTournamentsInit: 'loading', myTournamentsUid: uid })
     try {
       const data = await getMyTournaments(uid)
-      const activeTournamentId = resolveActiveTournament(data, readStoredActiveTournament(uid))
+      if (!isLatestLoad()) return
+      const activeTournamentId = resolveActiveTournamentId(data, readStoredActiveTournament(uid))
       set({ myTournaments: data, myTournamentsInit: 'loaded', activeTournamentId })
     } catch {
-      set({ myTournamentsInit: 'error' })
+      if (isLatestLoad()) set({ myTournamentsInit: 'error' })
     }
   },
   addTournament: async (data, owner) => {
@@ -83,12 +81,17 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
       ownerEmail: owner.email,
     })
     storeActiveTournament(owner.uid, id)
+    let photoSaved = true
     if (data.photoFile) {
-      const photoUrl = await uploadTournamentPhoto(data.photoFile, id)
-      await updateTournament(id, { photoUrl })
+      try {
+        const photoUrl = await uploadTournamentPhoto(data.photoFile, id)
+        await updateTournament(id, { photoUrl })
+      } catch {
+        photoSaved = false
+      }
     }
     await get().loadMyTournaments(owner.uid)
-    return id
+    return { id, photoSaved }
   },
   editTournament: async (tournamentId, data) => {
     const previousPhotoUrl = get().myTournaments.find(({ tournament }) => tournament.id === tournamentId)?.tournament
@@ -96,7 +99,12 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
     let photoUrl: string | undefined
     if (data.photoFile) photoUrl = await uploadTournamentPhoto(data.photoFile, tournamentId)
     if (data.photoFile === null) photoUrl = ''
-    await updateTournament(tournamentId, { name: data.name, description: data.description ?? '', photoUrl })
+    try {
+      await updateTournament(tournamentId, { name: data.name, description: data.description ?? '', photoUrl })
+    } catch (error) {
+      if (photoUrl) await deleteTournamentPhoto(photoUrl)
+      throw error
+    }
     if (photoUrl !== undefined && previousPhotoUrl) await deleteTournamentPhoto(previousPhotoUrl)
     const uid = get().myTournamentsUid
     if (uid) await get().loadMyTournaments(uid)
@@ -125,6 +133,7 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
     set({ activeTournamentId: tournamentId })
   },
   clearTournaments: () => {
+    latestLoadId++
     set({ myTournaments: [], myTournamentsInit: 'idle', myTournamentsUid: null, activeTournamentId: null })
   },
 }))

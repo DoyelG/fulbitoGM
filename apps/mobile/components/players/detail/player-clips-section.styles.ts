@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   filterScroll: {
@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   uploadButtonText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontFamily: Fonts.semiBold,
     fontSize: 14,
   },

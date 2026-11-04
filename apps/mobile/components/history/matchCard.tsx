@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, TouchableOpacity, View, Linking} from 'rea
 
 import { useAppTheme } from '@/hooks/use-theme'
 import { useState } from 'react'
+import { ContrastColors } from '@/constants/theme'
 
 type MatchPlayer = Match['teamA'][number]
 
@@ -206,6 +207,7 @@ type TeamColumnColors = {
   warning: string
   primarySubtle: string
   secondarySubtle: string
+  neutralSubtle: string
 }
 type TeamColumnRadii = { sm: number }
 type TeamColumnSpacing = { xs: number; sm: number; md: number }
@@ -231,7 +233,7 @@ function TeamColumn({
   radii: TeamColumnRadii
   spacing: TeamColumnSpacing
 }) {
-  const bg = winner ? colors.primarySubtle : loser ? colors.secondarySubtle : 'rgba(0,0,0,0.03)'
+  const bg = winner ? colors.primarySubtle : loser ? colors.secondarySubtle : colors.neutralSubtle
   return (
     <View style={[styles.teamCol, { backgroundColor: bg, borderRadius: radii.sm, padding: spacing.sm }]}>
       <Text style={[styles.teamLabel, { color: colors.text }]}>{label}</Text>
@@ -285,7 +287,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   typeBadgeText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 2,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
+    borderBottomColor: ContrastColors.dividerOnLightSoft,
   },
   playerName: {
     fontSize: 13,
@@ -390,7 +392,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clipCountBadgeText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 10,
     fontWeight: '700',
   },

@@ -17,7 +17,6 @@ export default function VideosSection() {
   const clips = useVideoClipStore((s) => s.videoClips)
   const status = useVideoClipStore((s) => s.videoClipsInit)
   const initLoad = useVideoClipStore((s) => s.initLoad)
-  const reload = useVideoClipStore((s) => s.resetAndReload)
   const matches = useMatchStore((s) => s.matches)
   const [filter, setFilter] = useState<VideoFilter>('all')
   const [openId, setOpenId] = useState<string | null>(null)
@@ -54,7 +53,7 @@ export default function VideosSection() {
       </header>
 
       {(status === 'idle' || status === 'loading') && <VideosSkeleton />}
-      {status === 'error' && <WidgetError onRetry={() => void reload().catch(() => undefined)} />}
+      {status === 'error' && <WidgetError onRetry={() => void initLoad()} />}
       {status === 'loaded' && (
         <VideoCarousel key={filter} itemCount={visible.length}>
           {visible.map((clip) => (

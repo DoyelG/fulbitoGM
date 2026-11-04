@@ -47,6 +47,20 @@ service cloud.firestore {
       return /databases/$(database)/documents/tournaments/$(tournamentId)/members/$(uid);
     }
 
+    function playerPath(playerId) {
+      return /databases/$(database)/documents/players/$(playerId);
+    }
+
+    function playerLinkPath(tournamentId, playerId) {
+      return /databases/$(database)/documents/tournaments/$(tournamentId)/playerLinks/$(playerId);
+    }
+
+    function isLinkablePlayer(tournamentId, playerId) {
+      return playerId is string
+        && get(playerPath(playerId)).data.tournamentId == tournamentId
+        && !exists(playerLinkPath(tournamentId, playerId));
+    }
+
     function invitationPath(invitationId) {
       return /databases/$(database)/documents/invitations/$(invitationId);
     }
@@ -259,7 +273,13 @@ service cloud.firestore {
               && get(invitationPath(request.resource.data.invitationId)).data.tournamentId == tournamentId
               && get(invitationPath(request.resource.data.invitationId)).data.email == myEmail()
               && get(invitationPath(request.resource.data.invitationId)).data.role == request.resource.data.role
-              && get(invitationPath(request.resource.data.invitationId)).data.playerId == request.resource.data.playerId
+              && (
+                request.resource.data.playerId == null
+                || (
+                  get(invitationPath(request.resource.data.invitationId)).data.playerId == request.resource.data.playerId
+                  && getAfter(playerLinkPath(tournamentId, request.resource.data.playerId)).data.uid == uid
+                )
+              )
               && request.resource.data.email == myEmail()
             )
           );
@@ -270,21 +290,31 @@ service cloud.firestore {
           && changedKeys().hasOnly(['role', 'updatedAt'])
           && request.resource.data.role in ['ADMIN', 'MEMBER']
         ) || (
-          // Organizers assign, change or clear a member's player; uniqueness across members is checked by the client.
+          // The playerLinks lock written in the same batch is what keeps one member per player.
           isTournamentAdmin(tournamentId)
           && changedKeys().hasOnly(['playerId', 'updatedAt'])
           && (
             request.resource.data.playerId == null
             || (
               request.resource.data.playerId is string
-              && get(/databases/$(database)/documents/players/$(request.resource.data.playerId)).data.tournamentId == tournamentId
+              && getAfter(playerPath(request.resource.data.playerId)).data.tournamentId == tournamentId
+              && getAfter(playerLinkPath(tournamentId, request.resource.data.playerId)).data.uid == uid
             )
+          )
+          && (
+            resource.data.get('playerId', null) == null
+            || resource.data.playerId == request.resource.data.playerId
+            || !existsAfter(playerLinkPath(tournamentId, resource.data.playerId))
           )
         );
 
         allow delete: if isSignedIn()
           && resource.data.role != 'OWNER'
           && !(uid in getAfter(tournamentPath(tournamentId)).data.memberUids)
+          && (
+            resource.data.get('playerId', null) == null
+            || !existsAfter(playerLinkPath(tournamentId, resource.data.playerId))
+          )
           && (
             uid == request.auth.uid
             || (
@@ -293,6 +323,24 @@ service cloud.firestore {
               && (tournamentRole(tournamentId) == 'OWNER' || resource.data.role == 'MEMBER')
             )
           );
+      }
+
+      match /playerLinks/{playerId} {
+        allow get: if isSignedIn();
+        allow list: if isTournamentMember(tournamentId);
+
+        allow create: if isSignedIn()
+          && request.resource.data.keys().hasOnly(['uid'])
+          && request.resource.data.uid is string
+          && getAfter(memberPath(tournamentId, request.resource.data.uid)).data.playerId == playerId;
+
+        allow update: if false;
+
+        allow delete: if isSignedIn() && (
+          resource == null
+          || !existsAfter(memberPath(tournamentId, resource.data.uid))
+          || getAfter(memberPath(tournamentId, resource.data.uid)).data.get('playerId', null) != playerId
+        );
       }
 
       match /playerRequests/{uid} {
@@ -310,7 +358,7 @@ service cloud.firestore {
           && request.resource.data.resolvedBy == null
           && get(memberPath(tournamentId, uid)).data.get('playerId', null) == null
           && ((request.resource.data.playerId == null) != (request.resource.data.newPlayerName == null))
-          && (request.resource.data.playerId == null || request.resource.data.playerId is string)
+          && (request.resource.data.playerId == null || isLinkablePlayer(tournamentId, request.resource.data.playerId))
           && (
             request.resource.data.newPlayerName == null
             || (
@@ -370,7 +418,10 @@ service cloud.firestore {
         && request.resource.data.email is string
         && request.resource.data.email == request.resource.data.email.lower()
         && request.resource.data.role in ['ADMIN', 'MEMBER']
-        && (request.resource.data.playerId == null || request.resource.data.playerId is string);
+        && (
+          request.resource.data.playerId == null
+          || isLinkablePlayer(request.resource.data.tournamentId, request.resource.data.playerId)
+        );
 
       allow update: if resource.data.status == 'pending'
         && changedKeys().hasOnly(['status', 'resolvedAt', 'updatedAt'])

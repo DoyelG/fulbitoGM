@@ -160,7 +160,7 @@ export function VideoClipUploadModal({
                     size={22}
                     color={playerIds.includes(p.id) ? colors.primaryText : colors.muted}
                   />
-                  <ThemedText style={{ color: colors.text }}>{p.name}</ThemedText>
+                  <ThemedText>{p.name}</ThemedText>
                 </Pressable>
               ))}
             </View>
@@ -181,7 +181,7 @@ export function VideoClipUploadModal({
                   accessibilityLabel={c.label}
                   accessibilityState={{ selected: category === c.value }}>
                   <ThemedText>{c.icon}</ThemedText>
-                  <ThemedText style={{ color: colors.text }}>{c.label}</ThemedText>
+                  <ThemedText>{c.label}</ThemedText>
                 </Pressable>
               ))}
             </View>
@@ -202,7 +202,7 @@ export function VideoClipUploadModal({
             style={[styles.pickBtn, { borderColor: colors.border }]}
             accessibilityRole="button"
             accessibilityLabel={videoUri ? 'Video seleccionado, elegir otro' : 'Elegir video'}>
-            <ThemedText style={{ color: colors.text }}>
+            <ThemedText>
               {videoUri ? 'Video seleccionado ✓ (tocá para cambiar)' : 'Elegir video'}
             </ThemedText>
           </Pressable>

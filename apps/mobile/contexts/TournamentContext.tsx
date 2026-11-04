@@ -9,7 +9,8 @@ import {
   updateTournament,
   uploadTournamentPhoto,
 } from '@fulbito/firebase'
-import type { MyTournament } from '@fulbito/types'
+import type { CreatedTournament, MyTournament } from '@fulbito/types'
+import { activeTournamentStorageKey, resolveActiveTournamentId } from '@fulbito/utils'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -24,7 +25,7 @@ type TournamentContextValue = {
   activeTournament: MyTournament | null
   reload: () => Promise<void>
   setActiveTournament: (tournamentId: string) => void
-  createTournament: (input: TournamentInput) => Promise<string>
+  createTournament: (input: TournamentInput) => Promise<CreatedTournament>
   editTournament: (tournamentId: string, input: TournamentInput) => Promise<void>
   deleteTournament: (tournamentId: string) => Promise<void>
   leaveTournament: (tournamentId: string) => Promise<void>
@@ -38,11 +39,9 @@ async function uploadPhotoFromUri(uri: string, tournamentId: string): Promise<st
 
 const TournamentContext = createContext<TournamentContextValue | null>(null)
 
-const activeTournamentKey = (uid: string) => `fulbito:activeTournament:${uid}`
-
 async function readStoredActiveTournament(uid: string): Promise<string | null> {
   try {
-    return await AsyncStorage.getItem(activeTournamentKey(uid))
+    return await AsyncStorage.getItem(activeTournamentStorageKey(uid))
   } catch {
     return null
   }
@@ -50,15 +49,10 @@ async function readStoredActiveTournament(uid: string): Promise<string | null> {
 
 async function storeActiveTournament(uid: string, tournamentId: string): Promise<void> {
   try {
-    await AsyncStorage.setItem(activeTournamentKey(uid), tournamentId)
+    await AsyncStorage.setItem(activeTournamentStorageKey(uid), tournamentId)
   } catch {
     return
   }
-}
-
-function resolveActiveTournament(tournaments: MyTournament[], preferredId: string | null): string | null {
-  if (preferredId && tournaments.some(({ tournament }) => tournament.id === preferredId)) return preferredId
-  return tournaments[0]?.tournament.id ?? null
 }
 
 export function TournamentProvider({ children }: { children: ReactNode }) {
@@ -69,21 +63,24 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<TournamentsStatus>('loading')
   const [activeTournamentId, setActiveTournamentId] = useState<string | null>(null)
   const currentUid = useRef(uid)
+  const latestLoadId = useRef(0)
 
   useEffect(() => {
     currentUid.current = uid
   }, [uid])
 
   const reload = useCallback(async () => {
+    const loadId = ++latestLoadId.current
     if (!uid) return
+    const isLatestLoad = () => loadId === latestLoadId.current && currentUid.current === uid
     try {
       const [tournaments, storedId] = await Promise.all([getMyTournaments(uid), readStoredActiveTournament(uid)])
-      if (currentUid.current !== uid) return
+      if (!isLatestLoad()) return
       setMyTournaments(tournaments)
-      setActiveTournamentId((previousId) => resolveActiveTournament(tournaments, previousId ?? storedId))
+      setActiveTournamentId((previousId) => resolveActiveTournamentId(tournaments, previousId ?? storedId))
       setStatus('loaded')
     } catch {
-      if (currentUid.current === uid) setStatus('error')
+      if (isLatestLoad()) setStatus('error')
     }
   }, [uid])
 
@@ -111,13 +108,18 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
         ownerUid: uid,
         ownerEmail: email,
       })
+      let photoSaved = true
       if (input.photoUri) {
-        const photoUrl = await uploadPhotoFromUri(input.photoUri, tournamentId)
-        await updateTournament(tournamentId, { photoUrl })
+        try {
+          const photoUrl = await uploadPhotoFromUri(input.photoUri, tournamentId)
+          await updateTournament(tournamentId, { photoUrl })
+        } catch {
+          photoSaved = false
+        }
       }
       setActiveTournament(tournamentId)
       await reload()
-      return tournamentId
+      return { id: tournamentId, photoSaved }
     },
     [uid, email, reload, setActiveTournament],
   )
@@ -129,7 +131,12 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       let photoUrl: string | undefined
       if (input.photoUri) photoUrl = await uploadPhotoFromUri(input.photoUri, tournamentId)
       if (input.photoUri === null) photoUrl = ''
-      await updateTournament(tournamentId, { name: input.name, description: input.description ?? '', photoUrl })
+      try {
+        await updateTournament(tournamentId, { name: input.name, description: input.description ?? '', photoUrl })
+      } catch (error) {
+        if (photoUrl) await deleteTournamentPhoto(photoUrl)
+        throw error
+      }
       if (photoUrl !== undefined && previousPhotoUrl) await deleteTournamentPhoto(previousPhotoUrl)
       await reload()
     },

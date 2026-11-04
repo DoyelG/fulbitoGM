@@ -5,9 +5,10 @@ import {
   type NewVideoClipData,
 } from '@fulbito/firebase'
 import type { VideoClip } from '@fulbito/types'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 
 import { useActiveTournamentId } from '@/contexts/TournamentContext'
+import { useTournamentResource } from '@/hooks/use-tournament-resource'
 
 export type { NewVideoClipData }
 
@@ -22,30 +23,19 @@ export type VideoClipsDataState = {
   deleteVideoClip: (id: string) => Promise<void>
 }
 
+const EMPTY_VIDEO_CLIPS: VideoClip[] = []
+
 export function useVideoClipsData(): VideoClipsDataState {
   const tournamentId = useActiveTournamentId()
-  const [videoClips, setVideoClips] = useState<VideoClip[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const reload = useCallback(async () => {
-    if (!tournamentId) return
-    setError(null)
-    try {
-      setVideoClips(await getVideoClips(tournamentId))
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cargar los clips')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [tournamentId])
-
-  const refresh = useCallback(async () => {
-    setRefreshing(true)
-    await reload()
-  }, [reload])
+  const {
+    data: videoClips,
+    setData: setVideoClips,
+    loading,
+    refreshing,
+    error,
+    reload,
+    refresh,
+  } = useTournamentResource(tournamentId, getVideoClips, EMPTY_VIDEO_CLIPS, 'Error al cargar los clips')
 
   const addVideoClip = useCallback(
     async (data: NewVideoClipData, fileUri: string) => {
@@ -65,14 +55,8 @@ export function useVideoClipsData(): VideoClipsDataState {
       setVideoClips((previous) => previous.filter((item) => item.id !== id))
       await reload()
     },
-    [videoClips, reload],
+    [videoClips, setVideoClips, reload],
   )
-
-  useEffect(() => {
-    setVideoClips([])
-    setLoading(true)
-    void reload()
-  }, [reload])
 
   return { videoClips, loading, refreshing, error, reload, refresh, addVideoClip, deleteVideoClip }
 }

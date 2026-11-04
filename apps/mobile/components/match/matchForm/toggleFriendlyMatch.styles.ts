@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native'
+import { ContrastColors } from '@/constants/theme'
 
 export const TRACK_WIDTH = 132
 export const TRACK_HEIGHT = 34
@@ -25,7 +26,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     fontSize: 12,
     fontWeight: '700',
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
   competitivoLabel: {
     left: THUMB_SIZE + TRACK_PADDING * 2 + 6,
@@ -37,10 +38,10 @@ export const styles = StyleSheet.create({
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     borderRadius: THUMB_SIZE / 2,
-    backgroundColor: '#fff',
+    backgroundColor: ContrastColors.onColor,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: ContrastColors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,

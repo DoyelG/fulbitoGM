@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Radii } from '@/constants/theme'
+import { ContrastColors, Radii } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   iconWrap: {
@@ -9,6 +9,6 @@ export const styles = StyleSheet.create({
     borderRadius: Radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: ContrastColors.onColorFillStrong,
   },
 })

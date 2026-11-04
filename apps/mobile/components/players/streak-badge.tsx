@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 type Kind = 'win' | 'loss' | null
 
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   text: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '700',

@@ -1,12 +1,11 @@
 import { InvitationError } from '@fulbito/firebase'
-import type { InvitationRole, Player } from '@fulbito/types'
+import type { InvitationInput, InvitationRole, Player } from '@fulbito/types'
 import { useState } from 'react'
 import { ScrollView, Text, TextInput, View } from 'react-native'
 
 import { BottomSheet } from '@/components/match/matchForm/bottomSheet'
 import { ProfileButton } from '@/components/profile/profile-button'
 import { formStyles } from '@/components/profile/profile-form.styles'
-import type { InvitationInput } from '@/hooks/use-tournament-members-data'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { roleOptions } from './role-options'

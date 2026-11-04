@@ -70,7 +70,7 @@ export function StatPlayerCard({ stat, rank, activeTab, inactive = false, onPres
         pressed && { opacity: 0.92 },
       ]}>
       <View style={styles.topRow}>
-        <ThemedText style={[styles.rank, { color: isFirst ? '#f59e0b' : colors.muted }]}>
+        <ThemedText style={[styles.rank, { color: isFirst ? colors.medal : colors.muted }]}>
           {rank}
         </ThemedText>
 

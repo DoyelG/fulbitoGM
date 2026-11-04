@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native'
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: ContrastColors.scrimMedium,
     justifyContent: 'center',
     padding: Spacing.lg,
   },
@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   addVideoBtnText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontFamily: Fonts.semiBold,
     fontSize: 14,
   },

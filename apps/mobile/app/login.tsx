@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { Colors } from '@/constants/theme'
+import { Colors, ContrastColors } from '@/constants/theme'
 import { useColorScheme } from '@/hooks/use-color-scheme'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { styles } from '@/styles/login.styles'
@@ -64,17 +64,13 @@ export default function LoginScreen() {
               style={[styles.segmentBtn, mode === 'signin' && styles.segmentBtnActive]}
               onPress={() => setMode('signin')}
             >
-              <Text style={[styles.segmentText, mode === 'signin' && styles.segmentTextActive]}>
-                Iniciar sesión
-              </Text>
+              <Text style={[styles.segmentText, mode === 'signin' && styles.segmentTextActive]}>Iniciar sesión</Text>
             </Pressable>
             <Pressable
               style={[styles.segmentBtn, mode === 'register' && styles.segmentBtnActive]}
               onPress={() => setMode('register')}
             >
-              <Text style={[styles.segmentText, mode === 'register' && styles.segmentTextActive]}>
-                Registrarse
-              </Text>
+              <Text style={[styles.segmentText, mode === 'register' && styles.segmentTextActive]}>Registrarse</Text>
             </Pressable>
           </View>
 
@@ -117,11 +113,9 @@ export default function LoginScreen() {
             disabled={loading || email.trim().length < 3 || password.length < 6}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={ContrastColors.onColor} />
             ) : (
-              <Text style={styles.primaryBtnText}>
-                {mode === 'signin' ? 'Entrar' : 'Crear cuenta'}
-              </Text>
+              <Text style={styles.primaryBtnText}>{mode === 'signin' ? 'Entrar' : 'Crear cuenta'}</Text>
             )}
           </Pressable>
 
@@ -132,7 +126,7 @@ export default function LoginScreen() {
           ) : null}
 
           <Pressable style={styles.link} onPress={() => router.back()}>
-            <Text style={{ color: theme.primaryText }}>Volver</Text>
+            <Text style={[styles.linkText, { color: theme.primaryText }]}>Volver</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>

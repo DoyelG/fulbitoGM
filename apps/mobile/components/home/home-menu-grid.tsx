@@ -1,5 +1,5 @@
 import { PrimaryGradient } from '@/components/primary-gradient'
-import { Fonts, Radii, PrimaryColors, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, PrimaryColors, Radii, Spacing } from '@/constants/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -24,7 +24,7 @@ export function HomeMenuGrid() {
           onPress={() => router.push(item.href as any)}
         >
           <PrimaryGradient />
-          <Ionicons name={item.icon} size={32} color="rgba(255,255,255,0.9)" />
+          <Ionicons name={item.icon} size={32} color={ContrastColors.onColorSoft} />
           <Text style={styles.label}>{item.label.toUpperCase()}</Text>
         </TouchableOpacity>
       ))}
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.extraBold,
     fontSize: 9,
     letterSpacing: 0.3,
-    color: '#fff',
+    color: ContrastColors.onColor,
     textAlign: 'center',
   },
 })

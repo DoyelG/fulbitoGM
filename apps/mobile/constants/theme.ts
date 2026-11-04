@@ -31,6 +31,12 @@ export const Colors = {
 
     chipBg: '#f3f4f6',
     chipBorder: '#e5e7eb',
+    track: '#e5e7eb',
+    neutralFill: 'rgba(0,0,0,0.06)',
+    subtleText: '#4b5563',
+    textSecondary: '#374151',
+    success: '#16a34a',
+    medal: '#f59e0b',
 
     danger: '#c2410c',
     dangerIcon: '#fb923c',
@@ -41,6 +47,7 @@ export const Colors = {
     goalkeeper: '#f97316',
     secondaryText: '#c2410c',
     primarySubtle: 'rgba(76, 29, 149, 0.07)',
+    neutralSubtle: 'rgba(0,0,0,0.03)',
     secondarySubtle: 'rgba(249, 115, 22, 0.09)',
     secondarySoft: 'rgba(249, 115, 22, 0.2)',
     shadow: PRIMARY,
@@ -73,6 +80,12 @@ export const Colors = {
 
     chipBg: 'rgba(255,255,255,0.06)',
     chipBorder: 'rgba(255,255,255,0.1)',
+    track: 'rgba(255,255,255,0.12)',
+    neutralFill: 'rgba(255,255,255,0.1)',
+    subtleText: '#d1d5db',
+    textSecondary: '#d1d5db',
+    success: '#16a34a',
+    medal: '#f59e0b',
 
     danger: '#c2410c',
     dangerIcon: '#fb923c',
@@ -84,6 +97,7 @@ export const Colors = {
     goalkeeper: '#f97316',
     secondaryText: '#fb923c',
     primarySubtle: 'rgba(167, 139, 250, 0.1)',
+    neutralSubtle: 'rgba(0,0,0,0.03)',
     secondarySubtle: 'rgba(249, 115, 22, 0.1)',
     secondarySoft: 'rgba(249, 115, 22, 0.22)',
 
@@ -135,6 +149,47 @@ export const PrimaryColors = {
   chipBorder: 'rgba(255,255,255,0.2)',
   divider: 'rgba(255,255,255,0.1)',
   avatarRing: 'rgba(255,255,255,0.5)',
+} as const
+
+export const ContrastColors = {
+  onColor: '#ffffff',
+  onColorStrong: 'rgba(255,255,255,0.95)',
+  onColorSoft: 'rgba(255,255,255,0.9)',
+  onColorFaded: 'rgba(255,255,255,0.75)',
+  onColorMuted: 'rgba(255,255,255,0.7)',
+  onColorBorderStrong: 'rgba(255,255,255,0.6)',
+  onColorBorder: 'rgba(255,255,255,0.3)',
+  onColorFillBright: 'rgba(255,255,255,0.8)',
+  onColorFillStrong: 'rgba(255,255,255,0.2)',
+  onColorFill: 'rgba(255,255,255,0.18)',
+  media: '#000000',
+  shadow: '#000000',
+  scrimLight: 'rgba(0,0,0,0.3)',
+  scrim: 'rgba(0,0,0,0.35)',
+  scrimMedium: 'rgba(0,0,0,0.5)',
+  scrimStrong: 'rgba(0,0,0,0.55)',
+  scrimHeavy: 'rgba(0,0,0,0.7)',
+  heroScrim: 'rgba(8,3,25,0.45)',
+  textShadow: 'rgba(0,0,0,0.6)',
+  textShadowStrong: 'rgba(0,0,0,1)',
+  dividerOnLight: 'rgba(0,0,0,0.1)',
+  dividerOnLightSoft: 'rgba(0,0,0,0.08)',
+} as const
+
+export const DrawerColors = {
+  backdrop: 'rgba(0,0,0,0.6)',
+  sheet: '#111827',
+  shadow: '#000',
+  handle: 'rgba(255,255,255,0.2)',
+  divider: 'rgba(255,255,255,0.08)',
+  text: '#F1F5F9',
+  muted: '#94A3B8',
+  icon: Colors.dark.primaryText,
+  iconBg: 'rgba(167, 139, 250, 0.15)',
+  itemPressed: 'rgba(167, 139, 250, 0.1)',
+  danger: Colors.dark.dangerIcon,
+  dangerBg: 'rgba(251, 146, 60, 0.15)',
+  onPrimary: '#FFFFFF',
 } as const
 
 export const Radii = {

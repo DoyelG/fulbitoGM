@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native'
+import { Colors } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   card: {
@@ -38,7 +39,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   featuredValue: {
-    color: '#f97316',
+    color: Colors.light.secondary,
     fontWeight: '800',        
     fontSize: 32,            
     lineHeight: 32,           

@@ -3,6 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 type Props = {
   page: number
   pageCount: number
+  disabled?: boolean
   onPageChange: (page: number) => void
 }
 
@@ -20,7 +21,7 @@ function visiblePages(current: number, total: number): (number | 'gap')[] {
   return [0, ...(start > 1 ? ['gap' as const] : []), ...middle, ...(end < total - 2 ? ['gap' as const] : []), total - 1]
 }
 
-export default function CommentsPagination({ page, pageCount, onPageChange }: Props) {
+export default function CommentsPagination({ page, pageCount, disabled = false, onPageChange }: Props) {
   if (pageCount <= 1) return null
 
   return (
@@ -31,7 +32,7 @@ export default function CommentsPagination({ page, pageCount, onPageChange }: Pr
       <button
         type="button"
         onClick={() => onPageChange(page - 1)}
-        disabled={page === 0}
+        disabled={disabled || page === 0}
         aria-label="Página anterior"
         className={`${buttonClassName} text-gray-700 hover:bg-gray-100 disabled:text-gray-300 disabled:hover:bg-transparent`}
       >
@@ -47,6 +48,7 @@ export default function CommentsPagination({ page, pageCount, onPageChange }: Pr
             key={item}
             type="button"
             onClick={() => onPageChange(item)}
+            disabled={disabled}
             aria-label={`Página ${item + 1}`}
             aria-current={item === page ? 'page' : undefined}
             className={`${buttonClassName} ${
@@ -60,7 +62,7 @@ export default function CommentsPagination({ page, pageCount, onPageChange }: Pr
       <button
         type="button"
         onClick={() => onPageChange(page + 1)}
-        disabled={page >= pageCount - 1}
+        disabled={disabled || page >= pageCount - 1}
         aria-label="Página siguiente"
         className={`${buttonClassName} text-gray-700 hover:bg-gray-100 disabled:text-gray-300 disabled:hover:bg-transparent`}
       >

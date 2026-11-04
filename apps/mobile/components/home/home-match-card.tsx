@@ -1,5 +1,5 @@
 import { SkewedBadge } from '@/components/ui/skewed-badge'
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 import type { Match } from '@fulbito/types'
 import { formatMatchDate, parseMatchDate } from '@fulbito/utils'
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   },
   scoreText: {
     fontFamily: Fonts.black,
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 15,
     letterSpacing: 0.5,
   },

@@ -2,6 +2,7 @@ import { StyleSheet, Text, TouchableOpacity } from 'react-native'
 
 import { PrimaryGradient } from '@/components/primary-gradient'
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   poolSize: number
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   text: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontWeight: '700',
     fontSize: 14,
   },

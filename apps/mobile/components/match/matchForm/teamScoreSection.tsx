@@ -91,7 +91,7 @@ export function TeamScoreSection({
           { backgroundColor: matches ? totalBg : colors.dangerBg },
         ]}
       >
-        <Text style={{ color: matches ? totalText : colors.danger, fontWeight: '600', fontSize: 12 }}>
+        <Text style={[styles.totalText, { color: matches ? totalText : colors.danger }]}>
           Total: {total} goles {matches ? '✓' : '✗'}
         </Text>
       </View>
@@ -139,6 +139,10 @@ const styles = StyleSheet.create({
     width: 38,
     textAlign: 'center',
     paddingVertical: 3,
+    fontSize: 12,
+  },
+  totalText: {
+    fontWeight: '600',
     fontSize: 12,
   },
   totalPill: {

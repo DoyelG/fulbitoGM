@@ -1,5 +1,6 @@
 import Feather from '@expo/vector-icons/Feather'
 import type { MyTournament } from '@fulbito/types'
+import { isTournamentAdminRole } from '@fulbito/utils'
 import { Image } from 'expo-image'
 import type { ComponentProps } from 'react'
 import { Pressable, Text, TouchableOpacity, View } from 'react-native'
@@ -60,7 +61,7 @@ export function TournamentCard({
 }: Props) {
   const { colors, isDark, shadows } = useAppTheme()
   const { tournament, membership } = item
-  const canEdit = membership.role === 'OWNER' || membership.role === 'ADMIN'
+  const canEdit = isTournamentAdminRole(membership.role)
   const isOwner = membership.role === 'OWNER'
   const memberCount = tournament.memberUids.length
   const hasPlayer = membership.playerId !== null

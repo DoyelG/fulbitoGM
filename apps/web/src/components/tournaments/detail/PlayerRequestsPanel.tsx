@@ -5,19 +5,22 @@ import { UserPlusIcon } from '@heroicons/react/24/outline'
 import type { TournamentPlayerRequest } from '@fulbito/types'
 import { TournamentPlayerRequestError } from '@fulbito/firebase'
 import Button from '@/components/Button'
+import WidgetError from '@/components/home/WidgetError'
 import DetailSection from './DetailSection'
 
 type Props = {
   requests: TournamentPlayerRequest[]
+  loadFailed: boolean
   playerNameById: Map<string, string>
   onResolve: (uid: string, action: 'accepted' | 'rejected') => Promise<void>
+  onRetry: () => Promise<void>
 }
 
-export default function PlayerRequestsPanel({ requests, playerNameById, onResolve }: Props) {
+export default function PlayerRequestsPanel({ requests, loadFailed, playerNameById, onResolve, onRetry }: Props) {
   const [resolvingUid, setResolvingUid] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  if (requests.length === 0) return null
+  if (requests.length === 0 && !loadFailed) return null
 
   const resolve = async (uid: string, action: 'accepted' | 'rejected') => {
     setResolvingUid(uid)
@@ -37,6 +40,7 @@ export default function PlayerRequestsPanel({ requests, playerNameById, onResolv
 
   return (
     <DetailSection id="player-requests-title" title="Solicitudes de jugador" icon={UserPlusIcon}>
+      {loadFailed && <WidgetError message="No se pudieron cargar las solicitudes." onRetry={() => void onRetry()} />}
       <ul className="space-y-4">
         {requests.map((request) => {
           const playerLabel = request.playerId

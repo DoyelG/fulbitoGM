@@ -87,8 +87,11 @@ export default function TournamentsScreen() {
   }
 
   const handleCreate = async (input: TournamentInput) => {
-    await createTournament(input)
+    const { photoSaved } = await createTournament(input)
     setIsCreating(false)
+    if (!photoSaved) {
+      Alert.alert('Torneo creado', 'No se pudo subir la imagen. Podés agregarla editando el torneo.')
+    }
   }
 
   const handleEdit = async (input: TournamentInput) => {

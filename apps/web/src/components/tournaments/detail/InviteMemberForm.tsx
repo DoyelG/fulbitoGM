@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { InvitationError } from '@fulbito/firebase'
-import type { InvitationRole, Player } from '@fulbito/types'
+import type { InvitationInput, InvitationRole, Player } from '@fulbito/types'
 import Button from '@/components/Button'
-import type { InvitationInput } from '@/store/useTournamentDetailStore'
 import { ROLE_LABELS } from '../tournament-roles'
 
 type Props = {

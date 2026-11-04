@@ -1,4 +1,4 @@
-import { Fonts } from "@/constants/theme"
+import { ContrastColors, Fonts } from "@/constants/theme"
 import { useAppTheme } from "@/hooks/use-theme"
 import { LinearGradient } from "expo-linear-gradient"
 import { ImageBackground, StyleSheet, Text, View } from "react-native"
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(8,3,25,0.45)",
+    backgroundColor: ContrastColors.heroScrim,
   },
 
   fade: {
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   line2: {
     fontFamily: Fonts.blackItalic,
     fontSize: 48,
-    color: "#fff",
+    color: ContrastColors.onColor,
     lineHeight: 50,
     letterSpacing: -1,
   },
@@ -100,14 +100,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     fontSize: 13,
     lineHeight: 19,
-    color: "rgba(255,255,255,0.75)",
-    textShadowColor: "rgba(0,0,0,0.6)",
+    color: ContrastColors.onColorFaded,
+    textShadowColor: ContrastColors.textShadow,
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
   subLight: {
-    color: "rgba(255,255,255,0.95)",
-    textShadowColor: "rgba(0,0,0,1)",
+    color: ContrastColors.onColorStrong,
+    textShadowColor: ContrastColors.textShadowStrong,
     textShadowRadius: 10,
   },
 })

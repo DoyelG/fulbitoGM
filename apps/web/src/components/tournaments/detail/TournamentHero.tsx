@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import type { MyTournament } from '@fulbito/types'
+import { isTournamentAdminRole } from '@fulbito/utils'
 import { CheckCircleIcon, PencilSquareIcon, TrophyIcon } from '@heroicons/react/24/outline'
 import Button from '@/components/Button'
 import { ROLE_LABELS, ROLE_STYLES } from '@/components/tournaments/tournament-roles'
@@ -15,7 +16,7 @@ const createdAtFormatter = new Intl.DateTimeFormat('es-AR', { month: 'long', yea
 
 export default function TournamentHero({ item, active, onActivate, onEdit }: Props) {
   const { tournament, membership } = item
-  const canEdit = membership.role === 'OWNER' || membership.role === 'ADMIN'
+  const canEdit = isTournamentAdminRole(membership.role)
 
   return (
     <header className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

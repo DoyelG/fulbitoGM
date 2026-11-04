@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Colors } from '@/constants/theme'
+import { Colors, ContrastColors } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   wrap: {
@@ -26,6 +26,6 @@ export const styles = StyleSheet.create({
   text: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
 })
