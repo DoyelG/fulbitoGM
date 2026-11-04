@@ -29,7 +29,11 @@ export function useTournamentResource<T>(
 
   const reload = useCallback(async () => {
     const loadId = ++latestLoadId.current
-    if (!tournamentId) return
+    if (!tournamentId) {
+      setLoading(false)
+      setRefreshing(false)
+      return
+    }
     const isLatestLoad = () => loadId === latestLoadId.current && currentTournamentId.current === tournamentId
     setError(null)
     try {

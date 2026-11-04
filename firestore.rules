@@ -161,17 +161,28 @@ service cloud.firestore {
       allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
     }
 
+    // Pins a clip to its own uploaded file, so viewers never load an outside URL. The private hosts are the emulator.
+    function isOwnClipUrl(url, tournamentId, clipId) {
+      return url is string
+        && url.matches(
+          '(https://firebasestorage[.]googleapis[.]com|http://(localhost|127[.]0[.]0[.]1|10[.][0-9.]+|192[.]168[.][0-9.]+):9199)'
+          + '/v0/b/[^/]+/o/videoClips%2F' + tournamentId + '%2F' + clipId + '[?].*'
+        );
+    }
+
     match /videoClips/{id} {
       allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
       allow create: if isSignedIn()
         && request.resource.data.tournamentId is string
         && canReadTournament(request.resource.data.tournamentId)
         && request.resource.data.createdBy == request.auth.uid
+        && isOwnClipUrl(request.resource.data.url, request.resource.data.tournamentId, id)
         && get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.tournamentId
           == request.resource.data.tournamentId;
       allow update: if isSignedIn()
         && keepsTournament()
         && request.resource.data.createdBy == resource.data.get('createdBy', null)
+        && request.resource.data.get('url', null) == resource.data.get('url', null)
         && (
           canManageTournament(resource.data.tournamentId)
           || (isTournamentMember(resource.data.tournamentId) && resource.data.get('createdBy', null) == request.auth.uid)

@@ -36,10 +36,12 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     const state = get().playersInit
     if (state === 'loading' || state === 'loaded') return
     set({ playersInit: 'loading' })
+    let tournamentId: string | null = null
     try {
+      tournamentId = getActiveTournamentId()
       await get().resetAndReload()
     } catch {
-      set({ playersInit: 'error' })
+      if (!tournamentId || isStillActive(tournamentId)) set({ playersInit: 'error' })
     }
   },
   hydratePlayers: (players) => {

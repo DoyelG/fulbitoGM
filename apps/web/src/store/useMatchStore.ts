@@ -22,10 +22,12 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     const state = get().matchesInit
     if (state === 'loading' || state === 'loaded') return
     set({ matchesInit: 'loading' })
+    let tournamentId: string | null = null
     try {
+      tournamentId = getActiveTournamentId()
       await get().resetAndReload()
     } catch {
-      set({ matchesInit: 'error' })
+      if (!tournamentId || isStillActive(tournamentId)) set({ matchesInit: 'error' })
     }
   },
   hydrateMatches: (matches) => {

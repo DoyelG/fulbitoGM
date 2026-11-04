@@ -31,6 +31,8 @@ type LoadStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
 type CommentAuthor = { uid: string; name: string }
 
+let pendingCommentsPage: { cursor: TournamentCommentsCursor; promise: Promise<void> } | null = null
+
 type TournamentDetailStore = {
   tournamentId: string | null
   members: TournamentMember[]
@@ -160,19 +162,27 @@ export const useTournamentDetailStore = create<TournamentDetailStore>()((set, ge
     await removeMember(tournamentId, uid, actorUid)
     set((state) => ({ members: state.members.filter((member) => member.uid !== uid) }))
   },
-  loadMoreComments: async () => {
+  loadMoreComments: () => {
     const { tournamentId, commentsCursor } = get()
-    if (!tournamentId || !commentsCursor) return
-    const { comments, nextCursor } = await getTournamentComments(tournamentId, commentsCursor)
-    if (get().tournamentId !== tournamentId || get().commentsCursor !== commentsCursor) return
-    set((state) => ({ comments: [...state.comments, ...comments], commentsCursor: nextCursor }))
+    if (!tournamentId || !commentsCursor) return Promise.resolve()
+    if (pendingCommentsPage?.cursor === commentsCursor) return pendingCommentsPage.promise
+
+    const promise = getTournamentComments(tournamentId, commentsCursor)
+      .then(({ comments, nextCursor }) => {
+        if (get().tournamentId !== tournamentId || get().commentsCursor !== commentsCursor) return
+        set((state) => ({ comments: [...state.comments, ...comments], commentsCursor: nextCursor }))
+      })
+      .finally(() => {
+        if (pendingCommentsPage?.promise === promise) pendingCommentsPage = null
+      })
+    pendingCommentsPage = { cursor: commentsCursor, promise }
+    return promise
   },
   addComment: async (text, author) => {
     const tournamentId = get().tournamentId
     if (!tournamentId) throw new Error('No tournament loaded')
-    await addTournamentComment({ tournamentId, authorUid: author.uid, authorName: author.name, text })
-    const { comments, nextCursor } = await getTournamentComments(tournamentId)
-    if (get().tournamentId === tournamentId) set({ comments, commentsCursor: nextCursor })
+    const comment = await addTournamentComment({ tournamentId, authorUid: author.uid, authorName: author.name, text })
+    if (get().tournamentId === tournamentId) set((state) => ({ comments: [comment, ...state.comments] }))
   },
   removeComment: async (commentId) => {
     const tournamentId = get().tournamentId

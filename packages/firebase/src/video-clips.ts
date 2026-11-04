@@ -78,9 +78,11 @@ export async function createVideoClip(tournamentId: string, data: NewVideoClipDa
   }
 }
 
-export async function deleteVideoClip(clip: Pick<VideoClip, 'id' | 'url'>): Promise<void> {
-  await deleteObject(ref(getStorage(), clip.url)).catch((error: { code?: string }) => {
-    if (error.code !== 'storage/object-not-found') throw error
-  })
+export async function deleteVideoClip(clip: Pick<VideoClip, 'id' | 'tournamentId'>): Promise<void> {
+  await deleteObject(ref(getStorage(), videoClipFilePath(clip.tournamentId, clip.id))).catch(
+    (error: { code?: string }) => {
+      if (error.code !== 'storage/object-not-found') throw error
+    },
+  )
   await deleteDoc(doc(getFirestore(), 'videoClips', clip.id))
 }

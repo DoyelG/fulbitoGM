@@ -70,19 +70,27 @@ type AddTournamentCommentInput = {
   text: string
 }
 
-export async function addTournamentComment(input: AddTournamentCommentInput): Promise<string> {
+export async function addTournamentComment(input: AddTournamentCommentInput): Promise<TournamentComment> {
   const text = input.text.trim()
   if (!text) throw new Error('Comment text is required')
   if (text.length > TOURNAMENT_COMMENT_MAX_LENGTH) {
     throw new Error(`Comment must be at most ${TOURNAMENT_COMMENT_MAX_LENGTH} characters`)
   }
+  const authorName = input.authorName.trim().slice(0, 80)
   const ref = await addDoc(commentsRef(input.tournamentId), {
     authorUid: input.authorUid,
-    authorName: input.authorName.trim().slice(0, 80),
+    authorName,
     text,
     createdAt: serverTimestamp(),
   })
-  return ref.id
+  return {
+    id: ref.id,
+    tournamentId: input.tournamentId,
+    authorUid: input.authorUid,
+    authorName,
+    text,
+    createdAt: new Date(),
+  }
 }
 
 export async function deleteTournamentComment(tournamentId: string, commentId: string): Promise<void> {
