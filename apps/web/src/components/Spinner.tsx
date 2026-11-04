@@ -1,15 +1,11 @@
-import type { Ref } from 'react'
-
 type Props = {
   label: string
   className?: string
-  ref?: Ref<HTMLDivElement>
 }
 
-export default function Spinner({ label, className = '', ref }: Props) {
+export default function Spinner({ label, className = '' }: Props) {
   return (
     <div
-      ref={ref}
       role="status"
       aria-live="polite"
       aria-busy="true"

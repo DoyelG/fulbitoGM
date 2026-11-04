@@ -11,5 +11,7 @@ export const InfiniteScrollSentinel = ({
   label = "Cargando más…",
   className = "",
 }: InfiniteScrollSentinelProps) => (
-  <Spinner ref={sentinelRef} label={label} className={`justify-center py-6 ${className}`} />
+  <div ref={sentinelRef}>
+    <Spinner label={label} className={`justify-center py-6 ${className}`} />
+  </div>
 );
