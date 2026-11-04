@@ -12,6 +12,7 @@ import PageTitle from '@/components/PageTitle'
 import { AWARD_ICONS } from '@/constants/award-icons'
 import { HALL_OF_FAME, useAnnualAwards } from '@/hooks/use-annual-awards'
 import Chevron from '../shared/Icons/Chevron'
+import { selectClassName } from '@/lib/field-styles'
 
 type Props = { players: Player[]; matches: Match[] }
 
@@ -59,14 +60,14 @@ export function AwardsClient({ players, matches }: Props) {
             <label htmlFor="award-season" className="text-sm font-medium">
               Temporada
             </label>
-            <div className="relative">
+            <div className="relative w-fit">
               <select
                 id="award-season"
                 value={selection}
                 onChange={(event) =>
                   onSelectSeason(event.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(event.target.value))
                 }
-                className="appearance-none rounded border border-gray-300 py-2 pl-3 pr-9"
+                className={selectClassName}
               >
                 {availableYears.map((year) => (
                   <option key={year} value={year}>

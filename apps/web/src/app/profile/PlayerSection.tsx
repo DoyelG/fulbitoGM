@@ -8,6 +8,7 @@ import type { Player } from '@fulbito/types'
 import { positionLabels } from '@fulbito/utils'
 import Button from '@/components/Button'
 import { usePlayerStore } from '@/store/usePlayerStore'
+import { fieldClassName, selectClassName } from '@/lib/field-styles'
 import Chevron from '../shared/Icons/Chevron'
 import ProfileSection from './ProfileSection'
 
@@ -15,9 +16,6 @@ type PlayerSectionProps = {
   player: Player
   index: number
 }
-
-const inputClassName =
-  'block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/50'
 
 export default function PlayerSection({ player, index }: PlayerSectionProps) {
   const { players, updatePlayer } = usePlayerStore()
@@ -103,7 +101,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
             value={name}
             onChange={(event) => setName(event.target.value)}
             aria-describedby={errorMessage ? 'player-error' : undefined}
-            className={`${inputClassName} mt-1`}
+            className={`${fieldClassName} mt-1`}
           />
         </div>
         <div>
@@ -115,7 +113,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
               id="player-position"
               value={position}
               onChange={(event) => setPosition(event.target.value)}
-              className={`${inputClassName} appearance-none pr-8`}
+              className={selectClassName}
             >
               {Object.entries(positionLabels).map(([value, label]) => (
                 <option key={value} value={value}>

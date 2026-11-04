@@ -41,6 +41,7 @@ import FriendlySwitch from "@/components/FriendlySwitch";
 import MatchLocationLink from "@/components/MatchLocationLink";
 import { FiTrash2 } from "react-icons/fi";
 import Chevron from "../shared/Icons/Chevron";
+import { fieldClassName, selectClassName, textareaClassName, compactFieldClassName } from "@/lib/field-styles";
 
 type RecordingPlayer = { id: string; name: string };
 
@@ -198,7 +199,7 @@ export default function HistoryClient() {
             placeholder="Buscar por título o jugador..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="border border-gray-300 rounded pl-9 pr-3 py-2 w-full"
+            className={`${fieldClassName} pl-9`}
           />
         </div>
         <div className="flex gap-3 flex-wrap">
@@ -208,7 +209,7 @@ export default function HistoryClient() {
               type="date"
               value={fromDate}
               onChange={(event) => setFromDate(event.target.value)}
-              className="border border-gray-300 rounded px-3 py-2"
+              className={fieldClassName}
             />
           </div>
           <div>
@@ -217,7 +218,7 @@ export default function HistoryClient() {
               type="date"
               value={toDate}
               onChange={(event) => setToDate(event.target.value)}
-              className="border border-gray-300 rounded px-3 py-2"
+              className={fieldClassName}
             />
           </div>
           {(fromDate || toDate) && (
@@ -846,7 +847,7 @@ function RecordModal({
               type="date"
               value={matchDate}
               onChange={(event) => setMatchDate(event.target.value)}
-              className="h-10 border border-gray-300 rounded px-3 w-full"
+              className={fieldClassName}
             />
           </div>
           <div>
@@ -861,7 +862,7 @@ function RecordModal({
                   setTeamB([]);
                   setMatchType(event.target.value as MatchType);
                 }}
-                className="h-10 w-full appearance-none rounded border border-gray-300 pl-3 pr-8"
+                className={selectClassName}
               >
                 {MATCH_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -891,7 +892,7 @@ function RecordModal({
               type="text"
               value={matchName}
               onChange={(event) => setMatchName(event.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 w-full"
+              className={fieldClassName}
             />
           </div>
         </div>
@@ -942,7 +943,7 @@ function RecordModal({
             value={matchDescription}
             onChange={(event) => setMatchDescription(event.target.value)}
             placeholder="Escribí la crónica del partido"
-            className="border border-gray-300 min-w-full rounded px-3 py-2 w-full"
+            className={textareaClassName}
           />
         </div>
 
@@ -959,7 +960,7 @@ function RecordModal({
                   event.target.value === "" ? "" : Number(event.target.value),
                 )
               }
-              className="w-24 text-center border border-gray-300 rounded px-2 py-1 mb-2"
+              className={`${compactFieldClassName} w-24 text-center mb-2`}
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {teamA.map((player) => (
@@ -980,7 +981,7 @@ function RecordModal({
                           [player.id]: Number(event.target.value || 0),
                         }))
                       }
-                      className="w-16 text-center border border-gray-300 rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                     <input
                       type="number"
@@ -994,7 +995,7 @@ function RecordModal({
                           [player.id]: Number(event.target.value || 5),
                         }))
                       }
-                      className="w-16 text-center border border-gray-300 rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                   </div>
                 </div>
@@ -1025,7 +1026,7 @@ function RecordModal({
                   event.target.value === "" ? "" : Number(event.target.value),
                 )
               }
-              className="w-24 text-center border border-gray-300 rounded px-2 py-1 mb-2"
+              className={`${compactFieldClassName} w-24 text-center mb-2`}
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {teamB.map((player) => (
@@ -1046,7 +1047,7 @@ function RecordModal({
                           [player.id]: Number(event.target.value || 0),
                         }))
                       }
-                      className="w-16 text-center border border-gray-300 rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                     <input
                       type="number"
@@ -1060,7 +1061,7 @@ function RecordModal({
                           [player.id]: Number(event.target.value || 5),
                         }))
                       }
-                      className="w-16 text-center border border-gray-300 rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                   </div>
                 </div>
@@ -1095,7 +1096,7 @@ function RecordModal({
             <div className="flex-1">
               <div className="relative">
                 <select
-                  className="appearance-none border border-gray-300 rounded pl-3 pr-8 py-2 w-full"
+                  className={selectClassName}
                   value={shirtsResponsibleId ?? ""}
                   onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
                 >
@@ -1143,7 +1144,7 @@ function RecordModal({
             <div className="flex-1">
               <div className="relative">
                 <select
-                  className="appearance-none border border-gray-300 rounded pl-3 pr-8 py-2 w-full bg-white"
+                  className={selectClassName}
                   value={mvpId ?? ""}
                   onChange={(event) => setMvpId(event.target.value || null)}
                 >

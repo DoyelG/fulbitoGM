@@ -1,4 +1,5 @@
 import Chevron from '../shared/Icons/Chevron'
+import { selectClassName } from '@/lib/field-styles'
 
 export type PlayerStatusFilter = 'all' | 'active' | 'inactive'
 
@@ -19,7 +20,7 @@ export default function PlayerStatusSelect({ value, onChange }: Props) {
           id="player-status-filter"
           value={value}
           onChange={(event) => onChange(event.target.value as PlayerStatusFilter)}
-          className="h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-9 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-[var(--color-brand)]"
+          className={`${selectClassName} text-sm`}
         >
           <option value="all">Todos los jugadores</option>
           <option value="active">Solo Activos</option>

@@ -15,6 +15,7 @@ import PageTitle from '@/components/PageTitle'
 import { buttonClasses } from '@/components/Button'
 import LinkPlayerAlert from '@/components/LinkPlayerAlert'
 import Chevron from '../shared/Icons/Chevron'
+import { fieldClassName } from '@/lib/field-styles'
 
 export default function PlayersClient({
   players: initialPlayers,
@@ -118,7 +119,7 @@ export default function PlayersClient({
           onChange={(event) => setGlobalFilter(event.target.value)}
           placeholder="Buscar por nombre..."
           aria-label="Buscar jugador por nombre"
-          className="w-full sm:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          className={`${fieldClassName} sm:w-72 text-sm`}
         />
       </div>
       <PlayersTable

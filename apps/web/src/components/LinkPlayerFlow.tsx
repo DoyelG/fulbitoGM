@@ -8,6 +8,7 @@ import Button from './Button'
 import LinkPlayerHero from './LinkPlayerHero'
 import LinkPlayerStepDots from './LinkPlayerStepDots'
 import PlayersGrid from './PlayersGrid'
+import { fieldClassName } from '@/lib/field-styles'
 
 export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'revert'
 
@@ -149,7 +150,7 @@ export default function LinkPlayerFlow({
             onChange={(event) => setPlayerQuery(event.target.value)}
             placeholder="Buscar jugadores por nombre..."
             aria-label="Buscar jugadores por nombre"
-            className="mb-3 h-10 w-full rounded border border-gray-300 px-3"
+            className={`${fieldClassName} mb-3`}
           />
         )}
         <PlayersGrid
@@ -202,7 +203,7 @@ export default function LinkPlayerFlow({
           type="text"
           value={newPlayerName}
           onChange={(e) => setNewPlayerName(e.target.value)}
-          className="w-full rounded border border-gray-300 px-3 py-2"
+          className={fieldClassName}
           placeholder="Tu nombre"
         />
         {errorAlert}

@@ -11,15 +11,12 @@ import ConfirmModal from '@/components/ConfirmModal'
 import Tooltip from '@/components/Tooltip'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import Chevron from '@/app/shared/Icons/Chevron'
+import { fieldClassName, selectClassName } from '@/lib/field-styles'
 
 type Props = {
   mode: 'create' | 'edit'
   playerId?: string
 }
-
-const fieldClassName =
-  'block h-10 w-full rounded border border-gray-300 px-3 focus-visible:outline-1 focus-visible:outline-brand'
-const selectClassName = `${fieldClassName} appearance-none pr-9`
 
 const positionLabels: Record<string, string> = {
   GK: 'Arquero',

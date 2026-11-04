@@ -20,6 +20,7 @@ import HourField from '@/components/HourField'
 import AddressPicker from '@/components/AddressPicker'
 import { LuDices } from 'react-icons/lu'
 import Chevron from '../shared/Icons/Chevron'
+import { fieldClassName, selectClassName, textareaClassName } from '@/lib/field-styles'
 
 export type DraftForm = {
   date: string
@@ -131,7 +132,7 @@ export default function CreateDraftForm({
             <div className="relative">
               <select
                 aria-label="Encargado de camisetas"
-                className="h-10 appearance-none border border-gray-300 rounded pl-3 pr-8 w-full"
+                className={selectClassName}
                 value={shirtsResponsibleId ?? ''}
                 onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
               >
@@ -168,7 +169,7 @@ export default function CreateDraftForm({
             value={draft.description}
             onChange={(event) => onDraftChange({ description: event.target.value })}
             placeholder="Escribí la crónica del partido"
-            className="border border-gray-300 rounded px-3 py-2 w-full"
+            className={textareaClassName}
           />
         </div>
       </div>
@@ -186,7 +187,7 @@ export default function CreateDraftForm({
                 type="date"
                 value={draft.date}
                 onChange={(event) => onDraftChange({ date: event.target.value })}
-                className="h-10 border border-gray-300 rounded px-3 w-full"
+                className={fieldClassName}
               />
             </div>
             <HourField
@@ -215,7 +216,7 @@ export default function CreateDraftForm({
                 value={draft.name}
                 onChange={(event) => onDraftChange({ name: event.target.value })}
                 placeholder="Ej: Partido del miércoles"
-                className="h-10 border border-gray-300 rounded px-3 w-full"
+                className={fieldClassName}
               />
             </div>
             <FriendlySwitch isFriendly={isFriendly} onToggle={onFriendlyToggle} />

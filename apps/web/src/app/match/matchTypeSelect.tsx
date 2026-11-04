@@ -3,6 +3,7 @@
 import type { MatchType } from '@fulbito/types'
 import { Card } from '@/components/Card'
 import Chevron from '../shared/Icons/Chevron'
+import { selectClassName } from '@/lib/field-styles'
 
 type Props = {
   value: MatchType | null
@@ -26,7 +27,7 @@ export function MatchTypeSelect({ value, options, onChange }: Props) {
             const selectedType = options.find((option) => option === event.target.value)
             onChange(selectedType ?? null)
           }}
-          className="h-10 w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-white px-5 focus-visible:outline-1 focus-visible:outline-brand"
+          className={`${selectClassName} cursor-pointer`}
         >
           <option hidden value="">
             -

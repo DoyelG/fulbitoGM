@@ -4,6 +4,7 @@ import { Card } from '@/components/Card'
 import Button from '@/components/Button'
 import { MAX_GOALKEEPERS } from '@fulbito/utils'
 import { FiTrash2 } from 'react-icons/fi'
+import { fieldClassName } from '@/lib/field-styles'
 
 type Props = {
   selectedCount: number
@@ -87,7 +88,7 @@ export default function PlayersHeader({
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           aria-label="Buscar jugadores por nombre"
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-1 focus-visible:outline-brand"
+          className={`${fieldClassName} text-sm`}
           placeholder="Buscar jugadores por nombre..."
         />
       </Card>
