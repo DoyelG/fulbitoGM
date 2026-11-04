@@ -1,7 +1,7 @@
 'use client'
 
 import type { DragEvent, ReactNode } from 'react'
-import { FiMove } from 'react-icons/fi'
+import { FaGripVertical } from 'react-icons/fa'
 
 export type DropTarget = 'unassigned' | 'a' | 'b'
 
@@ -99,7 +99,7 @@ export function DraggableItem<T>({ data, label, onClick, isGoalkeeper }: Draggab
       className="relative cursor-grab rounded border border-gray-200 bg-white px-8 py-2 hover:shadow active:cursor-grabbing"
       onClick={onClick}
     >
-      <FiMove size={16} aria-hidden="true" className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+      <FaGripVertical aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-300" />
       <span className="block text-center font-medium">
         {label}
         {isGoalkeeper ? ' 🧤' : ''}
