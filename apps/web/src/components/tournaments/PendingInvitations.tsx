@@ -53,14 +53,14 @@ export default function PendingInvitations({ user }: { user: AppUser }) {
   return (
     <section aria-labelledby="pending-invitations-title" className="mb-8">
       <h2 id="pending-invitations-title" className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
-        <EnvelopeIcon className="h-5 w-5 text-brand" aria-hidden />
+        <EnvelopeIcon className="h-5 w-5 text-primary" aria-hidden />
         Invitaciones pendientes
       </h2>
-      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <ul className="flex flex-col gap-3">
         {invitations.map((invitation) => (
           <li
             key={invitation.id}
-            className="flex flex-wrap items-center gap-3 rounded-xl border border-brand/30 bg-brand/5 p-4"
+            className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate font-semibold text-gray-900">{invitation.tournamentName}</p>
@@ -90,7 +90,7 @@ export default function PendingInvitations({ user }: { user: AppUser }) {
         ))}
       </ul>
       {errorMessage && (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 text-sm text-orange-700">
           {errorMessage}
         </p>
       )}

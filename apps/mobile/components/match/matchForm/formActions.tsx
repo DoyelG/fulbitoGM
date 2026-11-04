@@ -37,7 +37,7 @@ export function FormActions({ mode, saving, canSave, showSave, onCancel, onSave 
           style={[
             styles.save,
             {
-              backgroundColor: canSave && !saving ? colors.brand : colors.muted,
+              backgroundColor: canSave && !saving ? colors.primary : colors.muted,
               borderRadius: radii.sm,
             },
           ]}

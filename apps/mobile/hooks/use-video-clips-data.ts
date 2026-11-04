@@ -7,6 +7,8 @@ import {
 import type { VideoClip } from '@fulbito/types'
 import { useCallback, useEffect, useState } from 'react'
 
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
+
 export type { NewVideoClipData }
 
 export type VideoClipsDataState = {
@@ -21,22 +23,24 @@ export type VideoClipsDataState = {
 }
 
 export function useVideoClipsData(): VideoClipsDataState {
+  const tournamentId = useActiveTournamentId()
   const [videoClips, setVideoClips] = useState<VideoClip[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
+    if (!tournamentId) return
     setError(null)
     try {
-      setVideoClips(await getVideoClips())
+      setVideoClips(await getVideoClips(tournamentId))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar los clips')
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [])
+  }, [tournamentId])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
@@ -45,23 +49,28 @@ export function useVideoClipsData(): VideoClipsDataState {
 
   const addVideoClip = useCallback(
     async (data: NewVideoClipData, fileUri: string) => {
+      if (!tournamentId) return
       const blob = await (await fetch(fileUri)).blob()
-      await createVideoClip(data, blob)
+      await createVideoClip(tournamentId, data, blob)
       await reload()
     },
-    [reload],
+    [tournamentId, reload],
   )
 
   const deleteVideoClip = useCallback(
     async (id: string) => {
-      await removeVideoClip(id)
-      setVideoClips((previous) => previous.filter((clip) => clip.id !== id))
+      const clip = videoClips.find((item) => item.id === id)
+      if (!clip) return
+      await removeVideoClip(clip)
+      setVideoClips((previous) => previous.filter((item) => item.id !== id))
       await reload()
     },
-    [reload],
+    [videoClips, reload],
   )
 
   useEffect(() => {
+    setVideoClips([])
+    setLoading(true)
     void reload()
   }, [reload])
 

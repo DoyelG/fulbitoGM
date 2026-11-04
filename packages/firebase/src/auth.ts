@@ -61,7 +61,6 @@ export async function register(email: string, password: string): Promise<AppUser
     createdAt: now,
     updatedAt: now,
   })
-  // Registration must not fail because the email could not be sent; the user can resend it later.
   await sendEmailVerification(cred.user).catch(() => undefined)
   return { uid: cred.user.uid, email, emailVerified: false, role: ['USER'] }
 }
@@ -135,7 +134,6 @@ export async function reloadCurrentUser(): Promise<AppUser | null> {
   const user = getAuth().currentUser
   if (!user) return null
   await user.reload()
-  // Security rules read email_verified from the ID token, so it has to be reissued after verifying.
   await user.getIdToken(true)
   const profile = await getUserProfile(user.uid)
   return { uid: user.uid, email: user.email!, emailVerified: user.emailVerified, ...profile }

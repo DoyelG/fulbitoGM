@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { AdjustmentsHorizontalIcon, ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { usePlayerStore , Player} from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { buildPlayedBeforeSet, getEligiblePlayerIds, computeLeastAssignedPoolIds, getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
@@ -120,7 +121,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       title={goalkeeperIds.has(player.id) ? 'Quitar como arquero' : 'Marcar como arquero'}
       className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
         goalkeeperIds.has(player.id)
-          ? 'bg-brand text-white border-brand'
+          ? 'bg-primary text-white border-primary'
           : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
       }`}
     >
@@ -278,7 +279,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             {MATCH_TYPES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
           <button
-            className="ml-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="px-4 py-2 text-sm font-medium ml-auto border border-primary-dark bg-primary-gradient text-white rounded-xl hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
             onClick={toggleSelectionPanel}
           >
             {selected.size === 0 ? 'Seleccionar jugadores' : (selectionOpen ? 'Ocultar selección' : 'Modificar selección')}
@@ -291,7 +292,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             return (
               <span>
                 Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
-                <span className={`ml-3 px-2 py-0.5 rounded ${missing === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                <span className="ml-3 px-2 py-0.5 rounded bg-orange-100 text-orange-800">
                   Faltan: {missing}
                 </span>
               </span>
@@ -310,10 +311,10 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
               return (
                 <span>
                   Seleccionados: <span className="font-semibold">{selectedCount}</span> / {requiredPlayers}
-                  <span className={`ml-3 px-2 py-0.5 rounded ${missing === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  <span className="ml-3 px-2 py-0.5 rounded bg-orange-100 text-orange-800">
                     Faltan: {missing}
                   </span>
-                  <span className="ml-3 px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                  <span className="ml-3 px-2 py-0.5 rounded bg-primary/10 text-primary">
                     🧤 Arqueros: {goalkeeperIds.size} / {MAX_GOALKEEPERS}
                   </span>
                   {isFriendly && <span className="ml-3 px-2 py-0.5 rounded bg-green-100 text-green-800">Amistoso</span>}
@@ -332,15 +333,23 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
       )}
 
       {selected.size === requiredPlayers && (
-        <div className="flex gap-3 justify-center mb-6">
+        <div className="flex flex-wrap gap-3 justify-center mb-6">
           <button
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+            type="button"
+            aria-expanded={manualOpen}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary-dark bg-primary-gradient px-5 py-2 font-semibold text-white hover:bg-primary-gradient-dark hover:ring-2 hover:ring-primary/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             onClick={() => setManualOpen(o => !o)}
           >
+            <AdjustmentsHorizontalIcon className="h-5 w-5" aria-hidden />
             {manualOpen ? 'Cerrar configuración manual' : 'Configuración manual de equipos'}
           </button>
-          <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={generateTeams}>
-            {autoTeams ? '🔄 Re-generar equipos' : '🎲 Generar equipos'}
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-secondary px-5 py-2 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/50 focus-visible:ring-offset-2"
+            onClick={generateTeams}
+          >
+            {autoTeams ? <ArrowPathIcon className="h-5 w-5" aria-hidden /> : <SparklesIcon className="h-5 w-5" aria-hidden />}
+            {autoTeams ? 'Re-generar equipos' : 'Generar equipos'}
           </button>
         </div>
       )}
@@ -380,8 +389,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
           )}
 
           <div className="grid md:grid-cols-2 gap-4">
-            <TeamCard title="Team A" team={autoTeams.teamA} color="blue" winProbability={probA} goalkeeperIds={goalkeeperIds} />
-            <TeamCard title="Team B" team={autoTeams.teamB} color="red" winProbability={probB} goalkeeperIds={goalkeeperIds} />
+            <TeamCard title="Team A" team={autoTeams.teamA} color="primary" winProbability={probA} goalkeeperIds={goalkeeperIds} />
+            <TeamCard title="Team B" team={autoTeams.teamB} color="secondary" winProbability={probB} goalkeeperIds={goalkeeperIds} />
           </div>
 
           <div className="pt-4">
@@ -488,7 +497,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                     aria-label="Partido amistoso"
                     onClick={() => setIsFriendly((v) => !v)}
                     className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
-                      isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-brand to-accent'
+                      isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-primary to-secondary'
                     }`}
                   >
                     <span
@@ -518,8 +527,8 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
                   type="button"
                   onClick={createDraft}
                   disabled={isCreatingDraft}
-                  className={`h-10 w-full sm:col-span-2 lg:col-span-1 lg:w-auto px-4 flex items-center justify-center whitespace-nowrap rounded text-white ${
-                    isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                  className={`h-10 w-full sm:col-span-2 lg:col-span-1 lg:w-auto px-4 text-sm font-medium flex items-center justify-center whitespace-nowrap rounded-xl text-white ${
+                    isCreatingDraft ? 'bg-gray-400 cursor-not-allowed' : 'border border-primary-dark bg-primary-gradient hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30'
                   }`}
                 >
                   {isCreatingDraft ? 'Creando...' : 'Crear partido'}
@@ -536,10 +545,10 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
   )
 }
 
-function TeamCard({ title, team, color, winProbability, goalkeeperIds }: { title: string, team: TeamResult, color: 'blue' | 'red', winProbability?: number, goalkeeperIds?: Set<string> }) {
+function TeamCard({ title, team, color, winProbability, goalkeeperIds }: { title: string, team: TeamResult, color: 'primary' | 'secondary', winProbability?: number, goalkeeperIds?: Set<string> }) {
   return (
     <div className="border rounded-lg p-4">
-      <h3 className={`text-center font-semibold mb-3 ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>{title}</h3>
+      <h3 className={`text-center font-semibold mb-3 ${color === 'primary' ? 'text-primary' : 'text-orange-700'}`}>{title}</h3>
       <div className="grid gap-2 mb-3">
         {team.players.map((p: PlayerInfo) => (
           <div key={p.id} className="bg-gray-50 rounded px-3 py-2 text-center">

@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo } from 'react'
-import { pickLatestFinalMatch } from '@fulbito/utils'
+import { formatLongMatchDate, pickLatestFinalMatch } from '@fulbito/utils'
 import { useMatchStore } from '@/store/useMatchStore'
 import { useHomeStatus } from '@/hooks/use-home-status'
 import ScoreboardResult from './ScoreboardResult'
@@ -21,7 +21,7 @@ export default function ScoreboardHero() {
     <section
       aria-labelledby="scoreboard-title"
       aria-busy={status === 'loading'}
-      className="bg-scoreboard relative isolate flex h-full flex-col justify-center overflow-hidden rounded-3xl px-4 py-8 text-center text-white shadow-xl sm:px-10 sm:py-10"
+      className="bg-primary-gradient relative isolate flex h-full flex-col justify-center overflow-hidden rounded-3xl px-5 py-7 text-center text-white shadow-xl sm:px-10 sm:py-9"
     >
       <Image
         src="/scoreboard-ball.jpg"
@@ -34,8 +34,11 @@ export default function ScoreboardHero() {
       <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
         Último partido
       </h2>
+      {status === 'ready' && latest && (
+        <p className="mt-1 text-sm text-violet-100/80 first-letter:uppercase">{formatLongMatchDate(latest.date)}</p>
+      )}
 
-      <div aria-live="polite" className="mt-5">
+      <div aria-live="polite" className="mt-6">
         {status === 'loading' && <ScoreboardSkeleton />}
         {status === 'error' && (
           <div className="flex flex-col items-center gap-3">
@@ -54,10 +57,10 @@ export default function ScoreboardHero() {
       </div>
 
       {status === 'ready' && latest && (
-        <div className="mt-7 flex justify-center">
+        <div className="mt-6 flex justify-center">
           <Link
             href="/history"
-            className={`inline-flex min-h-11 items-center rounded px-2 text-sm text-violet-300 underline underline-offset-4 hover:text-white ${FOCUS_ON_DARK}`}
+            className={`inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition sm:w-auto hover:brightness-110 ${FOCUS_ON_DARK}`}
           >
             Ver historial
           </Link>

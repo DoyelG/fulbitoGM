@@ -13,7 +13,7 @@ type RequestRowProps = {
 
 const statusBadges: Record<TournamentPlayerRequestStatus, { label: string; className: string }> = {
   pending: { label: 'Pendiente de aprobación', className: 'bg-amber-100 text-amber-800' },
-  rejected: { label: 'Solicitud rechazada', className: 'bg-red-100 text-red-800' },
+  rejected: { label: 'Solicitud rechazada', className: 'bg-orange-100 text-orange-800' },
 }
 
 export default function RequestRow({

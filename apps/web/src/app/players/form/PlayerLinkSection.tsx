@@ -27,7 +27,7 @@ const options: Option[] = [
 ]
 
 const fieldClassName =
-  'mt-1 h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/40'
+  'mt-1 h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40'
 
 export default function PlayerLinkSection({ value, onChange, members, emailError }: Props) {
   const unlinkedMembers = members.filter((member) => !member.playerId)
@@ -53,8 +53,8 @@ export default function PlayerLinkSection({ value, onChange, members, emailError
             return (
               <label
                 key={kind}
-                className={`flex cursor-pointer flex-col gap-1 rounded-lg border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/50 ${
-                  selected ? 'border-brand bg-brand/5' : 'border-gray-200 hover:border-brand/40'
+                className={`flex cursor-pointer flex-col gap-1 rounded-lg border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary/50 ${
+                  selected ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/40'
                 }`}
               >
                 <input
@@ -66,7 +66,7 @@ export default function PlayerLinkSection({ value, onChange, members, emailError
                   className="sr-only"
                 />
                 <span
-                  className={`flex items-center gap-2 text-sm font-semibold ${selected ? 'text-brand' : 'text-gray-900'}`}
+                  className={`flex items-center gap-2 text-sm font-semibold ${selected ? 'text-primary' : 'text-gray-900'}`}
                 >
                   <Icon aria-hidden size={16} />
                   {label}
@@ -122,7 +122,7 @@ export default function PlayerLinkSection({ value, onChange, members, emailError
             aria-describedby="player-link-email-hint"
             className={fieldClassName}
           />
-          <p id="player-link-email-hint" className={`mt-1 text-xs ${emailError ? 'text-red-700' : 'text-gray-700'}`}>
+          <p id="player-link-email-hint" className={`mt-1 text-xs ${emailError ? 'text-orange-700' : 'text-gray-700'}`}>
             {emailError ??
               'Va a ver la invitación al entrar con ese email, y al aceptarla queda vinculado a este jugador.'}
           </p>

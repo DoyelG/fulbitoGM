@@ -4,22 +4,6 @@ import { useAppTheme } from '@/hooks/use-theme'
 
 type Kind = 'win' | 'loss' | null
 
-function colorForStreak(kind: Kind, count: number): string {
-  const c = Math.max(0, Math.min(10, count))
-  const t = c / 10
-  if (kind === 'win') {
-    const s = 60 + 15 * t
-    const l = 42 - 8 * t
-    return `hsl(145, ${s}%, ${l}%)`
-  }
-  if (kind === 'loss') {
-    const s = 75 + 10 * t
-    const l = 50 - 10 * t
-    return `hsl(0, ${s}%, ${l}%)`
-  }
-  return '#9ca3af'
-}
-
 type Props = { kind: Kind; count: number }
 
 export function StreakBadge({ kind, count }: Props) {
@@ -29,7 +13,7 @@ export function StreakBadge({ kind, count }: Props) {
   }
   const label = kind === 'win' ? `W${count}` : `L${count}`
   return (
-    <View style={[styles.badge, { backgroundColor: colorForStreak(kind, count) }]}>
+    <View style={[styles.badge, { backgroundColor: kind === 'win' ? colors.primary : colors.secondary }]}>
       <Text style={styles.text}>{label}</Text>
     </View>
   )

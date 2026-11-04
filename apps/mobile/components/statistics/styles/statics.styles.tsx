@@ -17,10 +17,12 @@ export const styles = StyleSheet.create({
   },
   viewSwitch: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 5,
     marginBottom: 12,
   },
   viewTab: {
+    flex: 1,
+    alignItems: 'center',
     paddingHorizontal: 4,
     paddingBottom: 8,
     borderBottomWidth: 2,
@@ -50,6 +52,10 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 32,
   },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   stateText: {
     textAlign: 'center',
     marginTop: 28,
@@ -59,7 +65,7 @@ export const styles = StyleSheet.create({
   errorText: {
     marginTop: 22,
     textAlign: 'center',
-    color: '#ef4444',
+    color: '#c2410c',
     fontWeight: '700',
     fontSize: 15,
   },

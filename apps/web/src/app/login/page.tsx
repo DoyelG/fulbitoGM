@@ -36,13 +36,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white rounded-lg shadow p-6">
         <div className="flex mb-6">
           <button
-            className={`flex-1 py-2 rounded-l ${mode === 'signin' ? 'bg-brand text-white' : 'bg-gray-100'}`}
+            className={`flex-1 py-2 rounded-l ${mode === 'signin' ? 'bg-primary text-white' : 'bg-gray-100'}`}
             onClick={() => setMode('signin')}
           >
             Iniciar sesión
           </button>
           <button
-            className={`flex-1 py-2 rounded-r ${mode === 'register' ? 'bg-brand text-white' : 'bg-gray-100'}`}
+            className={`flex-1 py-2 rounded-r ${mode === 'register' ? 'bg-primary text-white' : 'bg-gray-100'}`}
             onClick={() => setMode('register')}
           >
             Registrarse
@@ -72,10 +72,10 @@ export default function LoginPage() {
               minLength={6}
             />
           </div>
-          {error && <div className="text-red-600 text-sm">{error}</div>}
+          {error && <div className="text-orange-700 text-sm">{error}</div>}
           <button
             type="submit"
-            className="w-full bg-brand text-white py-2 rounded hover:bg-brand/90 disabled:opacity-70"
+            className="px-4 py-2 text-sm font-medium w-full border border-primary-dark bg-primary-gradient text-white rounded-xl hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30 disabled:opacity-70"
             disabled={loading}
           >
             {loading ? 'Procesando…' : mode === 'signin' ? 'Entrar' : 'Crear cuenta'}

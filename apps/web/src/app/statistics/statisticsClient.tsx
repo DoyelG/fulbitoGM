@@ -2,10 +2,11 @@
 
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
-import { getMvpCountsByPlayerId, onlyFinalMatches } from '@fulbito/utils'
+import { getMvpCountsByPlayerId, normalizeForSearch, onlyFinalMatches } from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
 import { getShirtDutiesByPlayerId } from '@/lib/shirtDuty'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import SearchInput from '@/components/SearchInput'
 import StatisticsTable, { type StatRow, type StatSortKey, type SortDir } from './StatisticsTable'
 
 type PlayerStatusFilter = 'all' | 'active' | 'inactive'
@@ -116,25 +117,39 @@ export default function StatisticsClient({
     [storePlayers],
   )
 
+  const photoUrlById = useMemo(
+    () => new Map(storePlayers.flatMap((player) => (player.photoUrl ? [[player.id, player.photoUrl] as const] : []))),
+    [storePlayers],
+  )
+
   const activeStats = useMemo(() => sorted.filter((stat) => !inactiveIds.has(stat.id)), [sorted, inactiveIds])
 
   const inactiveStats = useMemo(() => sorted.filter((stat) => inactiveIds.has(stat.id)), [sorted, inactiveIds])
 
   const [playerStatusFilter, setPlayerStatusFilter] = useState<PlayerStatusFilter>('all')
 
-  const filteredPlayers =
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const statusFiltered =
     playerStatusFilter === 'all' ? sorted : playerStatusFilter === 'active' ? activeStats : inactiveStats
+
+  const normalizedQuery = normalizeForSearch(searchQuery.trim())
+  const filteredPlayers = normalizedQuery
+    ? statusFiltered.filter((stat) => normalizeForSearch(stat.name).includes(normalizedQuery))
+    : statusFiltered
 
   const emptyMessage =
     stats.length === 0
       ? 'No hay estadísticas disponibles.'
-      : playerStatusFilter === 'inactive'
-        ? 'No hay estadísticas de jugadores inactivos.'
-        : 'No hay estadísticas de jugadores activos.'
+      : normalizedQuery && statusFiltered.length > 0
+        ? 'No se encontraron jugadores que coincidan con la búsqueda.'
+        : playerStatusFilter === 'inactive'
+          ? 'No hay estadísticas de jugadores inactivos.'
+          : 'No hay estadísticas de jugadores activos.'
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col gap-4 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between mb-8">
+      <div className="flex flex-col gap-4 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between mb-5">
         <h1 className="text-3xl font-bold">Estadísticas</h1>
 
         <div className="flex flex-col gap-1 min-[700px]:flex-row min-[700px]:items-center min-[700px]:gap-2">
@@ -155,9 +170,20 @@ export default function StatisticsClient({
         </div>
       </div>
 
+      <div className="mb-6">
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Buscar por nombre..."
+          ariaLabel="Buscar jugador por nombre"
+          className="w-full"
+        />
+      </div>
+
       <StatisticsTable
         stats={filteredPlayers}
         inactiveIds={inactiveIds}
+        photoUrlById={photoUrlById}
         sortKey={sortKey}
         sortDir={sortDir}
         onToggleSort={toggleSort}

@@ -4,19 +4,13 @@ import { useState, type FormEvent } from 'react'
 import { TournamentMemberError } from '@fulbito/firebase'
 import type { InvitationRole, TournamentMember } from '@fulbito/types'
 import Button from '@/components/Button'
+import { ASSIGNABLE_ROLES, TOURNAMENT_ROLE_HINTS } from '@fulbito/utils'
 import { ROLE_LABELS } from '../tournament-roles'
 
 type Props = {
   member: TournamentMember
   onSubmit: (role: InvitationRole) => Promise<void>
   onCancel: () => void
-}
-
-const assignableRoles: InvitationRole[] = ['MEMBER', 'ADMIN']
-
-const ROLE_HINTS: Record<InvitationRole, string> = {
-  MEMBER: 'Ve todo el torneo y edita solo su jugador.',
-  ADMIN: 'Gestiona jugadores, partidos, invitaciones y miembros.',
 }
 
 export default function ChangeRoleForm({ member, onSubmit, onCancel }: Props) {
@@ -53,20 +47,20 @@ export default function ChangeRoleForm({ member, onSubmit, onCancel }: Props) {
         value={role}
         onChange={(event) => setRole(event.target.value as InvitationRole)}
         aria-describedby={error ? 'change-role-hint change-role-error' : 'change-role-hint'}
-        className="h-10 w-full rounded border bg-white px-3 focus:outline-none focus:ring-2 focus:ring-brand/50"
+        className="h-10 w-full rounded border bg-white px-3 focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
-        {assignableRoles.map((option) => (
+        {ASSIGNABLE_ROLES.map((option) => (
           <option key={option} value={option}>
             {ROLE_LABELS[option]}
           </option>
         ))}
       </select>
       <p id="change-role-hint" className="mt-2 text-sm text-gray-700">
-        {ROLE_HINTS[role]}
+        {TOURNAMENT_ROLE_HINTS[role]}
       </p>
 
       {error && (
-        <p id="change-role-error" role="alert" className="mt-3 text-sm text-red-700">
+        <p id="change-role-error" role="alert" className="mt-3 text-sm text-orange-700">
           {error}
         </p>
       )}

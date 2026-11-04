@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useAppTheme } from '@/hooks/use-theme'
+import { PrimaryGradient } from '@/components/primary-gradient'
 
 type Props = {
   message: string
@@ -15,7 +16,7 @@ export function PlayersError({ message, onRetry }: Props) {
 
   return (
     <ThemedView style={styles.centered}>
-      <View style={[styles.iconWrap, { backgroundColor: colors.brandSoft }]}>
+      <View style={[styles.iconWrap, { backgroundColor: colors.primarySoft }]}>
         <Feather name="wifi-off" size={32} color={colors.warning} />
       </View>
       <ThemedText type="defaultSemiBold" style={styles.title}>
@@ -26,10 +27,10 @@ export function PlayersError({ message, onRetry }: Props) {
         onPress={onRetry}
         style={({ pressed }) => [
           styles.retryBtn,
-          { backgroundColor: colors.brand },
-          shadows.cta(colors.brand),
+          shadows.cta(colors.primary),
           pressed && styles.retryBtnPressed,
         ]}>
+        <PrimaryGradient />
         <ThemedText style={styles.retryBtnText}>Reintentar</ThemedText>
       </Pressable>
     </ThemedView>
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   retryBtn: {
+    overflow: 'hidden',
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 999,

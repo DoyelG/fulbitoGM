@@ -1,15 +1,8 @@
 import type { Match, Player } from '@fulbito/types'
 import { useCallback, useEffect, useState } from 'react'
 import { getPlayers, getMatches, deletePlayer } from '@fulbito/firebase'
-import { shapeStorePlayers } from '@/lib/shape'
 
-async function fetchPlayersAndMatches(): Promise<{ players: Player[]; matches: Match[] }> {
-  const [rawPlayers, matches] = await Promise.all([getPlayers(), getMatches()])
-  return {
-    players: shapeStorePlayers(rawPlayers),
-    matches,
-  }
-}
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
 
 export type PlayersDataState = {
   players: Player[]
@@ -23,6 +16,7 @@ export type PlayersDataState = {
 }
 
 export function usePlayersData(): PlayersDataState {
+  const tournamentId = useActiveTournamentId()
   const [players, setPlayers] = useState<Player[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,18 +24,19 @@ export function usePlayersData(): PlayersDataState {
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
+    if (!tournamentId) return
     setError(null)
     try {
-      const data = await fetchPlayersAndMatches()
-      setPlayers(data.players)
-      setMatches(data.matches)
+      const [nextPlayers, nextMatches] = await Promise.all([getPlayers(tournamentId), getMatches(tournamentId)])
+      setPlayers(nextPlayers)
+      setMatches(nextMatches)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar datos')
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [])
+  }, [tournamentId])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
@@ -57,6 +52,9 @@ export function usePlayersData(): PlayersDataState {
   )
 
   useEffect(() => {
+    setPlayers([])
+    setMatches([])
+    setLoading(true)
     void reload()
   }, [reload])
 

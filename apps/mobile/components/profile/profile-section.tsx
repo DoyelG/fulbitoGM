@@ -23,8 +23,8 @@ export function ProfileSection({ icon, title, index, children }: Props) {
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
     >
       <View style={styles.titleRow}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.brandSoft }]}>
-          <Feather name={icon} size={18} color={colors.brand} />
+        <View style={[styles.iconWrap, { backgroundColor: colors.primarySoft }]}>
+          <Feather name={icon} size={18} color={colors.primaryText} />
         </View>
         <Text style={[styles.title, { color: colors.text }]} accessibilityRole="header">
           {title}

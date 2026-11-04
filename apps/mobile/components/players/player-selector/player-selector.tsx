@@ -76,7 +76,7 @@ export default function PlayerSelector({
               </TouchableOpacity>
               {isSelected && renderSelectedPlayerAction?.(player)}
               {isSelected && (
-                <Text style={[styles.check, { color: colors.brand }]} accessible={false}>
+                <Text style={[styles.check, { color: colors.primaryText }]} accessible={false}>
                   ✓
                 </Text>
               )}

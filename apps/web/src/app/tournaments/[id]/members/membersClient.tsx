@@ -125,7 +125,7 @@ export default function MembersClient({ tournamentId }: { tournamentId: string }
     <Container>
       <Link
         href={`/tournaments/${tournamentId}`}
-        className="mb-4 inline-flex items-center gap-1.5 rounded text-sm font-medium text-gray-700 hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        className="mb-4 inline-flex items-center gap-1.5 rounded text-sm font-medium text-gray-700 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <ArrowLeftIcon className="h-4 w-4" aria-hidden />
         {item.tournament.name}
@@ -156,7 +156,7 @@ export default function MembersClient({ tournamentId }: { tournamentId: string }
       )}
 
       {hasError && (
-        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div role="alert" className="rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800">
           No se pudieron cargar los miembros del torneo.
         </div>
       )}

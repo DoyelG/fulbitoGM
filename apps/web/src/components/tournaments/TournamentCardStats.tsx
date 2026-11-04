@@ -27,12 +27,12 @@ type StatProps = {
 const tileClassName =
   'flex min-h-11 min-w-0 items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-sm ring-1 ring-inset ring-gray-200'
 const interactiveClassName =
-  'transition-colors hover:bg-brand/5 hover:ring-brand/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand'
+  'transition-colors hover:bg-primary/5 hover:ring-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 
 function Stat({ icon: Icon, children, muted = false, href, ariaLabel, onNavigate, onClick }: StatProps) {
   const content = (
     <>
-      <Icon className={`h-5 w-5 shrink-0 ${href || onClick ? 'text-brand' : 'text-gray-500'}`} aria-hidden />
+      <Icon className={`h-5 w-5 shrink-0 ${href || onClick ? 'text-primary' : 'text-gray-500'}`} aria-hidden />
       <span className={`min-w-0 truncate ${muted ? 'italic text-gray-700' : 'font-semibold text-gray-900'}`}>
         {children}
       </span>

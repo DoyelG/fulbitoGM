@@ -1,6 +1,7 @@
 import { Platform } from 'react-native'
 
-const BRAND = '#7c3aed'
+const PRIMARY_GLOW = '#7c3aed'
+const PRIMARY = '#4c1d95'
 const FRIENDLYBRAND = '#0cb000'
 const tintColorLight = '#0a7ea4'
 const tintColorDark = '#fff'
@@ -14,30 +15,35 @@ export const Colors = {
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
 
-    brand: BRAND,
-    onBrand: '#ffffff',
-    brandAccent: BRAND,
-    brandSoft: 'rgba(124, 58, 237, 0.12)',
-    brandSoftStrong: 'rgba(124, 58, 237, 0.12)',
-    brandRing: 'rgba(124, 58, 237, 0.25)',
+    primary: PRIMARY,
+    onPrimary: '#ffffff',
+    primaryAccent: PRIMARY,
+    primaryText: PRIMARY,
+    primarySoft: 'rgba(76, 29, 149, 0.1)',
+    primarySoftStrong: 'rgba(76, 29, 149, 0.15)',
+    primaryRing: 'rgba(76, 29, 149, 0.25)',
 
     friendlyBrand: FRIENDLYBRAND,
 
     surface: '#ffffff',
-    border: 'rgba(124, 58, 237, 0.12)',
+    border: 'rgba(76, 29, 149, 0.12)',
     muted: '#6b7280',
 
     chipBg: '#f3f4f6',
     chipBorder: '#e5e7eb',
 
-    danger: '#dc2626',
-    dangerIcon: '#f87171',
-    dangerBg: 'rgba(220, 38, 38, 0.1)',
+    danger: '#c2410c',
+    dangerIcon: '#fb923c',
+    dangerBg: 'rgba(249, 115, 22, 0.1)',
     warning: '#f59e0b',
 
     secondary: '#f97316',
-    goalkeeper: '#08969b',
-    shadow: '#4c1d95',
+    goalkeeper: '#f97316',
+    secondaryText: '#c2410c',
+    primarySubtle: 'rgba(76, 29, 149, 0.07)',
+    secondarySubtle: 'rgba(249, 115, 22, 0.09)',
+    secondarySoft: 'rgba(249, 115, 22, 0.2)',
+    shadow: PRIMARY,
 
     onAccent: '#ffffff',
     onAccentSoft: 'rgba(255,255,255,0.85)',
@@ -51,12 +57,13 @@ export const Colors = {
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
 
-    brand: BRAND,
-    onBrand: '#ffffff',
-    brandAccent: '#e9d5ff',
-    brandSoft: 'rgba(124, 58, 237, 0.2)',
-    brandSoftStrong: 'rgba(124, 58, 237, 0.28)',
-    brandRing: 'rgba(124, 58, 237, 0.25)',
+    primary: PRIMARY,
+    onPrimary: '#ffffff',
+    primaryAccent: '#e9d5ff',
+    primaryText: '#a78bfa',
+    primarySoft: 'rgba(76, 29, 149, 0.35)',
+    primarySoftStrong: 'rgba(76, 29, 149, 0.45)',
+    primaryRing: 'rgba(76, 29, 149, 0.5)',
 
     friendlyBrand: FRIENDLYBRAND,
 
@@ -67,14 +74,18 @@ export const Colors = {
     chipBg: 'rgba(255,255,255,0.06)',
     chipBorder: 'rgba(255,255,255,0.1)',
 
-    danger: '#dc2626',
-    dangerIcon: '#f87171',
-    dangerBg: 'rgba(220, 38, 38, 0.15)',
+    danger: '#c2410c',
+    dangerIcon: '#fb923c',
+    dangerBg: 'rgba(249, 115, 22, 0.15)',
 
     warning: '#fbbf24',
 
     secondary: '#f97316',
-    goalkeeper: '#08969b',
+    goalkeeper: '#f97316',
+    secondaryText: '#fb923c',
+    primarySubtle: 'rgba(167, 139, 250, 0.1)',
+    secondarySubtle: 'rgba(249, 115, 22, 0.1)',
+    secondarySoft: 'rgba(249, 115, 22, 0.22)',
 
     shadow: '#000',
 
@@ -113,6 +124,19 @@ export const ChampionColors = {
   goldSoft: 'rgba(201,162,39,0.12)',
 } as const
 
+export const PrimaryColors = {
+  gradient: ['#39186f', '#1e103f'],
+  glow: PRIMARY_GLOW,
+  glowOpacity: 0.45,
+  border: PRIMARY,
+  onPrimary: '#ffffff',
+  onPrimaryMuted: 'rgba(255,255,255,0.7)',
+  chipBg: 'rgba(255,255,255,0.1)',
+  chipBorder: 'rgba(255,255,255,0.2)',
+  divider: 'rgba(255,255,255,0.1)',
+  avatarRing: 'rgba(255,255,255,0.5)',
+} as const
+
 export const Radii = {
   xs: 4,
   sm: 8,
@@ -136,7 +160,7 @@ export const Shadows = {
   card: (isDark: boolean) =>
     Platform.select({
       ios: {
-        shadowColor: isDark ? '#000' : '#4c1d95',
+        shadowColor: isDark ? '#000' : PRIMARY,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: isDark ? 0.35 : 0.08,
         shadowRadius: 12,
@@ -144,7 +168,7 @@ export const Shadows = {
       android: { elevation: isDark ? 2 : 3 },
       default: {},
     }),
-  cta: (color: string = BRAND) =>
+  cta: (color: string = PRIMARY) =>
     Platform.select({
       ios: {
         shadowColor: color,
@@ -158,7 +182,7 @@ export const Shadows = {
   pill: () =>
     Platform.select({
       ios: {
-        shadowColor: '#7c3aed',
+        shadowColor: PRIMARY,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.35,
         shadowRadius: 6,

@@ -38,7 +38,7 @@ export default function WidgetCard({
         {href && linkLabel && (
           <Link
             href={href}
-            className="inline-flex min-h-11 shrink-0 items-center rounded text-sm font-semibold text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="inline-flex min-h-11 shrink-0 items-center rounded text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {linkLabel}
             <span aria-hidden className="ml-1">

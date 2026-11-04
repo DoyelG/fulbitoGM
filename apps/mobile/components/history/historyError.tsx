@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { PrimaryGradient } from '@/components/primary-gradient'
 
 type Props = {
   message: string
@@ -16,8 +17,9 @@ export function HistoryError({ message, onRetry }: Props) {
       <Text style={[styles.message, { color: colors.muted }]}>{message}</Text>
       <TouchableOpacity
         onPress={onRetry}
-        style={[styles.btn, { backgroundColor: colors.brand, borderRadius: radii.sm }]}
+        style={[styles.btn, { borderRadius: radii.sm }]}
       >
+        <PrimaryGradient />
         <Text style={styles.btnText}>Reintentar</Text>
       </TouchableOpacity>
     </View>
@@ -46,6 +48,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   btn: {
+    overflow: 'hidden',
     paddingHorizontal: 20,
     paddingVertical: 10,
   },

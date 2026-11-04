@@ -47,7 +47,7 @@ export default function AssignMyPlayerDialog({ item, onClose }: Props) {
         </p>
       )}
       {state.status === 'error' && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-orange-700">
           No se pudieron cargar los jugadores. Intentá de nuevo.
         </p>
       )}

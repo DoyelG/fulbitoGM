@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   featured: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   featuredValue: {
     color: '#f97316',
@@ -54,6 +54,7 @@ export const styles = StyleSheet.create({
     marginVertical: 10,       
   },
   metrics: {
+    paddingTop: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 4,                   
@@ -67,10 +68,7 @@ export const styles = StyleSheet.create({
     lineHeight: 22,           
     fontWeight: '700',       
   },
-  metricLabel: {
-    marginTop: 2,
-    fontSize: 10,            
-    fontWeight: '600',        
-    letterSpacing: 0.4,
+  metricIcon: {
+    marginBottom: 4,
   },
 })

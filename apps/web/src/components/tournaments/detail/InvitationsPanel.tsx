@@ -73,7 +73,7 @@ export default function InvitationsPanel({ invitations, availablePlayers, player
         </ul>
       )}
       {errorMessage && (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 text-sm text-orange-700">
           {errorMessage}
         </p>
       )}

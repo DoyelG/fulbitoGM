@@ -85,7 +85,7 @@ export default function AddressForm({ initial, submitLabel, onCancel, onSubmit }
             type="button"
             onClick={async () => setCoords(await geocode(street))}
             disabled={!name || !street}
-            className="flex-1 rounded-md bg-brand py-2 text-sm text-white disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium flex-1 rounded-xl border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30 disabled:opacity-50"
           >
             Continuar
           </button>
@@ -94,7 +94,7 @@ export default function AddressForm({ initial, submitLabel, onCancel, onSubmit }
             type="button"
             onClick={() => onSubmit({ name, street })}
             disabled={!coords}
-            className="flex-1 rounded-md bg-brand py-2 text-sm text-white disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium flex-1 rounded-xl border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30 disabled:opacity-50"
           >
             {submitLabel}
           </button>

@@ -61,8 +61,8 @@ function Chip({
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: active ? colors.brand : colors.chipBg,
-          borderColor: active ? colors.brand : colors.chipBorder,
+          backgroundColor: active ? colors.primary : colors.chipBg,
+          borderColor: active ? colors.primary : colors.chipBorder,
         },
         pressed && styles.pressed,
       ]}>

@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native'
 
+import { PrimaryColors } from '@/constants/theme'
+
 export const styles = StyleSheet.create({
   root: {
     zIndex: 100,
@@ -79,15 +81,23 @@ export const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   dangerIconWrapper: {
-    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    backgroundColor: 'rgba(251, 146, 60, 0.15)',
   },
   dangerLabel: {
-    color: '#F87171',
+    color: '#FB923C',
+  },
+  itemText: {
+    flex: 1,
   },
   itemLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#F1F5F9',
+  },
+  itemSubtitle: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
   },
   loginSection: {
     paddingHorizontal: 24,
@@ -117,12 +127,12 @@ export const styles = StyleSheet.create({
     borderTopWidth: 40,
     borderTopColor: 'transparent',
     borderRightWidth: 12,
-    borderRightColor: '#7C3AED',
+    borderRightColor: PrimaryColors.border,
   },
   loginBtnMid: {
     height: 40,
     paddingHorizontal: 16,
-    backgroundColor: '#7C3AED',
+    backgroundColor: PrimaryColors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -133,7 +143,7 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 40,
     borderBottomColor: 'transparent',
     borderLeftWidth: 12,
-    borderLeftColor: '#7C3AED',
+    borderLeftColor: PrimaryColors.border,
   },
   loginBtnText: {
     fontSize: 14,

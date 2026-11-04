@@ -42,7 +42,7 @@ export default function NextMatchHero() {
     <section
       aria-labelledby="next-match-title"
       aria-busy={status === 'loading'}
-      className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-r from-brand-dark to-night px-5 py-5 text-white shadow-xl sm:px-8"
+      className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-r from-primary-dark to-night px-5 py-5 text-white shadow-xl sm:px-8"
     >
       <div aria-live="polite" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {status === 'loading' && (
@@ -61,7 +61,7 @@ export default function NextMatchHero() {
             </div>
             <Link
               href="/match"
-              className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-6 py-3 font-extrabold text-night shadow-lg shadow-accent/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
+              className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
             >
               Armá el próximo
             </Link>
@@ -75,7 +75,7 @@ export default function NextMatchHero() {
               </h2>
               <p className="mt-1 text-xl font-extrabold first-letter:uppercase sm:text-2xl">
                 {formatLongMatchDate(next.date)}
-                {hour !== null && <span className="text-accent"> · {formatMatchClock(hour)}</span>}
+                {hour !== null && <span className="text-secondary"> · {formatMatchClock(hour)}</span>}
               </p>
               {next.location && (
                 <a
@@ -93,7 +93,7 @@ export default function NextMatchHero() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <Link
                 href="/history"
-                className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-6 py-3 font-extrabold text-night shadow-lg shadow-accent/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
+                className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
               >
                 Ver equipos
               </Link>

@@ -39,7 +39,7 @@ export function AwardCard({
 }: Props) {
   const { colors, radii, isDark, shadows } = useAppTheme()
 
-  const badgeBg = accent === 'brand' ? colors.brand : accent === 'secondary' ? colors.secondary : colors.chipBg
+  const badgeBg = accent === 'primary' ? colors.primary : accent === 'secondary' ? colors.secondary : colors.chipBg
   const iconColor = accent === 'muted' ? colors.muted : '#ffffff'
 
   return (

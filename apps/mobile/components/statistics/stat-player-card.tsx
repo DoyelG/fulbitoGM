@@ -1,3 +1,5 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import type { ComponentProps } from 'react'
 import { Pressable, View } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
@@ -5,6 +7,8 @@ import { PlayerAvatar } from '@/components/players/player-avatar'
 import { useAppTheme } from '@/hooks/use-theme'
 import type { PlayerStatRow, SortTabKey } from '@/hooks/use-player-statistics'
 import { styles } from './styles/stat-player-card.styles'
+
+type MetricIcon = ComponentProps<typeof MaterialCommunityIcons>['name']
 
 type Props = {
   stat: PlayerStatRow
@@ -38,6 +42,17 @@ export function StatPlayerCard({ stat, rank, activeTab, inactive = false, onPres
   const featured = getFeaturedValue(stat, activeTab)
   const isFirst = !inactive && rank === 1
   const muted = inactive ? { color: colors.muted } : null
+  const metrics: { icon: MetricIcon; label: string; value: string }[] = [
+    { icon: 'soccer-field', label: 'Partidos', value: `${stat.matches}` },
+    { icon: 'soccer', label: 'Goles por partido', value: (stat.goals / Math.max(stat.matches, 1)).toFixed(2) },
+    { icon: 'star-outline', label: 'Rendimiento', value: stat.totalPerformance.toFixed(2) },
+    {
+      icon: 'percent-circle-outline',
+      label: 'Victorias',
+      value: `${((stat.wins / Math.max(stat.matches, 1)) * 100).toFixed(1)}%`,
+    },
+    { icon: 'trophy-outline', label: 'MVP', value: `${stat.mvps}` },
+  ]
 
   return (
     <Pressable
@@ -85,36 +100,25 @@ export function StatPlayerCard({ stat, rank, activeTab, inactive = false, onPres
       <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
         <View style={styles.metrics}>
-          <View style={styles.metricItem}>
-            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
-              {stat.matches}
-            </ThemedText>
-            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>PARTIDOS</ThemedText>
-          </View>
-          <View style={styles.metricItem}>
-            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
-              {(stat.goals / Math.max(stat.matches, 1)).toFixed(2)}
-            </ThemedText>
-            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>G/P</ThemedText>
-          </View>
-          <View style={styles.metricItem}>
-            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
-              {stat.totalPerformance.toFixed(2)}
-            </ThemedText>
-            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>REND</ThemedText>
-          </View>
-          <View style={styles.metricItem}>
-            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
-              {((stat.wins / Math.max(stat.matches, 1)) * 100).toFixed(1)}%
-            </ThemedText>
-            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>VICTORIAS</ThemedText>
-          </View>
-          <View style={styles.metricItem}>
-            <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
-              {stat.mvps}
-            </ThemedText>
-            <ThemedText style={[styles.metricLabel, { color: colors.muted }]}>🏆 MVP</ThemedText>
-          </View>
+          {metrics.map((metric) => (
+            <View
+              key={metric.label}
+              style={styles.metricItem}
+              accessible
+              accessibilityLabel={`${metric.label}: ${metric.value}`}
+            >
+              <MaterialCommunityIcons
+                name={metric.icon}
+                size={18}
+                color={colors.muted}
+                style={styles.metricIcon}
+                accessible={false}
+              />
+              <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
+                {metric.value}
+              </ThemedText>
+            </View>
+          ))}
         </View>
     </Pressable>
   )

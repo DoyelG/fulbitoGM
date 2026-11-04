@@ -66,14 +66,14 @@ function SkillStepper({
           onPress={() => onChange(Math.max(1, value - 1))}
           style={[styles.stepBtn, { borderRightColor: colors.border }]}
           hitSlop={8}>
-          <ThemedText style={[styles.stepBtnText, { color: colors.brand }]}>−</ThemedText>
+          <ThemedText style={[styles.stepBtnText, { color: colors.primaryText }]}>−</ThemedText>
         </TouchableOpacity>
         <ThemedText style={[styles.stepValue, { color: colors.text }]}>{value}</ThemedText>
         <TouchableOpacity
           onPress={() => onChange(Math.min(10, value + 1))}
           style={[styles.stepBtn, { borderLeftColor: colors.border }]}
           hitSlop={8}>
-          <ThemedText style={[styles.stepBtnText, { color: colors.brand }]}>+</ThemedText>
+          <ThemedText style={[styles.stepBtnText, { color: colors.primaryText }]}>+</ThemedText>
         </TouchableOpacity>
       </View>
     </View>
@@ -130,8 +130,8 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: active ? colors.brand : 'transparent',
-                    borderColor: active ? colors.brand : colors.border,
+                    backgroundColor: active ? colors.primary : 'transparent',
+                    borderColor: active ? colors.primary : colors.border,
                     borderRadius: radii.sm,
                   },
                 ]}>
@@ -162,7 +162,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
 
         <View style={[styles.avgRow, { borderColor: colors.border, borderRadius: radii.sm }]}>
           <ThemedText style={[styles.avgLabel, { color: colors.muted }]}>General (promedio)</ThemedText>
-          <ThemedText style={[styles.avgValue, { color: colors.brand }]}>
+          <ThemedText style={[styles.avgValue, { color: colors.primaryText }]}>
             Lv {overall.toFixed(2)}
           </ThemedText>
         </View>
@@ -190,7 +190,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
             { value: true, label: 'Inactivo' },
           ].map((option, index) => {
             const active = values.inactive === option.value
-            const selectedColor = option.value ? '#6b7280' : colors.brand
+            const selectedColor = option.value ? '#6b7280' : colors.primary
             return (
               <TouchableOpacity
                 key={option.label}
@@ -222,7 +222,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
             style={[
               styles.saveBtn,
               {
-                backgroundColor: canSave ? colors.brand : colors.muted,
+                backgroundColor: canSave ? colors.primary : colors.muted,
                 borderRadius: radii.sm,
               },
             ]}>

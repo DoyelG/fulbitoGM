@@ -11,7 +11,7 @@ export default function LinkPlayerStepDots({ current, total }: LinkPlayerStepDot
           key={index}
           aria-hidden
           className={`h-1.5 rounded-full transition-all duration-300 ${
-            index + 1 === current ? 'w-8 bg-brand' : index + 1 < current ? 'w-4 bg-brand/50' : 'w-4 bg-gray-200'
+            index + 1 === current ? 'w-8 bg-primary' : index + 1 < current ? 'w-4 bg-primary/50' : 'w-4 bg-gray-200'
           }`}
         />
       ))}

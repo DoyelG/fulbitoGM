@@ -15,12 +15,12 @@ export default function PlayerPhotoField({ previewUrl, onSelect, onRemove }: Pro
   const openPicker = () => fileInputRef.current?.click()
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex w-fit flex-col items-center gap-3">
       <button
         type="button"
         onClick={openPicker}
         aria-label={previewUrl ? 'Cambiar foto' : 'Subir foto'}
-        className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-white shadow-md focus:outline-none focus-visible:ring-brand"
+        className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-white shadow-md focus:outline-none focus-visible:ring-primary"
       >
         <Image src={previewUrl ?? '/silhouette.svg'} alt="" fill unoptimized className="object-cover" />
         <span
@@ -30,11 +30,11 @@ export default function PlayerPhotoField({ previewUrl, onSelect, onRemove }: Pro
           <FiCamera size={22} />
         </span>
       </button>
-      <div className="flex flex-col items-start gap-1.5">
+      <div className="flex flex-col items-center gap-1.5">
         <button
           type="button"
           onClick={openPicker}
-          className="inline-flex min-h-9 items-center gap-2 rounded-md px-2 text-sm font-medium text-brand hover:bg-brand/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+          className="inline-flex min-h-9 items-center gap-2 rounded-md px-2 text-sm font-medium text-primary hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           <FiCamera aria-hidden />
           {previewUrl ? 'Cambiar foto' : 'Subir foto'}
@@ -46,7 +46,7 @@ export default function PlayerPhotoField({ previewUrl, onSelect, onRemove }: Pro
               onRemove()
               if (fileInputRef.current) fileInputRef.current.value = ''
             }}
-            className="inline-flex min-h-9 items-center gap-2 rounded-md px-2 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            className="inline-flex min-h-9 items-center gap-2 rounded-md px-2 text-sm font-medium text-orange-700 hover:bg-orange-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             <FiTrash2 aria-hidden />
             Quitar foto

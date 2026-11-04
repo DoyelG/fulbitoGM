@@ -16,8 +16,6 @@ import { useColorScheme } from '@/hooks/use-color-scheme'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { styles } from '@/styles/login.styles'
 
-const BRAND = '#7c3aed'
-
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light'
   const theme = Colors[colorScheme]
@@ -134,7 +132,7 @@ export default function LoginScreen() {
           ) : null}
 
           <Pressable style={styles.link} onPress={() => router.back()}>
-            <Text style={{ color: BRAND }}>Volver</Text>
+            <Text style={{ color: theme.primaryText }}>Volver</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>

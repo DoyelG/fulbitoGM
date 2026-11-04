@@ -42,7 +42,7 @@ function PhotoRow({ row }: { row: SummaryRow }) {
           alt="Foto nueva"
           width={32}
           height={32}
-          className="h-8 w-8 rounded-full object-cover ring-1 ring-brand"
+          className="h-8 w-8 rounded-full object-cover ring-1 ring-primary"
         />
       ) : (
         <span className="font-medium text-black">Sin foto</span>
@@ -85,8 +85,8 @@ export default function PlayerSaveSummary({
 
   return (
     <div className="p-2 text-center" aria-busy={saving}>
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-brand/10">
-        <FiEdit2 className="text-brand" size={20} aria-hidden />
+      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+        <FiEdit2 className="text-primary" size={20} aria-hidden />
       </div>
       <p className="text-gray-700">
         ¿Confirmás {mode === 'edit' ? 'actualizar' : 'guardar'} los datos de{' '}
@@ -108,7 +108,7 @@ export default function PlayerSaveSummary({
         </div>
       )}
       {error && (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 text-sm text-orange-700">
           {error}
         </p>
       )}

@@ -76,7 +76,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
               setUploadError(null)
               setUploadOpen(true)
             }}
-            className="px-3 py-1.5 rounded bg-brand text-white text-sm hover:bg-brand/90"
+            className="px-4 py-2 text-sm font-medium rounded-xl border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
           >
             + Subir clip
           </button>
@@ -86,13 +86,13 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
         {deleteError && (
           <div
             role="alert"
-            className="mb-4 flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+            className="mb-4 flex items-center justify-between rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-800"
           >
             <span>{deleteError}</span>
             <button
               type="button"
               onClick={() => setDeleteError(null)}
-              className="ml-3 text-red-800 hover:text-red-950 focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+              className="ml-3 text-orange-800 hover:text-orange-950 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded"
               aria-label="Descartar error"
             >
               ✕
@@ -106,7 +106,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
             aria-selected={filter === 'all'}
             onClick={() => setFilter('all')}
             className={`px-3 py-1 rounded text-sm border ${
-              filter === 'all' ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
+              filter === 'all' ? 'bg-primary text-white border-primary' : 'hover:bg-gray-50'
             }`}
           >
             Todos
@@ -119,7 +119,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
               aria-selected={filter === c.value}
               onClick={() => setFilter(c.value)}
               className={`px-3 py-1 rounded text-sm border ${
-                filter === c.value ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
+                filter === c.value ? 'bg-primary text-white border-primary' : 'hover:bg-gray-50'
               }`}
             >
               {c.icon} {c.label}
@@ -128,7 +128,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
         </div>
 
         {videoClipsInit === 'error' ? (
-          <div role="alert" className="text-red-800">
+          <div role="alert" className="text-orange-800">
             No se pudieron cargar los clips.
           </div>
         ) : filteredClips.length === 0 ? (

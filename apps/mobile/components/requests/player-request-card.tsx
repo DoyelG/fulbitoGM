@@ -1,27 +1,30 @@
 import Feather from '@expo/vector-icons/Feather'
-import type { RoleRequestNotification } from '@fulbito/types'
-import { getRoleRequestLabel, getRoleRequestSummary, getTimeAgo } from '@fulbito/utils'
+import type { TournamentPlayerRequest } from '@fulbito/types'
+import { getTimeAgo } from '@fulbito/utils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Text, TouchableOpacity, View } from 'react-native'
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated'
 
 import { useAppTheme } from '@/hooks/use-theme'
 
-import { styles } from './notification-card.styles'
+import { styles } from './player-request-card.styles'
+import { PrimaryGradient } from '@/components/primary-gradient'
+import { PrimaryColors } from '@/constants/theme'
 
 type Props = {
-  notification: RoleRequestNotification
+  request: TournamentPlayerRequest
+  playerName: string | null
   index: number
   disabled: boolean
   onAccept: () => void
   onReject: () => void
 }
 
-export function NotificationCard({ notification, index, disabled, onAccept, onReject }: Props) {
+export function PlayerRequestCard({ request, playerName, index, disabled, onAccept, onReject }: Props) {
   const { colors } = useAppTheme()
-  const { userEmail, requestedRole } = notification.data
-  const isAdminRequest = requestedRole === 'ADMIN'
-  const typeColor = isAdminRequest ? colors.secondary : colors.brand
+  const summary = playerName
+    ? `Quiere vincularse con ${playerName}`
+    : `Pide un jugador nuevo: ${request.newPlayerName ?? ''}`
   const buttonOpacity = disabled ? 0.5 : 1
 
   return (
@@ -30,24 +33,24 @@ export function NotificationCard({ notification, index, disabled, onAccept, onRe
       layout={LinearTransition}
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
     >
-      <View style={[styles.accentBar, { backgroundColor: typeColor }]} />
+      <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
       <View style={styles.content}>
         <View style={styles.top}>
-          <LinearGradient colors={[colors.brand, colors.shadow]} style={styles.avatar}>
-            <Text style={styles.avatarText}>{userEmail.charAt(0)}</Text>
+          <LinearGradient colors={PrimaryColors.gradient} style={styles.avatar}>
+            <Text style={styles.avatarText}>{request.email.charAt(0)}</Text>
           </LinearGradient>
           <View style={styles.info}>
             <View style={styles.metaRow}>
               <View style={[styles.chip, { backgroundColor: colors.chipBg }]}>
-                <Feather name={isAdminRequest ? 'shield' : 'link'} size={12} color={typeColor} />
-                <Text style={[styles.chipText, { color: typeColor }]}>{getRoleRequestLabel(notification)}</Text>
+                <Feather name="link" size={12} color={colors.primaryText} />
+                <Text style={[styles.chipText, { color: colors.primaryText }]}>Vincular jugador</Text>
               </View>
-              <Text style={[styles.timeText, { color: colors.muted }]}>{getTimeAgo(notification.createdAt)}</Text>
+              <Text style={[styles.timeText, { color: colors.muted }]}>{getTimeAgo(request.createdAt)}</Text>
             </View>
             <Text style={[styles.email, { color: colors.text }]} numberOfLines={1}>
-              {userEmail}
+              {request.email}
             </Text>
-            <Text style={[styles.summary, { color: colors.muted }]}>{getRoleRequestSummary(notification)}</Text>
+            <Text style={[styles.summary, { color: colors.muted }]}>{summary}</Text>
           </View>
         </View>
         <View style={styles.row}>
@@ -55,7 +58,7 @@ export function NotificationCard({ notification, index, disabled, onAccept, onRe
             onPress={onReject}
             disabled={disabled}
             accessibilityRole="button"
-            accessibilityLabel="Rechazar solicitud"
+            accessibilityLabel={`Rechazar la solicitud de ${request.email}`}
             accessibilityState={{ disabled }}
             style={[
               styles.button,
@@ -69,13 +72,11 @@ export function NotificationCard({ notification, index, disabled, onAccept, onRe
             onPress={onAccept}
             disabled={disabled}
             accessibilityRole="button"
-            accessibilityLabel="Aceptar solicitud"
+            accessibilityLabel={`Aceptar la solicitud de ${request.email}`}
             accessibilityState={{ disabled }}
-            style={[
-              styles.button,
-              { backgroundColor: colors.brand, borderColor: colors.brand, opacity: buttonOpacity },
-            ]}
+            style={[styles.button, { borderColor: PrimaryColors.border, opacity: buttonOpacity }]}
           >
+            <PrimaryGradient />
             <Feather name="check" size={16} color="#fff" />
             <Text style={[styles.buttonText, { color: '#fff' }]}>Aceptar</Text>
           </TouchableOpacity>

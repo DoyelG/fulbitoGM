@@ -62,7 +62,7 @@ export default function TournamentForm({
         placeholder="Ej: Fulbito de los jueves"
         aria-invalid={Boolean(error) && !name.trim()}
         aria-describedby={error ? 'tournament-form-error' : undefined}
-        className="h-10 border rounded px-3 w-full focus:outline-none focus:ring-2 focus:ring-brand/50"
+        className="h-10 border rounded px-3 w-full focus:outline-none focus:ring-2 focus:ring-primary/50"
         autoFocus
       />
 
@@ -76,7 +76,7 @@ export default function TournamentForm({
         maxLength={MAX_DESCRIPTION_LENGTH}
         rows={3}
         placeholder="Dónde y cuándo juegan, reglas, etc."
-        className="border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-brand/50"
+        className="border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary/50"
       />
 
       <div className="mt-3">
@@ -84,7 +84,7 @@ export default function TournamentForm({
       </div>
 
       {error && (
-        <p id="tournament-form-error" role="alert" className="mt-3 text-sm text-red-700">
+        <p id="tournament-form-error" role="alert" className="mt-3 text-sm text-orange-700">
           {error}
         </p>
       )}

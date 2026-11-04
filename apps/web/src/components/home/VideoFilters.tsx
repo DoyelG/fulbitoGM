@@ -30,7 +30,7 @@ export default function VideoFilters({ active, counts, total, onChange }: VideoF
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(o.value)}
-            className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+            className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               selected ? 'border-night bg-night text-white' : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50'
             }`}
           >

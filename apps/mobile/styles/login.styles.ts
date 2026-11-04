@@ -1,6 +1,8 @@
 import { Platform, StyleSheet } from 'react-native'
 
-const BRAND = '#7c3aed'
+import { PrimaryColors } from '@/constants/theme'
+
+const PRIMARY = PrimaryColors.border
 
 export const styles = StyleSheet.create({
   safe: { flex: 1 },
@@ -38,7 +40,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
   },
   segmentBtnActive: {
-    backgroundColor: BRAND,
+    backgroundColor: PRIMARY,
   },
   segmentText: {
     fontSize: 15,
@@ -62,12 +64,12 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   error: {
-    color: '#dc2626',
+    color: '#c2410c',
     fontSize: 14,
     marginBottom: 12,
   },
   primaryBtn: {
-    backgroundColor: BRAND,
+    backgroundColor: PRIMARY,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',

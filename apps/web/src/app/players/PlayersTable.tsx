@@ -92,7 +92,7 @@ export default function PlayersTable({
         cell: ({ getValue, row }) => (
           <Link
             href={`/players/${row.original.id}`}
-            className={`hover:underline font-medium ${row.original.inactive ? 'text-gray-400' : 'text-brand'}`}
+            className={`hover:underline font-medium ${row.original.inactive ? 'text-gray-400' : 'text-primary'}`}
           >
             {getValue()}
           </Link>

@@ -14,11 +14,12 @@ import { RecentMatchRow } from '@/components/players/detail/recent-match-row'
 import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import { useIsAdmin } from '@/hooks/use-is-admin'
+import { useMyPlayerId } from '@/contexts/TournamentContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { usePlayerDetail } from '@/hooks/use-player-detail'
 import { useAppTheme } from '@/hooks/use-theme'
 import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { PrimaryGradient } from '@/components/primary-gradient'
 
 const AVATAR_SIZE = 80
 const RECENT_MAX = 10
@@ -26,8 +27,8 @@ const RECENT_MAX = 10
 export default function PlayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
-  const isAdmin = useIsAdmin()
-  const { user } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
+  const myPlayerId = useMyPlayerId()
   const { colors, isDark, shadows } = useAppTheme()
 
   const {
@@ -47,7 +48,7 @@ export default function PlayerDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
-        <ActivityIndicator color={colors.brand} size="large" />
+        <ActivityIndicator color={colors.primaryText} size="large" />
       </SafeAreaView>
     )
   }
@@ -56,7 +57,8 @@ export default function PlayerDetailScreen() {
     return (
       <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ThemedText style={styles.errorText}>{error}</ThemedText>
-        <Pressable onPress={() => void reload()} style={[styles.retryBtn, { backgroundColor: colors.brand }]}>
+        <Pressable onPress={() => void reload()} style={styles.retryBtn}>
+          <PrimaryGradient />
           <ThemedText style={styles.retryText}>Reintentar</ThemedText>
         </Pressable>
       </SafeAreaView>
@@ -67,7 +69,8 @@ export default function PlayerDetailScreen() {
     return (
       <SafeAreaView style={[styles.centered, { backgroundColor: colors.background }]} edges={[]}>
         <ThemedText style={styles.errorText}>Jugador no encontrado.</ThemedText>
-        <Pressable onPress={() => router.back()} style={[styles.retryBtn, { backgroundColor: colors.brand }]}>
+        <Pressable onPress={() => router.back()} style={styles.retryBtn}>
+          <PrimaryGradient />
           <ThemedText style={styles.retryText}>Volver</ThemedText>
         </Pressable>
       </SafeAreaView>
@@ -83,11 +86,11 @@ export default function PlayerDetailScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scroll}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.brand} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.primaryText} />
           }
         >
           <LinearGradient
-            colors={['#7C3AED', '#F97316']}
+            colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.hero}
@@ -108,7 +111,7 @@ export default function PlayerDetailScreen() {
                 <Text style={styles.skillPillLabel}>OVERALL</Text>
                 <Text style={styles.skillPillText}>Lv {overallAvg.toFixed(1)}</Text>
               </View>
-              {isAdmin && (
+              {canManage && (
                 <Pressable
                   onPress={() => router.push(`/(tabs)/players/edit/${id}`)}
                   style={styles.editBtn}
@@ -159,7 +162,7 @@ export default function PlayerDetailScreen() {
 
           <SectionTitle title="Clips" />
           <View style={styles.clipsWrap}>
-            <PlayerClipsSection playerId={id} matches={allMatches} canUpload={isAdmin || user?.linkedPlayerId === id} />
+            <PlayerClipsSection playerId={id} matches={allMatches} canUpload={canManage || myPlayerId === id} />
           </View>
 
           <View style={styles.bottomPad} />
@@ -283,6 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   retryBtn: {
+    overflow: 'hidden',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.sm,
     borderRadius: Radii.pill,

@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { FiUserCheck, FiUserX, FiTrash2 } from 'react-icons/fi'
 import PlayersTable, { type PlayerRow } from './PlayersTable'
 import Modal from '@/components/Modal'
+import SearchInput from '@/components/SearchInput'
 import Chevron from '../shared/Icons/Chevron'
 
 export default function PlayersClient({
@@ -94,23 +95,25 @@ export default function PlayersClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-5">
         <h1 className="text-3xl font-bold">Jugadores</h1>
         {canManage && (
-          <Link href="/players/new" className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand/90">
+          <Link
+            href="/players/new"
+            className="px-4 py-2 text-sm font-medium border border-primary-dark bg-primary-gradient text-white rounded-xl hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
+          >
             Agregar jugador
           </Link>
         )}
       </div>
 
       <div className="mb-6">
-        <input
-          type="text"
+        <SearchInput
           value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          onChange={setGlobalFilter}
           placeholder="Buscar por nombre..."
-          aria-label="Buscar jugador por nombre"
-          className="w-full sm:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          ariaLabel="Buscar jugador por nombre"
+          className="w-full"
         />
       </div>
       <PlayersTable
@@ -122,13 +125,13 @@ export default function PlayersClient({
         onToggleActive={handleToggleActive}
         emptyMessage="No hay jugadores activos aún."
       />
-      {canManage && (
+      {canManage && inactivePlayers.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200">
           <button
             type="button"
             onClick={() => setShowInactiveTable((isShown) => !isShown)}
             aria-expanded={showInactiveTable}
-            className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             <h2 className="text-lg font-semibold text-gray-800">Inactivos</h2>
             <Chevron direction={showInactiveTable ? 'up' : 'down'} className="h-5 w-5 text-gray-500" />
@@ -151,8 +154,8 @@ export default function PlayersClient({
 
       <Modal title="Confirmar eliminación" open={showModal} onClose={() => setShowModal(false)}>
         <div className="p-2 text-center">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
-            <FiTrash2 className="text-red-600" size={20} />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-orange-100">
+            <FiTrash2 className="text-orange-700" size={20} />
           </div>
           <p className="text-gray-600">
             ¿Estás seguro de que querés eliminar a{' '}
@@ -169,7 +172,7 @@ export default function PlayersClient({
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="flex-1 px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              className="flex-1 px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800 transition"
             >
               Eliminar
             </button>
@@ -181,13 +184,13 @@ export default function PlayersClient({
         <div className="p-2 text-center">
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${
-              toggleTarget?.inactive ? 'bg-red-100' : 'bg-brand/10'
+              toggleTarget?.inactive ? 'bg-orange-100' : 'bg-primary/10'
             }`}
           >
             {toggleTarget?.inactive ? (
-              <FiUserX className="text-red-600" size={20} />
+              <FiUserX className="text-orange-700" size={20} />
             ) : (
-              <FiUserCheck className="text-brand" size={20} />
+              <FiUserCheck className="text-primary" size={20} />
             )}
           </div>
           <p className="text-gray-600">
@@ -205,7 +208,7 @@ export default function PlayersClient({
             <button
               type="button"
               onClick={handleConfirmToggle}
-              className="flex-1 px-5 py-2 rounded-lg bg-brand text-white hover:bg-brand/90 transition"
+              className="px-4 py-2 text-sm font-medium flex-1 rounded-xl border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30 transition"
             >
               Confirmar
             </button>

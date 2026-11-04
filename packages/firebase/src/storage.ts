@@ -17,7 +17,8 @@ export async function uploadTournamentPhoto(file: File | Blob, tournamentId: str
   if (!file.type.startsWith('image/')) throw new Error('The tournament photo must be an image')
   if (file.size > TOURNAMENT_PHOTO_MAX_BYTES) throw new Error('The tournament photo must be at most 5 MB')
   const storage = getStorage()
-  const storageRef = ref(storage, `tournaments/${tournamentId}/${crypto.randomUUID()}`)
+  const fileName = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  const storageRef = ref(storage, `tournaments/${tournamentId}/${fileName}`)
   await uploadBytes(storageRef, file, { contentType: file.type })
   return getDownloadURL(storageRef)
 }

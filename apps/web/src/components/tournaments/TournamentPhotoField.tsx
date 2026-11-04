@@ -66,7 +66,7 @@ export default function TournamentPhotoField({ currentUrl, value, onChange }: Pr
               className="object-cover"
             />
           ) : (
-            <TrophyIcon className="absolute inset-0 m-auto h-8 w-8 text-indigo-600" aria-hidden />
+            <TrophyIcon className="absolute inset-0 m-auto h-8 w-8 text-primary" aria-hidden />
           )}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -97,7 +97,7 @@ export default function TournamentPhotoField({ currentUrl, value, onChange }: Pr
         onChange={(event) => handleFile(event.target.files?.[0])}
       />
       {error ? (
-        <p id="tournament-photo-error" role="alert" className="mt-2 text-sm text-red-700">
+        <p id="tournament-photo-error" role="alert" className="mt-2 text-sm text-orange-700">
           {error}
         </p>
       ) : (

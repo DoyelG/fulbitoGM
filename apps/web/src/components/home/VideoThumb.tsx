@@ -42,7 +42,7 @@ export default function VideoThumb({ clip, matchDate, onOpen }: VideoThumbProps)
       type="button"
       onClick={onOpen}
       aria-label={`Ver video: ${label}${matchDate ? `, ${matchDate}` : ''}`}
-      className="group block w-full rounded-xl text-left lg:flex lg:flex-1 lg:flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      className="group block w-full rounded-xl text-left lg:flex lg:flex-1 lg:flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
       <div className="relative aspect-video overflow-hidden rounded-xl bg-night lg:aspect-auto lg:min-h-48 lg:flex-1">
         {inView && (

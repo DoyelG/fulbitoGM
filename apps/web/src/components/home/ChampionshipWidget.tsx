@@ -43,7 +43,7 @@ export default function ChampionshipWidget() {
     <WidgetCard
       id="championship"
       emoji="🏆"
-      tone="brand"
+      tone="primary"
       title="Carrera al campeonato"
       href="/awards"
       linkLabel="Ver premios"
@@ -54,14 +54,14 @@ export default function ChampionshipWidget() {
       {status === 'ready' && (
         <div className="space-y-4">
           {progress ? (
-            <div className="flex min-w-0 items-center gap-3 rounded-xl bg-gradient-to-br from-violet-50 to-violet-100 p-3">
+            <div className="flex min-w-0 items-center gap-3 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 p-3">
               <PlayerAvatar name={progress.playerName} photoUrl={progress.playerPhotoUrl} size="md" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-lg font-bold text-gray-900">{progress.playerName}</p>
                 <p className="text-sm text-gray-700">{streakLabel(progress.streak)}</p>
               </div>
               <p aria-hidden className="shrink-0 leading-none">
-                <span className="text-4xl font-black text-brand tabular-nums">
+                <span className="text-4xl font-black text-primary tabular-nums">
                   {Math.min(streak, CHAMPIONSHIP_THRESHOLD)}
                 </span>
                 <span className="text-lg font-bold text-gray-600">/{CHAMPIONSHIP_THRESHOLD}</span>

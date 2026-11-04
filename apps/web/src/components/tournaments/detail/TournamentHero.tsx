@@ -20,11 +20,11 @@ export default function TournamentHero({ item, active, onActivate, onEdit }: Pro
   return (
     <header className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="flex flex-col items-center gap-4 p-5 text-center sm:flex-row sm:text-left">
-        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-indigo-50 sm:h-28 sm:w-28">
+        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-primary/5 sm:h-28 sm:w-28">
           {tournament.photoUrl ? (
             <Image src={tournament.photoUrl} alt="" fill unoptimized sizes="112px" className="object-cover" />
           ) : (
-            <TrophyIcon className="absolute inset-0 m-auto h-12 w-12 text-indigo-600" aria-hidden />
+            <TrophyIcon className="absolute inset-0 m-auto h-12 w-12 text-primary" aria-hidden />
           )}
         </div>
         <div className="w-full min-w-0 sm:w-auto sm:flex-1">
@@ -41,7 +41,7 @@ export default function TournamentHero({ item, active, onActivate, onEdit }: Pro
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-40">
           {active ? (
-            <span className="inline-flex items-center justify-center gap-1.5 rounded-md bg-brand/10 px-3 py-2 text-sm font-medium text-brand">
+            <span className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
               <CheckCircleIcon className="h-5 w-5" aria-hidden />
               Torneo activo
             </span>

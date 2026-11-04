@@ -1,15 +1,8 @@
 import type { Match, MatchInput, Player } from '@fulbito/types'
 import { useCallback, useEffect, useState } from 'react'
 import { getMatches, getPlayers, createMatch, updateMatch, deleteMatch } from '@fulbito/firebase'
-import { shapeStorePlayers } from '@/lib/shape'
 
-async function fetchMatchesAndPlayers(): Promise<{ matches: Match[]; players: Player[] }> {
-  const [rawMatches, rawPlayers] = await Promise.all([getMatches(), getPlayers()])
-  return {
-    matches: rawMatches,
-    players: shapeStorePlayers(rawPlayers),
-  }
-}
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
 
 export type MatchesDataState = {
   matches: Match[]
@@ -24,7 +17,13 @@ export type MatchesDataState = {
   updateMatch: (id: string, m: MatchInput) => Promise<void>
 }
 
+function requireTournament(tournamentId: string | null): string {
+  if (!tournamentId) throw new Error('No hay un torneo activo')
+  return tournamentId
+}
+
 export function useMatchesData(): MatchesDataState {
+  const tournamentId = useActiveTournamentId()
   const [matches, setMatches] = useState<Match[]>([])
   const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,18 +31,19 @@ export function useMatchesData(): MatchesDataState {
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
+    if (!tournamentId) return
     setError(null)
     try {
-      const data = await fetchMatchesAndPlayers()
-      setMatches(data.matches)
-      setPlayers(data.players)
+      const [nextMatches, nextPlayers] = await Promise.all([getMatches(tournamentId), getPlayers(tournamentId)])
+      setMatches(nextMatches)
+      setPlayers(nextPlayers)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar datos')
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [])
+  }, [tournamentId])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
@@ -52,29 +52,32 @@ export function useMatchesData(): MatchesDataState {
 
   const handleDeleteMatch = useCallback(
     async (id: string) => {
-      await deleteMatch(id)
+      await deleteMatch(requireTournament(tournamentId), id)
       await reload()
     },
-    [reload],
+    [tournamentId, reload],
   )
 
   const handleAddMatch = useCallback(
     async (m: MatchInput) => {
-      await createMatch(m)
+      await createMatch(requireTournament(tournamentId), m)
       await reload()
     },
-    [reload],
+    [tournamentId, reload],
   )
 
   const handleUpdateMatch = useCallback(
     async (id: string, m: MatchInput) => {
-      await updateMatch(id, m)
+      await updateMatch(requireTournament(tournamentId), id, m)
       await reload()
     },
-    [reload],
+    [tournamentId, reload],
   )
 
   useEffect(() => {
+    setMatches([])
+    setPlayers([])
+    setLoading(true)
     void reload()
   }, [reload])
 

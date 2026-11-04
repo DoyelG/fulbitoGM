@@ -12,8 +12,8 @@ export type EmptyStateProps = {
 }
 
 const linkClassName =
-  'mt-3 inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium ' +
-  'text-white shadow-sm hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2'
+  'mt-3 px-4 py-2 text-sm font-medium inline-flex justify-center rounded-xl border border-primary-dark bg-primary-gradient ' +
+  'text-white shadow-sm hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
 
 export default function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (

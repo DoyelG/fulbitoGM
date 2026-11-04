@@ -38,7 +38,7 @@ export function PoolSection({ players, poolPlayers, poolIds, maxSize, onConfirm 
         onPress={openModal}
         style={[
           styles.box,
-          { borderColor: poolIds.size > 0 ? colors.brand : colors.border, borderRadius: radii.sm },
+          { borderColor: poolIds.size > 0 ? colors.primaryText : colors.border, borderRadius: radii.sm },
         ]}
       >
         {poolIds.size === 0 ? (
@@ -50,9 +50,9 @@ export function PoolSection({ players, poolPlayers, poolIds, maxSize, onConfirm 
             {poolPlayers.map((player) => (
               <View
                 key={player.id}
-                style={[styles.chip, { backgroundColor: colors.brandSoft, borderRadius: radii.pill }]}
+                style={[styles.chip, { backgroundColor: colors.primarySoft, borderRadius: radii.pill }]}
               >
-                <Text style={[styles.chipText, { color: colors.brand }]}>{player.name}</Text>
+                <Text style={[styles.chipText, { color: colors.primaryText }]}>{player.name}</Text>
               </View>
             ))}
           </View>

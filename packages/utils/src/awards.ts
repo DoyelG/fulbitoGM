@@ -79,7 +79,7 @@ export function computePlayerStatRows(players: Player[], matches: Match[]): Play
   return Object.values(map)
 }
 
-export type AwardAccent = 'brand' | 'secondary' | 'muted'
+export type AwardAccent = 'primary' | 'secondary' | 'muted'
 export type AwardKey = 'matches' | 'goals' | 'lossStreak' | 'lostFinals' | 'shirts' | 'mvps'
 
 export type AwardDef = {
@@ -98,7 +98,7 @@ export const AWARD_DEFS: AwardDef[] = [
     subtitle:
       'Este premio es otorgado al jugador con mejor asistencia de la temporada, el que siempre está anotado en la lista.',
     unitLabel: 'PARTIDOS',
-    accent: 'brand',
+    accent: 'primary',
     getValue: (row) => row.matches,
   },
   {
@@ -138,7 +138,7 @@ export const AWARD_DEFS: AwardDef[] = [
     title: 'Máximo MVP',
     subtitle: 'La estrella indiscutida de la cancha esta temporada',
     unitLabel: 'MVPS',
-    accent: 'brand',
+    accent: 'primary',
     getValue: (row) => row.mvps,
   },
 ]

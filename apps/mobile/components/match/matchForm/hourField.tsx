@@ -64,12 +64,12 @@ export function HourField({ value, onChange }: Props) {
                 <Text
                   style={[
                     sheetStyles.optionText,
-                    { color: active ? colors.brand : colors.text, fontWeight: active ? '700' : '400' },
+                    { color: active ? colors.primaryText : colors.text, fontWeight: active ? '700' : '400' },
                   ]}
                 >
                   {item === null ? 'Sin hora' : formatMatchClock(item)}
                 </Text>
-                {active ? <Feather name="check" size={18} color={colors.brand} /> : null}
+                {active ? <Feather name="check" size={18} color={colors.primaryText} /> : null}
               </TouchableOpacity>
             )
           }}

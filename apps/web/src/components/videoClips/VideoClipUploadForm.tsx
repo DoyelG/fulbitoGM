@@ -78,7 +78,7 @@ export default function VideoClipUploadForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div role="alert" className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <div role="alert" className="rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-800">
           {error}
         </div>
       )}
@@ -95,7 +95,7 @@ export default function VideoClipUploadForm({
             required
             value={matchId}
             onChange={e => handleMatchChange(e.target.value)}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
           >
             <option value="">Elegí un partido</option>
             {matches.map(m => (
@@ -112,7 +112,7 @@ export default function VideoClipUploadForm({
           <div className="flex items-center justify-between mb-1.5">
             <span className="block text-sm font-semibold text-gray-900">🙋 Jugadores en el clip</span>
             {playerIds.length > 0 && (
-              <span className="text-xs font-medium text-brand bg-brand/10 rounded-full px-2 py-0.5">
+              <span className="text-xs font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5">
                 {playerIds.length} seleccionado{playerIds.length > 1 ? 's' : ''}
               </span>
             )}
@@ -128,7 +128,7 @@ export default function VideoClipUploadForm({
                   aria-pressed={active}
                   className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
                     active
-                      ? 'bg-brand text-white border-brand'
+                      ? 'bg-primary text-white border-primary'
                       : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                   }`}
                 >
@@ -153,7 +153,7 @@ export default function VideoClipUploadForm({
               onClick={() => setCategory(c.value)}
               className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
                 category === c.value
-                  ? 'bg-brand text-white border-brand'
+                  ? 'bg-primary text-white border-primary'
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
               }`}
             >
@@ -173,7 +173,7 @@ export default function VideoClipUploadForm({
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="Ej: Gol de tiro libre"
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
         />
       </div>
 
@@ -182,8 +182,8 @@ export default function VideoClipUploadForm({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className={`w-full flex items-center gap-3 rounded-md border-2 border-dashed px-4 py-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-brand ${
-            fileError ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-brand hover:bg-brand/5'
+          className={`w-full flex items-center gap-3 rounded-md border-2 border-dashed px-4 py-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+            fileError ? 'border-orange-300 bg-orange-50' : 'border-gray-300 hover:border-primary hover:bg-primary/5'
           }`}
         >
           <span className="text-2xl" aria-hidden="true">
@@ -192,8 +192,8 @@ export default function VideoClipUploadForm({
           <span className="min-w-0 flex-1">
             {fileError ? (
               <>
-                <span className="block text-sm font-medium text-red-800">{fileError}</span>
-                <span className="block text-xs text-red-700">Click para elegir un archivo de video</span>
+                <span className="block text-sm font-medium text-orange-800">{fileError}</span>
+                <span className="block text-xs text-orange-700">Click para elegir un archivo de video</span>
               </>
             ) : file ? (
               <>
@@ -229,7 +229,7 @@ export default function VideoClipUploadForm({
         <button
           type="submit"
           disabled={!canSubmit}
-          className="inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand/90 disabled:opacity-50 mt-4"
+          className="px-4 py-2 text-sm font-medium inline-flex justify-center rounded-xl border border-primary-dark bg-primary-gradient text-white shadow-sm hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30 disabled:opacity-50 mt-4"
         >
           {submitting ? 'Subiendo...' : 'Subir clip'}
         </button>

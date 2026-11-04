@@ -4,7 +4,7 @@ import { Fonts, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,

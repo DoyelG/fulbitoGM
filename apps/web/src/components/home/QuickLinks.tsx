@@ -17,9 +17,9 @@ export default function QuickLinks() {
           <li key={href}>
             <Link
               href={href}
-              className="flex min-h-14 items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="flex min-h-14 items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
                 <Icon aria-hidden className="h-5 w-5" />
               </span>
               {label}

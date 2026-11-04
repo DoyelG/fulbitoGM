@@ -53,7 +53,7 @@ export default function AssignPlayerForm({ member, availablePlayers, onSubmit, o
         value={playerId}
         onChange={(event) => setPlayerId(event.target.value)}
         aria-describedby={error ? 'assign-player-error' : undefined}
-        className="h-10 w-full rounded border bg-white px-3 focus:outline-none focus:ring-2 focus:ring-brand/50"
+        className="h-10 w-full rounded border bg-white px-3 focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
         <option value="">Sin jugador</option>
         {availablePlayers.map((player) => (
@@ -64,7 +64,7 @@ export default function AssignPlayerForm({ member, availablePlayers, onSubmit, o
       </select>
 
       {error && (
-        <p id="assign-player-error" role="alert" className="mt-3 text-sm text-red-700">
+        <p id="assign-player-error" role="alert" className="mt-3 text-sm text-orange-700">
           {error}
         </p>
       )}

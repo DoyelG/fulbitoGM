@@ -102,7 +102,7 @@ export default function LinkPlayerFlow({
   }
 
   const errorAlert = errorMessage && (
-    <p role="alert" className="mt-3 text-sm text-red-700">
+    <p role="alert" className="mt-3 text-sm text-orange-700">
       {errorMessage}
     </p>
   )
@@ -119,7 +119,10 @@ export default function LinkPlayerFlow({
         <ul className="mt-6 space-y-2">
           {benefits.map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-900">
-              <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+              <span
+                aria-hidden
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"
+              >
                 <Icon />
               </span>
               {text}
@@ -156,7 +159,7 @@ export default function LinkPlayerFlow({
           <button
             type="button"
             onClick={() => goToStep('newPlayer')}
-            className="rounded font-medium text-brand hover:underline focus:outline-none focus:ring-2 focus:ring-brand"
+            className="rounded font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
           >
             Solicitar un jugador nuevo
           </button>

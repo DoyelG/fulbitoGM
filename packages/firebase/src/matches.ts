@@ -78,7 +78,6 @@ function tournamentQuery(collectionName: string, tournamentId: string) {
   return query(collection(getFirestore(), collectionName), where('tournamentId', '==', tournamentId))
 }
 
-// Security rules only allow list queries that are constrained to one tournament, so the match filter alone is not enough.
 function matchPlayersQuery(tournamentId: string, matchId: string) {
   return query(
     collection(getFirestore(), MATCH_PLAYERS_COLLECTION),

@@ -53,6 +53,7 @@ export const styles = StyleSheet.create({
     borderRadius: Radii.pill,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   buttonText: {
     fontSize: 15,

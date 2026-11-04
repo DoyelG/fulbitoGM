@@ -41,11 +41,11 @@ export default function VerifyEmailNotice({ email }: { email: string }) {
     <section aria-labelledby="verify-email-title" className="mb-8 rounded-xl border border-amber-300 bg-amber-50 p-4">
       <h2 id="verify-email-title" className="flex items-center gap-2 font-semibold text-gray-900">
         <EnvelopeIcon className="h-5 w-5 text-amber-700" aria-hidden />
-        Verificá tu email para ver tus invitaciones
+        Verificá tu email para ver tus torneos
       </h2>
       <p className="mt-1 text-sm text-gray-800">
-        Te mandamos un link a <span className="font-medium">{email}</span>. Las invitaciones a torneos solo se muestran
-        cuando el email está verificado.
+        Te mandamos un link a <span className="font-medium">{email}</span>. Para crear torneos y ver tus torneos e
+        invitaciones necesitás tener el email verificado.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <Button type="button" variant="secondary" disabled={busy} onClick={resend}>
@@ -58,7 +58,7 @@ export default function VerifyEmailNotice({ email }: { email: string }) {
       {status && (
         <p
           role={status.tone === 'error' ? 'alert' : 'status'}
-          className={`mt-3 text-sm ${status.tone === 'error' ? 'text-red-700' : 'text-gray-800'}`}
+          className={`mt-3 text-sm ${status.tone === 'error' ? 'text-orange-700' : 'text-gray-800'}`}
         >
           {status.text}
         </p>

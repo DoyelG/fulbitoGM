@@ -1,10 +1,12 @@
 import Feather from '@expo/vector-icons/Feather'
-import { cancelRoleRequest, createRoleRequest, getPlayers, RoleRequestError, type AppUser } from '@fulbito/firebase'
+import { getPlayers, TournamentPlayerRequestError } from '@fulbito/firebase'
 import type { Player } from '@fulbito/types'
 import { useEffect, useState } from 'react'
 import { Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import PlayerSelector from '@/components/players/player-selector/player-selector'
+import { PrimaryGradient } from '@/components/primary-gradient'
+import { PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import LinkPlayerHero from './link-player-hero'
@@ -27,8 +29,17 @@ export const linkPlayerStepTitles: Record<LinkPlayerStep, string> = {
   revert: 'Vincular con un jugador',
 }
 
+export type LinkPlayerRequest = { playerId: string } | { newPlayerName: string }
+
+export type LinkPlayerActions = {
+  tournamentId: string
+  send: (request: LinkPlayerRequest) => Promise<void>
+  cancel: () => Promise<void>
+  isPlayerUnavailable: (player: Player) => boolean
+}
+
 type Props = {
-  user: AppUser
+  actions: LinkPlayerActions
   step: LinkPlayerStep
   onStepChange: (step: LinkPlayerStep) => void
   onAnswerNo: () => void
@@ -49,9 +60,9 @@ type FlowButtonProps = {
 function FlowButton({ label, onPress, variant = 'primary', disabled = false }: FlowButtonProps) {
   const { colors } = useAppTheme()
   const buttonColors: Record<FlowButtonVariant, { background: string; text: string; border: string }> = {
-    primary: { background: colors.brand, text: colors.onBrand, border: colors.brand },
-    secondary: { background: colors.brandSoft, text: colors.brand, border: colors.brandSoft },
-    danger: { background: colors.danger, text: colors.onBrand, border: colors.danger },
+    primary: { background: 'transparent', text: PrimaryColors.onPrimary, border: PrimaryColors.border },
+    secondary: { background: colors.primarySoft, text: colors.primaryText, border: colors.primarySoft },
+    danger: { background: colors.danger, text: colors.onPrimary, border: colors.danger },
     dangerousSecondary: { background: colors.surface, text: colors.danger, border: colors.danger },
   }
   const { background, text, border } = buttonColors[variant]
@@ -65,13 +76,14 @@ function FlowButton({ label, onPress, variant = 'primary', disabled = false }: F
       accessibilityState={{ disabled }}
       style={[styles.button, { backgroundColor: background, borderColor: border, opacity: disabled ? 0.5 : 1 }]}
     >
+      {variant === 'primary' && <PrimaryGradient />}
       <Text style={[styles.buttonText, { color: text }]}>{label}</Text>
     </TouchableOpacity>
   )
 }
 
 export default function LinkPlayerFlow({
-  user,
+  actions,
   step,
   onStepChange,
   onAnswerNo,
@@ -85,30 +97,26 @@ export default function LinkPlayerFlow({
   const [newPlayerName, setNewPlayerName] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
-  const [sentRequestId, setSentRequestId] = useState<string | null>(null)
+  const { tournamentId, send, cancel, isPlayerUnavailable } = actions
 
   useEffect(() => {
-    void getPlayers()
+    void getPlayers(tournamentId)
       .then(setPlayers)
       .catch(() => setErrorMessage('No se pudieron cargar los jugadores'))
-  }, [])
+  }, [tournamentId])
 
-  const sendRequest = async (request: { playerId: string } | { newPlayerName: string }) => {
+  const sendRequest = async (request: LinkPlayerRequest) => {
     setIsSending(true)
     setErrorMessage(null)
     try {
-      const requestId = await createRoleRequest({
-        userId: user.uid,
-        userEmail: user.email,
-        requestedRole: 'PLAYER',
-        ...request,
-      })
-      setSentRequestId(requestId)
+      await send(request)
       onRequestSent()
       onStepChange('sent')
     } catch (error) {
       setErrorMessage(
-        error instanceof RoleRequestError ? error.message : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
+        error instanceof TournamentPlayerRequestError
+          ? error.message
+          : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
       )
     } finally {
       setIsSending(false)
@@ -116,15 +124,14 @@ export default function LinkPlayerFlow({
   }
 
   const revertRequest = async () => {
-    if (!sentRequestId) return
     setIsSending(true)
     setErrorMessage(null)
     try {
-      await cancelRoleRequest(sentRequestId)
+      await cancel()
       onStepChange('select')
     } catch (error) {
       setErrorMessage(
-        error instanceof RoleRequestError
+        error instanceof TournamentPlayerRequestError
           ? error.message
           : 'No se pudo revertir la solicitud. Probá de nuevo más tarde.',
       )
@@ -156,8 +163,8 @@ export default function LinkPlayerFlow({
         <View style={styles.benefits}>
           {benefits.map(({ icon, text }) => (
             <View key={text} style={[styles.benefit, { backgroundColor: colors.chipBg, borderRadius: radii.md }]}>
-              <View style={[styles.benefitIcon, { backgroundColor: colors.brandSoft }]}>
-                <Feather name={icon} size={16} color={colors.brand} accessible={false} />
+              <View style={[styles.benefitIcon, { backgroundColor: colors.primarySoft }]}>
+                <Feather name={icon} size={16} color={colors.primaryText} accessible={false} />
               </View>
               <Text style={[styles.benefitText, { color: colors.text }]}>{text}</Text>
             </View>
@@ -181,7 +188,7 @@ export default function LinkPlayerFlow({
           selectedIds={selectedIds}
           onChange={setSelectedIds}
           isMultiSelector={false}
-          hidePlayerCondition={(player) => !!player.inactive || !!player.linkedUserId}
+          hidePlayerCondition={(player) => !!player.inactive || isPlayerUnavailable(player)}
           maxHeight={240}
         />
         <Text style={[styles.text, { color: colors.muted }]}>
@@ -190,7 +197,7 @@ export default function LinkPlayerFlow({
             onPress={() => goToStep('newPlayer')}
             accessibilityRole="link"
             accessibilityLabel="Solicitar un jugador nuevo"
-            style={[styles.link, { color: colors.brand }]}
+            style={[styles.link, { color: colors.primaryText }]}
           >
             Solicitar un jugador nuevo
           </Text>
@@ -246,7 +253,7 @@ export default function LinkPlayerFlow({
           icon="alert-triangle"
           tone="danger"
           title="¿Revertir la solicitud?"
-          description="Se va a cancelar y el administrador ya no la va a ver."
+          description="Se va a cancelar y los organizadores ya no la van a ver."
         />
         {errorText}
         <View style={styles.row}>
@@ -263,7 +270,7 @@ export default function LinkPlayerFlow({
       <LinkPlayerHero
         icon="check-circle"
         title="Solicitud enviada"
-        description="Un administrador la va a revisar. Cuando la acepte, volvé a iniciar sesión para ver el cambio."
+        description="Un organizador del torneo la va a revisar."
       />
       <View style={styles.row}>
         <FlowButton label="Revertir solicitud" onPress={() => goToStep('revert')} variant="dangerousSecondary" />

@@ -78,7 +78,6 @@ export async function createVideoClip(tournamentId: string, data: NewVideoClipDa
   }
 }
 
-// The file is resolved from its download URL because clips uploaded before tournaments live at videoClips/{clipId}.
 export async function deleteVideoClip(clip: Pick<VideoClip, 'id' | 'url'>): Promise<void> {
   await deleteObject(ref(getStorage(), clip.url)).catch((error: { code?: string }) => {
     if (error.code !== 'storage/object-not-found') throw error

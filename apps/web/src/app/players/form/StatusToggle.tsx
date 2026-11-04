@@ -4,7 +4,7 @@ type Props = {
 }
 
 const options = [
-  { inactive: false, label: 'Activo', activeClassName: 'bg-brand text-white' },
+  { inactive: false, label: 'Activo', activeClassName: 'bg-primary-gradient text-white' },
   { inactive: true, label: 'Inactivo', activeClassName: 'bg-gray-600 text-white' },
 ]
 
@@ -27,7 +27,7 @@ export default function StatusToggle({ inactive, onChange }: Props) {
               type="button"
               aria-pressed={selected}
               onClick={() => onChange(option.inactive)}
-              className={`min-h-9 w-24 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+              className={`min-h-9 w-24 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                 selected ? `${option.activeClassName} shadow-sm` : 'text-gray-700 hover:bg-white'
               }`}
             >

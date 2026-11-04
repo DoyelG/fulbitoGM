@@ -8,7 +8,7 @@ import { SkillFilterRow } from '@/components/players/skill-filter-row'
 type Props = {
   query: string
   onQueryChange: (v: string) => void
-  isAdmin: boolean
+  canManage: boolean
   onAdd: () => void
   skillMode: SkillMode
   sortDir: 'asc' | 'desc'
@@ -19,7 +19,7 @@ type Props = {
 export function PlayersListHeader({
   query,
   onQueryChange,
-  isAdmin,
+  canManage,
   onAdd,
   skillMode,
   sortDir,
@@ -28,13 +28,14 @@ export function PlayersListHeader({
 }: Props) {
   return (
     <View style={styles.wrap}>
-      {isAdmin && (
-        <View style={styles.addRow}>
-          <HeaderAddButton onPress={onAdd} />
-        </View>
-      )}
       <PlayersSearchBar value={query} onChange={onQueryChange} />
-      <SkillFilterRow mode={skillMode} dir={sortDir} onSelect={onSkillSelect} playersCount={playersCount} />
+      <SkillFilterRow
+        mode={skillMode}
+        dir={sortDir}
+        onSelect={onSkillSelect}
+        playersCount={playersCount}
+        action={canManage ? <HeaderAddButton onPress={onAdd} /> : undefined}
+      />
     </View>
   )
 }
@@ -42,11 +43,7 @@ export function PlayersListHeader({
 const styles = StyleSheet.create({
   wrap: {
     gap: 10,
-    marginBottom: 12,
-  },
-  addRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
     marginTop: 8,
+    marginBottom: 12,
   },
 })

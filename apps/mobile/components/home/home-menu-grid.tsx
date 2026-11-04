@@ -1,5 +1,5 @@
-import { Fonts, Radii, Spacing } from '@/constants/theme'
-import { useAppTheme } from '@/hooks/use-theme'
+import { PrimaryGradient } from '@/components/primary-gradient'
+import { Fonts, Radii, PrimaryColors, Spacing } from '@/constants/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -12,7 +12,6 @@ const MENU_ITEMS = [
 ]
 
 export function HomeMenuGrid() {
-  const { colors: C } = useAppTheme()
   const router = useRouter()
 
   return (
@@ -20,10 +19,11 @@ export function HomeMenuGrid() {
       {MENU_ITEMS.map((item) => (
         <TouchableOpacity
           key={item.label}
-          style={[styles.card, { backgroundColor: C.brand }]}
+          style={styles.card}
           activeOpacity={0.75}
           onPress={() => router.push(item.href as any)}
         >
+          <PrimaryGradient />
           <Ionicons name={item.icon} size={32} color="rgba(255,255,255,0.9)" />
           <Text style={styles.label}>{item.label.toUpperCase()}</Text>
         </TouchableOpacity>
@@ -42,6 +42,9 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     borderRadius: Radii.md,
+    borderWidth: 1,
+    borderColor: PrimaryColors.border,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,

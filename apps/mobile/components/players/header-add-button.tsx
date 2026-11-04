@@ -2,12 +2,16 @@ import Feather from '@expo/vector-icons/Feather'
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet } from 'react-native'
 
+import { PrimaryGradient } from '@/components/primary-gradient'
 import { ThemedText } from '@/components/themed-text'
+import { PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
   onPress: () => void
 }
+
+const HIT_SLOP = { top: 8, bottom: 8, left: 2, right: 2 }
 
 export function HeaderAddButton({ onPress }: Props) {
   const { colors } = useAppTheme()
@@ -18,31 +22,41 @@ export function HeaderAddButton({ onPress }: Props) {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
         onPress()
       }}
-      hitSlop={12}
+      hitSlop={HIT_SLOP}
+      accessibilityRole="button"
+      accessibilityLabel="Agregar jugador"
       style={({ pressed }) => [
-        styles.pill,
-        { backgroundColor: colors.brand },
-        pressed && { opacity: 0.9 },
+        styles.chip,
+        { borderColor: PrimaryColors.border },
+        pressed && styles.pressed,
       ]}>
-      <Feather name="user-plus" size={16} color="#fff" />
-      <ThemedText style={styles.text}>Agregar</ThemedText>
+      <PrimaryGradient />
+      <Feather name="user-plus" size={14} color={colors.onAccent} />
+      <ThemedText style={[styles.label, { color: colors.onAccent }]}>Agregar</ThemedText>
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
-  pill: {
-    marginRight: 4,
+  chip: {
+    minWidth: 40,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
     borderRadius: 999,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
-  text: {
-    color: '#fff',
+  label: {
+    fontSize: 14,
+    lineHeight: 24,
     fontWeight: '700',
-    fontSize: 15,
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.97 }],
   },
 })

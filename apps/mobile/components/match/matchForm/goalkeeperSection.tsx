@@ -40,8 +40,8 @@ export function GoalkeeperSection({ poolPlayers, goalkeeperIds, maxSize, onToggl
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: active ? colors.brand : 'transparent',
-                    borderColor: active ? colors.brand : colors.border,
+                    backgroundColor: active ? colors.primary : 'transparent',
+                    borderColor: active ? colors.primary : colors.border,
                     borderRadius: radii.pill,
                     opacity: disabled ? 0.4 : 1,
                   },

@@ -36,12 +36,12 @@ export function PlayerAvatar({ name, photoUrl, size = 48 }: Props) {
       style={[
         styles.placeholder,
         dim,
-        { backgroundColor: colors.brandSoft },
+        { backgroundColor: colors.primarySoft },
       ]}>
       <ThemedText
         style={[
           styles.letter,
-          { color: colors.brand, fontSize: size * 0.4, lineHeight: size * 0.5 },
+          { color: colors.primaryText, fontSize: size * 0.4, lineHeight: size * 0.5 },
         ]}>
         {initial}
       </ThemedText>

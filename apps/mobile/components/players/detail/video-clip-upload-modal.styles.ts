@@ -83,6 +83,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   submitBtn: {
+    overflow: 'hidden',
     borderRadius: Radii.sm,
     paddingVertical: Spacing.md,
     alignItems: 'center',

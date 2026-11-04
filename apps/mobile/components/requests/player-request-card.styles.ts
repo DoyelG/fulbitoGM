@@ -74,6 +74,7 @@ export const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   button: {
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -32,6 +32,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addVideoBtn: {
+    overflow: 'hidden',
     borderRadius: Radii.sm,
     paddingVertical: Spacing.sm,
     alignItems: 'center',

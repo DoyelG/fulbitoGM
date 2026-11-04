@@ -40,11 +40,11 @@ type CardActionProps = {
 }
 
 const actionClassName =
-  'flex h-11 w-11 items-center justify-center rounded-lg sm:h-9 sm:w-9 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand'
+  'flex h-11 w-11 items-center justify-center rounded-lg sm:h-9 sm:w-9 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 
 function CardAction({ label, icon: Icon, onClick, tone = 'default' }: CardActionProps) {
   const toneClassName =
-    tone === 'danger' ? 'text-red-700 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-100 hover:text-brand'
+    tone === 'danger' ? 'text-orange-700 hover:bg-orange-50' : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
   return (
     <button
       type="button"
@@ -81,14 +81,14 @@ export default function TournamentCard({
       aria-current={active ? 'true' : undefined}
       onClick={active ? undefined : () => onActivate(tournament.id)}
       className={`flex h-full overflow-hidden rounded-xl border bg-white shadow-sm transition-colors ${
-        active ? 'border-brand ring-2 ring-brand/30' : 'cursor-pointer border-gray-200 hover:border-brand/50'
+        active ? 'border-primary ring-2 ring-primary/30' : 'cursor-pointer border-gray-200 hover:border-primary/50'
       }`}
     >
-      <div className="relative w-20 shrink-0 self-stretch bg-indigo-50 sm:w-28">
+      <div className="relative w-20 shrink-0 self-stretch bg-primary/5 sm:w-28">
         {tournament.photoUrl ? (
           <Image src={tournament.photoUrl} alt="" fill unoptimized sizes="112px" className="object-cover" />
         ) : (
-          <TrophyIcon className="absolute inset-0 m-auto h-10 w-10 text-indigo-600" aria-hidden />
+          <TrophyIcon className="absolute inset-0 m-auto h-10 w-10 text-primary" aria-hidden />
         )}
       </div>
       <div className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-start sm:gap-4 sm:p-5">
@@ -98,7 +98,7 @@ export default function TournamentCard({
               <Link
                 href={`/tournaments/${tournament.id}`}
                 onClick={(event) => event.stopPropagation()}
-                className="rounded hover:text-brand hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="rounded hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {tournament.name}
               </Link>
@@ -124,7 +124,7 @@ export default function TournamentCard({
         </div>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-0.5 border-t border-gray-100 px-2 py-1 sm:flex-col sm:self-center sm:border-0 sm:p-0">
           {active ? (
-            <span className={`${actionClassName} text-brand`} title="Torneo activo">
+            <span className={`${actionClassName} text-primary`} title="Torneo activo">
               <CheckCircleSolidIcon className="h-6 w-6 sm:h-5 sm:w-5" aria-hidden />
               <span className="sr-only">Torneo activo</span>
             </span>
@@ -140,7 +140,7 @@ export default function TournamentCard({
             onClick={(event) => event.stopPropagation()}
             aria-label={`Ver información de ${tournament.name}`}
             title="Ver información del torneo"
-            className={`${actionClassName} text-gray-700 hover:bg-gray-100 hover:text-brand`}
+            className={`${actionClassName} text-gray-700 hover:bg-gray-100 hover:text-primary`}
           >
             <InformationCircleIcon className="h-6 w-6 sm:h-5 sm:w-5" aria-hidden />
           </Link>

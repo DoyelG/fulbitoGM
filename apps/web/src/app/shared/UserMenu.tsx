@@ -14,7 +14,7 @@ type UserMenuProps = {
 }
 
 const itemClassName =
-  'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand'
+  'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary'
 
 export default function UserMenu({ closeNavBar }: UserMenuProps) {
   const { user, signOut } = useFirebaseAuth()
@@ -71,9 +71,9 @@ export default function UserMenu({ closeNavBar }: UserMenuProps) {
         <div
           role="menu"
           aria-label="Menú de usuario"
-          className="animate-pop-in absolute bottom-full left-0 z-30 mb-3 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-gray-900 shadow-xl md:bottom-auto md:left-auto md:right-0 md:mb-0 md:mt-3"
+          className="animate-pop-in absolute bottom-full left-0 z-30 mb-3 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-gray-900 shadow-xl lg:bottom-auto lg:left-auto lg:right-0 lg:mb-0 lg:mt-3"
         >
-          <div className="mb-2 flex items-center gap-3 rounded-xl bg-scoreboard p-3 text-white">
+          <div className="mb-2 flex items-center gap-3 rounded-xl bg-primary-gradient p-3 text-white">
             <PlayerAvatar name={displayName} photoUrl={linkedPlayer?.photoUrl} size="md" onDark />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{displayName}</p>
@@ -81,7 +81,7 @@ export default function UserMenu({ closeNavBar }: UserMenuProps) {
             </div>
           </div>
           <Link href="/profile" role="menuitem" onClick={closeAll} className={itemClassName}>
-            <FiUser aria-hidden className="text-brand" />
+            <FiUser aria-hidden className="text-primary" />
             Ver perfil
           </Link>
           <div className="my-1 h-px bg-gray-200" />
@@ -89,7 +89,7 @@ export default function UserMenu({ closeNavBar }: UserMenuProps) {
             type="button"
             role="menuitem"
             onClick={handleSignOut}
-            className={`${itemClassName} text-red-600 hover:bg-red-50`}
+            className={`${itemClassName} text-orange-700 hover:bg-orange-50`}
           >
             <FiLogOut aria-hidden />
             Cerrar sesión

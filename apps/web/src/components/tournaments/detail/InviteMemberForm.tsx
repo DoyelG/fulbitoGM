@@ -13,7 +13,7 @@ type Props = {
   onCancel: () => void
 }
 
-const fieldClassName = 'h-10 border rounded px-3 w-full bg-white focus:outline-none focus:ring-2 focus:ring-brand/50'
+const fieldClassName = 'h-10 border rounded px-3 w-full bg-white focus:outline-none focus:ring-2 focus:ring-primary/50'
 const invitationRoles: InvitationRole[] = ['MEMBER', 'ADMIN']
 
 export default function InviteMemberForm({ availablePlayers, onSubmit, onCancel }: Props) {
@@ -93,7 +93,7 @@ export default function InviteMemberForm({ availablePlayers, onSubmit, onCancel 
       </p>
 
       {error && (
-        <p id="invite-form-error" role="alert" className="mt-3 text-sm text-red-700">
+        <p id="invite-form-error" role="alert" className="mt-3 text-sm text-orange-700">
           {error}
         </p>
       )}

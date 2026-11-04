@@ -11,6 +11,7 @@ import { StatPlayerCard } from '@/components/statistics/stat-player-card'
 import { StatStatusFilter, type PlayerStatusFilter } from '@/components/statistics/stat-status-filter'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
+import EmptyState from '@/components/ui/empty-state/empty-state'
 import { useAnnualAwards } from '@/hooks/use-annual-awards'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { usePlayerStatistics } from '@/hooks/use-player-statistics'
@@ -22,6 +23,7 @@ export default function StatisticsScreen() {
   const router = useRouter()
   const navigation = useNavigation()
   const { colors } = useAppTheme()
+  const selectedViewColor = colors.primaryText
   const [view, setView] = useState<StatsView>('ranking')
   const [yearPickerOpen, setYearPickerOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<PlayerStatusFilter>('all')
@@ -47,7 +49,7 @@ export default function StatisticsScreen() {
       ? 'No hay estadísticas de jugadores activos.'
       : statusFilter === 'inactive'
         ? 'No hay estadísticas de jugadores inactivos.'
-        : 'No hay estadísticas disponibles.'
+        : 'Todavía no hay partidos jugados.'
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -65,8 +67,8 @@ export default function StatisticsScreen() {
               <Pressable
                 key={key}
                 onPress={() => setView(key)}
-                style={[styles.viewTab, selected && { borderColor: colors.brand }]}>
-                <ThemedText style={[styles.viewTabText, { color: selected ? colors.brand : colors.muted }]}>
+                style={[styles.viewTab, { borderColor: selected ? selectedViewColor : colors.chipBorder }]}>
+                <ThemedText style={[styles.viewTabText, { color: selected ? selectedViewColor : colors.muted }]}>
                   {key === 'ranking' ? 'RANKING' : 'PREMIOS'}
                 </ThemedText>
               </Pressable>
@@ -74,10 +76,11 @@ export default function StatisticsScreen() {
           })}
         </View>
         {view === 'ranking' ? (
-          <>
-            <StatStatusFilter value={statusFilter} onChange={setStatusFilter} />
-            <StatFilterTabs activeTab={activeTab} onChange={setActiveTab} />
-          </>
+          <StatFilterTabs
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            leading={<StatStatusFilter value={statusFilter} onChange={setStatusFilter} />}
+          />
         ) : (
           <Pressable
             onPress={() => setYearPickerOpen(true)}
@@ -99,7 +102,8 @@ export default function StatisticsScreen() {
       setActiveTab,
       statusFilter,
       setStatusFilter,
-      colors.brand,
+      selectedViewColor,
+      colors.chipBorder,
       colors.muted,
       colors.secondary,
       selection,
@@ -126,7 +130,7 @@ export default function StatisticsScreen() {
         <ThemedView style={styles.screen}>
           {header}
           <ThemedText style={styles.errorText}>{error}</ThemedText>
-          <ThemedText onPress={() => void reload()} style={[styles.retryText, { color: colors.brand }]}>
+          <ThemedText onPress={() => void reload()} style={[styles.retryText, { color: colors.primaryText }]}>
             Reintentar
           </ThemedText>
         </ThemedView>
@@ -163,13 +167,15 @@ export default function StatisticsScreen() {
           keyExtractor={(item) => item.id}
           ListHeaderComponent={header}
           ListEmptyComponent={
-            <ThemedText style={[styles.stateText, { color: colors.muted }]}>{emptyMessage}</ThemedText>
+            <View style={styles.emptyState}>
+              <EmptyState icon="bar-chart-2" title="Sin estadísticas" description={emptyMessage} />
+            </View>
           }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => void refresh()}
-              tintColor={colors.brand}
+              tintColor={colors.primaryText}
             />
           }
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}

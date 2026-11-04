@@ -189,7 +189,7 @@ export default function PlayerDetailPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="mb-4">Jugador no encontrado.</p>
-          <Link href="/players" className="text-brand hover:underline">
+          <Link href="/players" className="text-primary hover:underline">
             Volver a jugadores
           </Link>
         </div>
@@ -310,7 +310,7 @@ export default function PlayerDetailPage() {
                     Abrir edición
                   </Link>
                   <button
-                    className="px-3 py-2 rounded bg-brand text-white hover:bg-brand/90"
+                    className="px-4 py-2 text-sm font-medium rounded-xl border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
                     onClick={() => setEditMode(true)}
                   >
                     Edición rápida
@@ -366,7 +366,7 @@ export default function PlayerDetailPage() {
             <input
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+              className="w-full border rounded px-3 py-2 focus:border-primary focus:ring-primary"
               required
             />
           </div>
@@ -375,7 +375,7 @@ export default function PlayerDetailPage() {
             <select
               value={form.physical}
               onChange={(event) => setForm({ ...form, physical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+              className="w-full border rounded px-3 py-2 focus:border-primary focus:ring-primary"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <option key={n} value={n}>
@@ -389,7 +389,7 @@ export default function PlayerDetailPage() {
             <select
               value={form.technical}
               onChange={(event) => setForm({ ...form, technical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+              className="w-full border rounded px-3 py-2 focus:border-primary focus:ring-primary"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <option key={n} value={n}>
@@ -403,7 +403,7 @@ export default function PlayerDetailPage() {
             <select
               value={form.tactical}
               onChange={(event) => setForm({ ...form, tactical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+              className="w-full border rounded px-3 py-2 focus:border-primary focus:ring-primary"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <option key={n} value={n}>
@@ -421,7 +421,7 @@ export default function PlayerDetailPage() {
               onChange={(event) =>
                 setForm({ ...form, psychological: event.target.value })
               }
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+              className="w-full border rounded px-3 py-2 focus:border-primary focus:ring-primary"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <option key={n} value={n}>
@@ -435,7 +435,7 @@ export default function PlayerDetailPage() {
             <select
               value={gkQuickValue}
               onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+              className="w-full border rounded px-3 py-2 focus:border-primary focus:ring-primary"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <option key={n} value={n}>
@@ -452,7 +452,7 @@ export default function PlayerDetailPage() {
             <select
               value={form.position}
               onChange={(event) => setForm({ ...form, position: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
+              className="w-full border rounded px-3 py-2 focus:border-primary focus:ring-primary"
             >
               <option value="GK">Arquero</option>
               <option value="DEF">Defensor</option>
@@ -474,8 +474,8 @@ export default function PlayerDetailPage() {
                 type="button"
                 aria-pressed={!form.inactive}
                 onClick={() => setForm({ ...form, inactive: false })}
-                className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
-                  !form.inactive ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                  !form.inactive ? 'bg-primary-gradient text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Activo
@@ -484,7 +484,7 @@ export default function PlayerDetailPage() {
                 type="button"
                 aria-pressed={form.inactive}
                 onClick={() => setForm({ ...form, inactive: true })}
-                className={`flex-1 px-3 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
+                className={`flex-1 px-3 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                   form.inactive ? 'bg-gray-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -568,7 +568,7 @@ export default function PlayerDetailPage() {
                         recentMatch.result === "W"
                           ? "bg-green-600"
                           : recentMatch.result === "L"
-                          ? "bg-red-600"
+                          ? "bg-orange-700"
                           : "bg-gray-600"
                       }`}
                     >
@@ -576,7 +576,7 @@ export default function PlayerDetailPage() {
                     </span>
                     <span className="text-sm">
                       {new Date(recentMatch.date).toLocaleDateString()}{" "}
-                      <span className="ml-2 inline-block bg-accent text-white text-xs px-2 py-0.5 rounded">
+                      <span className="ml-2 inline-block bg-secondary text-white text-xs px-2 py-0.5 rounded">
                         {recentMatch.type}
                       </span>
                       {recentMatch.isFriendly && (

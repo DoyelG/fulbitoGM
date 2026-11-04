@@ -3,23 +3,30 @@ import { StyleSheet } from 'react-native'
 import { Fonts, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
-  filterRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
+  filterScroll: {
     marginBottom: Spacing.md,
+  },
+  filterRow: {
+    gap: Spacing.sm,
+    paddingRight: Spacing.lg,
   },
   filterChip: {
     borderWidth: 1,
     borderRadius: Radii.pill,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    minHeight: 44,
+    paddingHorizontal: Spacing.lg,
+    minHeight: 36,
+    alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  filterChipText: {
+    fontFamily: Fonts.bold,
+    fontSize: 12,
   },
   uploadButton: {
+    overflow: 'hidden',
     borderRadius: Radii.sm,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
     alignItems: 'center',
     marginBottom: Spacing.md,
     minHeight: 44,
@@ -28,6 +35,7 @@ export const styles = StyleSheet.create({
   uploadButtonText: {
     color: '#fff',
     fontFamily: Fonts.semiBold,
+    fontSize: 14,
   },
   emptyCard: {
     borderWidth: 1,

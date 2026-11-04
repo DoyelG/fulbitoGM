@@ -10,7 +10,7 @@ const MAX_VISIBLE_PAGES = 7
 
 const buttonClassName =
   'inline-flex h-11 min-w-11 items-center justify-center rounded-md px-1.5 text-sm font-medium sm:h-8 sm:min-w-8 ' +
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed'
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed'
 
 function visiblePages(current: number, total: number): (number | 'gap')[] {
   if (total <= MAX_VISIBLE_PAGES) return Array.from({ length: total }, (_, index) => index)
@@ -50,7 +50,7 @@ export default function CommentsPagination({ page, pageCount, onPageChange }: Pr
             aria-label={`Página ${item + 1}`}
             aria-current={item === page ? 'page' : undefined}
             className={`${buttonClassName} ${
-              item === page ? 'bg-brand text-white' : 'text-gray-800 hover:bg-gray-100'
+              item === page ? 'bg-primary text-white' : 'text-gray-800 hover:bg-gray-100'
             }`}
           >
             {item + 1}

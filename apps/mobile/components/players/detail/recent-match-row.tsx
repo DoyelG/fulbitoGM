@@ -10,12 +10,6 @@ type Props = {
   showBorder?: boolean
 }
 
-function resultColor(result: 'W' | 'L' | 'D'): string {
-  if (result === 'W') return '#16a34a'
-  if (result === 'L') return '#dc2626'
-  return '#6b7280'
-}
-
 function resultLabel(result: 'W' | 'L' | 'D'): string {
   if (result === 'W') return 'V'
   if (result === 'L') return 'D'
@@ -33,7 +27,11 @@ function formatDate(dateStr: string): string {
 
 export function RecentMatchRow({ match, showBorder = true }: Props) {
   const { colors } = useAppTheme()
-  const color = resultColor(match.result)
+  const resultColors = {
+    W: { background: colors.primarySoftStrong, text: colors.primaryText },
+    L: { background: colors.secondarySoft, text: colors.secondaryText },
+    D: { background: colors.chipBg, text: colors.muted },
+  }[match.result]
   const label = resultLabel(match.result)
 
   return (
@@ -42,8 +40,8 @@ export function RecentMatchRow({ match, showBorder = true }: Props) {
         styles.row,
         showBorder && { borderBottomWidth: 1, borderBottomColor: colors.border },
       ]}>
-      <View style={[styles.badge, { backgroundColor: `${color}22` }]}>
-        <ThemedText style={[styles.badgeText, { color }]}>{label}</ThemedText>
+      <View style={[styles.badge, { backgroundColor: resultColors.background }]}>
+        <ThemedText style={[styles.badgeText, { color: resultColors.text }]}>{label}</ThemedText>
       </View>
 
       <View style={styles.meta}>

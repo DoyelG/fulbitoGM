@@ -10,7 +10,7 @@ import {
 } from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
-import { useIsAdmin } from '@/hooks/use-is-admin'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useAppTheme } from '@/hooks/use-theme'
 import { AutoGenerateButton } from './matchForm/autoGenerateButton'
 import { DateField } from './matchForm/dateField'
@@ -56,7 +56,7 @@ export function MatchForm({
   onTitleChange,
 }: MatchFormProps) {
   const { colors, spacing } = useAppTheme()
-  const isAdmin = useIsAdmin()
+  const canManage = useCanManageTournament()
 
   const [matchDate, setMatchDate] = useState<string>(
     initial ? parseMatchDate(initial).date : new Date().toISOString().slice(0, 10),
@@ -247,6 +247,7 @@ export function MatchForm({
 
       <View style={styles.scoresRow}>
         <TeamScoreSection
+          side="a"
           label="Equipo A"
           players={teams.teamA}
           score={scores.teamAScore}
@@ -258,6 +259,7 @@ export function MatchForm({
           onPerfChange={scores.setPerfA}
         />
         <TeamScoreSection
+          side="b"
           label="Equipo B"
           players={teams.teamB}
           score={scores.teamBScore}
@@ -294,7 +296,7 @@ export function MatchForm({
         mode={mode}
         saving={saving}
         canSave={canSave}
-        showSave={mode === 'edit' || isAdmin}
+        showSave={mode === 'edit' || canManage}
         onCancel={onCancel}
         onSave={() => void handleSave()}
       />

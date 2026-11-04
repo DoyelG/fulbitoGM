@@ -62,13 +62,13 @@ type TeamPreviewProps = {
   physical: number
   winProbability: number
   goalkeeperIds: Set<string>
-  color: 'blue' | 'red'
+  color: 'primary' | 'secondary'
 }
 
 function TeamPreview({ title, players, skill, physical, winProbability, goalkeeperIds, color }: TeamPreviewProps) {
   return (
     <div className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      <h3 className={`mb-3 text-center font-semibold ${color === 'blue' ? 'text-blue-700' : 'text-red-700'}`}>
+      <h3 className={`mb-3 text-center font-semibold ${color === 'primary' ? 'text-primary' : 'text-orange-700'}`}>
         {title}
       </h3>
       {players.length === 0 ? (
@@ -79,7 +79,7 @@ function TeamPreview({ title, players, skill, physical, winProbability, goalkeep
             <li key={player.id}>
               <Link
                 href={`/players/${player.id}`}
-                className="block rounded bg-gray-50 px-3 py-2 text-center transition-colors hover:bg-gray-100 hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="block rounded bg-gray-50 px-3 py-2 text-center transition-colors hover:bg-gray-100 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <strong>{player.name}</strong>
                 {goalkeeperIds.has(player.id) && (
@@ -129,12 +129,12 @@ export default function NextMatchPanel({ match, today, playerById }: Props) {
       action={{ label: 'Ver historial', href: '/history' }}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-        <p className="rounded-xl border border-brand/30 px-3 py-2 text-center text-base font-semibold text-gray-900 sm:hidden">
+        <p className="rounded-xl border border-primary/30 px-3 py-2 text-center text-base font-semibold text-gray-900 sm:hidden">
           <span className="capitalize">{weekdayFormatter.format(matchDay)}</span> {matchDay.getUTCDate()} de{' '}
           {longMonthFormatter.format(matchDay)}
         </p>
         <div
-          className="hidden w-16 shrink-0 flex-col items-center justify-center rounded-xl border border-brand/30 px-2 py-1 text-brand sm:flex"
+          className="hidden w-16 shrink-0 flex-col items-center justify-center rounded-xl border border-primary/30 px-2 py-1 text-primary sm:flex"
           aria-hidden
         >
           <span className="text-[11px] font-semibold uppercase leading-tight">
@@ -148,7 +148,7 @@ export default function NextMatchPanel({ match, today, playerById }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-lg font-semibold text-gray-900">{match.name || 'Partido'}</p>
-            <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-orange-800">
+            <span className="rounded-full bg-secondary/15 px-2 py-0.5 text-xs font-semibold text-orange-800">
               {countdownLabel(daysUntil(date, today))}
             </span>
           </div>
@@ -191,7 +191,7 @@ export default function NextMatchPanel({ match, today, playerById }: Props) {
           physical={totalsA.physical}
           winProbability={probabilityA}
           goalkeeperIds={goalkeeperIds}
-          color="blue"
+          color="primary"
         />
         <TeamPreview
           title="Team B"
@@ -200,7 +200,7 @@ export default function NextMatchPanel({ match, today, playerById }: Props) {
           physical={totalsB.physical}
           winProbability={100 - probabilityA}
           goalkeeperIds={goalkeeperIds}
-          color="red"
+          color="secondary"
         />
       </div>
     </DetailSection>

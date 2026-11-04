@@ -30,7 +30,7 @@ export function SkillsSection({ values, onChange }: Props) {
   return (
     <>
       {SKILLS.map((s) => {
-        const tone = values[s.key] <= LOW_SKILL_MAX ? colors.secondary : colors.brand
+        const tone = values[s.key] <= LOW_SKILL_MAX ? colors.secondary : colors.primary
         return (
           <View
             key={s.key}

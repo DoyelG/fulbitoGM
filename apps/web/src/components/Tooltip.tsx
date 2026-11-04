@@ -12,14 +12,14 @@ type Props = {
 }
 
 const BUBBLE_STYLES = {
-  primary: 'text-brand-contrast bg-brand shadow-[0_4px_12px_rgba(124,58,237,0.35)]',
-  danger: 'text-red-600 bg-red-50 shadow-[0_4px_12px_rgba(124,58,237,0.35)]',
+  primary: 'text-primary-contrast bg-primary shadow-[0_4px_12px_rgba(76,29,149,0.35)]',
+  danger: 'text-orange-700 bg-orange-50 shadow-[0_4px_12px_rgba(76,29,149,0.35)]',
   neutral: 'text-gray-800 bg-white border border-gray-200 shadow-md',
 }
 
 const ARROW_STYLES = {
-  primary: 'bg-brand',
-  danger: 'bg-red-50',
+  primary: 'bg-primary',
+  danger: 'bg-orange-50',
   neutral: 'bg-white border-gray-200',
 }
 

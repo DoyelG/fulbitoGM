@@ -29,7 +29,7 @@ export function MatchDescription({ text }: Props) {
         disabled={!isTruncatable}
         aria-expanded={isExpanded}
         aria-label={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
-        className="flex flex-1 min-w-0 items-start gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded disabled:cursor-default"
+        className="flex flex-1 min-w-0 items-start gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded disabled:cursor-default"
       >
         <p
           ref={textRef}

@@ -22,9 +22,9 @@ const BOARDS: Board[] = [
 
 const LEADERS_PER_BOARD = 3
 const MEDAL_STYLES = [
-  'bg-brand text-white',
-  'bg-brand/15 text-brand',
-  'bg-brand/5 text-brand ring-1 ring-inset ring-brand/30',
+  'bg-primary text-white',
+  'bg-primary/15 text-primary',
+  'bg-primary/5 text-primary ring-1 ring-inset ring-primary/30',
 ]
 
 function topRows(rows: PlayerStatRow[], value: Board['value']): PlayerStatRow[] {
@@ -64,7 +64,7 @@ export default function LeadersPanel({ rows }: Props) {
                         </span>
                         <Link
                           href={`/players/${row.id}`}
-                          className="min-w-0 flex-1 truncate font-medium text-gray-900 hover:text-brand hover:underline"
+                          className="min-w-0 flex-1 truncate font-medium text-gray-900 hover:text-primary hover:underline"
                         >
                           {row.name}
                         </Link>

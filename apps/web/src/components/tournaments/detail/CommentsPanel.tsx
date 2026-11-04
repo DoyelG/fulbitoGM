@@ -36,7 +36,7 @@ function CommentAvatar({ name, photoUrl }: { name: string; photoUrl?: string }) 
   }
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold text-orange-800"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-sm font-semibold text-orange-800"
       aria-hidden
     >
       {name.charAt(0).toUpperCase() || '?'}
@@ -88,7 +88,7 @@ export default function CommentsPanel({ comments, photoByUid, canModerate, onSub
       id="comments-title"
       title="Comentarios"
       icon={ChatBubbleLeftRightIcon}
-      className="flex flex-col lg:min-h-0 lg:flex-1"
+      className="flex flex-col lg:min-h-[22rem] lg:flex-1"
     >
       <form onSubmit={handleSubmit} aria-busy={sending}>
         <label htmlFor="tournament-comment" className="sr-only">
@@ -102,7 +102,7 @@ export default function CommentsPanel({ comments, photoByUid, canModerate, onSub
           rows={3}
           placeholder="Escribí un comentario para el grupo..."
           aria-describedby={error ? 'tournament-comment-error' : 'tournament-comment-count'}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
         <div className="mt-2 flex items-center justify-between gap-3">
           <span id="tournament-comment-count" className="text-xs text-gray-700">
@@ -113,7 +113,7 @@ export default function CommentsPanel({ comments, photoByUid, canModerate, onSub
           </Button>
         </div>
         {error && (
-          <p id="tournament-comment-error" role="alert" className="mt-2 text-sm text-red-700">
+          <p id="tournament-comment-error" role="alert" className="mt-2 text-sm text-orange-700">
             {error}
           </p>
         )}
@@ -126,7 +126,7 @@ export default function CommentsPanel({ comments, photoByUid, canModerate, onSub
           role="region"
           aria-label="Lista de comentarios"
           tabIndex={0}
-          className="-mx-1 mt-5 rounded-lg px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:min-h-0 lg:flex-1 lg:overflow-y-auto"
+          className="-mx-1 mt-5 rounded-lg px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:min-h-0 lg:flex-1 lg:overflow-y-auto"
         >
           <ul className="space-y-4" aria-live="polite">
             {pageComments.map((comment) => {
@@ -148,7 +148,7 @@ export default function CommentsPanel({ comments, photoByUid, canModerate, onSub
                           disabled={deletingId === comment.id}
                           aria-label={`Borrar comentario de ${comment.authorName || 'miembro'}`}
                           title="Borrar comentario"
-                          className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50"
+                          className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-orange-50 hover:text-orange-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
                         >
                           <TrashIcon className="h-5 w-5" aria-hidden />
                         </button>

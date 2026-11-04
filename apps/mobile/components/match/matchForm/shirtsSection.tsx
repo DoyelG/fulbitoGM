@@ -8,6 +8,7 @@ import { BottomSheet } from './bottomSheet'
 import { FormLabel } from './formLabel'
 import { fieldStyles, sheetStyles } from './sharedStyles'
 import type { RecordingPlayer } from './types'
+import { PrimaryGradient } from '@/components/primary-gradient'
 
 type Props = {
   players: Player[]
@@ -70,9 +71,10 @@ export function ShirtsSection({
         <TouchableOpacity
           onPress={pickRandom}
           style={[
-            { borderRadius: radii.sm, paddingHorizontal: 14, backgroundColor: colors.brand, justifyContent: 'center', alignItems: 'center' },
+            { borderRadius: radii.sm, paddingHorizontal: 14, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
           ]}
         >
+          <PrimaryGradient />
           <Text style={{ fontSize: 18, color: '#fff' }}>✦</Text>
         </TouchableOpacity>
       </View>
@@ -95,7 +97,7 @@ export function ShirtsSection({
               style={[
                 sheetStyles.option,
                 { borderBottomColor: colors.border },
-                shirtsResponsibleId === opt.id && { backgroundColor: colors.brandSoft },
+                shirtsResponsibleId === opt.id && { backgroundColor: colors.primarySoft },
               ]}
             >
               <Text

@@ -37,7 +37,7 @@ export default function SkillSlider({ id, label, value, onChange, hint, isGoalke
         onChange={(event) => onChange(Number(event.target.value))}
         aria-valuetext={`Nivel ${value} de 10`}
         aria-describedby={hintId}
-        className="mt-2 h-2 w-full cursor-pointer accent-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+        className="mt-2 h-2 w-full cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
       />
       <div aria-hidden className="mt-1 flex justify-between text-[11px] text-gray-600">
         <span>1</span>

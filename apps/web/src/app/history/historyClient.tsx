@@ -7,6 +7,7 @@ import { useCanManageTournament } from "@/hooks/use-can-manage-tournament";
 import type { Match, MatchInput, MatchLocation } from "@fulbito/types";
 import { useMatchStore } from "@/store/useMatchStore";
 import { useVideoClipStore, type NewVideoClipData } from "@/store/useVideoClipStore";
+import Button from "@/components/Button";
 import Modal from "@/components/Modal";
 import VideoClipUploadForm from "@/components/videoClips/VideoClipUploadForm";
 import VideoClipCarousel from "@/components/videoClips/VideoClipCarousel";
@@ -34,7 +35,9 @@ import { MatchDescription } from "./matchDescription";
 import { Backdrop } from "@/components/Backdrop";
 import AddressPicker from "@/components/AddressPicker";
 import MatchLocationLink from "@/components/MatchLocationLink";
-import { FiTrash2 } from "react-icons/fi";
+import SearchInput from "@/components/SearchInput";
+import { FiEdit2, FiTrash2, FiVideo } from "react-icons/fi";
+import { MdLocalLaundryService } from "react-icons/md";
 import Chevron from "../shared/Icons/Chevron";
 
 type MatchType = "5v5" | "6v6" | "7v7" | "8v8" | "9v9" | "10v10";
@@ -42,6 +45,11 @@ const MATCH_TYPES: MatchType[] = ["5v5", "6v6", "7v7", "8v8", "9v9", "10v10"];
 const MAX_GOALKEEPERS = 2;
 
 type RecordingPlayer = { id: string; name: string };
+
+const MATCH_ACTION_SHAPE =
+  "relative inline-flex h-11 w-11 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5";
+const MATCH_ACTION_CLASS = `${MATCH_ACTION_SHAPE} bg-primary-dark/10 text-primary-dark hover:bg-primary-dark/15 focus-visible:ring-primary/40`;
+const MATCH_DELETE_CLASS = `${MATCH_ACTION_SHAPE} bg-secondary/10 text-orange-700 hover:bg-secondary/20 focus-visible:ring-secondary/40`;
 
 export default function HistoryClient() {
   const { user } = useFirebaseAuth();
@@ -165,73 +173,60 @@ export default function HistoryClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-5">
         <h1 className="text-3xl font-bold">Historial de partidos</h1>
         {canManage && (
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={() => setOpen({ mode: "create" })}
-          >
+          <Button type="button" onClick={() => setOpen({ mode: "create" })}>
             Cargar partido
-          </button>
+          </Button>
         )}
       </div>
-      <div className="mb-4 flex flex-col md:flex-row md:items-end gap-3">
-        <div className="relative flex-1">
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center">
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Buscar por título o jugador..."
+          ariaLabel="Buscar partido por título o jugador"
+          className="flex-1"
+        />
+        <div className="flex flex-wrap gap-3">
+          <label
+            htmlFor="history-from"
+            className="flex min-w-48 flex-1 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/30 md:flex-none"
           >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Buscar por título o jugador..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            className="border rounded pl-9 pr-3 py-2 w-full"
-          />
-        </div>
-        <div className="flex gap-3 flex-wrap">
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Desde</label>
+            <span className="text-sm text-gray-500">Desde</span>
             <input
+              id="history-from"
               type="date"
               value={fromDate}
               onChange={(event) => setFromDate(event.target.value)}
-              className="border rounded px-3 py-2"
+              className="min-w-0 flex-1 bg-transparent py-2 focus:outline-none"
             />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Hasta</label>
+          </label>
+          <label
+            htmlFor="history-to"
+            className="flex min-w-48 flex-1 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/30 md:flex-none"
+          >
+            <span className="text-sm text-gray-500">Hasta</span>
             <input
+              id="history-to"
               type="date"
               value={toDate}
               onChange={(event) => setToDate(event.target.value)}
-              className="border rounded px-3 py-2"
+              className="min-w-0 flex-1 bg-transparent py-2 focus:outline-none"
             />
-          </div>
+          </label>
           {(fromDate || toDate) && (
-            <div className="flex items-end">
-              <button
-                className="border rounded px-3 py-2 hover:bg-gray-50"
-                onClick={() => {
-                  setFromDate("");
-                  setToDate("");
-                }}
-              >
-                Limpiar filtros
-              </button>
-            </div>
+            <button
+              type="button"
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm hover:bg-gray-50"
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+              }}
+            >
+              Limpiar filtros
+            </button>
           )}
         </div>
       </div>
@@ -260,7 +255,7 @@ export default function HistoryClient() {
               return (
                 <div
                   key={match.id}
-                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : match.isFriendly ? "border-green-400" : "border-indigo-500"}`}
+                  className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? "border-amber-400" : match.isFriendly ? "border-green-400" : "border-primary-dark"}`}
                 >
                   <div className="flex justify-between items-center mb-3">
                     <div>
@@ -271,7 +266,7 @@ export default function HistoryClient() {
                         {formatMatchDate(matchDay)}
                         {hour !== null ? ` ${formatMatchHour(hour)}` : ''}
                       </strong>
-                      <span className="ml-2 inline-block bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
+                      <span className="ml-2 inline-block bg-primary-dark text-white text-xs px-2 py-0.5 rounded">
                         {match.type}
                       </span>
                       {isDraft && (
@@ -286,8 +281,8 @@ export default function HistoryClient() {
                       )}
                     </div>
                     {!isDraft && (
-                      <div className="text-indigo-600 font-bold text-xl">
-                        {match.teamAScore} - {match.teamBScore}
+                      <div className="shrink-0 rounded-full bg-primary-dark/10 px-4 py-1.5 text-xl font-extrabold text-primary-dark">
+                        {match.teamAScore} – {match.teamBScore}
                       </div>
                     )}
                   </div>
@@ -297,9 +292,9 @@ export default function HistoryClient() {
                         isDraft
                           ? "bg-gray-50"
                           : match.teamAScore > match.teamBScore
-                            ? "bg-green-50"
+                            ? "bg-primary-dark/5"
                             : match.teamAScore < match.teamBScore
-                              ? "bg-red-50"
+                              ? "bg-secondary/10"
                               : "bg-gray-50"
                       } rounded p-2`}
                     >
@@ -335,9 +330,9 @@ export default function HistoryClient() {
                         isDraft
                           ? "bg-gray-50"
                           : match.teamBScore > match.teamAScore
-                            ? "bg-green-50"
+                            ? "bg-primary-dark/5"
                             : match.teamBScore < match.teamAScore
-                              ? "bg-red-50"
+                              ? "bg-secondary/10"
                               : "bg-gray-50"
                       } rounded p-2`}
                     >
@@ -369,78 +364,69 @@ export default function HistoryClient() {
                       ))}
                     </div>
                   </div>
-                  <div className={`py-2 ${!match.description ? "flex" : ""}`}>
-                    <div className="grid gap-y-2 text-sm">
-                      {match.shirtsResponsibleId && (
-                        <div className="text-gray-700">
-                          🎽 Camisetas:{" "}
-                          <span className="font-medium">
-                            {storePlayers.find(
-                              (player) => player.id === match.shirtsResponsibleId,
-                            )?.name ?? "—"}
-                          </span>
-                        </div>
-                      )}
-                      {match.location?.name && (
-                        <div>
-                          📍 Ubicación: <MatchLocationLink location={match.location} />
-                        </div>
-                      )}
-                    </div>
-                    {match.description && (
-                      <MatchDescription text={match.description}/>
+                  <div className="mt-3 space-y-2 py-2">
+                    {match.location?.name && (
+                      <div className="text-sm">
+                        📍 Ubicación: <MatchLocationLink location={match.location} />
+                      </div>
                     )}
-                    <div className="flex justify-end items-center gap-3 shrink-0 ml-auto self-end">
-                      <button
-                        type="button"
-                        className="text-sm px-3 py-1 rounded border hover:bg-gray-50 flex items-center gap-1"
-                        onClick={() => setViewClipsMatch(match)}
-                        aria-label={`Ver clips del partido${match.name ? `: ${match.name}` : ""}`}
-                      >
-                        <span aria-hidden="true">🎥</span>
-                        {videoClips.filter((clip) => clip.matchId === match.id).length > 0 && (
-                          <span className="text-xs bg-brand text-white rounded-full px-1.5">
-                            {videoClips.filter((clip) => clip.matchId === match.id).length}
+                    {match.description && <MatchDescription text={match.description} />}
+                    <div className="flex flex-wrap items-center gap-3">
+                      {match.shirtsResponsibleId && (
+                        <div className="flex min-w-0 flex-1 items-center gap-2 text-sm">
+                          <MdLocalLaundryService className="h-5 w-5 shrink-0 text-primary-dark" aria-hidden="true" />
+                          <span className="sr-only">Camisetas:</span>
+                          <span className="truncate font-medium">
+                            {storePlayers.find((player) => player.id === match.shirtsResponsibleId)?.name ?? "—"}
                           </span>
-                        )}
-                      </button>
-                      {canManage && (
-                        <>
-                          {isDraft ? (
-                            <>
+                        </div>
+                      )}
+                      <div className="ml-auto flex shrink-0 items-center gap-2">
+                        <button
+                          type="button"
+                          className={MATCH_ACTION_CLASS}
+                          onClick={() => setViewClipsMatch(match)}
+                          aria-label={`Ver clips del partido${match.name ? `: ${match.name}` : ""}`}
+                        >
+                          <FiVideo className="h-[18px] w-[18px] sm:h-4 sm:w-4" aria-hidden="true" />
+                          <span className="hidden sm:inline">Clips</span>
+                          {videoClips.filter((clip) => clip.matchId === match.id).length > 0 && (
+                            <span className="absolute -right-1 -top-1 rounded-full bg-primary-dark px-1.5 text-xs text-white sm:static">
+                              {videoClips.filter((clip) => clip.matchId === match.id).length}
+                            </span>
+                          )}
+                        </button>
+                        {canManage && (
+                          <>
+                            <button
+                              type="button"
+                              className={MATCH_ACTION_CLASS}
+                              onClick={() => setOpen({ mode: "edit", match })}
+                              aria-label="Editar partido"
+                            >
+                              <FiEdit2 className="h-[18px] w-[18px] sm:h-4 sm:w-4" aria-hidden="true" />
+                              <span className="hidden sm:inline">Editar</span>
+                            </button>
+                            {isDraft && (
                               <button
-                                className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                                onClick={() =>
-                                  setOpen({ mode: "edit", match })
-                                }
-                              >
-                                Editar
-                              </button>
-                              <button
-                                className="text-sm px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-                                onClick={() =>
-                                  setOpen({ mode: "edit", match })
-                                }
+                                className="px-4 py-2 text-sm font-medium rounded border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
+                                onClick={() => setOpen({ mode: "edit", match })}
                               >
                                 Completar resultado
                               </button>
-                            </>
-                          ) : (
+                            )}
                             <button
-                              className="text-sm px-3 py-1 rounded border hover:bg-gray-50"
-                              onClick={() => setOpen({ mode: "edit", match })}
+                              type="button"
+                              className={MATCH_DELETE_CLASS}
+                              onClick={() => handleDelete(match.id)}
+                              aria-label="Eliminar partido"
                             >
-                              Editar
+                              <FiTrash2 className="h-[18px] w-[18px] sm:h-4 sm:w-4" aria-hidden="true" />
+                              <span className="hidden sm:inline">Eliminar</span>
                             </button>
-                          )}
-                          <button
-                            className="text-red-600 hover:text-red-800 text-sm"
-                            onClick={() => handleDelete(match.id)}
-                          >
-                            Eliminar
-                          </button>
-                        </>
-                      )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -470,8 +456,8 @@ export default function HistoryClient() {
         open={showModal}
         onClose={() => setShowModal(false)}>
           <div className="p-2 text-center">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-100">
-              <FiTrash2 className="text-red-600" size={20} />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-orange-100">
+              <FiTrash2 className="text-orange-700" size={20} />
             </div>
               <p className="text-gray-600">
                 ¿Estás seguro de que querés eliminar al partido: {' '}
@@ -488,7 +474,7 @@ export default function HistoryClient() {
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="flex-1 px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              className="flex-1 px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800 transition"
             >
               Eliminar
             </button>
@@ -544,7 +530,7 @@ export default function HistoryClient() {
           <div className="flex justify-end mb-4">
             <button
               type="button"
-              className="text-sm px-3 py-1.5 rounded bg-brand text-white hover:bg-brand/90"
+              className="px-4 py-2 text-sm font-medium rounded border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
               onClick={() => {
                 setVideoUploadError(null);
                 setVideoUploadMatch(viewClipsMatch);
@@ -558,13 +544,13 @@ export default function HistoryClient() {
         {viewDeleteError && (
           <div
             role="alert"
-            className="mb-4 flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+            className="mb-4 flex items-center justify-between rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-800"
           >
             <span>{viewDeleteError}</span>
             <button
               type="button"
               onClick={() => setViewDeleteError(null)}
-              className="ml-3 text-red-800 hover:text-red-950 focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+              className="ml-3 text-orange-800 hover:text-orange-950 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded"
               aria-label="Descartar error"
             >
               ✕
@@ -572,7 +558,7 @@ export default function HistoryClient() {
           </div>
         )}
         {videoClipsInit === "error" ? (
-          <div role="alert" className="text-red-800">
+          <div role="alert" className="text-orange-800">
             No se pudieron cargar los clips.
           </div>
         ) : viewClips.length === 0 ? (
@@ -939,7 +925,7 @@ function RecordModal({
               aria-label="Partido amistoso"
               onClick={() => setIsFriendly((current) => !current)}
               className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
-                isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-brand to-accent"
+                isFriendly ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-gradient-to-r from-primary to-secondary"
               }`}
             >
               <span
@@ -1078,7 +1064,7 @@ function RecordModal({
               className={`mt-2 text-center font-semibold rounded px-2 py-1 ${
                 teamAScore === totalGoalsA
                   ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                  : "bg-orange-100 text-orange-800"
               }`}
             >
               Total: {totalGoalsA} goles
@@ -1144,7 +1130,7 @@ function RecordModal({
               className={`mt-2 text-center font-semibold rounded px-2 py-1 ${
                 teamBScore === totalGoalsB
                   ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                  : "bg-orange-100 text-orange-800"
               }`}
             >
               Total: {totalGoalsB} goles
@@ -1252,7 +1238,7 @@ function RecordModal({
           </div>
         </div>
 
-        <div className="mt-3 bg-purple-50 border border-purple-200 rounded p-3">
+        <div className="mt-3 bg-primary/5 border border-primary/20 rounded p-3">
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="text-sm">
               <div className="font-semibold flex items-center gap-1.5">
@@ -1263,7 +1249,7 @@ function RecordModal({
                 Marcá quién atajó (máximo {MAX_GOALKEEPERS})
               </div>
             </div>
-            <span className="text-sm px-2 py-0.5 rounded bg-purple-100 text-purple-800 shrink-0">
+            <span className="text-sm px-2 py-0.5 rounded bg-primary/10 text-primary shrink-0">
               {goalkeeperIds.length} / {MAX_GOALKEEPERS}
             </span>
           </div>
@@ -1286,7 +1272,7 @@ function RecordModal({
                     aria-pressed={active}
                     className={`text-sm px-3 py-1 rounded-full border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                       active
-                        ? "bg-brand text-white border-brand"
+                        ? "bg-primary text-white border-primary"
                         : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                     }`}
                   >
@@ -1308,7 +1294,7 @@ function RecordModal({
           </button>
           {isDraft && (
             <button
-              className={`px-4 py-2 rounded text-white ${
+              className={`px-4 py-2 text-sm font-medium rounded text-white ${
                 canUpdateDraft
                   ? "bg-amber-500 hover:bg-amber-600"
                   : "bg-gray-400 cursor-not-allowed"
@@ -1320,9 +1306,9 @@ function RecordModal({
             </button>
           )}
           <button
-            className={`px-4 py-2 rounded text-white ${
+            className={`px-4 py-2 text-sm font-medium rounded text-white ${
               canConfirm
-                ? "bg-blue-600 hover:bg-blue-700"
+                ? "border border-primary-dark bg-primary-gradient hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
             disabled={!canConfirm || isLoading}

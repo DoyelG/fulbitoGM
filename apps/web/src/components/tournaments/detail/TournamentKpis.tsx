@@ -16,10 +16,10 @@ type IconType = ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
 
 const cardClassName =
   'flex h-full items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors ' +
-  'hover:border-brand/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand'
+  'hover:border-primary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 
-function KpiIcon({ icon: Icon, tone = 'brand' }: { icon: IconType; tone?: 'brand' | 'gold' }) {
-  const toneClassName = tone === 'gold' ? 'bg-amber-100 text-amber-700' : 'bg-brand/10 text-brand'
+function KpiIcon({ icon: Icon, tone = 'primary' }: { icon: IconType; tone?: 'primary' | 'gold' }) {
+  const toneClassName = tone === 'gold' ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'
   return (
     <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${toneClassName}`}>
       <Icon className="h-5 w-5" aria-hidden />

@@ -55,7 +55,7 @@ type OriginalPlayerData = PlayerFormValues & { goalkeeping: number }
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const fieldClassName =
-  'mt-1 h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/40'
+  'mt-1 h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40'
 
 const statusLabel = (inactive: boolean) => (inactive ? 'Inactivo' : 'Activo')
 const photoStatusLabel = (photoUrl: string | null) => (photoUrl ? 'Con foto' : 'Sin foto')

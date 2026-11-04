@@ -1,6 +1,9 @@
 import { StyleSheet } from 'react-native'
 
 export const sheetStyles = StyleSheet.create({
+  keyboard: {
+    flex: 1,
+  },
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -75,6 +78,7 @@ export const locationStyles = StyleSheet.create({
     flex: 1,
   },
   addBtn: {
+    overflow: 'hidden',
     width: 28,
     height: 39,
     justifyContent: 'center',

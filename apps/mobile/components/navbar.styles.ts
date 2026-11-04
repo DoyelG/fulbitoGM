@@ -1,58 +1,81 @@
 import { StyleSheet } from 'react-native'
 
+import { Fonts, Radii, PrimaryColors, Spacing } from '@/constants/theme'
+
 export const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-    justifyContent: 'space-between',
-  },
-  iconBtn: {
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
     alignItems: 'center',
-  },
-  lines: {
-    width: 24,
-    height: 16,
     justifyContent: 'space-between',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.sm,
+    overflow: 'hidden',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: PrimaryColors.divider,
   },
-  line: {
-    width: 24,
-    height: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    minHeight: 44,
   },
-  logo: {
+  brandLogo: {
+    width: 30,
+    height: 30,
+  },
+  primaryText: {
     fontSize: 20,
-    fontWeight: '900',
-    fontStyle: 'italic',
-    color: '#FFFFFF',
-    letterSpacing: 1.5,
+    fontFamily: Fonts.extraBold,
+    color: PrimaryColors.onPrimary,
+    letterSpacing: -0.3,
+  },
+  actions: {
+    flexShrink: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  tournamentChip: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderRadius: Radii.pill,
+    borderWidth: 1,
+    backgroundColor: PrimaryColors.chipBg,
+    borderColor: PrimaryColors.chipBorder,
+  },
+  tournamentChipActive: {
+    borderWidth: 2,
+    backgroundColor: PrimaryColors.glow,
+    borderColor: PrimaryColors.onPrimary,
+  },
+  tournamentChipPressed: {
+    opacity: 0.75,
+  },
+  tournamentPhoto: {
+    width: '100%',
+    height: '100%',
   },
   enterBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 2,
+    borderRadius: Radii.xs,
     borderWidth: 1.5,
-    backgroundColor: 'rgba(255,255,255,0.20)',
-    borderColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: PrimaryColors.chipBg,
+    borderColor: PrimaryColors.chipBorder,
   },
   enterText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontFamily: Fonts.bold,
+    color: PrimaryColors.onPrimary,
     letterSpacing: 1.5,
   },
   badge: {
     position: 'absolute',
     top: -8,
     right: -8,
-  },
-  navLeft: {
-    flexDirection: 'row',
-    gap: 12,
   },
 })

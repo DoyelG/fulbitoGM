@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getMyTournamentPlayerRequest, type AppUser } from '@fulbito/firebase'
+import { getMyTournamentPlayerRequest, getPlayers, getTournamentMembers, type AppUser } from '@fulbito/firebase'
+import { hasLinkablePlayers } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournamentLinkPlayerActions } from '@/hooks/use-tournament-link-player-actions'
 import { dismissPrompt, isPromptDismissed, linkPlayerPromptKey } from '@/lib/dismissed-prompts'
@@ -26,9 +27,13 @@ function LinkPlayerModalContent({ user, tournamentId }: { user: AppUser; tournam
   useEffect(() => {
     if (isPromptDismissed(storageKey)) return
     let isCurrent = true
-    getMyTournamentPlayerRequest(tournamentId, user.uid)
-      .then((request) => {
-        if (isCurrent && request?.status !== 'pending') setIsOpen(true)
+    Promise.all([
+      getMyTournamentPlayerRequest(tournamentId, user.uid),
+      getPlayers(tournamentId),
+      getTournamentMembers(tournamentId),
+    ])
+      .then(([request, players, members]) => {
+        if (isCurrent && request?.status !== 'pending' && hasLinkablePlayers(players, members)) setIsOpen(true)
       })
       .catch(() => undefined)
     return () => {

@@ -1,4 +1,17 @@
-import type { Player, TournamentMember, TournamentRole } from '@fulbito/types'
+import type { InvitationRole, Player, TournamentMember, TournamentRole } from '@fulbito/types'
+
+export const TOURNAMENT_ROLE_LABELS: Record<TournamentRole, string> = {
+  OWNER: 'Creador',
+  ADMIN: 'Administrador',
+  MEMBER: 'Miembro',
+}
+
+export const ASSIGNABLE_ROLES: InvitationRole[] = ['MEMBER', 'ADMIN']
+
+export const TOURNAMENT_ROLE_HINTS: Record<InvitationRole, string> = {
+  MEMBER: 'Ve todo el torneo y edita solo su jugador.',
+  ADMIN: 'Gestiona jugadores, partidos, invitaciones y miembros.',
+}
 
 export function canRemoveMember(actorRole: TournamentRole, targetRole: TournamentRole): boolean {
   if (targetRole === 'OWNER') return false
@@ -14,6 +27,11 @@ export function getAssignablePlayers(
   return players
     .filter((player) => player.id === member.playerId || (!player.inactive && !takenIds.has(player.id)))
     .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+}
+
+export function hasLinkablePlayers(players: Player[], members: TournamentMember[]): boolean {
+  const takenIds = new Set(members.flatMap(({ playerId }) => (playerId ? [playerId] : [])))
+  return players.some((player) => !player.inactive && !takenIds.has(player.id))
 }
 
 export function canChangeMemberRole(actorRole: TournamentRole, targetRole: TournamentRole): boolean {

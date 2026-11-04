@@ -1,5 +1,3 @@
-import type { Role } from '@fulbito/types'
-import { roleLabels } from '@fulbito/utils'
 import { Image } from 'expo-image'
 import { Text, View } from 'react-native'
 
@@ -9,11 +7,11 @@ import { styles } from './profile-header.styles'
 
 type Props = {
   email: string
-  roles: Role[]
+  badges: string[]
   photoUrl?: string | null
 }
 
-export function ProfileHeader({ email, roles, photoUrl }: Props) {
+export function ProfileHeader({ email, badges, photoUrl }: Props) {
   const avatar = (
     <View style={styles.avatar}>
       {photoUrl ? (
@@ -32,9 +30,9 @@ export function ProfileHeader({ email, roles, photoUrl }: Props) {
   return (
     <GradientHeader leading={avatar} title={email.split('@')[0]} subtitle={email} centered>
       <View style={styles.roles}>
-        {roles.map((role) => (
-          <View key={role} style={styles.role}>
-            <Text style={styles.roleText}>{roleLabels[role]}</Text>
+        {badges.map((badge) => (
+          <View key={badge} style={styles.role}>
+            <Text style={styles.roleText}>{badge}</Text>
           </View>
         ))}
       </View>

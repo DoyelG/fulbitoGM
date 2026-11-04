@@ -30,14 +30,15 @@ function IconButton({
   onClick: () => void
   children: ReactNode
 }) {
-  const hover = variant === 'danger' ? 'hover:text-red-600 hover:bg-red-50' : 'hover:text-brand hover:bg-brand/10'
+  const hover =
+    variant === 'danger' ? 'hover:text-orange-700 hover:bg-orange-50' : 'hover:text-primary hover:bg-primary/10'
   return (
     <Tooltip label={label} position="bottom" variant={variant}>
       <button
         type="button"
         aria-label={label}
         onClick={onClick}
-        className={`flex h-9 w-9 items-center justify-center rounded-md text-gray-600 transition-colors focus-visible:outline-2 focus-visible:outline-brand ${hover}`}
+        className={`flex h-9 w-9 items-center justify-center rounded-md text-gray-600 transition-colors focus-visible:outline-2 focus-visible:outline-primary ${hover}`}
       >
         {children}
       </button>

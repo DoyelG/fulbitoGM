@@ -4,16 +4,16 @@ type LinkPlayerHeroProps = {
   icon: IconType
   title: string
   description: string
-  tone?: 'brand' | 'success' | 'danger'
+  tone?: 'primary' | 'success' | 'danger'
 }
 
 const TONE_STYLES = {
-  brand: 'bg-scoreboard text-white',
+  primary: 'bg-primary-gradient text-white',
   success: 'bg-green-600 text-white',
-  danger: 'bg-red-600 text-white',
+  danger: 'bg-orange-700 text-white',
 }
 
-export default function LinkPlayerHero({ icon: Icon, title, description, tone = 'brand' }: LinkPlayerHeroProps) {
+export default function LinkPlayerHero({ icon: Icon, title, description, tone = 'primary' }: LinkPlayerHeroProps) {
   return (
     <div className="text-center">
       <div

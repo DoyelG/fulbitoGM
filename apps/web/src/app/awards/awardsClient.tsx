@@ -19,19 +19,19 @@ const sectionVariants = {
 }
 
 const ACCENT_BAR: Record<AwardAccent, string> = {
-  brand: 'bg-[var(--color-brand)]',
-  secondary: 'bg-[var(--color-accent)]',
+  primary: 'bg-[var(--color-primary)]',
+  secondary: 'bg-[var(--color-secondary)]',
   muted: 'bg-gray-400',
 }
 
 const ACCENT_CHIP: Record<AwardAccent, string> = {
-  brand: 'bg-[var(--color-brand)]',
+  primary: 'bg-[var(--color-primary)]',
   secondary: 'bg-orange-700',
   muted: 'bg-gray-600',
 }
 
 const ACCENT_WASH: Record<AwardAccent, string> = {
-  brand: 'bg-gradient-to-b from-violet-100 via-violet-50 to-white',
+  primary: 'bg-gradient-to-b from-primary/10 via-primary/5 to-white',
   secondary: 'bg-gradient-to-b from-orange-100 via-orange-50 to-white',
   muted: 'bg-gradient-to-b from-gray-200 via-gray-100 to-white',
 }

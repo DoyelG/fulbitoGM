@@ -79,7 +79,7 @@ export default function PlayerCard({ overall, photoUrl, skills, goalkeeping, cla
                   type="button"
                   aria-label="Eliminar foto"
                   onClick={deletePhoto}
-                  className="w-6 h-6 rounded-full bg-white ring-1 ring-gray-300 shadow flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                  className="w-6 h-6 rounded-full bg-white ring-1 ring-gray-300 shadow flex items-center justify-center text-gray-500 hover:text-orange-700 hover:bg-orange-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   <FiTrash2 size={14} />
                 </button>

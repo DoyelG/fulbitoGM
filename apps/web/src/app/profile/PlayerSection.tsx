@@ -16,7 +16,7 @@ type PlayerSectionProps = {
 }
 
 const inputClassName =
-  'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/50'
+  'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50'
 
 export default function PlayerSection({ player, index }: PlayerSectionProps) {
   const { players, updatePlayer } = usePlayerStore()
@@ -69,7 +69,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
     <ProfileSection icon={FiUserCheck} title="Mi jugador" index={index}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center gap-4">
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-brand/30">
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-primary/30">
             <Image
               src={photoPreview ?? '/silhouette.svg'}
               alt="Foto del jugador"
@@ -123,7 +123,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
           </select>
         </div>
         {errorMessage && (
-          <p id="player-error" role="alert" className="text-sm text-red-700">
+          <p id="player-error" role="alert" className="text-sm text-orange-700">
             {errorMessage}
           </p>
         )}

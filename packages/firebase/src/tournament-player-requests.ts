@@ -94,7 +94,6 @@ export async function createTournamentPlayerRequest(input: CreateTournamentPlaye
     throw new TournamentPlayerRequestError('Ya existe un jugador con ese nombre')
   }
 
-  // A rejected request stays readable to its author until they try again, so it has to be cleared first.
   if (existing.exists()) await deleteDoc(existing.ref)
 
   const now = Timestamp.now()

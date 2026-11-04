@@ -51,7 +51,7 @@ export default function TournamentConfirmDialog({
       <div aria-busy={confirming}>
         <p className="text-sm text-gray-800">{message}</p>
         {error && (
-          <p role="alert" className="mt-3 text-sm text-red-700">
+          <p role="alert" className="mt-3 text-sm text-orange-700">
             {error}
           </p>
         )}

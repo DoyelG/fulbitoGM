@@ -64,7 +64,7 @@ function DatePickerModal({
         <View style={sheetStyles.header}>
           <Text style={[sheetStyles.title, { color: colors.text }]}>Seleccionar fecha</Text>
           <TouchableOpacity onPress={onClose}>
-            <Text style={[sheetStyles.close, { color: colors.brand }]}>Listo</Text>
+            <Text style={[sheetStyles.close, { color: colors.primaryText }]}>Listo</Text>
           </TouchableOpacity>
         </View>
         <DateTimePicker
