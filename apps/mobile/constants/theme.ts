@@ -245,6 +245,17 @@ export const Shadows = {
       android: { elevation: 2 },
       default: {},
     }),
+  navbar: () =>
+    Platform.select({
+      ios: {
+        shadowColor: PRIMARY,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: { elevation: 6 },
+      default: {},
+    }),
 } as const
 
 export const Fonts = {

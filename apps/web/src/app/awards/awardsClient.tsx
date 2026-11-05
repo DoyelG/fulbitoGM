@@ -48,7 +48,7 @@ export function AwardsClient({ players, matches }: Props) {
         seasonYear={isHallOfFame ? null : (selection as number)}
       />
 
-      <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
+      <div className="sticky top-[var(--site-header-offset,0px)] z-20 border-b transition-[top] duration-300 ease-out motion-reduce:transition-none border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <h1 className="text-3xl font-black italic tracking-tight">
             {isHallOfFame ? 'Hall of Fame' : 'Premios del Año'}

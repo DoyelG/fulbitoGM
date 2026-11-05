@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Fonts, Radii, PrimaryColors, Spacing } from '@/constants/theme'
+import { Fonts, Radii, PrimaryColors, Shadows, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   bar: {
@@ -10,9 +10,10 @@ export const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.sm,
-    overflow: 'hidden',
+    zIndex: 1,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: PrimaryColors.divider,
+    ...Shadows.navbar(),
   },
   brand: {
     flexDirection: 'row',

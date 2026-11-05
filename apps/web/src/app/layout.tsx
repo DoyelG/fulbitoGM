@@ -6,6 +6,7 @@ import AuthProvider from "./shared/AuthProvider"
 import AuthGate from "./shared/AuthGate"
 import ActiveTournamentGate from "./shared/ActiveTournamentGate"
 import NavBar from "./NavBar"
+import SiteHeader from "./SiteHeader"
 import LinkPlayerModal from "@/components/LinkPlayerModal"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -25,13 +26,13 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <div className="min-h-screen bg-gray-50">
-            <header className="bg-primary-gradient border-b border-white/10 text-white shadow-md">
+            <SiteHeader>
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center">
                   <NavBar />
                 </div>
               </div>
-            </header>
+            </SiteHeader>
             <main>
               <AuthGate>
                 <ActiveTournamentGate>{children}</ActiveTournamentGate>
