@@ -23,7 +23,7 @@ type Props = {
   onDelete: (item: MyTournament) => void
   onLeave: (item: MyTournament) => void
   onLinkPlayer: (item: MyTournament) => void
-  nextMatch?: Pick<Match, 'date' | 'hasTime'> | null
+  nextMatch?: Pick<Match, 'id' | 'date' | 'hasTime'> | null
   playerName?: string | null
 }
 
@@ -116,6 +116,7 @@ export default function TournamentCard({
             playerId={membership.playerId}
             playerName={playerName}
             nextMatchLabel={nextMatch ? formatNextMatch(nextMatch) : null}
+            nextMatchId={nextMatch?.id ?? null}
             onNavigate={() => {
               if (!active) onActivate(tournament.id)
             }}

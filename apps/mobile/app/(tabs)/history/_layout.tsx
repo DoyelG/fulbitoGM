@@ -10,6 +10,7 @@ export default function HistoryLayout() {
       />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ title: 'Historial' }} />
+        <Stack.Screen name="[id]" options={{ title: 'Partido' }} />
         <Stack.Screen name="new" options={{ title: 'Nuevo partido' }} />
         <Stack.Screen name="edit/[id]" options={{ title: 'Editar partido' }} />
       </Stack>

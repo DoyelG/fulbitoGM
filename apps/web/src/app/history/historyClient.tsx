@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
@@ -37,7 +38,6 @@ import AddressPicker from '@/components/AddressPicker'
 import MatchLocationLink from '@/components/MatchLocationLink'
 import SearchInput from '@/components/SearchInput'
 import { FiCheckCircle, FiEdit2, FiTrash2, FiVideo } from 'react-icons/fi'
-import { MdLocalLaundryService } from 'react-icons/md'
 import Chevron from '../shared/Icons/Chevron'
 import WidgetError from '@/components/home/WidgetError'
 import CopyMatchImageButton from '@/components/tournaments/detail/CopyMatchImageButton'
@@ -245,15 +245,25 @@ export default function HistoryClient() {
             return (
               <div
                 key={match.id}
-                className={`bg-white rounded-lg shadow p-4 border-l-4 ${isDraft ? 'border-amber-400' : match.isFriendly ? 'border-green-400' : 'border-primary-dark'}`}
+                className={`group relative bg-white rounded-lg shadow p-4 border-l-4 transition-all duration-200 hover:shadow-md hover:border-l-6 hover:pl-3.5 ${isDraft ? 'border-amber-400' : match.isFriendly ? 'border-green-400' : 'border-primary-dark'}`}
               >
                 <div className="flex justify-between items-center mb-3">
                   <div>
-                    {match.name && <div className="text-lg mb-1 font-bold">{match.name}</div>}
-                    <strong>
-                      {formatMatchDate(matchDay)}
-                      {hour !== null ? ` ${formatMatchHour(hour)}` : ''}
-                    </strong>
+                    <Link
+                      href={`/history/${match.id}`}
+                      aria-label={`Ver partido${match.name ? ` ${match.name}` : ''} del ${formatMatchDate(matchDay)}`}
+                      className="rounded after:absolute after:inset-0 after:rounded-lg after:content-[''] focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-primary"
+                    >
+                      {match.name && (
+                        <span className="block text-lg mb-1 font-bold transition-colors group-hover:text-primary group-hover:underline">
+                          {match.name}
+                        </span>
+                      )}
+                      <strong>
+                        {formatMatchDate(matchDay)}
+                        {hour !== null ? ` ${formatMatchHour(hour)}` : ''}
+                      </strong>
+                    </Link>
                     <span className="ml-2 inline-block bg-primary-dark text-white text-xs px-2 py-0.5 rounded">
                       {match.type}
                     </span>
@@ -272,7 +282,7 @@ export default function HistoryClient() {
                     canManage && (
                       <button
                         type="button"
-                        className={`${MATCH_COMPLETE_CLASS} shrink-0`}
+                        className={`${MATCH_COMPLETE_CLASS} relative z-10 shrink-0`}
                         onClick={() => setOpen({ mode: 'edit', match })}
                         aria-label="Completar resultado"
                       >
@@ -364,23 +374,25 @@ export default function HistoryClient() {
                     ))}
                   </div>
                 </div>
-                <div className="mt-3 space-y-2 py-2">
-                  {match.location?.name && (
-                    <div className="text-sm">
-                      📍 Ubicación: <MatchLocationLink location={match.location} />
-                    </div>
-                  )}
+                <div className="relative z-10 mt-3 space-y-3 pb-2">
                   {match.description && <MatchDescription text={match.description} />}
                   <div className="flex flex-wrap items-center gap-3">
-                    {match.shirtsResponsibleId && (
-                      <div className="flex min-w-0 flex-1 items-center gap-2 text-sm">
-                        <MdLocalLaundryService className="h-5 w-5 shrink-0 text-primary-dark" aria-hidden="true" />
-                        <span className="sr-only">Camisetas:</span>
-                        <span className="truncate font-medium">
-                          {storePlayers.find((player) => player.id === match.shirtsResponsibleId)?.name ?? '—'}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+                      {match.location?.name && (
+                        <div className="min-w-0">
+                          <span className="text-gray-700">Ubicación:</span>{' '}
+                          <MatchLocationLink location={match.location} />
+                        </div>
+                      )}
+                      {match.shirtsResponsibleId && (
+                        <div className="flex min-w-0 items-center gap-1">
+                          <span className="text-gray-700">Lava:</span>
+                          <span className="truncate font-medium">
+                            {storePlayers.find((player) => player.id === match.shirtsResponsibleId)?.name ?? '—'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     <div className="ml-auto flex shrink-0 items-center gap-2">
                       <button
                         type="button"
@@ -582,7 +594,7 @@ export default function HistoryClient() {
   )
 }
 
-function RecordModal({
+export function RecordModal({
   mode = 'create',
   initial,
   onClose,

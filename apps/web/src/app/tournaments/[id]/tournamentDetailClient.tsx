@@ -89,6 +89,9 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
   const statRows = useMemo(() => computePlayerStatRows(players, finalMatches), [players, finalMatches])
   const today = toLocalDay(new Date())
   const nextMatch = useMemo(() => pickNextMatch(matches, today), [matches, today])
+  const activateTournament = () => {
+    if (activeTournamentId !== tournamentId) setActiveTournament(tournamentId)
+  }
   const recentMatches = useMemo(() => pickRecentMatches(matches, RECENT_MATCHES_LIMIT), [matches])
   const champion = useMemo(() => pickCurrentChampion(players, finalMatches), [players, finalMatches])
   const totalGoals = useMemo(() => statRows.reduce((sum, row) => sum + row.goals, 0), [statRows])
@@ -182,9 +185,10 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
               tournamentPhotoUrl={tournament.photoUrl ?? null}
               today={today}
               playerById={playerById}
+              onOpenMatch={activateTournament}
             />
             <LeadersPanel rows={statRows} />
-            <RecentMatchesPanel matches={recentMatches} />
+            <RecentMatchesPanel matches={recentMatches} onOpenMatch={activateTournament} />
           </div>
           <div className="flex flex-col gap-5 lg:min-h-[40rem]">
             {isDetailLoaded && isModerator && (

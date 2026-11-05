@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { Colors } from '@/constants/theme'
+import { Colors, Fonts } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   card: {
@@ -58,16 +58,18 @@ export const styles = StyleSheet.create({
     paddingTop: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 4,                   
   },
   metricItem: {
     flex: 1,
     alignItems: 'center',
   },
+  metricDivider: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+  },
   metricValue: {
-    fontSize: 18,             
-    lineHeight: 22,           
-    fontWeight: '700',       
+    fontSize: 15,
+    lineHeight: 20,
+    fontFamily: Fonts.medium,
   },
   metricIcon: {
     marginBottom: 4,

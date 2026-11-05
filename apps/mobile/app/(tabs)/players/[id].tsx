@@ -1,27 +1,25 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import type { ReactNode } from 'react'
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { getGoalkeeping } from '@fulbito/utils'
 
-import { PlayerAvatar } from '@/components/players/player-avatar'
 import { StreakBadge } from '@/components/players/streak-badge'
 import { InactiveBadge } from '@/components/players/inactive-badge'
-import { PlayerSkillBars } from '@/components/players/detail/player-skill-bars'
 import { PlayerStatsGrid } from '@/components/players/detail/player-stats-grid'
 import { RecentMatchRow } from '@/components/players/detail/recent-match-row'
 import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
+import { PlayerGoldCard } from '@/components/players/detail/player-gold-card'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
-import { useMyPlayerId } from '@/contexts/TournamentContext'
+import { useMyPlayerId, useTournaments } from '@/contexts/TournamentContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { usePlayerDetail } from '@/hooks/use-player-detail'
 import { useAppTheme } from '@/hooks/use-theme'
 import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 import { PrimaryGradient } from '@/components/primary-gradient'
 
-const AVATAR_SIZE = 80
 const RECENT_MAX = 10
 
 export default function PlayerDetailScreen() {
@@ -29,6 +27,7 @@ export default function PlayerDetailScreen() {
   const router = useRouter()
   const canManage = useCanManageTournament()
   const myPlayerId = useMyPlayerId()
+  const { activeTournament } = useTournaments()
   const { colors, isDark, shadows } = useAppTheme()
 
   const {
@@ -43,6 +42,7 @@ export default function PlayerDetailScreen() {
     error,
     refresh,
     reload,
+    deletePlayer,
   } = usePlayerDetail(id)
 
   if (loading) {
@@ -79,6 +79,24 @@ export default function PlayerDetailScreen() {
 
   const recentSlice = stats.recent.slice(0, RECENT_MAX)
 
+  const confirmDelete = () => {
+    Alert.alert('Confirmar eliminación', `¿Estás seguro de que querés eliminar a ${player.name}?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deletePlayer(player.id)
+            router.back()
+          } catch (e) {
+            Alert.alert('No se pudo eliminar', e instanceof Error ? e.message : 'Intentá de nuevo más tarde.')
+          }
+        },
+      },
+    ])
+  }
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <ThemedView style={styles.screen}>
@@ -89,49 +107,58 @@ export default function PlayerDetailScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.primaryText} />
           }
         >
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.hero}
-          >
-            <View style={styles.heroLeft}>
-              <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={AVATAR_SIZE} />
-              <View style={styles.heroInfo}>
-                <Text style={styles.playerName}>{player.name}</Text>
-                <View style={styles.heroMeta}>
-                  <Text style={styles.position}>{player.position}</Text>
-                  {streak.kind ? <StreakBadge kind={streak.kind} count={streak.count} /> : null}
-                  <InactiveBadge inactive={player.inactive} />
-                </View>
-              </View>
-            </View>
-            <View style={styles.heroRight}>
-              <View style={styles.skillPill}>
-                <Text style={styles.skillPillLabel}>OVERALL</Text>
-                <Text style={styles.skillPillText}>Lv {overallAvg.toFixed(1)}</Text>
-              </View>
-              {canManage && (
+          <View style={styles.cardArea}>
+            <PlayerGoldCard
+            name={player.name}
+            position={player.position}
+            overall={overallAvg}
+            skills={catSkills}
+            goalkeeping={getGoalkeeping(player)}
+            photoUrl={player.photoUrl}
+              tournamentPhotoUrl={activeTournament?.tournament.photoUrl}
+            />
+            <Pressable
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/players'))}
+              style={[styles.iconBtn, styles.backBtn, { backgroundColor: colors.primarySoft }]}
+              accessibilityRole="button"
+              accessibilityLabel="Volver a jugadores"
+            >
+              <MaterialIcons name="arrow-back" size={20} color={colors.primaryText} />
+            </Pressable>
+            {canManage && (
+              <View style={styles.cardActions}>
                 <Pressable
                   onPress={() => router.push(`/(tabs)/players/edit/${id}`)}
-                  style={styles.editBtn}
+                  style={[styles.iconBtn, { backgroundColor: colors.primarySoft }]}
                   accessibilityRole="button"
                   accessibilityLabel="Editar jugador"
                 >
-                  <MaterialIcons name="edit" size={18} color={ContrastColors.onColor} />
+                  <MaterialIcons name="edit" size={20} color={colors.primaryText} />
                 </Pressable>
-              )}
-            </View>
-          </LinearGradient>
+                <Pressable
+                  onPress={confirmDelete}
+                  style={[styles.iconBtn, { backgroundColor: colors.dangerBg }]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Eliminar jugador"
+                  accessibilityHint="Pide confirmación antes de eliminar"
+                >
+                  <MaterialIcons name="delete" size={20} color={isDark ? colors.dangerIcon : colors.danger} />
+                </Pressable>
+              </View>
+            )}
+          </View>
 
-          <SectionTitle title="Estadísticas" />
-          <PlayerStatsGrid stats={stats} />
-
-          <SectionTitle title="Habilidades" />
-          <View
-            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, shadows.card(isDark)]}
-          >
-            <PlayerSkillBars skills={catSkills} goalkeeping={getGoalkeeping(player)} />
+          <SectionTitle
+            title="Estadísticas"
+            right={
+              <>
+                {streak.kind ? <StreakBadge kind={streak.kind} count={streak.count} /> : null}
+                <InactiveBadge inactive={player.inactive} />
+              </>
+            }
+          />
+          <View style={styles.statsWrap}>
+            <PlayerStatsGrid stats={stats} />
           </View>
 
           {recentSlice.length > 0 ? (
@@ -172,9 +199,17 @@ export default function PlayerDetailScreen() {
   )
 }
 
-function SectionTitle({ title }: { title: string }) {
+function SectionTitle({ title, right }: { title: string; right?: ReactNode }) {
   const { colors } = useAppTheme()
-  return <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>{title.toUpperCase()}</ThemedText>
+  const style = [styles.sectionTitle, right ? styles.sectionTitleInline : null, { color: colors.text }]
+  const text = <ThemedText style={style}>{title.toUpperCase()}</ThemedText>
+  if (!right) return text
+  return (
+    <View style={styles.sectionHeader}>
+      {text}
+      <View style={styles.sectionRight}>{right}</View>
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -191,65 +226,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.xxxl,
-  },
-  hero: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: Radii.lg,
-    paddingVertical: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
-  },
-  heroLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    flex: 1,
-  },
-  heroInfo: {
-    flex: 1,
-    gap: Spacing.xs,
-  },
-  playerName: {
-    fontSize: 20,
-    fontFamily: Fonts.extraBold,
-    letterSpacing: -0.3,
-    color: ContrastColors.onColor,
-  },
-  heroMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  position: {
-    fontSize: 11,
-    fontFamily: Fonts.bold,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    color: ContrastColors.onColorFaded,
-  },
-  skillPill: {
-    backgroundColor: ContrastColors.onColorFill,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radii.md,
-    borderWidth: 1,
-    borderColor: ContrastColors.onColorBorder,
-    alignItems: 'center',
-    gap: 2,
-  },
-  skillPillLabel: {
-    color: ContrastColors.onColorMuted,
-    fontSize: 9,
-    fontFamily: Fonts.bold,
-    letterSpacing: 1,
-  },
-  skillPillText: {
-    color: ContrastColors.onColor,
-    fontSize: 16,
-    fontFamily: Fonts.black,
-    letterSpacing: 0.2,
   },
   sectionTitle: {
     fontFamily: Fonts.blackItalic,
@@ -302,19 +278,45 @@ const styles = StyleSheet.create({
   },
   bottomPad: { height: 16 },
 
-  heroRight: {
-    alignItems: 'flex-end',
+  statsWrap: {
+    marginBottom: Spacing.xl,
+  },
+  cardArea: {
+    paddingTop: Spacing.lg,
+    marginBottom: Spacing.xs,
+  },
+  cardActions: {
+    position: 'absolute',
+    top: Spacing.lg,
+    right: 0,
     gap: Spacing.sm,
   },
-
-  editBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  backBtn: {
+    position: 'absolute',
+    top: Spacing.lg,
+    left: 0,
+  },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: Radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: ContrastColors.onColorFill,
-    borderWidth: 1,
-    borderColor: ContrastColors.onColorBorder,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  sectionTitleInline: {
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  sectionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
 })

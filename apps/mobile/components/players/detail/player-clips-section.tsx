@@ -19,12 +19,11 @@ import { styles } from './player-clips-section.styles'
 import { PrimaryGradient } from '@/components/primary-gradient'
 
 type Props = {
-  playerId: string
   matches: Match[]
   canUpload: boolean
-}
+} & ({ playerId: string; matchId?: never } | { matchId: string; playerId?: never })
 
-export function PlayerClipsSection({ playerId, matches, canUpload }: Props) {
+export function PlayerClipsSection({ playerId, matchId, matches, canUpload }: Props) {
   const { colors } = useAppTheme()
   const { user } = useFirebaseAuth()
   const canManage = useCanManageTournament()
@@ -34,8 +33,15 @@ export function PlayerClipsSection({ playerId, matches, canUpload }: Props) {
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
 
   const playerClips = useMemo(
-    () => videoClips.filter((clip) => clip.playerIds.includes(playerId)),
-    [videoClips, playerId],
+    () =>
+      videoClips.filter((clip) =>
+        matchId ? clip.matchId === matchId : playerId !== undefined && clip.playerIds.includes(playerId),
+      ),
+    [videoClips, matchId, playerId],
+  )
+  const uploadMatches = useMemo(
+    () => (matchId ? matches.filter((match) => match.id === matchId) : matches),
+    [matches, matchId],
   )
   const filteredClips = useMemo(
     () => (clipFilter === 'all' ? playerClips : playerClips.filter((clip) => clip.category === clipFilter)),
@@ -98,7 +104,9 @@ export function PlayerClipsSection({ playerId, matches, canUpload }: Props) {
       ) : filteredClips.length === 0 ? (
         <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <MaterialIcons name="movie" size={32} color={colors.muted} />
-          <ThemedText style={[styles.emptyText, { color: colors.muted }]}>Sin clips para este jugador</ThemedText>
+          <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
+            Sin clips para este {matchId ? 'partido' : 'jugador'}
+          </ThemedText>
         </View>
       ) : (
         <VideoClipCarousel
@@ -118,8 +126,9 @@ export function PlayerClipsSection({ playerId, matches, canUpload }: Props) {
 
       <VideoClipUploadModal
         visible={uploadVisible}
-        matches={matches}
+        matches={uploadMatches}
         currentPlayerId={playerId}
+        lockedMatchId={matchId}
         onSubmit={async (data, uri) => {
           await addVideoClip(data, uri)
           setUploadVisible(false)

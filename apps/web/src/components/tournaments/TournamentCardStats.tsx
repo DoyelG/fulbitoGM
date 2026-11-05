@@ -10,6 +10,7 @@ type Props = {
   playerId: string | null
   playerName: string | null
   nextMatchLabel: string | null
+  nextMatchId: string | null
   onNavigate: () => void
   onLinkPlayer: () => void
 }
@@ -80,6 +81,7 @@ export default function TournamentCardStats({
   playerId,
   playerName,
   nextMatchLabel,
+  nextMatchId,
   onNavigate,
   onLinkPlayer,
 }: Props) {
@@ -112,8 +114,12 @@ export default function TournamentCardStats({
         <Stat
           icon={CalendarDaysIcon}
           muted={!nextMatchLabel}
-          href="/history"
-          ariaLabel={`Próximo partido: ${nextMatchLabel ?? 'sin definir'}. Ver historial`}
+          href={nextMatchId ? `/history/${nextMatchId}` : '/history'}
+          ariaLabel={
+            nextMatchId
+              ? `Próximo partido: ${nextMatchLabel}. Ver partido`
+              : 'Próximo partido sin definir. Ver historial'
+          }
           onNavigate={onNavigate}
         >
           {nextMatchLabel ? `Próximo partido: ${nextMatchLabel}` : 'Próximo partido sin definir'}

@@ -46,7 +46,7 @@ export default function ProfileClient() {
         {player && <PlayerSection key={player.id} player={player} index={0} />}
         {player && (
           <div style={{ animationDelay: '80ms' }} className="animate-fade-up">
-            <VideoClipsSection player={player} matches={matches} canUpload />
+            <VideoClipsSection playerId={player.id} matches={matches} canUpload />
           </div>
         )}
         {activeTournament && !myPlayerId && (

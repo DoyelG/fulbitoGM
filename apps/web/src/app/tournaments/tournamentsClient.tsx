@@ -43,7 +43,7 @@ export default function TournamentsClient() {
     setActiveTournament,
   } = useTournamentStore()
   const [playerNameById, setPlayerNameById] = useState<Map<string, string>>(new Map())
-  const [nextMatchByTournament, setNextMatchByTournament] = useState<Map<string, Pick<Match, 'date' | 'hasTime'>>>(
+  const [nextMatchByTournament, setNextMatchByTournament] = useState<Map<string, Pick<Match, 'id' | 'date' | 'hasTime'>>>(
     new Map(),
   )
   const [createOpen, setCreateOpen] = useState(false)

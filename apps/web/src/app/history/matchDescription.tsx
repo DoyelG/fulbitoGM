@@ -22,7 +22,7 @@ export function MatchDescription({ text }: Props) {
   const isTruncatable = textHeight > LINE_HEIGHT
 
   return (
-    <div className="mt-3 flex flex-wrap pb-4 items-start gap-3">
+    <div className="flex flex-wrap items-start gap-3">
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}

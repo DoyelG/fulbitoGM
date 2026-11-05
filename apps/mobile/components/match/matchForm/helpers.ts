@@ -88,6 +88,7 @@ export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
     name: input.matchName.trim() || undefined,
     location: input.matchLocation ?? undefined,
     description: input.matchDescription.trim() || undefined,
+    status: 'final',
     teamAScore: input.teamAScore,
     teamBScore: input.teamBScore,
     teamA: buildTeamPlayers(input.teamA, input.goalsA, input.perfA),

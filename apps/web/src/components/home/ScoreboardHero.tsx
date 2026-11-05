@@ -59,10 +59,10 @@ export default function ScoreboardHero() {
       {status === 'ready' && latest && (
         <div className="mt-6 flex justify-center">
           <Link
-            href="/history"
+            href={`/history/${latest.id}`}
             className={`inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition sm:w-auto hover:brightness-110 ${FOCUS_ON_DARK}`}
           >
-            Ver historial
+            Ver partido
           </Link>
         </div>
       )}

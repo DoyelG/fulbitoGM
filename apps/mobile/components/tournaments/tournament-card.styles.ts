@@ -4,33 +4,31 @@ import { Fonts, Radii, PrimaryColors, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   card: {
+    flexDirection: 'row',
     borderWidth: 1.5,
     borderRadius: Radii.lg,
     overflow: 'hidden',
   },
+  photo: {
+    width: 88,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoImage: {
+    ...StyleSheet.absoluteFill,
+  },
+  body: {
+    flex: 1,
+    minWidth: 0,
+  },
   main: {
-    flexDirection: 'row',
-    gap: Spacing.md,
+    gap: Spacing.xs,
     padding: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   pressed: {
     opacity: 0.85,
-  },
-  photo: {
-    width: 56,
-    height: 56,
-    borderRadius: Radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  photoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  info: {
-    flex: 1,
-    gap: Spacing.xs,
   },
   titleRow: {
     flexDirection: 'row',
@@ -61,36 +59,37 @@ export const styles = StyleSheet.create({
     lineHeight: 18,
   },
   stats: {
-    flexDirection: 'row',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingBottom: Spacing.md,
   },
   stat: {
-    flex: 1,
     minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    borderRadius: Radii.md,
+    borderRadius: Radii.sm,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   statText: {
     flexShrink: 1,
     fontFamily: Fonts.semiBold,
     fontSize: 13,
   },
+  statMuted: {
+    fontFamily: Fonts.regularItalic,
+  },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: Spacing.sm,
-    padding: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   action: {
     width: 44,
     height: 44,
-    borderRadius: Radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },

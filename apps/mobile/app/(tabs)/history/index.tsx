@@ -153,6 +153,7 @@ export default function HistoryScreen() {
               players={players}
               canManage={canManage}
               clipCount={videoClips.filter((c) => c.matchId === item.id).length}
+              onOpen={() => router.push({ pathname: '/(tabs)/history/[id]', params: { id: item.id } })}
               onEdit={() =>
                 router.push({
                   pathname: '/(tabs)/history/edit/[id]',

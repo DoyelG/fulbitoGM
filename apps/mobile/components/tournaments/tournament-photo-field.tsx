@@ -1,4 +1,4 @@
-import Feather from '@expo/vector-icons/Feather'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { Image } from 'expo-image'
 import { Text, View } from 'react-native'
 
@@ -40,7 +40,7 @@ export function TournamentPhotoField({ currentUrl, value, onChange, disabled = f
               accessibilityLabel="Vista previa de la imagen del torneo"
             />
           ) : (
-            <Feather name="award" size={28} color={colors.primaryText} accessible={false} />
+            <MaterialCommunityIcons name="trophy-outline" size={30} color={colors.primaryText} accessible={false} />
           )}
         </View>
         <View style={styles.actions}>

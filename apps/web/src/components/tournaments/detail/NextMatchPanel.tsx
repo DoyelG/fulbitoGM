@@ -1,11 +1,10 @@
 import type { Match, MatchPlayer, Player } from '@fulbito/types'
 import Link from 'next/link'
-import { formatMatchHour, parseMatchDate } from '@fulbito/utils'
+import { formatMatchHour, oneDecimal, parseMatchDate, teamTotals, winProbabilityA } from '@fulbito/utils'
 import { CalendarIcon, ClockIcon, MapPinIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { FaTshirt } from 'react-icons/fa'
-import { GiGoalKeeper } from 'react-icons/gi'
 import MatchLocationLink from '@/components/MatchLocationLink'
-import { buildMatchImageData, oneDecimal, teamTotals, winProbabilityA } from '@/lib/match-image-data'
+import { buildMatchImageData } from '@/lib/match-image-data'
 import CopyMatchImageButton from './CopyMatchImageButton'
 import DetailSection from './DetailSection'
 
@@ -14,6 +13,7 @@ type Props = {
   tournamentPhotoUrl: string | null
   today: string
   playerById: Map<string, Player>
+  onOpenMatch: () => void
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
@@ -71,9 +71,8 @@ function TeamPreview({ title, players, skill, physical, winProbability, goalkeep
               >
                 <strong>{player.name}</strong>
                 {goalkeeperIds.has(player.id) && (
-                  <span className="ml-2" title="Arquero">
-                    <GiGoalKeeper className="inline h-4 w-4 text-gray-700" aria-hidden />
-                    <span className="sr-only">(arquero)</span>
+                  <span className="ml-1.5" title="Arquero" role="img" aria-label="Arquero">
+                    🧤
                   </span>
                 )}
               </Link>
@@ -90,7 +89,7 @@ function TeamPreview({ title, players, skill, physical, winProbability, goalkeep
   )
 }
 
-export default function NextMatchPanel({ match, tournamentPhotoUrl, today, playerById }: Props) {
+export default function NextMatchPanel({ match, tournamentPhotoUrl, today, playerById, onOpenMatch }: Props) {
   if (!match) {
     return (
       <DetailSection id="next-match-title" title="Próximo partido" icon={CalendarIcon}>
@@ -114,7 +113,18 @@ export default function NextMatchPanel({ match, tournamentPhotoUrl, today, playe
       id="next-match-title"
       title="Próximo partido"
       icon={CalendarIcon}
-      action={<CopyMatchImageButton data={imageData} />}
+      action={
+        <div className="flex items-center gap-4">
+          <CopyMatchImageButton data={imageData} />
+          <Link
+            href={`/history/${match.id}`}
+            onClick={onOpenMatch}
+            className="rounded text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Ver partido
+          </Link>
+        </div>
+      }
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
         <p className="rounded-xl border border-primary/30 px-3 py-2 text-center text-base font-semibold text-gray-900 sm:hidden">

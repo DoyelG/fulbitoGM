@@ -10,6 +10,7 @@ type Props = {
   value: PlayerLink
   onChange: (link: PlayerLink) => void
   members: TournamentMember[]
+  currentUid?: string | null
   emailError: string | null
 }
 
@@ -29,13 +30,13 @@ const options: Option[] = [
 const fieldClassName =
   'mt-1 h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40'
 
-export default function PlayerLinkSection({ value, onChange, members, emailError }: Props) {
-  const unlinkedMembers = members.filter((member) => !member.playerId)
+export default function PlayerLinkSection({ value, onChange, members, currentUid = null, emailError }: Props) {
+  const linkableMembers = members.filter((member) => !member.playerId || member.uid === currentUid)
 
   const select = (kind: PlayerLink['kind']) => {
     if (kind === value.kind) return
     if (kind === 'none') onChange({ kind })
-    if (kind === 'member') onChange({ kind, uid: unlinkedMembers[0]?.uid ?? '' })
+    if (kind === 'member') onChange({ kind, uid: currentUid ?? linkableMembers[0]?.uid ?? '' })
     if (kind === 'invite') onChange({ kind, email: '' })
   }
 
@@ -80,7 +81,7 @@ export default function PlayerLinkSection({ value, onChange, members, emailError
 
       {value.kind === 'member' && (
         <div className="mt-4">
-          {unlinkedMembers.length > 0 ? (
+          {linkableMembers.length > 0 ? (
             <>
               <label htmlFor="player-link-member" className="block text-sm font-medium text-gray-900">
                 Persona
@@ -91,7 +92,7 @@ export default function PlayerLinkSection({ value, onChange, members, emailError
                 onChange={(event) => onChange({ kind: 'member', uid: event.target.value })}
                 className={fieldClassName}
               >
-                {unlinkedMembers.map((member) => (
+                {linkableMembers.map((member) => (
                   <option key={member.uid} value={member.uid}>
                     {member.email}
                   </option>

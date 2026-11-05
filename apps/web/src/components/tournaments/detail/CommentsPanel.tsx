@@ -166,9 +166,11 @@ export default function CommentsPanel({
                   <CommentAvatar name={comment.authorName} photoUrl={photoByUid.get(comment.authorUid)} />
                   <div className="min-w-0 flex-1 rounded-lg bg-gray-50 px-3 py-2">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm">
-                        <span className="font-semibold text-gray-900">{comment.authorName || 'Miembro'}</span>{' '}
-                        <time dateTime={comment.createdAt.toISOString()} className="text-xs text-gray-700">
+                      <p className="min-w-0 text-sm">
+                        <span className="block truncate font-semibold text-gray-900">
+                          {comment.authorName || 'Miembro'}
+                        </span>
+                        <time dateTime={comment.createdAt.toISOString()} className="block text-xs text-gray-700">
                           {timeFormatter.format(comment.createdAt)}
                         </time>
                       </p>

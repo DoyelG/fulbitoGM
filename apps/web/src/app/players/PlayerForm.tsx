@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { InvitationError, TournamentMemberError, uploadPlayerPhoto } from '@fulbito/firebase'
 import type { SkillValue } from '@fulbito/types'
-import { getGoalkeeping } from '@fulbito/utils'
+import { getGoalkeeping, isTournamentAdminRole } from '@fulbito/utils'
 import Button from '@/components/Button'
 import Modal from '@/components/Modal'
 import SkillBadge from '@/components/SkillBadge'
@@ -12,7 +12,7 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournamentMembers } from '@/hooks/use-tournament-members'
 import { getActiveTournamentId } from '@/store/active-tournament'
 import { usePlayerStore, type PlayerLink } from '@/store/usePlayerStore'
-import { useTournamentStore } from '@/store/useTournamentStore'
+import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
 import FormSection from './form/FormSection'
 import PlayerLinkSection from './form/PlayerLinkSection'
 import PlayerPhotoField from './form/PlayerPhotoField'
@@ -63,6 +63,13 @@ const positionLabel = (position: string) => positionLabels[position] ?? position
 const toLevel = (value: SkillValue | null | undefined, fallback: number) =>
   typeof value === 'number' ? Math.round(value) : fallback
 
+const linkKey = (link: PlayerLink) =>
+  link.kind === 'member'
+    ? `member:${link.uid}`
+    : link.kind === 'invite'
+      ? `invite:${link.email.trim().toLowerCase()}`
+      : 'none'
+
 function linkErrorMessage(error: unknown): string {
   if (error instanceof InvitationError || error instanceof TournamentMemberError) return error.message
   return 'Intentá de nuevo desde la pantalla de miembros del torneo.'
@@ -73,7 +80,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const { user } = useFirebaseAuth()
   const { players, addPlayer, updatePlayer, linkPlayer } = usePlayerStore()
   const activeTournamentId = useTournamentStore((state) => state.activeTournamentId)
-  const members = useTournamentMembers(mode === 'create' ? activeTournamentId : null)
+  const canLink = isTournamentAdminRole(useTournamentStore(selectActiveTournament)?.membership.role)
+  const members = useTournamentMembers(canLink ? activeTournamentId : null)
   const [formData, setFormData] = useState<PlayerFormValues>({
     name: '',
     position: 'PLAYER',
@@ -88,7 +96,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null)
   const [goalkeeping, setGoalkeeping] = useState(5)
   const [gkTouched, setGkTouched] = useState(false)
-  const [link, setLink] = useState<PlayerLink>({ kind: 'none' })
+  const [linkDraft, setLinkDraft] = useState<PlayerLink | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -123,6 +131,15 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const gkValue = gkTouched ? goalkeeping : Math.round(average)
   const photoChanged = photoPreview !== originalPhotoUrl
 
+  const currentLinkedUid =
+    mode === 'edit' ? (members.find((member) => playerId && member.playerId === playerId)?.uid ?? null) : null
+  const originalLink = useMemo<PlayerLink>(
+    () => (currentLinkedUid ? { kind: 'member', uid: currentLinkedUid } : { kind: 'none' }),
+    [currentLinkedUid],
+  )
+  const link = linkDraft ?? originalLink
+  const linkChanged = canLink && linkKey(link) !== linkKey(originalLink)
+
   const inviteEmail = link.kind === 'invite' ? link.email.trim().toLowerCase() : ''
   const emailError = useMemo(() => {
     if (link.kind !== 'invite' || !inviteEmail) return null
@@ -135,11 +152,17 @@ export default function PlayerForm({ mode, playerId }: Props) {
   const linkIsValid =
     link.kind === 'none' || (link.kind === 'member' ? Boolean(link.uid) : Boolean(inviteEmail) && !emailError)
 
-  const linkLabel = useMemo(() => {
-    if (link.kind === 'member') return members.find((member) => member.uid === link.uid)?.email ?? 'Miembro del torneo'
-    if (link.kind === 'invite') return `Invitación a ${inviteEmail}`
-    return 'Sin vincular'
-  }, [link, members, inviteEmail])
+  const describeLink = useCallback(
+    (target: PlayerLink) => {
+      if (target.kind === 'member') {
+        return members.find((member) => member.uid === target.uid)?.email ?? 'Miembro del torneo'
+      }
+      if (target.kind === 'invite') return `Invitación a ${target.email.trim().toLowerCase()}`
+      return 'Sin vincular'
+    },
+    [members],
+  )
+  const linkLabel = describeLink(link)
 
   const summaryRows = useMemo(() => {
     const before = <T,>(select: (original: OriginalPlayerData) => T) =>
@@ -177,10 +200,24 @@ export default function PlayerForm({ mode, playerId }: Props) {
       return [...fieldRows, ...(photoPreview ? [photoRow] : []), { label: 'Vínculo', after: linkLabel }]
     }
     const changedRows = fieldRows.filter((row) => row.before !== row.after)
-    return photoChanged ? [...changedRows, photoRow] : changedRows
-  }, [mode, originalData, formData, gkValue, originalPhotoUrl, photoPreview, photoChanged, linkLabel])
+    if (photoChanged) changedRows.push(photoRow)
+    if (linkChanged) changedRows.push({ label: 'Vínculo', before: describeLink(originalLink), after: linkLabel })
+    return changedRows
+  }, [
+    mode,
+    originalData,
+    formData,
+    gkValue,
+    originalPhotoUrl,
+    photoPreview,
+    photoChanged,
+    linkChanged,
+    describeLink,
+    originalLink,
+    linkLabel,
+  ])
 
-  const canSubmit = mode === 'create' ? formData.name.trim().length > 0 && linkIsValid : summaryRows.length > 0
+  const canSubmit = linkIsValid && (mode === 'create' ? formData.name.trim().length > 0 : summaryRows.length > 0)
   const goToPlayers = () => router.push(mode === 'edit' && playerId ? `/players/${playerId}` : '/players')
 
   const handleSubmit = (event: FormEvent) => {
@@ -232,12 +269,13 @@ export default function PlayerForm({ mode, playerId }: Props) {
       return
     }
 
-    if (mode === 'create' && link.kind !== 'none' && user) {
+    if (linkChanged && user) {
       try {
         await linkPlayer(
           savedPlayerId,
           link.kind === 'invite' ? { kind: 'invite', email: inviteEmail } : link,
           user.uid,
+          currentLinkedUid,
         )
       } catch (error) {
         setLinkError(linkErrorMessage(error))
@@ -338,8 +376,14 @@ export default function PlayerForm({ mode, playerId }: Props) {
         </div>
       </FormSection>
 
-      {mode === 'create' && (
-        <PlayerLinkSection value={link} onChange={setLink} members={members} emailError={emailError} />
+      {canLink && (
+        <PlayerLinkSection
+          value={link}
+          onChange={setLinkDraft}
+          members={members}
+          currentUid={currentLinkedUid}
+          emailError={emailError}
+        />
       )}
 
       <div className="flex justify-end gap-3 pt-1">

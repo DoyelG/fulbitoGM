@@ -100,10 +100,10 @@ export function StatPlayerCard({ stat, rank, activeTab, inactive = false, onPres
       <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
         <View style={styles.metrics}>
-          {metrics.map((metric) => (
+          {metrics.map((metric, index) => (
             <View
               key={metric.label}
-              style={styles.metricItem}
+              style={[styles.metricItem, index > 0 && [styles.metricDivider, { borderLeftColor: colors.border }]]}
               accessible
               accessibilityLabel={`${metric.label}: ${metric.value}`}
             >
@@ -114,7 +114,7 @@ export function StatPlayerCard({ stat, rank, activeTab, inactive = false, onPres
                 style={styles.metricIcon}
                 accessible={false}
               />
-              <ThemedText type="defaultSemiBold" style={[styles.metricValue, muted]}>
+              <ThemedText style={[styles.metricValue, muted]}>
                 {metric.value}
               </ThemedText>
             </View>

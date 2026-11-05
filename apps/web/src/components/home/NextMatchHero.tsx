@@ -95,10 +95,10 @@ export default function NextMatchHero() {
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Link
-                href="/history"
+                href={`/history/${next.id}`}
                 className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
               >
-                Ver equipos
+                Ver partido
               </Link>
               <Link
                 href="/match"

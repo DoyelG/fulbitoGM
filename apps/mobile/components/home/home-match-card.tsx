@@ -3,16 +3,23 @@ import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 import type { Match } from '@fulbito/types'
 import { formatMatchDate, parseMatchDate } from '@fulbito/utils'
-import { StyleSheet, Text, View } from 'react-native'
+import { useRouter } from 'expo-router'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 type Props = { match: Match; accentColor?: string }
 
 export function HomeMatchCard({ match, accentColor }: Props) {
   const { colors: C, isDark, shadows } = useAppTheme()
   const accent = accentColor ?? C.secondary
+  const router = useRouter()
 
   return (
-    <View style={[styles.card, { backgroundColor: C.surface }, shadows.card(isDark) as object]}>
+    <Pressable
+      onPress={() => router.push({ pathname: '/(tabs)/history/[id]', params: { id: match.id } })}
+      style={[styles.card, { backgroundColor: C.surface }, shadows.card(isDark) as object]}
+      accessibilityRole="button"
+      accessibilityLabel={`Ver partido del ${formatMatchDate(parseMatchDate(match).date)}, ${match.teamAScore} a ${match.teamBScore}`}
+    >
       <View style={[styles.accent, { backgroundColor: accent }]} />
       <View style={styles.content}>
         <Text style={[styles.date, { color: C.muted }]}>{formatMatchDate(parseMatchDate(match).date)}</Text>
@@ -26,7 +33,7 @@ export function HomeMatchCard({ match, accentColor }: Props) {
           <Text style={[styles.teamRight, { color: C.text }]}>EQUIPO B</Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   )
 }
 

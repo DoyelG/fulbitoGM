@@ -1,4 +1,5 @@
 import Feather from '@expo/vector-icons/Feather'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import type { MyTournament } from '@fulbito/types'
 import { isTournamentAdminRole } from '@fulbito/utils'
 import { Image } from 'expo-image'
@@ -33,16 +34,10 @@ type CardActionProps = {
 function CardAction({ icon, label, onPress, tone = 'default' }: CardActionProps) {
   const { colors, isDark } = useAppTheme()
   const dangerColor = isDark ? colors.dangerIcon : colors.danger
-  const accentColor = colors.primaryText
-  const color = tone === 'danger' ? dangerColor : accentColor
+  const color = tone === 'danger' ? dangerColor : colors.muted
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={[styles.action, { backgroundColor: tone === 'danger' ? colors.dangerBg : colors.primarySoft }]}
-    >
+    <TouchableOpacity onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={styles.action}>
       <Feather name={icon} size={18} color={color} accessible={false} />
     </TouchableOpacity>
   )
@@ -78,26 +73,27 @@ export function TournamentCard({
         shadows.card(isDark) as object,
       ]}
     >
-      <Pressable
-        onPress={() => onOpen(item)}
-        accessibilityRole="button"
-        accessibilityLabel={active ? `Ir a ${tournament.name}` : `Activar ${tournament.name}`}
-        accessibilityState={{ selected: active }}
-        style={({ pressed }) => [styles.main, pressed && styles.pressed]}
-      >
-        <View style={[styles.photo, { backgroundColor: colors.primarySoft }]}>
-          {tournament.photoUrl ? (
-            <Image
-              source={{ uri: tournament.photoUrl }}
-              contentFit="cover"
-              style={styles.photoImage}
-              accessible={false}
-            />
-          ) : (
-            <Feather name="award" size={26} color={accentColor} accessible={false} />
-          )}
-        </View>
-        <View style={styles.info}>
+      <View style={[styles.photo, { backgroundColor: colors.primarySoft }]}>
+        {tournament.photoUrl ? (
+          <Image
+            source={{ uri: tournament.photoUrl }}
+            contentFit="cover"
+            style={styles.photoImage}
+            accessible={false}
+          />
+        ) : (
+          <MaterialCommunityIcons name="trophy-outline" size={32} color={accentColor} accessible={false} />
+        )}
+      </View>
+
+      <View style={styles.body}>
+        <Pressable
+          onPress={() => onOpen(item)}
+          accessibilityRole="button"
+          accessibilityLabel={active ? `Ir a ${tournament.name}` : `Activar ${tournament.name}`}
+          accessibilityState={{ selected: active }}
+          style={({ pressed }) => [styles.main, pressed && styles.pressed]}
+        >
           <View style={styles.titleRow}>
             <Text style={[styles.name, { color: colors.text }]} numberOfLines={2}>
               {tournament.name}
@@ -115,54 +111,57 @@ export function TournamentCard({
               {tournament.description}
             </Text>
           )}
+        </Pressable>
+
+        <View style={styles.stats}>
+          <TouchableOpacity
+            onPress={() => onMembers(item)}
+            accessibilityRole="button"
+            accessibilityLabel={`${memberCount} ${memberCount === 1 ? 'miembro' : 'miembros'}. Ver miembros`}
+            style={[styles.stat, { backgroundColor: colors.chipBg, borderColor: colors.border }]}
+          >
+            <Feather name="users" size={16} color={accentColor} accessible={false} />
+            <Text style={[styles.statText, { color: colors.text }]}>
+              {memberCount} {memberCount === 1 ? 'miembro' : 'miembros'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => onLinkPlayer(item)}
+            disabled={hasPlayer}
+            accessibilityRole="button"
+            accessibilityLabel={hasPlayer ? `Tu jugador: ${playerName ?? ''}` : 'Sin jugador asignado. Vincular jugador'}
+            accessibilityState={{ disabled: hasPlayer }}
+            style={[styles.stat, { backgroundColor: colors.chipBg, borderColor: colors.border }]}
+          >
+            <Feather name={hasPlayer ? 'user-check' : 'link'} size={16} color={accentColor} accessible={false} />
+            <Text
+              style={[styles.statText, hasPlayer ? { color: colors.text } : [styles.statMuted, { color: colors.muted }]]}
+              numberOfLines={1}
+            >
+              {hasPlayer ? (playerName ?? 'Tu jugador') : 'Sin asignar'}
+            </Text>
+          </TouchableOpacity>
         </View>
-      </Pressable>
 
-      <View style={[styles.stats, { borderTopColor: colors.border }]}>
-        <TouchableOpacity
-          onPress={() => onMembers(item)}
-          accessibilityRole="button"
-          accessibilityLabel={`${memberCount} ${memberCount === 1 ? 'miembro' : 'miembros'}. Ver miembros`}
-          style={[styles.stat, { backgroundColor: colors.chipBg }]}
-        >
-          <Feather name="users" size={14} color={accentColor} accessible={false} />
-          <Text style={[styles.statText, { color: accentColor }]}>
-            {memberCount} {memberCount === 1 ? 'miembro' : 'miembros'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => onLinkPlayer(item)}
-          disabled={hasPlayer}
-          accessibilityRole="button"
-          accessibilityLabel={hasPlayer ? `Tu jugador: ${playerName ?? ''}` : 'Sin jugador asignado. Vincular jugador'}
-          accessibilityState={{ disabled: hasPlayer }}
-          style={[styles.stat, { backgroundColor: colors.chipBg }]}
-        >
-          <Feather name={hasPlayer ? 'user-check' : 'link'} size={14} color={accentColor} accessible={false} />
-          <Text style={[styles.statText, { color: hasPlayer ? colors.text : accentColor }]} numberOfLines={1}>
-            {hasPlayer ? (playerName ?? 'Tu jugador') : 'Sin asignar'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.actions}>
-        <CardAction icon="users" label={`Ver miembros de ${tournament.name}`} onPress={() => onMembers(item)} />
-        {canEdit && <CardAction icon="edit-2" label={`Editar ${tournament.name}`} onPress={() => onEdit(item)} />}
-        {isOwner ? (
-          <CardAction
-            icon="trash-2"
-            label={`Eliminar ${tournament.name}`}
-            onPress={() => onDelete(item)}
-            tone="danger"
-          />
-        ) : (
-          <CardAction
-            icon="log-out"
-            label={`Abandonar ${tournament.name}`}
-            onPress={() => onLeave(item)}
-            tone="danger"
-          />
-        )}
+        <View style={[styles.actions, { borderTopColor: colors.border }]}>
+          <CardAction icon="users" label={`Ver miembros de ${tournament.name}`} onPress={() => onMembers(item)} />
+          {canEdit && <CardAction icon="edit-2" label={`Editar ${tournament.name}`} onPress={() => onEdit(item)} />}
+          {isOwner ? (
+            <CardAction
+              icon="trash-2"
+              label={`Eliminar ${tournament.name}`}
+              onPress={() => onDelete(item)}
+              tone="danger"
+            />
+          ) : (
+            <CardAction
+              icon="log-out"
+              label={`Abandonar ${tournament.name}`}
+              onPress={() => onLeave(item)}
+              tone="danger"
+            />
+          )}
+        </View>
       </View>
     </View>
   )

@@ -128,6 +128,17 @@ export const CardColors = {
   statLabel: '#6f6a5c',
 } as const
 
+export const PlayerCardColors = {
+  goldLight: '#f6e3a1',
+  gold: '#dcb75e',
+  goldDark: '#b8913a',
+  edge: '#8f6b1f',
+  edgeSoft: 'rgba(143,107,31,0.6)',
+  ink: '#2b2113',
+  placeholderBg: '#f3f4f6',
+  placeholderFg: '#9ca3af',
+} as const
+
 export const ChampionColors = {
   heroGradient: ['#2e1065', '#4c1d95', '#2e1065'],
   onHero: '#ffffff',

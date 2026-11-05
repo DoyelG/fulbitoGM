@@ -1,8 +1,8 @@
 import Feather from '@expo/vector-icons/Feather'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
-import type { Match, Player } from '@fulbito/types'
+import { isDraft, type Match, type Player } from '@fulbito/types'
 import { formatMatchDate, formatMatchHour, parseMatchDate, matchLocationMapsUrl } from '@fulbito/utils'
-import { Pressable, StyleSheet, Text, TouchableOpacity, View, Linking} from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 import { useState } from 'react'
@@ -15,31 +15,28 @@ type Props = {
   players: Player[]
   canManage: boolean
   clipCount: number
+  onOpen: () => void
   onEdit: () => void
   onDelete: () => void
   onViewClips: () => void
 }
 
-export function MatchCard({
-  match,
-  players,
-  canManage,
-  clipCount,
-  onEdit,
-  onDelete,
-  onViewClips,
-}: Props) {
+const DESCRIPTION_LINES = 2
+
+export function MatchCard({ match, players, canManage, clipCount, onOpen, onEdit, onDelete, onViewClips }: Props) {
   const { colors, radii, spacing, shadows, isDark } = useAppTheme()
 
   const winA = match.teamAScore > match.teamBScore
   const winB = match.teamBScore > match.teamAScore
   const { date: matchDay, hour } = parseMatchDate(match)
+  const draft = isDraft(match)
 
   const shirtName = match.shirtsResponsibleId
     ? (players.find((player) => player.id === match.shirtsResponsibleId)?.name ?? '—')
     : null
 
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isTruncatable, setIsTruncatable] = useState(false)
 
   const toggleExtended = () => {
     setIsExpanded((isOpen) => !isOpen)
@@ -47,27 +44,18 @@ export function MatchCard({
 
   return (
     <TouchableOpacity
-      activeOpacity={canManage ? 0.85 : 1}
-      disabled={!canManage}
-      onPress={onEdit}
-      accessibilityRole={canManage ? 'button' : undefined}
-      accessibilityLabel={canManage ? 'Editar partido' : undefined}
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderRadius: radii.md },
-        shadows.card(isDark),
-      ]}
+      activeOpacity={0.85}
+      onPress={onOpen}
+      accessibilityRole="button"
+      accessibilityLabel={`Ver partido${match.name ? ` ${match.name}` : ''} del ${formatMatchDate(matchDay)}`}
+      style={[styles.card, { backgroundColor: colors.surface, borderRadius: radii.md }, shadows.card(isDark)]}
     >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          {match.name ? (
-            <Text style={[styles.matchName, { color: colors.text }]}>{match.name}</Text>
-          ) : null}
+          {match.name ? <Text style={[styles.matchName, { color: colors.text }]}>{match.name}</Text> : null}
           <View style={styles.metaRow}>
             <Text style={[styles.date, { color: colors.text }]}>{formatMatchDate(matchDay)}</Text>
-            {hour !== null && (
-              <Text style={[styles.date, { color: colors.text }]}>{formatMatchHour(hour)}</Text>
-            )}
+            {hour !== null && <Text style={[styles.date, { color: colors.text }]}>{formatMatchHour(hour)}</Text>}
             <View style={[styles.typeBadge, { backgroundColor: colors.primary }]}>
               <Text style={styles.typeBadgeText}>{match.type}</Text>
             </View>
@@ -78,11 +66,26 @@ export function MatchCard({
             )}
           </View>
         </View>
-        <View style={[styles.scoreBadge, { backgroundColor: colors.primarySoft }]}>
-          <Text style={[styles.score, { color: colors.primaryText }]}>
-            {match.teamAScore} – {match.teamBScore}
-          </Text>
-        </View>
+        {draft ? (
+          canManage ? (
+            <TouchableOpacity
+              onPress={onEdit}
+              hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+              style={[styles.completeBtn, { backgroundColor: colors.primary }]}
+              accessibilityRole="button"
+              accessibilityLabel={`Completar resultado${match.name ? `: ${match.name}` : ''}`}
+            >
+              <Feather name="check-circle" size={16} color={ContrastColors.onColor} accessible={false} />
+              <Text style={styles.completeText}>Completar</Text>
+            </TouchableOpacity>
+          ) : null
+        ) : (
+          <View style={[styles.scoreBadge, { backgroundColor: colors.primarySoft }]}>
+            <Text style={[styles.score, { color: colors.primaryText }]}>
+              {match.teamAScore} – {match.teamBScore}
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.teamsRow}>
@@ -113,27 +116,40 @@ export function MatchCard({
       {match.description ? (
         <Pressable
           onPress={toggleExtended}
-          onStartShouldSetResponderCapture={() => true}
-          style={styles.descriptionRow}
-          accessibilityRole="button"
-          accessibilityLabel={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
-          accessibilityState={{ expanded: isExpanded }}
+          disabled={!isTruncatable}
+          onStartShouldSetResponderCapture={() => isTruncatable}
+          style={[styles.descriptionRow, isTruncatable ? styles.descriptionRowInteractive : null]}
+          accessibilityRole={isTruncatable ? 'button' : 'text'}
+          accessibilityLabel={
+            isTruncatable ? (isExpanded ? 'Contraer descripción' : 'Expandir descripción') : undefined
+          }
+          accessibilityState={isTruncatable ? { expanded: isExpanded } : undefined}
         >
           <Text
-            style={[styles.description, { color: colors.muted }]}
-            numberOfLines={isExpanded ? undefined : 2}
+            style={[styles.description, styles.descriptionMeasure]}
+            onTextLayout={(e) => setIsTruncatable(e.nativeEvent.lines.length > DESCRIPTION_LINES)}
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
           >
             {match.description}
           </Text>
           <Text
-            style={[
-              styles.chevron,
-              { color: colors.primaryAccent },
-              { transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] },
-            ]}
+            style={[styles.description, { color: colors.muted }]}
+            numberOfLines={isExpanded ? undefined : DESCRIPTION_LINES}
           >
-            ^
+            {match.description}
           </Text>
+          {isTruncatable && (
+            <Text
+              style={[
+                styles.chevron,
+                { color: colors.primaryAccent },
+                { transform: [{ rotate: isExpanded ? '0deg' : '180deg' }] },
+              ]}
+            >
+              ^
+            </Text>
+          )}
         </Pressable>
       ) : null}
 
@@ -148,8 +164,7 @@ export function MatchCard({
             style={styles.location}
           >
             <Text style={[styles.shirts, { color: colors.muted }]}>
-              Ubicación:{' '}
-              <Text style={[styles.locationName, { color: colors.primaryText }]}>{match.location.name}</Text>
+              Ubicación: <Text style={[styles.locationName, { color: colors.primaryText }]}>{match.location.name}</Text>
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -167,7 +182,8 @@ export function MatchCard({
             onPress={onViewClips}
             style={[styles.actionBtn, { backgroundColor: colors.primarySoft }]}
             accessibilityRole="button"
-            accessibilityLabel={`Ver clips del partido${match.name ? `: ${match.name}` : ''}`}>
+            accessibilityLabel={`Ver clips del partido${match.name ? `: ${match.name}` : ''}`}
+          >
             <Feather name="video" size={18} color={colors.primaryText} accessible={false} />
             {clipCount > 0 && (
               <View style={[styles.clipCountBadge, { backgroundColor: colors.primary }]}>
@@ -182,15 +198,22 @@ export function MatchCard({
                 onPress={onEdit}
                 style={[styles.actionBtn, { backgroundColor: colors.primarySoft }]}
                 accessibilityRole="button"
-                accessibilityLabel="Editar partido">
+                accessibilityLabel="Editar partido"
+              >
                 <Feather name="edit-2" size={18} color={colors.primaryText} accessible={false} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={onDelete}
                 style={[styles.actionBtn, { backgroundColor: colors.dangerBg }]}
                 accessibilityRole="button"
-                accessibilityLabel="Eliminar partido">
-                <Feather name="trash-2" size={18} color={isDark ? colors.dangerIcon : colors.danger} accessible={false} />
+                accessibilityLabel="Eliminar partido"
+              >
+                <Feather
+                  name="trash-2"
+                  size={18}
+                  color={isDark ? colors.dangerIcon : colors.danger}
+                  accessible={false}
+                />
               </TouchableOpacity>
             </>
           )}
@@ -243,8 +266,9 @@ function TeamColumn({
             {player.name}
           </Text>
           <Text style={[styles.playerStats, { color: colors.muted }]}>
-            {goalkeeperIds?.includes(player.id) ? '🧤 ' : ''}{mvpId === player.id ? '🏆 ' : ''}{player.goals}⚽{' '}
-            {player.performance}★
+            {goalkeeperIds?.includes(player.id) ? '🧤 ' : ''}
+            {mvpId === player.id ? '🏆 ' : ''}
+            {player.goals}⚽ {player.performance}★
           </Text>
         </View>
       ))}
@@ -300,6 +324,19 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
   },
+  completeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+  },
+  completeText: {
+    color: ContrastColors.onColor,
+    fontSize: 14,
+    fontWeight: '700',
+  },
   teamsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -353,10 +390,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   descriptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     marginTop: 6,
+  },
+  descriptionRowInteractive: {
     minHeight: 44,
-    justifyContent: 'center',
+  },
+  descriptionMeasure: {
+    position: 'absolute',
+    left: 0,
+    right: 18,
+    opacity: 0,
   },
   description: {
     flex: 1,
@@ -364,9 +410,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   chevron: {
+    width: 12,
     fontSize: 12,
     fontWeight: '700',
-    alignSelf: 'flex-end',
+    textAlign: 'center',
   },
   actions: {
     flexDirection: 'row',

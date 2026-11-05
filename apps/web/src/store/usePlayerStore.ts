@@ -21,7 +21,7 @@ type PlayerStore = {
   initLoad: () => Promise<void>
   hydratePlayers: (players: Player[]) => void
   addPlayer: (player: PlayerInput) => Promise<string>
-  linkPlayer: (playerId: string, link: PlayerLink, actorUid: string) => Promise<void>
+  linkPlayer: (playerId: string, link: PlayerLink, actorUid: string, currentUid?: string | null) => Promise<void>
   updatePlayer: (id: string, player: Partial<PlayerInput>) => Promise<void>
   deletePlayer: (id: string) => Promise<void>
   getPlayer: (id: string) => Player | undefined
@@ -52,8 +52,11 @@ export const usePlayerStore = create<PlayerStore>()((set, get) => ({
     await get().resetAndReload()
     return playerId
   },
-  linkPlayer: async (playerId, link, actorUid) => {
+  linkPlayer: async (playerId, link, actorUid, currentUid = null) => {
     const tournamentId = getActiveTournamentId()
+    if (currentUid && !(link.kind === 'member' && link.uid === currentUid)) {
+      await setMemberPlayer(tournamentId, currentUid, null)
+    }
     if (link.kind === 'member') await setMemberPlayer(tournamentId, link.uid, playerId)
     if (link.kind === 'invite') {
       await createInvitation({ tournamentId, email: link.email, role: 'MEMBER', playerId, invitedBy: actorUid })

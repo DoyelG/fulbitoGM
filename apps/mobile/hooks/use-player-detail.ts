@@ -98,7 +98,7 @@ function computeStats(matches: Match[], playerId: string): PlayerDetailStats {
 }
 
 export function usePlayerDetail(playerId: string) {
-  const { players, matches, loading, refreshing, error, refresh, reload } = usePlayersData()
+  const { players, matches, loading, refreshing, error, refresh, reload, deletePlayer } = usePlayersData()
 
   const player = useMemo(
     () => players.find((p) => p.id === playerId) ?? null,
@@ -141,5 +141,6 @@ export function usePlayerDetail(playerId: string) {
     error,
     refresh,
     reload,
+    deletePlayer,
   }
 }
