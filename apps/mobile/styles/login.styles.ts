@@ -1,6 +1,6 @@
 import { Platform, StyleSheet } from 'react-native'
 
-import { Colors, ContrastColors, PrimaryColors } from '@/constants/theme'
+import { Colors, ContrastColors, Fonts, PrimaryColors, Radii, Spacing } from '@/constants/theme'
 
 const PRIMARY = PrimaryColors.border
 
@@ -8,22 +8,33 @@ export const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xxl,
+    paddingVertical: Spacing.xxxl,
     maxWidth: 440,
     width: '100%',
     alignSelf: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 8,
-    marginTop: 16,
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.xxl,
   },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 24,
+  brandLogo: {
+    width: 44,
+    height: 44,
+  },
+  brandText: {
+    color: ContrastColors.onColor,
+    fontFamily: Fonts.extraBold,
+    fontSize: 30,
+  },
+  card: {
+    borderRadius: Radii.xl,
+    padding: Spacing.xxl,
   },
   segment: {
     flexDirection: 'row',
@@ -80,18 +91,5 @@ export const styles = StyleSheet.create({
     color: ContrastColors.onColor,
     fontSize: 16,
     fontWeight: '600',
-  },
-  hint: {
-    fontSize: 12,
-    marginTop: 12,
-    lineHeight: 18,
-  },
-  link: {
-    marginTop: 24,
-    alignSelf: 'center',
-    padding: 8,
-  },
-  linkText: {
-    fontSize: 14,
   },
 })

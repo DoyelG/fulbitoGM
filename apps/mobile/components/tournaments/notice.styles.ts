@@ -35,10 +35,19 @@ export const styles = StyleSheet.create({
   strong: {
     fontFamily: Fonts.semiBold,
   },
+  status: {
+    fontFamily: Fonts.bold,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
   actions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-end',
     gap: Spacing.sm,
+  },
+  actionsCentered: {
+    justifyContent: 'center',
   },
 })

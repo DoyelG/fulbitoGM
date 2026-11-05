@@ -53,13 +53,13 @@ export function VerifyEmailNotice({ email }: { email: string }) {
         Te mandamos un link a <Text style={[styles.strong, { color: colors.text }]}>{email}</Text>. Para crear torneos y
         ver tus torneos e invitaciones necesitás tener el email verificado.
       </Text>
-      <View style={styles.actions}>
+      <View style={[styles.actions, styles.actionsCentered]}>
         <ProfileButton label="Reenviar email" variant="secondary" onPress={() => void resend()} disabled={isBusy} />
         <ProfileButton label="Ya lo verifiqué" onPress={() => void checkVerified()} disabled={isBusy} />
       </View>
       {status && (
         <Text
-          style={[styles.text, { color: status.tone === 'error' ? colors.danger : colors.text }]}
+          style={[styles.status, { color: status.tone === 'error' ? colors.danger : colors.text }]}
           accessibilityLiveRegion="polite"
         >
           {status.text}
