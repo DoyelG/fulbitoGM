@@ -60,6 +60,8 @@ pnpm emulators
 
 Then add `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true` to `apps/web/.env.local` and restart the web dev server. The emulator UI is at http://127.0.0.1:4000. Data is saved to `.firebase-emulator/` on exit and loaded on the next start.
 
+Every start also makes sure two verified test accounts exist, both with password `123456`: `test@test.com` and `test2@test.com`. If it's missing, it also creates "Torneo de prueba", owned by `test@test.com`, with 20 players and 5 matches played at a court with a random name and address (`scripts/emulator-seed.mjs`).
+
 ## Apps
 
 | App           | Port  | Description                                      |
