@@ -52,6 +52,8 @@ type RecordingPlayer = { id: string; name: string }
 
 const MATCH_ACTION_SHAPE =
   'relative inline-flex h-11 w-11 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5'
+const UPLOAD_CLIP_CLASS =
+  'rounded border border-primary-dark bg-primary-gradient px-4 py-2 text-sm font-medium text-white hover:border-primary hover:bg-primary-gradient-dark hover:ring-2 hover:ring-primary/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 const MATCH_ACTION_CLASS = `${MATCH_ACTION_SHAPE} bg-primary-dark/10 text-primary-dark hover:bg-primary-dark/15 focus-visible:ring-primary/40`
 const MATCH_COMPLETE_CLASS = `${MATCH_ACTION_SHAPE} bg-primary text-white hover:bg-primary/90 focus-visible:ring-primary/40`
 const MATCH_DELETE_CLASS = `${MATCH_ACTION_SHAPE} bg-secondary/10 text-orange-700 hover:bg-secondary/20 focus-visible:ring-secondary/40`
@@ -93,6 +95,12 @@ export default function HistoryClient() {
     () => (viewClipsMatch ? new Map([[viewClipsMatch.id, viewClipsMatch]]) : new Map()),
     [viewClipsMatch],
   )
+
+  const openClipUpload = (match: Match) => {
+    setVideoUploadError(null)
+    setVideoUploadMatch(match)
+    setViewClipsMatch(null)
+  }
   const viewPlaybackClip = viewPlaybackClipId ? (viewClips.find((c) => c.id === viewPlaybackClipId) ?? null) : null
 
   const handleViewDelete = async (clipId: string) => {
@@ -170,7 +178,7 @@ export default function HistoryClient() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-3xl font-bold">Historial de partidos</h1>
         {canManage && (
@@ -530,17 +538,9 @@ export default function HistoryClient() {
         title={`Clips${viewClipsMatch?.name ? `: ${viewClipsMatch.name}` : ''}`}
         size="large"
       >
-        {canManage && viewClipsMatch && (
+        {canManage && viewClipsMatch && viewClips.length > 0 && (
           <div className="flex justify-end mb-4">
-            <button
-              type="button"
-              className="px-4 py-2 text-sm font-medium rounded border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
-              onClick={() => {
-                setVideoUploadError(null)
-                setVideoUploadMatch(viewClipsMatch)
-                setViewClipsMatch(null)
-              }}
-            >
+            <button type="button" className={UPLOAD_CLIP_CLASS} onClick={() => openClipUpload(viewClipsMatch)}>
               + Subir clip
             </button>
           </div>
@@ -565,8 +565,31 @@ export default function HistoryClient() {
           <WidgetError message="No se pudieron cargar los clips." onRetry={() => void initVideoClipsLoad()} />
         ) : viewClips.length === 0 ? (
           videoClipsInit === 'loading' ? (
-            <div className="text-gray-800">Cargando clips...</div>
-          ) : null
+            <div className="text-gray-800" aria-live="polite">
+              Cargando clips...
+            </div>
+          ) : (
+            <div className="flex flex-col items-center px-4 py-8 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <FiVideo className="h-7 w-7" aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">Todavía no hay clips</h3>
+              <p className="mt-1 max-w-sm text-sm text-gray-700">
+                {canManage
+                  ? 'Subí el primero y que todos vean las mejores jugadas del partido.'
+                  : 'Cuando alguien suba un clip de este partido, lo vas a ver acá.'}
+              </p>
+              {canManage && viewClipsMatch && (
+                <button
+                  type="button"
+                  className={`mt-5 ${UPLOAD_CLIP_CLASS}`}
+                  onClick={() => openClipUpload(viewClipsMatch)}
+                >
+                  + Subir el primer clip
+                </button>
+              )}
+            </div>
+          )
         ) : (
           <VideoClipCarousel
             clips={viewClips}
