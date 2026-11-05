@@ -13,18 +13,28 @@ import LinkPlayerFlow, { linkPlayerStepTitles, type LinkPlayerStep } from './lin
 export default function LinkPlayerModal() {
   const { user } = useFirebaseAuth()
   const { activeTournament } = useTournaments()
-  if (!user || !activeTournament || activeTournament.membership.playerId) return null
+  if (!user || !activeTournament) return null
   const tournamentId = activeTournament.tournament.id
-  return <LinkPlayerModalContent key={`${user.uid}:${tournamentId}`} user={user} tournamentId={tournamentId} />
+  return (
+    <LinkPlayerModalContent
+      key={`${user.uid}:${tournamentId}`}
+      user={user}
+      tournamentId={tournamentId}
+      isLinked={!!activeTournament.membership.playerId}
+    />
+  )
 }
 
-function LinkPlayerModalContent({ user, tournamentId }: { user: AppUser; tournamentId: string }) {
+type LinkPlayerModalContentProps = { user: AppUser; tournamentId: string; isLinked: boolean }
+
+function LinkPlayerModalContent({ user, tournamentId, isLinked }: LinkPlayerModalContentProps) {
   const storageKey = linkPlayerPromptKey(user.uid, tournamentId)
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<LinkPlayerStep>('question')
   const actions = useTournamentLinkPlayerActions(user, tournamentId)
 
   useEffect(() => {
+    if (isLinked) return
     let isCurrent = true
     void (async () => {
       if (await isPromptDismissed(storageKey)) return
@@ -38,7 +48,7 @@ function LinkPlayerModalContent({ user, tournamentId }: { user: AppUser; tournam
     return () => {
       isCurrent = false
     }
-  }, [storageKey, tournamentId, user.uid])
+  }, [isLinked, storageKey, tournamentId, user.uid])
 
   const handleAnswerNo = () => {
     void dismissPrompt(storageKey)
@@ -49,7 +59,7 @@ function LinkPlayerModalContent({ user, tournamentId }: { user: AppUser; tournam
     <BottomSheet
       visible={isOpen}
       title={linkPlayerStepTitles[step]}
-      hideTitle={step === 'question' || step === 'sent' || step === 'revert'}
+      hideTitle={step === 'question' || step === 'sent' || step === 'linked' || step === 'revert'}
       closeLabel="Cerrar"
       onConfirm={() => setIsOpen(false)}
     >

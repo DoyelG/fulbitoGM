@@ -1,5 +1,5 @@
 import Feather from '@expo/vector-icons/Feather'
-import { getPlayers, TournamentPlayerRequestError } from '@fulbito/firebase'
+import { getPlayers, TournamentPlayerRequestError, type LinkPlayerOutcome } from '@fulbito/firebase'
 import type { Player } from '@fulbito/types'
 import { useEffect, useState } from 'react'
 import { Text, TextInput, TouchableOpacity, View } from 'react-native'
@@ -13,7 +13,7 @@ import LinkPlayerHero from './link-player-hero'
 import LinkPlayerStepDots from './link-player-step-dots'
 import { styles } from './link-player-flow.styles'
 
-export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'revert'
+export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'linked' | 'revert'
 
 const benefits: { icon: keyof typeof Feather.glyphMap; text: string }[] = [
   { icon: 'user', text: 'Tener tu propio perfil de jugador' },
@@ -26,6 +26,7 @@ export const linkPlayerStepTitles: Record<LinkPlayerStep, string> = {
   select: 'Vincular con un jugador',
   newPlayer: 'Vincular con un jugador',
   sent: 'Vincular con un jugador',
+  linked: 'Vincular con un jugador',
   revert: 'Vincular con un jugador',
 }
 
@@ -33,9 +34,10 @@ export type LinkPlayerRequest = { playerId: string } | { newPlayerName: string }
 
 export type LinkPlayerActions = {
   tournamentId: string
-  send: (request: LinkPlayerRequest) => Promise<void>
+  send: (request: LinkPlayerRequest) => Promise<LinkPlayerOutcome>
   cancel: () => Promise<void>
   isPlayerUnavailable: (player: Player) => boolean
+  linksDirectly: boolean
 }
 
 type Props = {
@@ -97,7 +99,9 @@ export default function LinkPlayerFlow({
   const [newPlayerName, setNewPlayerName] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
-  const { tournamentId, send, cancel, isPlayerUnavailable } = actions
+  const { tournamentId, send, cancel, isPlayerUnavailable, linksDirectly } = actions
+  const submitLabel = linksDirectly ? 'Vincular' : 'Enviar solicitud'
+  const newPlayerLabel = linksDirectly ? 'Crear un jugador nuevo' : 'Solicitar un jugador nuevo'
 
   useEffect(() => {
     void getPlayers(tournamentId)
@@ -109,14 +113,14 @@ export default function LinkPlayerFlow({
     setIsSending(true)
     setErrorMessage(null)
     try {
-      await send(request)
+      const outcome = await send(request)
       onRequestSent()
-      onStepChange('sent')
+      onStepChange(outcome === 'linked' ? 'linked' : 'sent')
     } catch (error) {
       setErrorMessage(
         error instanceof TournamentPlayerRequestError
           ? error.message
-          : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
+          : 'No se pudo vincular el jugador. Probá de nuevo más tarde.',
       )
     } finally {
       setIsSending(false)
@@ -196,10 +200,10 @@ export default function LinkPlayerFlow({
           <Text
             onPress={() => goToStep('newPlayer')}
             accessibilityRole="link"
-            accessibilityLabel="Solicitar un jugador nuevo"
+            accessibilityLabel={newPlayerLabel}
             style={[styles.link, { color: colors.primaryText }]}
           >
-            Solicitar un jugador nuevo
+            {newPlayerLabel}
           </Text>
         </Text>
         {errorText}
@@ -210,7 +214,7 @@ export default function LinkPlayerFlow({
             variant="secondary"
           />
           <FlowButton
-            label="Enviar solicitud"
+            label={submitLabel}
             onPress={() => void sendRequest({ playerId: selectedPlayerId })}
             disabled={!selectedPlayerId || isSending}
           />
@@ -237,7 +241,7 @@ export default function LinkPlayerFlow({
         <View style={styles.row}>
           <FlowButton label="Volver" onPress={() => goToStep('select')} variant="secondary" />
           <FlowButton
-            label="Enviar solicitud"
+            label={submitLabel}
             onPress={() => void sendRequest({ newPlayerName: trimmedName })}
             disabled={!trimmedName || isSending}
           />
@@ -259,6 +263,22 @@ export default function LinkPlayerFlow({
         <View style={styles.row}>
           <FlowButton label="Volver" onPress={() => goToStep('sent')} variant="secondary" />
           <FlowButton label="Sí, revertir" onPress={() => void revertRequest()} variant="danger" disabled={isSending} />
+        </View>
+      </View>
+    )
+  }
+
+  if (step === 'linked') {
+    return (
+      <View style={styles.container}>
+        <LinkPlayerStepDots current={3} total={3} />
+        <LinkPlayerHero
+          icon="check-circle"
+          title="Ya estás vinculado"
+          description="Ahora podés editar tu jugador desde tu perfil."
+        />
+        <View style={styles.row}>
+          <FlowButton label="Cerrar" onPress={onFinish} />
         </View>
       </View>
     )

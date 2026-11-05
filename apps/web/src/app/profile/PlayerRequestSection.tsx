@@ -92,7 +92,7 @@ export default function PlayerRequestSection({ user, tournamentId, tournamentNam
         open={isModalOpen}
         onClose={closeModal}
         title={linkPlayerStepTitles[step]}
-        hideHeader={step === 'sent' || step === 'revert'}
+        hideHeader={step === 'sent' || step === 'linked' || step === 'revert'}
       >
         <LinkPlayerFlow
           step={step}

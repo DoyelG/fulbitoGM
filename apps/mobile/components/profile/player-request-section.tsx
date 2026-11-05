@@ -102,7 +102,7 @@ export function PlayerRequestSection({ user, tournamentId, tournamentName, index
       <BottomSheet
         visible={isModalOpen}
         title={linkPlayerStepTitles[step]}
-        hideTitle={step === 'sent' || step === 'revert'}
+        hideTitle={step === 'sent' || step === 'linked' || step === 'revert'}
         closeLabel="Cerrar"
         onConfirm={closeModal}
       >

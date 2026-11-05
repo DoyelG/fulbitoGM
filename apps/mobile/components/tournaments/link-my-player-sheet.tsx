@@ -45,7 +45,7 @@ function RequestPlayerSheet({ user, item, onClose }: Props) {
     <BottomSheet
       visible
       title={linkPlayerStepTitles[step]}
-      hideTitle={step === 'sent' || step === 'revert'}
+      hideTitle={step === 'sent' || step === 'linked' || step === 'revert'}
       closeLabel="Cerrar"
       onConfirm={onClose}
     >

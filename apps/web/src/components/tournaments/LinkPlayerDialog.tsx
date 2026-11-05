@@ -36,7 +36,7 @@ export default function LinkPlayerDialog({ user, tournamentId, onClose }: Props)
       open
       onClose={onClose}
       title={linkPlayerStepTitles[step ?? 'select']}
-      hideHeader={step === 'sent' || step === 'revert'}
+      hideHeader={step === 'sent' || step === 'linked' || step === 'revert'}
     >
       {step ? (
         <LinkPlayerFlow

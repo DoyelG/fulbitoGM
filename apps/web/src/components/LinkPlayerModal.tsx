@@ -13,19 +13,28 @@ import Modal from './Modal'
 export default function LinkPlayerModal() {
   const { user } = useFirebaseAuth()
   const activeTournament = useTournamentStore(selectActiveTournament)
-  if (!user || !activeTournament || activeTournament.membership.playerId) return null
+  if (!user || !activeTournament) return null
   const tournamentId = activeTournament.tournament.id
-  return <LinkPlayerModalContent key={`${user.uid}:${tournamentId}`} user={user} tournamentId={tournamentId} />
+  return (
+    <LinkPlayerModalContent
+      key={`${user.uid}:${tournamentId}`}
+      user={user}
+      tournamentId={tournamentId}
+      isLinked={!!activeTournament.membership.playerId}
+    />
+  )
 }
 
-function LinkPlayerModalContent({ user, tournamentId }: { user: AppUser; tournamentId: string }) {
+type LinkPlayerModalContentProps = { user: AppUser; tournamentId: string; isLinked: boolean }
+
+function LinkPlayerModalContent({ user, tournamentId, isLinked }: LinkPlayerModalContentProps) {
   const storageKey = linkPlayerPromptKey(user.uid, tournamentId)
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<LinkPlayerStep>('question')
   const actions = useTournamentLinkPlayerActions(user, tournamentId)
 
   useEffect(() => {
-    if (isPromptDismissed(storageKey)) return
+    if (isLinked || isPromptDismissed(storageKey)) return
     let isCurrent = true
     Promise.all([
       getMyTournamentPlayerRequest(tournamentId, user.uid),
@@ -39,7 +48,7 @@ function LinkPlayerModalContent({ user, tournamentId }: { user: AppUser; tournam
     return () => {
       isCurrent = false
     }
-  }, [storageKey, tournamentId, user.uid])
+  }, [isLinked, storageKey, tournamentId, user.uid])
 
   const handleAnswerNo = () => {
     dismissPrompt(storageKey)
@@ -51,7 +60,7 @@ function LinkPlayerModalContent({ user, tournamentId }: { user: AppUser; tournam
       open={isOpen}
       onClose={() => setIsOpen(false)}
       title={linkPlayerStepTitles[step]}
-      hideHeader={step === 'question' || step === 'sent' || step === 'revert'}
+      hideHeader={step === 'question' || step === 'sent' || step === 'linked' || step === 'revert'}
     >
       <LinkPlayerFlow
         step={step}

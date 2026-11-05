@@ -1,6 +1,7 @@
 import {
   collection,
   deleteDoc,
+  type DocumentSnapshot,
   doc,
   getDoc,
   getDocs,
@@ -9,9 +10,10 @@ import {
   runTransaction,
   setDoc,
   Timestamp,
+  type Transaction,
   where,
 } from 'firebase/firestore'
-import type { TournamentPlayerRequest } from '@fulbito/types'
+import type { TournamentPlayerRequest, TournamentRole } from '@fulbito/types'
 import { toDate } from './dates'
 import { PLAYERS_COLLECTION, playerNameExists } from './players'
 import {
@@ -68,15 +70,78 @@ type CreateTournamentPlayerRequestInput = {
   email: string
 } & ({ playerId: string } | { newPlayerName: string })
 
-export async function createTournamentPlayerRequest(input: CreateTournamentPlayerRequestInput): Promise<void> {
-  const { tournamentId, uid } = input
+export type LinkPlayerOutcome = 'linked' | 'requested'
+
+type LinkTarget = { playerId: string; newPlayerName: null } | { playerId: null; newPlayerName: string }
+
+function parseLinkTarget(input: CreateTournamentPlayerRequestInput): LinkTarget {
   const playerId = 'playerId' in input ? input.playerId : null
   const newPlayerName = 'newPlayerName' in input ? input.newPlayerName.trim() : null
 
-  if (!playerId && !newPlayerName) throw new TournamentPlayerRequestError('Elegí un jugador o escribí un nombre')
   if (newPlayerName && newPlayerName.length > NEW_PLAYER_NAME_MAX_LENGTH) {
     throw new TournamentPlayerRequestError(`El nombre puede tener hasta ${NEW_PLAYER_NAME_MAX_LENGTH} caracteres`)
   }
+  if (playerId) return { playerId, newPlayerName: null }
+  if (newPlayerName) return { playerId: null, newPlayerName }
+  throw new TournamentPlayerRequestError('Elegí un jugador o escribí un nombre')
+}
+
+const ORGANIZER_ROLES: unknown[] = ['OWNER', 'ADMIN'] satisfies TournamentRole[]
+
+async function assertLinkTargetAvailable(tournamentId: string, target: LinkTarget): Promise<void> {
+  if (target.playerId && (await isPlayerLinked(tournamentId, target.playerId))) {
+    throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
+  }
+  if (target.newPlayerName && (await playerNameExists(tournamentId, target.newPlayerName))) {
+    throw new TournamentPlayerRequestError('Ya existe un jugador con ese nombre')
+  }
+}
+
+async function linkMemberInTransaction(
+  transaction: Transaction,
+  tournamentId: string,
+  memberSnap: DocumentSnapshot,
+  target: LinkTarget,
+  now: Timestamp,
+): Promise<void> {
+  const db = getFirestore()
+  let playerId = target.playerId
+  if (playerId) {
+    const [playerSnap, linkSnap] = await Promise.all([
+      transaction.get(doc(db, PLAYERS_COLLECTION, playerId)),
+      transaction.get(playerLinkRef(tournamentId, playerId)),
+    ])
+    if (!playerSnap.exists() || playerSnap.get('tournamentId') !== tournamentId) {
+      throw new TournamentPlayerRequestError('No se encontró el jugador')
+    }
+    if (linkSnap.exists()) {
+      throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
+    }
+  } else {
+    const newPlayerRef = doc(collection(db, PLAYERS_COLLECTION))
+    transaction.set(newPlayerRef, {
+      tournamentId,
+      name: target.newPlayerName,
+      position: '',
+      skill: null,
+      skills: null,
+      photoUrl: null,
+      goalkeeping: null,
+      inactive: false,
+      createdAt: now,
+      updatedAt: now,
+    })
+    playerId = newPlayerRef.id
+  }
+
+  transaction.set(playerLinkRef(tournamentId, playerId), { uid: memberSnap.id })
+  transaction.update(memberSnap.ref, { playerId, updatedAt: now })
+}
+
+export async function createTournamentPlayerRequest(input: CreateTournamentPlayerRequestInput): Promise<void> {
+  const { tournamentId, uid } = input
+  const target = parseLinkTarget(input)
+  const { playerId, newPlayerName } = target
 
   const member = await getDoc(memberRef(tournamentId, uid))
   if (!member.exists()) throw new TournamentPlayerRequestError('No sos miembro de este torneo')
@@ -87,12 +152,7 @@ export async function createTournamentPlayerRequest(input: CreateTournamentPlaye
     throw new TournamentPlayerRequestError('Ya tenés una solicitud pendiente')
   }
 
-  if (playerId && (await isPlayerLinked(tournamentId, playerId))) {
-    throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
-  }
-  if (newPlayerName && (await playerNameExists(tournamentId, newPlayerName))) {
-    throw new TournamentPlayerRequestError('Ya existe un jugador con ese nombre')
-  }
+  await assertLinkTargetAvailable(tournamentId, target)
 
   if (existing.exists()) await deleteDoc(existing.ref)
 
@@ -108,6 +168,33 @@ export async function createTournamentPlayerRequest(input: CreateTournamentPlaye
     createdAt: now,
     updatedAt: now,
   })
+}
+
+export async function linkOrRequestTournamentPlayer(
+  input: CreateTournamentPlayerRequestInput,
+): Promise<LinkPlayerOutcome> {
+  const { tournamentId, uid } = input
+  const target = parseLinkTarget(input)
+  const member = await getDoc(memberRef(tournamentId, uid))
+  if (!member.exists()) throw new TournamentPlayerRequestError('No sos miembro de este torneo')
+  if (!ORGANIZER_ROLES.includes(member.get('role'))) {
+    await createTournamentPlayerRequest(input)
+    return 'requested'
+  }
+
+  await assertLinkTargetAvailable(tournamentId, target)
+  await runTransaction(getFirestore(), async (transaction) => {
+    const [memberSnap, requestSnap] = await Promise.all([
+      transaction.get(memberRef(tournamentId, uid)),
+      transaction.get(requestRef(tournamentId, uid)),
+    ])
+    if (!memberSnap.exists()) throw new TournamentPlayerRequestError('No sos miembro de este torneo')
+    if (memberSnap.get('playerId')) throw new TournamentPlayerRequestError('Ya tenés un jugador en este torneo')
+
+    await linkMemberInTransaction(transaction, tournamentId, memberSnap, target, Timestamp.now())
+    if (requestSnap.exists()) transaction.delete(requestSnap.ref)
+  })
+  return 'linked'
 }
 
 export async function getMyTournamentPlayerRequest(
@@ -147,14 +234,10 @@ export async function resolveTournamentPlayerRequest(
   const request = await getMyTournamentPlayerRequest(tournamentId, uid)
   if (!request || request.status !== 'pending') throw new TournamentPlayerRequestError('Esta solicitud ya fue resuelta')
 
-  if (action === 'accepted') {
-    if (request.playerId && (await isPlayerLinked(tournamentId, request.playerId))) {
-      throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
-    }
-    if (request.newPlayerName && (await playerNameExists(tournamentId, request.newPlayerName))) {
-      throw new TournamentPlayerRequestError('Ya existe un jugador con ese nombre')
-    }
-  }
+  const target: LinkTarget = request.playerId
+    ? { playerId: request.playerId, newPlayerName: null }
+    : { playerId: null, newPlayerName: request.newPlayerName ?? '' }
+  if (action === 'accepted') await assertLinkTargetAvailable(tournamentId, target)
 
   await runTransaction(db, async (transaction) => {
     const requestSnap = await transaction.get(requestRef(tournamentId, uid))
@@ -172,37 +255,7 @@ export async function resolveTournamentPlayerRequest(
     if (memberSnap.get('playerId'))
       throw new TournamentPlayerRequestError('El usuario ya tiene un jugador en este torneo')
 
-    let playerId = request.playerId
-    if (playerId) {
-      const [playerSnap, linkSnap] = await Promise.all([
-        transaction.get(doc(db, PLAYERS_COLLECTION, playerId)),
-        transaction.get(playerLinkRef(tournamentId, playerId)),
-      ])
-      if (!playerSnap.exists() || playerSnap.get('tournamentId') !== tournamentId) {
-        throw new TournamentPlayerRequestError('No se encontró el jugador')
-      }
-      if (linkSnap.exists()) {
-        throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
-      }
-    } else {
-      const newPlayerRef = doc(collection(db, PLAYERS_COLLECTION))
-      transaction.set(newPlayerRef, {
-        tournamentId,
-        name: request.newPlayerName,
-        position: '',
-        skill: null,
-        skills: null,
-        photoUrl: null,
-        goalkeeping: null,
-        inactive: false,
-        createdAt: now,
-        updatedAt: now,
-      })
-      playerId = newPlayerRef.id
-    }
-
-    transaction.set(playerLinkRef(tournamentId, playerId), { uid })
-    transaction.update(memberSnap.ref, { playerId, updatedAt: now })
+    await linkMemberInTransaction(transaction, tournamentId, memberSnap, target, now)
     transaction.delete(requestSnap.ref)
   })
 }

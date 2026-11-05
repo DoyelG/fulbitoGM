@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import { FiAlertTriangle, FiCamera, FiCheckCircle, FiFilm, FiLink, FiUser } from 'react-icons/fi'
 import type { Player } from '@fulbito/types'
-import { TournamentPlayerRequestError } from '@fulbito/firebase'
+import { TournamentPlayerRequestError, type LinkPlayerOutcome } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import Button from './Button'
 import LinkPlayerHero from './LinkPlayerHero'
 import LinkPlayerStepDots from './LinkPlayerStepDots'
 import PlayerSelector from './PlayerSelector'
 
-export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'revert'
+export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'linked' | 'revert'
 
 const benefits = [
   { icon: FiUser, text: 'Tener tu propio perfil de jugador' },
@@ -23,15 +23,17 @@ export const linkPlayerStepTitles: Record<LinkPlayerStep, string> = {
   select: 'Vincular con un jugador',
   newPlayer: 'Vincular con un jugador',
   sent: 'Vincular con un jugador',
+  linked: 'Vincular con un jugador',
   revert: 'Vincular con un jugador',
 }
 
 export type LinkPlayerRequest = { playerId: string } | { newPlayerName: string }
 
 export type LinkPlayerActions = {
-  send: (request: LinkPlayerRequest) => Promise<void>
+  send: (request: LinkPlayerRequest) => Promise<LinkPlayerOutcome>
   cancel: () => Promise<void>
   isPlayerUnavailable: (player: Player) => boolean
+  linksDirectly: boolean
   reviewerDescription: string
 }
 
@@ -63,18 +65,19 @@ export default function LinkPlayerFlow({
   const [newPlayerName, setNewPlayerName] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
-  const { send, cancel, isPlayerUnavailable, reviewerDescription } = actions
+  const { send, cancel, isPlayerUnavailable, linksDirectly, reviewerDescription } = actions
+  const submitLabel = linksDirectly ? 'Vincular' : 'Enviar solicitud'
 
   const sendRequest = async (request: LinkPlayerRequest) => {
     setIsSending(true)
     setErrorMessage(null)
     try {
-      await send(request)
+      const outcome = await send(request)
       onRequestSent()
-      onStepChange('sent')
+      onStepChange(outcome === 'linked' ? 'linked' : 'sent')
     } catch (error) {
       setErrorMessage(
-        isKnownRequestError(error) ? error.message : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
+        isKnownRequestError(error) ? error.message : 'No se pudo vincular el jugador. Probá de nuevo más tarde.',
       )
     } finally {
       setIsSending(false)
@@ -161,7 +164,7 @@ export default function LinkPlayerFlow({
             onClick={() => goToStep('newPlayer')}
             className="rounded font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            Solicitar un jugador nuevo
+            {linksDirectly ? 'Crear un jugador nuevo' : 'Solicitar un jugador nuevo'}
           </button>
         </p>
         {errorAlert}
@@ -174,7 +177,7 @@ export default function LinkPlayerFlow({
             disabled={!selectedPlayerId || isSending}
             onClick={() => sendRequest({ playerId: selectedPlayerId })}
           >
-            Enviar solicitud
+            {submitLabel}
           </Button>
         </div>
       </div>
@@ -207,7 +210,7 @@ export default function LinkPlayerFlow({
             disabled={!trimmedName || isSending}
             onClick={() => sendRequest({ newPlayerName: trimmedName })}
           >
-            Enviar solicitud
+            {submitLabel}
           </Button>
         </div>
       </div>
@@ -230,6 +233,25 @@ export default function LinkPlayerFlow({
           </Button>
           <Button type="button" variant="danger" block disabled={isSending} onClick={revertRequest}>
             Sí, revertir
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === 'linked') {
+    return (
+      <div>
+        <LinkPlayerStepDots current={3} total={3} />
+        <LinkPlayerHero
+          icon={FiCheckCircle}
+          tone="success"
+          title="Ya estás vinculado"
+          description="Ahora podés editar tu jugador desde tu perfil."
+        />
+        <div className="mt-6 flex justify-center">
+          <Button type="button" block onClick={onFinish}>
+            Cerrar
           </Button>
         </div>
       </div>
