@@ -81,11 +81,6 @@ export default function LoginPage() {
           >
             {loading ? 'Procesando…' : mode === 'signin' ? 'Entrar' : 'Crear cuenta'}
           </button>
-          {mode === 'register' && (
-            <p className="text-xs text-gray-700">
-              Rol por defecto: Usuario (lectura). Un administrador puede otorgar permisos de edición.
-            </p>
-          )}
         </form>
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
