@@ -48,7 +48,7 @@ export default function MatchDetailPage() {
 
   if (matchesInit !== 'loaded' && matchesInit !== 'error') {
     return (
-      <div className="mx-auto max-w-6xl p-4" aria-busy="true" aria-live="polite">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8" aria-busy="true" aria-live="polite">
         <span className="sr-only">Cargando partido…</span>
         <div aria-hidden className="h-56 animate-pulse rounded-3xl bg-gray-200" />
       </div>
@@ -57,7 +57,7 @@ export default function MatchDetailPage() {
 
   if (!match) {
     return (
-      <div className="mx-auto max-w-6xl p-4">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <BackLink />
         <p role="alert" className="rounded-xl border border-gray-200 bg-white p-6 text-gray-800">
           {matchesInit === 'error' ? 'No se pudo cargar el partido.' : 'No encontramos este partido.'}
@@ -75,7 +75,7 @@ export default function MatchDetailPage() {
   const shared = { isDraft, goalkeeperIds, mvpId: match.mvpId ?? null }
 
   return (
-    <div className="mx-auto max-w-6xl p-4">
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <BackLink />
         <div className="flex flex-wrap gap-2">
