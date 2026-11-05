@@ -164,6 +164,7 @@ export const PrimaryColors = {
 
 export const ContrastColors = {
   onColor: '#ffffff',
+  onSecondary: '#0b0b1a',
   onColorStrong: 'rgba(255,255,255,0.95)',
   onColorSoft: 'rgba(255,255,255,0.9)',
   onColorFaded: 'rgba(255,255,255,0.75)',

@@ -1,5 +1,6 @@
-import { getPlayersByIds } from '@fulbito/firebase'
+import { getDraftMatches, getPlayersByIds } from '@fulbito/firebase'
 import type { MyTournament } from '@fulbito/types'
+import { pickNextMatch, toLocalDay } from '@fulbito/utils'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from 'react-native'
@@ -9,7 +10,7 @@ import { ProfileButton } from '@/components/profile/profile-button'
 import { ThemedView } from '@/components/themed-view'
 import { LinkMyPlayerSheet } from '@/components/tournaments/link-my-player-sheet'
 import { PendingInvitations } from '@/components/tournaments/pending-invitations'
-import { TournamentCard } from '@/components/tournaments/tournament-card'
+import { TournamentCard, type NextMatchSummary } from '@/components/tournaments/tournament-card'
 import { TournamentFormSheet } from '@/components/tournaments/tournament-form-sheet'
 import { styles } from '@/components/tournaments/tournaments-screen.styles'
 import { VerifyEmailNotice } from '@/components/tournaments/verify-email-notice'
@@ -38,6 +39,31 @@ function useLinkedPlayerNames(myTournaments: MyTournament[]): Map<string, string
   return names
 }
 
+function useNextMatches(myTournaments: MyTournament[], reloadKey: number): Map<string, NextMatchSummary> {
+  const [nextMatches, setNextMatches] = useState<Map<string, NextMatchSummary>>(new Map())
+  const tournamentIdsKey = myTournaments.map(({ tournament }) => tournament.id).join(',')
+
+  useEffect(() => {
+    if (!tournamentIdsKey) return
+    let isCurrent = true
+    const today = toLocalDay(new Date())
+    const tournamentIds = tournamentIdsKey.split(',')
+    Promise.allSettled(tournamentIds.map((tournamentId) => getDraftMatches(tournamentId))).then((results) => {
+      if (!isCurrent) return
+      const entries = results.flatMap((result, index) => {
+        const next = result.status === 'fulfilled' ? pickNextMatch(result.value, today) : null
+        return next ? [[tournamentIds[index], next] as const] : []
+      })
+      setNextMatches(new Map(entries))
+    })
+    return () => {
+      isCurrent = false
+    }
+  }, [tournamentIdsKey, reloadKey])
+
+  return nextMatches
+}
+
 export default function TournamentsScreen() {
   const router = useRouter()
   const { colors } = useAppTheme()
@@ -54,6 +80,8 @@ export default function TournamentsScreen() {
     leaveTournament,
   } = useTournaments()
   const playerNames = useLinkedPlayerNames(myTournaments)
+  const [nextMatchesReloadKey, setNextMatchesReloadKey] = useState(0)
+  const nextMatches = useNextMatches(myTournaments, nextMatchesReloadKey)
   const [isCreating, setIsCreating] = useState(false)
   const [editing, setEditing] = useState<MyTournament | null>(null)
   const [linking, setLinking] = useState<MyTournament | null>(null)
@@ -65,6 +93,7 @@ export default function TournamentsScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true)
+    setNextMatchesReloadKey((key) => key + 1)
     await reload()
     setRefreshing(false)
   }
@@ -72,6 +101,11 @@ export default function TournamentsScreen() {
   const handleOpen = (item: MyTournament) => {
     setActiveTournament(item.tournament.id)
     router.navigate('/home')
+  }
+
+  const handleOpenMatch = (item: MyTournament, matchId: string) => {
+    if (item.tournament.id !== activeTournamentId) setActiveTournament(item.tournament.id)
+    router.push({ pathname: '/(tabs)/history/[id]', params: { id: matchId } })
   }
 
   const handleMembers = (item: MyTournament) => {
@@ -174,7 +208,9 @@ export default function TournamentsScreen() {
                     item={item}
                     active={item.tournament.id === activeTournamentId}
                     playerName={item.membership.playerId ? (playerNames.get(item.membership.playerId) ?? null) : null}
+                    nextMatch={nextMatches.get(item.tournament.id) ?? null}
                     onOpen={handleOpen}
+                    onOpenMatch={handleOpenMatch}
                     onLinkPlayer={handleLinkPlayer}
                     onMembers={handleMembers}
                     onEdit={setEditing}

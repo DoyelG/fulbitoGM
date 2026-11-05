@@ -26,7 +26,7 @@ type StatProps = {
 }
 
 const tileClassName =
-  'flex min-h-11 min-w-0 items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-sm ring-1 ring-inset ring-gray-200'
+  'flex min-h-10 min-w-0 items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-sm ring-1 ring-inset ring-gray-200'
 const interactiveClassName =
   'transition-colors hover:bg-primary/5 hover:ring-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 
@@ -34,7 +34,7 @@ function Stat({ icon: Icon, children, muted = false, href, ariaLabel, onNavigate
   const content = (
     <>
       <Icon className={`h-5 w-5 shrink-0 ${href || onClick ? 'text-primary' : 'text-gray-500'}`} aria-hidden />
-      <span className={`min-w-0 truncate ${muted ? 'italic text-gray-700' : 'font-semibold text-gray-900'}`}>
+      <span className={`min-w-0 truncate ${muted ? 'pr-0.5 italic text-gray-700' : 'font-semibold text-gray-900'}`}>
         {children}
       </span>
     </>
@@ -89,7 +89,7 @@ export default function TournamentCardStats({
   const linkedPlayerLabel = playerName ?? 'Mi jugador'
 
   return (
-    <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
       <Stat
         icon={UsersIcon}
         href={`/tournaments/${tournamentId}/members`}

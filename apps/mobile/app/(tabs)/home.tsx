@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { ActivityIndicator, View, Text, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { pickLatestFinalMatches, pickStreakLeaders } from '@fulbito/utils'
+import { pickLatestFinalMatches, pickNextMatch, pickStreakLeaders, toLocalDay } from '@fulbito/utils'
 import { Spacing, Radii, Fonts } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 import { useMatchesData } from '@/hooks/use-matches-data'
 import { HomeHero } from '@/components/home/home-hero'
 import { HomeMenuGrid } from '@/components/home/home-menu-grid'
 import { HomeMatchCard } from '@/components/home/home-match-card'
+import { HomeNextMatchCard } from '@/components/home/home-next-match-card'
 import { HomeRankingRow } from '@/components/home/home-ranking-row'
 
 const LAST_MATCHES_LIMIT = 2
@@ -16,6 +17,8 @@ const RANKING_LIMIT = 3
 export default function HomeScreen() {
   const { colors: C, isDark, shadows } = useAppTheme()
   const { matches, players, loading, error } = useMatchesData()
+  const today = toLocalDay(new Date())
+  const nextMatch = useMemo(() => pickNextMatch(matches, today), [matches, today])
   const lastMatches = useMemo(() => pickLatestFinalMatches(matches, LAST_MATCHES_LIMIT), [matches])
   const leaders = useMemo(
     () => pickStreakLeaders(players, matches, { winLimit: RANKING_LIMIT, lossLimit: 0 }).winning,
@@ -29,6 +32,23 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <HomeHero />
         <HomeMenuGrid />
+
+        {!error && (
+          <>
+            <Text accessibilityRole="header" style={[styles.sectionTitle, { color: C.text }]}>
+              PRÓXIMO PARTIDO
+            </Text>
+            {loading ? (
+              <ActivityIndicator
+                accessibilityLabel="Cargando el próximo partido"
+                color={C.primaryText}
+                style={styles.loader}
+              />
+            ) : (
+              <HomeNextMatchCard match={nextMatch} />
+            )}
+          </>
+        )}
 
         {showMatches && (
           <>
@@ -106,6 +126,8 @@ const styles = StyleSheet.create({
   },
 
   rankingMessage: { padding: Spacing.lg },
+
+  loader: { marginBottom: Spacing.xl },
 
   bottomPad: { height: 16 },
 })

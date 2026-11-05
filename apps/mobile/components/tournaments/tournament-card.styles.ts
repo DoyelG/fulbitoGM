@@ -2,35 +2,43 @@ import { StyleSheet } from 'react-native'
 
 import { Fonts, Radii, PrimaryColors, Spacing } from '@/constants/theme'
 
+const PHOTO_SIZE = 80
+
 export const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
     borderWidth: 1.5,
     borderRadius: Radii.lg,
     overflow: 'hidden',
   },
   photo: {
-    width: 88,
-    alignSelf: 'stretch',
+    width: PHOTO_SIZE,
+    height: PHOTO_SIZE,
+    borderRadius: Radii.md,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
   photoImage: {
     ...StyleSheet.absoluteFill,
   },
-  body: {
-    flex: 1,
-    minWidth: 0,
-  },
   main: {
-    gap: Spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
     padding: Spacing.lg,
     paddingBottom: Spacing.md,
+  },
+  info: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'flex-start',
+    gap: Spacing.xs,
   },
   pressed: {
     opacity: 0.85,
   },
   titleRow: {
+    alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.sm,

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useMemo } from 'react'
 import { MapPinIcon } from '@heroicons/react/24/outline'
 import {
-  daysUntilMatch,
   formatLongMatchDate,
   formatMatchClock,
   matchLocationMapsUrl,
@@ -20,12 +19,6 @@ function localToday(): string {
   const now = new Date()
   const month = String(now.getMonth() + 1).padStart(2, '0')
   return `${now.getFullYear()}-${month}-${String(now.getDate()).padStart(2, '0')}`
-}
-
-function countdownLabel(days: number): string {
-  if (days === 0) return 'Hoy'
-  if (days === 1) return 'Mañana'
-  return `En ${days} días`
 }
 
 export default function NextMatchHero() {
@@ -63,7 +56,7 @@ export default function NextMatchHero() {
               href="/match"
               className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
             >
-              Armá el próximo
+              Preparar partido
             </Link>
           </>
         )}
@@ -71,11 +64,11 @@ export default function NextMatchHero() {
           <>
             <div className="min-w-0">
               <h2 id="next-match-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
-                Próximo partido · {countdownLabel(daysUntilMatch(next.date, localToday()))}
+                Próximo partido{next.name ? ` · ${next.name}` : ''}
               </h2>
               <p className="mt-1 text-xl font-extrabold first-letter:uppercase sm:text-2xl">
                 {formatLongMatchDate(next.date)}
-                {hour !== null && <span className="text-secondary"> · {formatMatchClock(hour)}</span>}
+                {hour !== null && <span className="text-secondary"> · {formatMatchClock(hour)}hs</span>}
               </p>
               {next.location && (
                 <a
@@ -93,20 +86,12 @@ export default function NextMatchHero() {
                 </a>
               )}
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Link
-                href={`/history/${next.id}`}
-                className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
-              >
-                Ver partido
-              </Link>
-              <Link
-                href="/match"
-                className={`inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 px-5 py-3 text-sm font-semibold hover:bg-white/10 ${FOCUS_ON_DARK}`}
-              >
-                Preparar partido
-              </Link>
-            </div>
+            <Link
+              href={`/history/${next.id}`}
+              className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
+            >
+              Ver partido
+            </Link>
           </>
         )}
       </div>
