@@ -69,7 +69,7 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        className="relative h-10 flex items-center pl-2.5 pr-8 border rounded bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-brand"
+        className="relative flex h-10 w-full items-center rounded-md border border-gray-300 bg-white pl-3 pr-8 text-[15px] focus-visible:outline-1 focus-visible:outline-brand"
       >
         <span>{optionLabel(value)}</span>
         <Chevron select direction={open ? 'up' : 'down'} />
@@ -79,7 +79,7 @@ export default function HourField({ id, value, onChange, labelClassName = 'block
           id={listId}
           role="listbox"
           aria-labelledby={id}
-          className={`absolute left-0 z-20 w-full max-h-[220px] overflow-auto bg-white border rounded shadow-md ${
+          className={`absolute left-0 z-20 w-full max-h-[220px] overflow-auto bg-white border border-gray-300 rounded-md shadow-md ${
             openUp ? 'bottom-full mb-1' : 'top-full mt-1'
           }`}
         >

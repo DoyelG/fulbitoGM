@@ -8,15 +8,14 @@ import type { Player } from '@fulbito/types'
 import { positionLabels } from '@fulbito/utils'
 import Button from '@/components/Button'
 import { usePlayerStore } from '@/store/usePlayerStore'
+import { fieldClassName, selectClassName } from '@/lib/field-styles'
+import Chevron from '../shared/Icons/Chevron'
 import ProfileSection from './ProfileSection'
 
 type PlayerSectionProps = {
   player: Player
   index: number
 }
-
-const inputClassName =
-  'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/50'
 
 export default function PlayerSection({ player, index }: PlayerSectionProps) {
   const { players, updatePlayer } = usePlayerStore()
@@ -102,25 +101,28 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
             value={name}
             onChange={(event) => setName(event.target.value)}
             aria-describedby={errorMessage ? 'player-error' : undefined}
-            className={inputClassName}
+            className={`${fieldClassName} mt-1`}
           />
         </div>
         <div>
           <label htmlFor="player-position" className="block text-sm font-medium text-gray-900">
             Posición
           </label>
-          <select
-            id="player-position"
-            value={position}
-            onChange={(event) => setPosition(event.target.value)}
-            className={inputClassName}
-          >
-            {Object.entries(positionLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <div className="relative mt-1">
+            <select
+              id="player-position"
+              value={position}
+              onChange={(event) => setPosition(event.target.value)}
+              className={selectClassName}
+            >
+              {Object.entries(positionLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <Chevron select />
+          </div>
         </div>
         {errorMessage && (
           <p id="player-error" role="alert" className="text-sm text-red-700">

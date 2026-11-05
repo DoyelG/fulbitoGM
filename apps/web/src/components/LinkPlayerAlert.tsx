@@ -59,6 +59,7 @@ function LinkPlayerAlertContent({ user }: { user: AppUser }) {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={linkPlayerStepTitles[step]}
+        size={step === 'select' ? 'medium' : 'default'}
         hideHeader={step === 'sent' || step === 'revert'}
       >
         <LinkPlayerFlow

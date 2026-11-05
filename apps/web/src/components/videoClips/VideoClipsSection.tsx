@@ -7,6 +7,7 @@ import { canDeleteVideoClip } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
+import Button from '@/components/Button'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
 import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
 
@@ -34,13 +35,16 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
     if (videoClipsInit !== 'loaded') initLoad()
   }, [videoClipsInit, initLoad])
 
-  const playerClips = useMemo(() => videoClips.filter((c) => c.playerIds.includes(player.id)), [videoClips, player.id])
+  const playerClips = useMemo(
+    () => videoClips.filter((clip) => clip.playerIds.includes(player.id)),
+    [videoClips, player.id],
+  )
   const filteredClips = useMemo(
-    () => (filter === 'all' ? playerClips : playerClips.filter((c) => c.category === filter)),
+    () => (filter === 'all' ? playerClips : playerClips.filter((clip) => clip.category === filter)),
     [playerClips, filter],
   )
-  const matchById = useMemo(() => new Map(matches.map((m) => [m.id, m])), [matches])
-  const playbackClip = playbackClipId ? (playerClips.find((c) => c.id === playbackClipId) ?? null) : null
+  const matchById = useMemo(() => new Map(matches.map((match) => [match.id, match])), [matches])
+  const playbackClip = playbackClipId ? (playerClips.find((clip) => clip.id === playbackClipId) ?? null) : null
 
   const handleUpload = async (data: NewVideoClipData, file: File) => {
     setUploadError(null)
@@ -68,16 +72,16 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold">Clips</h2>
         {canUpload && (
-          <button
+          <Button
             type="button"
+            size="sm"
             onClick={() => {
               setUploadError(null)
               setUploadOpen(true)
             }}
-            className="px-3 py-1.5 rounded bg-brand text-white text-sm hover:bg-brand/90"
           >
             + Subir clip
-          </button>
+          </Button>
         )}
       </div>
       <div className="p-4" aria-busy={videoClipsInit === 'loading'}>
@@ -109,18 +113,18 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
           >
             Todos
           </button>
-          {VIDEO_CLIP_CATEGORIES.map((c) => (
+          {VIDEO_CLIP_CATEGORIES.map((clipCategory) => (
             <button
-              key={c.value}
+              key={clipCategory.value}
               type="button"
               role="tab"
-              aria-selected={filter === c.value}
-              onClick={() => setFilter(c.value)}
+              aria-selected={filter === clipCategory.value}
+              onClick={() => setFilter(clipCategory.value)}
               className={`px-3 py-1 rounded text-sm border ${
-                filter === c.value ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
+                filter === clipCategory.value ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
               }`}
             >
-              {c.icon} {c.label}
+              {clipCategory.icon} {clipCategory.label}
             </button>
           ))}
         </div>

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { Match, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
+import Button from '@/components/Button'
 
 type UploadData = {
   matchId: string
@@ -47,7 +48,7 @@ export default function VideoClipUploadForm({
     setFile(selected)
   }
 
-  const selectedMatch = useMemo(() => matches.find(m => m.id === matchId), [matches, matchId])
+  const selectedMatch = useMemo(() => matches.find(match => match.id === matchId), [matches, matchId])
   const suggestedPlayers = useMemo(
     () => (selectedMatch ? [...selectedMatch.teamA, ...selectedMatch.teamB] : []),
     [selectedMatch],
@@ -59,13 +60,13 @@ export default function VideoClipUploadForm({
   }
 
   const togglePlayer = (id: string) => {
-    setPlayerIds(prev => (prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]))
+    setPlayerIds(previousPlayerIds => (previousPlayerIds.includes(id) ? previousPlayerIds.filter(playerId => playerId !== id) : [...previousPlayerIds, id]))
   }
 
   const canSubmit = matchId !== '' && playerIds.length > 0 && file !== null && !submitting
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     if (!canSubmit || !file) return
     setSubmitting(true)
     try {
@@ -94,13 +95,13 @@ export default function VideoClipUploadForm({
             id="clip-match"
             required
             value={matchId}
-            onChange={e => handleMatchChange(e.target.value)}
+            onChange={event => handleMatchChange(event.target.value)}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
           >
             <option value="">Elegí un partido</option>
-            {matches.map(m => (
-              <option key={m.id} value={m.id}>
-                {new Date(m.date).toLocaleDateString()} · {m.type}
+            {matches.map(match => (
+              <option key={match.id} value={match.id}>
+                {new Date(match.date).toLocaleDateString()} · {match.type}
               </option>
             ))}
           </select>
@@ -118,13 +119,13 @@ export default function VideoClipUploadForm({
             )}
           </div>
           <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto border rounded-md p-2.5 bg-gray-50/50">
-            {suggestedPlayers.map(p => {
-              const active = playerIds.includes(p.id)
+            {suggestedPlayers.map(player => {
+              const active = playerIds.includes(player.id)
               return (
                 <button
-                  key={p.id}
+                  key={player.id}
                   type="button"
-                  onClick={() => togglePlayer(p.id)}
+                  onClick={() => togglePlayer(player.id)}
                   aria-pressed={active}
                   className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
                     active
@@ -133,7 +134,7 @@ export default function VideoClipUploadForm({
                   }`}
                 >
                   {active ? '✓ ' : ''}
-                  {p.name}
+                  {player.name}
                 </button>
               )
             })}
@@ -144,20 +145,20 @@ export default function VideoClipUploadForm({
       <div>
         <span className="block text-sm font-semibold text-gray-900 mb-1.5">🏷️ Categoría</span>
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Categoría del clip">
-          {VIDEO_CLIP_CATEGORIES.map(c => (
+          {VIDEO_CLIP_CATEGORIES.map(clipCategory => (
             <button
-              key={c.value}
+              key={clipCategory.value}
               type="button"
               role="tab"
-              aria-selected={category === c.value}
-              onClick={() => setCategory(c.value)}
+              aria-selected={category === clipCategory.value}
+              onClick={() => setCategory(clipCategory.value)}
               className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
-                category === c.value
+                category === clipCategory.value
                   ? 'bg-brand text-white border-brand'
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
               }`}
             >
-              {c.icon} {c.label}
+              {clipCategory.icon} {clipCategory.label}
             </button>
           ))}
         </div>
@@ -171,7 +172,7 @@ export default function VideoClipUploadForm({
           id="clip-title"
           type="text"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={event => setTitle(event.target.value)}
           placeholder="Ej: Gol de tiro libre"
           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
         />
@@ -213,26 +214,18 @@ export default function VideoClipUploadForm({
           id="clip-file"
           type="file"
           accept="video/*"
-          onChange={e => handleFileChange(e.target.files?.[0] ?? null)}
+          onChange={event => handleFileChange(event.target.files?.[0] ?? null)}
           className="hidden"
         />
       </div>
 
       <div className="flex justify-end gap-2 pt-2 border-t">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-black shadow-sm hover:bg-gray-50 mt-4"
-        >
+        <Button variant="secondary" onClick={onCancel} className="mt-4">
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="inline-flex justify-center rounded-md border border-transparent bg-brand py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand/90 disabled:opacity-50 mt-4"
-        >
+        </Button>
+        <Button type="submit" disabled={!canSubmit} className="mt-4">
           {submitting ? 'Subiendo...' : 'Subir clip'}
-        </button>
+        </Button>
       </div>
     </form>
   )

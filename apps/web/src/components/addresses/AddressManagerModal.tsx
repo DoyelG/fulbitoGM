@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Address } from '@fulbito/types'
-import '@/styles/buttons.css'
+import Button from '@/components/Button'
 import Modal from '@/components/Modal'
-import { Backdrop } from '@/components/Backdrop'
+import ConfirmModal from '@/components/ConfirmModal'
 import ActionRow from '@/components/ActionRow'
 import { useAddressStore, type AddressInput } from '@/store/useAddressStore'
 import AddressForm from './AddressForm'
@@ -145,54 +145,29 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
           </div>
 
           <div className="mt-4 flex justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => goTo({ kind: 'create' })}
-              className="btn btn-secondary text-sm font-medium"
-            >
+            <Button variant="secondary" onClick={() => goTo({ kind: 'create' })}>
               <PlusIcon aria-hidden="true" className="size-4" />
               Agregar cancha
-            </button>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="btn btn-primary text-sm font-medium"
-            >
-              Listo
-            </button>
+            </Button>
+            <Button onClick={handleClose}>Listo</Button>
           </div>
         </div>
       )}
 
-      {toDelete && (
-        <Backdrop onClose={() => setToDelete(null)} title="Confirmar eliminación">
-          <div className="bg-white p-6 rounded-xl max-w-md">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h2>
-
-            <p className="text-gray-600 mb-6">
-              ¿Estás seguro de que querés eliminar &quot;{toDelete.name}&quot;? Los partidos ya guardados no se
-              modifican.
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setToDelete(null)}
-                className="btn btn-ghost"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="btn btn-danger"
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
-        </Backdrop>
-      )}
+      <ConfirmModal
+        title="Confirmar eliminación"
+        open={toDelete !== null}
+        onClose={() => setToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        icon={FiTrash2}
+        tone="danger"
+        confirmLabel="Eliminar"
+      >
+        <p>
+          ¿Estás seguro de que querés eliminar &quot;<span className="font-medium text-gray-900">{toDelete?.name}</span>
+          &quot;? Los partidos ya guardados no se modifican.
+        </p>
+      </ConfirmModal>
     </Modal>
   )
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import Button from "@/components/Button";
+import Button, { buttonClasses } from "@/components/Button";
+import PageTitle from "@/components/PageTitle";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
 import { getMvpCountsByPlayerId, getGoalkeeping } from "@fulbito/utils";
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import Chevron from "@/app/shared/Icons/Chevron";
 
 export default function PlayerDetailPage() {
   const { user, isAdmin } = useFirebaseAuth()
@@ -29,12 +31,12 @@ export default function PlayerDetailPage() {
   const fileRef = useRef<HTMLInputElement | null>(null)
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     if (!isAdmin) return
-    const f = event.target.files?.[0]
-    if (!f) return
-    setForm(prev => ({ ...prev, photo: f, photoUrl: URL.createObjectURL(f) }))
+    const file = event.target.files?.[0]
+    if (!file) return
+    setForm(previousForm => ({ ...previousForm, photo: file, photoUrl: URL.createObjectURL(file) }))
   }
   const deletePhoto = () => {
-    setForm(prev => ({ ...prev, photo: null, photoUrl: null }))
+    setForm(previousForm => ({ ...previousForm, photo: null, photoUrl: null }))
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -125,13 +127,13 @@ export default function PlayerDetailPage() {
       const inB = match.teamB.find((playerRow) => playerRow.id === id);
       if (!inA && !inB) continue;
 
-      const me = inA || inB;
+      const playerInMatch = inA || inB;
       const team = inA ? ("A" as const) : ("B" as const);
       const teamAScore = match.teamAScore,
         teamBScore = match.teamBScore;
       res.matches++;
-      res.goals += me!.goals;
-      res.totalPerformance += me!.performance;
+      res.goals += playerInMatch!.goals;
+      res.totalPerformance += playerInMatch!.performance;
       if (team === "A") {
         if (teamAScore > teamBScore) res.wins++;
         else if (teamAScore < teamBScore) res.losses++;
@@ -145,8 +147,8 @@ export default function PlayerDetailPage() {
         date: match.date,
         type: match.type,
         team,
-        goals: me!.goals,
-        performance: me!.performance,
+        goals: playerInMatch!.goals,
+        performance: playerInMatch!.performance,
         score: `${teamAScore} - ${teamBScore}`,
         result: (team === "A"
           ? teamAScore > teamBScore
@@ -184,7 +186,7 @@ export default function PlayerDetailPage() {
 
   if (!player) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="mb-4">Jugador no encontrado.</p>
           <Link href="/players" className="text-brand hover:underline">
@@ -264,10 +266,10 @@ export default function PlayerDetailPage() {
     4;
   const gkQuickValue = gkTouched ? form.goalkeeping : String(Math.round(avgPreview));
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6 flex gap-5 items-center justify-between">
         <div className="space-y-2 grow">
-          <h1 className="text-3xl font-bold">{player.name}</h1>
+          <PageTitle spacing={0}>{player.name}</PageTitle>
           <div className="flex flex-col gap-3 text-gray-800">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
@@ -284,9 +286,8 @@ export default function PlayerDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="px-3 py-2 rounded border hover:bg-gray-50"
+          <Button
+            variant="secondary"
             onClick={() => {
               if (typeof window !== 'undefined' && window.history.length > 1) {
                 router.back()
@@ -296,34 +297,26 @@ export default function PlayerDetailPage() {
             }}
           >
             Volver
-          </button>
+          </Button>
           {!editMode ? (
             <>
               {isAdmin && (
                 <>
                   <Link
                     href={`/players/edit/${player.id}`}
-                    className="px-3 py-2 rounded border hover:bg-gray-50"
+                    className={buttonClasses({ variant: 'tertiary' })}
                   >
                     Abrir edición
                   </Link>
-                  <button
-                    className="px-3 py-2 rounded bg-brand text-white hover:bg-brand/90"
-                    onClick={() => setEditMode(true)}
-                  >
-                    Edición rápida
-                  </button>
+                  <Button onClick={() => setEditMode(true)}>Edición rápida</Button>
                 </>
               )}
             </>
           ) : (
             isAdmin ? (
-              <button
-                className="px-3 py-2 rounded bg-gray-600 text-white hover:bg-gray-700"
-                onClick={handleCancel}
-              >
+              <Button variant="secondary" onClick={handleCancel}>
                 Cancelar
-              </button>
+              </Button>
             ) : null
           )}
         </div>
@@ -370,94 +363,112 @@ export default function PlayerDetailPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Físico</label>
-            <select
-              value={form.physical}
-              onChange={(event) => setForm({ ...form, physical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.physical}
+                onChange={(event) => setForm({ ...form, physical: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Técnico</label>
-            <select
-              value={form.technical}
-              onChange={(event) => setForm({ ...form, technical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.technical}
+                onChange={(event) => setForm({ ...form, technical: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Táctico</label>
-            <select
-              value={form.tactical}
-              onChange={(event) => setForm({ ...form, tactical: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.tactical}
+                onChange={(event) => setForm({ ...form, tactical: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
               Mental
             </label>
-            <select
-              value={form.psychological}
-              onChange={(event) =>
-                setForm({ ...form, psychological: event.target.value })
-              }
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={form.psychological}
+                onChange={(event) =>
+                  setForm({ ...form, psychological: event.target.value })
+                }
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Arquero</label>
-            <select
-              value={gkQuickValue}
-              onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={gkQuickValue}
+                onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div className="sm:col-span-3 text-sm text-gray-800">
             General (promedio): <span className="font-semibold">Lv {avgPreview}</span>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Posición</label>
-            <select
-              value={form.position}
-              onChange={(event) => setForm({ ...form, position: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-            >
-              <option value="GK">Arquero</option>
-              <option value="DEF">Defensor</option>
-              <option value="MID">Mediocampista</option>
-              <option value="FWD">Delantero</option>
-              <option value="PLAYER">Cualquier posición</option>
-            </select>
+            <div className="relative">
+              <select
+                value={form.position}
+                onChange={(event) => setForm({ ...form, position: event.target.value })}
+                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
+              >
+                <option value="GK">Arquero</option>
+                <option value="DEF">Defensor</option>
+                <option value="MID">Mediocampista</option>
+                <option value="FWD">Delantero</option>
+                <option value="PLAYER">Cualquier posición</option>
+              </select>
+              <Chevron select />
+            </div>
           </div>
           <div>
             <span id="quick-status-label" className="block text-sm font-medium mb-1">

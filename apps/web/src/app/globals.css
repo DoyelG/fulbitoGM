@@ -45,8 +45,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-button {
-  cursor: pointer;
+@layer base {
+  button {
+    cursor: pointer;
+  }
 }
 
 @utility bg-scoreboard {

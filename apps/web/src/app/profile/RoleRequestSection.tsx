@@ -122,6 +122,7 @@ export default function RoleRequestSection({ user, isAdmin, index }: RoleRequest
         open={isLinkModalOpen}
         onClose={closeLinkModal}
         title={linkPlayerStepTitles[linkStep]}
+        size={linkStep === 'select' ? 'medium' : 'default'}
         hideHeader={linkStep === 'sent' || linkStep === 'revert'}
       >
         <LinkPlayerFlow

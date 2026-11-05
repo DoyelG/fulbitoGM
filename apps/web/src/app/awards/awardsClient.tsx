@@ -8,8 +8,11 @@ import { AwardCard } from '@/components/AwardCard'
 import { AwardRunnersUp } from '@/components/AwardRunnersUp'
 import { ChampionsSection } from '@/components/ChampionsSection'
 import { HallOfFame } from '@/components/HallOfFame'
+import PageTitle from '@/components/PageTitle'
 import { AWARD_ICONS } from '@/constants/award-icons'
 import { HALL_OF_FAME, useAnnualAwards } from '@/hooks/use-annual-awards'
+import Chevron from '../shared/Icons/Chevron'
+import { selectClassName } from '@/lib/field-styles'
 
 type Props = { players: Player[]; matches: Match[] }
 
@@ -50,26 +53,31 @@ export function AwardsClient({ players, matches }: Props) {
 
       <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-          <h1 className="text-3xl font-black italic tracking-tight">
+          <PageTitle variant="display" spacing={0}>
             {isHallOfFame ? 'Hall of Fame' : 'Premios del Año'}
-          </h1>
+          </PageTitle>
           <div className="flex items-center gap-2">
             <label htmlFor="award-season" className="text-sm font-medium">
               Temporada
             </label>
-            <select
-              id="award-season"
-              value={selection}
-              onChange={(e) => onSelectSeason(e.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(e.target.value))}
-              className="rounded border px-3 py-2"
-            >
-              {availableYears.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-              <option value={HALL_OF_FAME}>🏆 Hall of Fame</option>
-            </select>
+            <div className="relative w-fit">
+              <select
+                id="award-season"
+                value={selection}
+                onChange={(event) =>
+                  onSelectSeason(event.target.value === HALL_OF_FAME ? HALL_OF_FAME : Number(event.target.value))
+                }
+                className={selectClassName}
+              >
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+                <option value={HALL_OF_FAME}>🏆 Hall of Fame</option>
+              </select>
+              <Chevron select />
+            </div>
           </div>
         </div>
       </div>
