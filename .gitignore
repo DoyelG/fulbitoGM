@@ -37,6 +37,7 @@ ui-debug.log*
 
 # firebase emulator data
 .firebase-emulator/
+firebase-export-*/
 
 # env files
 .env
