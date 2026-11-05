@@ -36,10 +36,13 @@ import { Backdrop } from '@/components/Backdrop'
 import AddressPicker from '@/components/AddressPicker'
 import MatchLocationLink from '@/components/MatchLocationLink'
 import SearchInput from '@/components/SearchInput'
-import { FiEdit2, FiTrash2, FiVideo } from 'react-icons/fi'
+import { FiCheckCircle, FiEdit2, FiTrash2, FiVideo } from 'react-icons/fi'
 import { MdLocalLaundryService } from 'react-icons/md'
 import Chevron from '../shared/Icons/Chevron'
 import WidgetError from '@/components/home/WidgetError'
+import CopyMatchImageButton from '@/components/tournaments/detail/CopyMatchImageButton'
+import { buildMatchImageData } from '@/lib/match-image-data'
+import { useTournamentStore } from '@/store/useTournamentStore'
 
 type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
 const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
@@ -50,6 +53,7 @@ type RecordingPlayer = { id: string; name: string }
 const MATCH_ACTION_SHAPE =
   'relative inline-flex h-11 w-11 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5'
 const MATCH_ACTION_CLASS = `${MATCH_ACTION_SHAPE} bg-primary-dark/10 text-primary-dark hover:bg-primary-dark/15 focus-visible:ring-primary/40`
+const MATCH_COMPLETE_CLASS = `${MATCH_ACTION_SHAPE} bg-primary text-white hover:bg-primary/90 focus-visible:ring-primary/40`
 const MATCH_DELETE_CLASS = `${MATCH_ACTION_SHAPE} bg-secondary/10 text-orange-700 hover:bg-secondary/20 focus-visible:ring-secondary/40`
 
 export default function HistoryClient() {
@@ -57,6 +61,12 @@ export default function HistoryClient() {
   const canManage = useCanManageTournament()
   const { addMatch, updateMatch, deleteMatch, matches: storeMatches, matchesInit } = useMatchStore()
   const { players: storePlayers } = usePlayerStore()
+  const tournamentPhotoUrl = useTournamentStore(
+    (state) =>
+      state.myTournaments.find((entry) => entry.tournament.id === state.activeTournamentId)?.tournament.photoUrl ??
+      null,
+  )
+  const playerById = useMemo(() => new Map(storePlayers.map((player) => [player.id, player])), [storePlayers])
   const [open, setOpen] = useState<false | { mode: 'create' } | { mode: 'edit'; match: Match }>(false)
   const [showModal, setShowModal] = useState(false)
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
@@ -258,7 +268,19 @@ export default function HistoryClient() {
                       </span>
                     )}
                   </div>
-                  {!isDraft && (
+                  {isDraft ? (
+                    canManage && (
+                      <button
+                        type="button"
+                        className={`${MATCH_COMPLETE_CLASS} shrink-0`}
+                        onClick={() => setOpen({ mode: 'edit', match })}
+                        aria-label="Completar resultado"
+                      >
+                        <FiCheckCircle className="h-[18px] w-[18px] sm:h-4 sm:w-4" aria-hidden="true" />
+                        <span className="hidden sm:inline">Completar resultado</span>
+                      </button>
+                    )
+                  ) : (
                     <div className="shrink-0 rounded-full bg-primary-dark/10 px-4 py-1.5 text-xl font-extrabold text-primary-dark">
                       {match.teamAScore} – {match.teamBScore}
                     </div>
@@ -374,6 +396,13 @@ export default function HistoryClient() {
                           </span>
                         )}
                       </button>
+                      {isDraft && (
+                        <CopyMatchImageButton
+                          variant="action"
+                          className={MATCH_ACTION_CLASS}
+                          data={buildMatchImageData(match, playerById, tournamentPhotoUrl)}
+                        />
+                      )}
                       {canManage && (
                         <>
                           <button
@@ -385,14 +414,6 @@ export default function HistoryClient() {
                             <FiEdit2 className="h-[18px] w-[18px] sm:h-4 sm:w-4" aria-hidden="true" />
                             <span className="hidden sm:inline">Editar</span>
                           </button>
-                          {isDraft && (
-                            <button
-                              className="px-4 py-2 text-sm font-medium rounded border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
-                              onClick={() => setOpen({ mode: 'edit', match })}
-                            >
-                              Completar resultado
-                            </button>
-                          )}
                           <button
                             type="button"
                             className={MATCH_DELETE_CLASS}

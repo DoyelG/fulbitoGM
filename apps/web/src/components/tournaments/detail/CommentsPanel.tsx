@@ -157,7 +157,7 @@ export default function CommentsPanel({
           aria-label="Lista de comentarios"
           tabIndex={0}
           aria-busy={loadingMore}
-          className="-mx-1 mt-5 rounded-lg px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:min-h-0 lg:flex-1 lg:overflow-y-auto"
+          className="-mx-1 mt-5 rounded-lg px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:[contain:size]"
         >
           <ul className="space-y-4" aria-live="polite">
             {pageComments.map((comment) => {

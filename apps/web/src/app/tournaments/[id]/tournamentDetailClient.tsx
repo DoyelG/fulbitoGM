@@ -177,11 +177,16 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
           <div className="space-y-5 lg:col-span-2">
-            <NextMatchPanel match={nextMatch} today={today} playerById={playerById} />
+            <NextMatchPanel
+              match={nextMatch}
+              tournamentPhotoUrl={tournament.photoUrl ?? null}
+              today={today}
+              playerById={playerById}
+            />
             <LeadersPanel rows={statRows} />
             <RecentMatchesPanel matches={recentMatches} />
           </div>
-          <div className="flex flex-col gap-5 lg:min-h-[40rem] lg:[contain:size]">
+          <div className="flex flex-col gap-5 lg:min-h-[40rem]">
             {isDetailLoaded && isModerator && (
               <PlayerRequestsPanel
                 requests={detail.playerRequests}

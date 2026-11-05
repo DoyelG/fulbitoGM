@@ -20,6 +20,12 @@ const eslintConfig = [
     },
   },
   {
+    files: ["src/app/api/**/*.tsx"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",

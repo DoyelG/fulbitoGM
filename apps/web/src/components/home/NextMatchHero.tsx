@@ -82,10 +82,13 @@ export default function NextMatchHero() {
                   href={matchLocationMapsUrl(next.location)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`mt-1 inline-flex min-h-11 items-center gap-1 rounded text-sm text-violet-200 underline-offset-4 hover:text-white hover:underline ${FOCUS_ON_DARK}`}
+                  className={`mt-1.5 inline-flex min-h-6 items-center gap-1 rounded text-sm text-violet-200 underline-offset-4 hover:text-white hover:underline ${FOCUS_ON_DARK}`}
                 >
                   <MapPinIcon aria-hidden className="h-4 w-4 shrink-0" />
-                  {next.location.name}
+                  <span>
+                    <span className="font-semibold text-white">{next.location.name}</span>
+                    {next.location.street && ` · ${next.location.street}`}
+                  </span>
                   <span className="sr-only"> (abre el mapa en una pestaña nueva)</span>
                 </a>
               )}

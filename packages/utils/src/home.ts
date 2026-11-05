@@ -104,8 +104,8 @@ export function rankStatRows(rows: PlayerStatRow[], stat: 'goals' | 'mvps', limi
   }))
 }
 
-export function pickNextMatch(matches: Match[], today: string): Match | null {
-  let next: Match | null = null
+export function pickNextMatch<T extends Pick<Match, 'status' | 'date'>>(matches: T[], today: string): T | null {
+  let next: T | null = null
   for (const m of matches) {
     if (m.status !== 'draft' || m.date.slice(0, 10) < today) continue
     if (!next || m.date < next.date) next = m

@@ -110,6 +110,17 @@ export async function getMatches(tournamentId: string): Promise<Match[]> {
   return sortMatchesByDateDescending(matches)
 }
 
+export async function getDraftMatches(tournamentId: string): Promise<Omit<Match, 'teamA' | 'teamB'>[]> {
+  const snap = await getDocs(
+    query(
+      collection(getFirestore(), MATCHES_COLLECTION),
+      where('tournamentId', '==', tournamentId),
+      where('status', '==', 'draft'),
+    ),
+  )
+  return snap.docs.map((d) => docToMatchScalars(d.id, d.data() as Record<string, unknown>))
+}
+
 function sortMatchesByDateDescending(matches: Match[]): Match[] {
   return matches.sort((a, b) => {
     const dayA = a.date.slice(0, 10)

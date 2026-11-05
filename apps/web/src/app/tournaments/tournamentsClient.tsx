@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { PlusIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import type { MyTournament } from '@fulbito/types'
-import { getPlayersByIds } from '@fulbito/firebase'
+import type { Match, MyTournament } from '@fulbito/types'
+import { getDraftMatches, getPlayersByIds } from '@fulbito/firebase'
+import { pickNextMatch, toLocalDay } from '@fulbito/utils'
 import { useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
 import Button from '@/components/Button'
 import EmptyState from '@/components/EmptyState'
@@ -42,6 +43,9 @@ export default function TournamentsClient() {
     setActiveTournament,
   } = useTournamentStore()
   const [playerNameById, setPlayerNameById] = useState<Map<string, string>>(new Map())
+  const [nextMatchByTournament, setNextMatchByTournament] = useState<Map<string, Pick<Match, 'date' | 'hasTime'>>>(
+    new Map(),
+  )
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<MyTournament | null>(null)
   const [deleting, setDeleting] = useState<MyTournament | null>(null)
@@ -61,6 +65,25 @@ export default function TournamentsClient() {
       isCurrent = false
     }
   }, [linkedPlayerIdsKey])
+
+  const tournamentIdsKey = myTournaments.map(({ tournament }) => tournament.id).join(',')
+  useEffect(() => {
+    if (!tournamentIdsKey) return
+    let isCurrent = true
+    const today = toLocalDay(new Date())
+    const tournamentIds = tournamentIdsKey.split(',')
+    Promise.allSettled(tournamentIds.map((tournamentId) => getDraftMatches(tournamentId))).then((results) => {
+      if (!isCurrent) return
+      const entries = results.flatMap((result, index) => {
+        const next = result.status === 'fulfilled' ? pickNextMatch(result.value, today) : null
+        return next ? [[tournamentIds[index], next] as const] : []
+      })
+      setNextMatchByTournament(new Map(entries))
+    })
+    return () => {
+      isCurrent = false
+    }
+  }, [tournamentIdsKey])
 
   const playerName = (playerId: string | null) => (playerId ? (playerNameById.get(playerId) ?? null) : null)
 
@@ -168,6 +191,7 @@ export default function TournamentsClient() {
                     onLeave={setLeaving}
                     onLinkPlayer={handleLinkPlayer}
                     playerName={playerName(item.membership.playerId)}
+                    nextMatch={nextMatchByTournament.get(item.tournament.id) ?? null}
                   />
                 </li>
               ))}

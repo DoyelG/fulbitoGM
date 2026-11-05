@@ -5,9 +5,13 @@ type Props = {
   id: string
   title: string
   icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
-  action?: { label: string; href: string }
+  action?: { label: string; href: string } | ReactNode
   className?: string
   children: ReactNode
+}
+
+function isLinkAction(action: Props['action']): action is { label: string; href: string } {
+  return typeof action === 'object' && action !== null && 'href' in action && 'label' in action
 }
 
 export default function DetailSection({ id, title, icon: Icon, action, className = '', children }: Props) {
@@ -18,13 +22,15 @@ export default function DetailSection({ id, title, icon: Icon, action, className
           <Icon className="h-5 w-5 text-primary" aria-hidden />
           {title}
         </h2>
-        {action && (
+        {isLinkAction(action) ? (
           <Link
             href={action.href}
             className="rounded text-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             {action.label}
           </Link>
+        ) : (
+          action
         )}
       </div>
       {children}

@@ -5,16 +5,18 @@ import { CalendarIcon, ClockIcon, MapPinIcon, UserGroupIcon } from '@heroicons/r
 import { FaTshirt } from 'react-icons/fa'
 import { GiGoalKeeper } from 'react-icons/gi'
 import MatchLocationLink from '@/components/MatchLocationLink'
+import { buildMatchImageData, oneDecimal, teamTotals, winProbabilityA } from '@/lib/match-image-data'
+import CopyMatchImageButton from './CopyMatchImageButton'
 import DetailSection from './DetailSection'
 
 type Props = {
   match: Match | null
+  tournamentPhotoUrl: string | null
   today: string
   playerById: Map<string, Player>
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
-const UNKNOWN_SKILL = 5
 const monthFormatter = new Intl.DateTimeFormat('es-AR', { month: 'short', timeZone: 'UTC' })
 const longMonthFormatter = new Intl.DateTimeFormat('es-AR', { month: 'long', timeZone: 'UTC' })
 const weekdayFormatter = new Intl.DateTimeFormat('es-AR', { weekday: 'long', timeZone: 'UTC' })
@@ -27,20 +29,6 @@ function countdownLabel(days: number): string {
   if (days <= 0) return 'Hoy'
   if (days === 1) return 'Mañana'
   return `En ${days} días`
-}
-
-function teamTotals(players: MatchPlayer[], playerById: Map<string, Player>): { skill: number; physical: number } {
-  return players.reduce(
-    (totals, player) => {
-      const info = playerById.get(player.id)
-      const physical = info?.skills?.physical
-      return {
-        skill: totals.skill + (info?.skill ?? UNKNOWN_SKILL),
-        physical: totals.physical + (typeof physical === 'number' ? physical : UNKNOWN_SKILL),
-      }
-    },
-    { skill: 0, physical: 0 },
-  )
 }
 
 function TeamStat({ icon, label, value }: { icon: string; label: string; value: string }) {
@@ -94,15 +82,15 @@ function TeamPreview({ title, players, skill, physical, winProbability, goalkeep
         </ul>
       )}
       <dl className="flex flex-wrap justify-center gap-x-5 gap-y-1 rounded bg-gray-100 px-3 py-2 text-sm font-semibold">
-        <TeamStat icon="🧠" label="Total habilidad" value={String(skill)} />
-        <TeamStat icon="💪" label="Total físico" value={String(physical)} />
+        <TeamStat icon="🧠" label="Total habilidad" value={String(oneDecimal(skill))} />
+        <TeamStat icon="💪" label="Total físico" value={String(oneDecimal(physical))} />
         <TeamStat icon="🏆" label="Probabilidad de victoria" value={`${winProbability}%`} />
       </dl>
     </div>
   )
 }
 
-export default function NextMatchPanel({ match, today, playerById }: Props) {
+export default function NextMatchPanel({ match, tournamentPhotoUrl, today, playerById }: Props) {
   if (!match) {
     return (
       <DetailSection id="next-match-title" title="Próximo partido" icon={CalendarIcon}>
@@ -117,16 +105,16 @@ export default function NextMatchPanel({ match, today, playerById }: Props) {
   const goalkeeperIds = new Set(match.goalkeeperIds ?? [])
   const totalsA = teamTotals(match.teamA, playerById)
   const totalsB = teamTotals(match.teamB, playerById)
-  const combinedSkill = totalsA.skill + totalsB.skill
-  const probabilityA = combinedSkill > 0 ? Math.round((totalsA.skill / combinedSkill) * 100) : 50
+  const probabilityA = winProbabilityA(totalsA, totalsB)
   const shirtsName = match.shirtsResponsibleId ? playerById.get(match.shirtsResponsibleId)?.name : undefined
+  const imageData = buildMatchImageData(match, playerById, tournamentPhotoUrl)
 
   return (
     <DetailSection
       id="next-match-title"
       title="Próximo partido"
       icon={CalendarIcon}
-      action={{ label: 'Ver historial', href: '/history' }}
+      action={<CopyMatchImageButton data={imageData} />}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
         <p className="rounded-xl border border-primary/30 px-3 py-2 text-center text-base font-semibold text-gray-900 sm:hidden">
