@@ -186,7 +186,7 @@ export function pickSeasonChampions(players: Player[], allMatches: Match[], year
 
 export function computeSeasonStatRows(players: Player[], allMatches: Match[], year: number): PlayerStatRow[] {
   const seasonMatches = allMatches.filter((m) => new Date(m.date).getFullYear() === year)
-  const eventsById = findAllStreakEvents(allMatches, CHAMPIONSHIP_THRESHOLD)
+  const eventsById = findAllStreakEvents(onlyFinalMatches(allMatches), CHAMPIONSHIP_THRESHOLD)
 
   return computePlayerStatRows(players, seasonMatches).map((row) => ({
     ...row,
