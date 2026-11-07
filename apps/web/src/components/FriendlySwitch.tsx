@@ -27,7 +27,7 @@ export default function FriendlySwitch({
         aria-checked={isFriendly}
         aria-label="Partido amistoso"
         onClick={onToggle}
-        className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+        className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
           isFriendly ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-scoreboard'
         }`}
       >

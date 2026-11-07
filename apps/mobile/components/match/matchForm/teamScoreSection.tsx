@@ -2,9 +2,10 @@ import { StyleSheet, Text, TextInput, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 
-import type { RecordingPlayer } from './types'
+import type { RecordingPlayer, TeamSide } from './types'
 
 type Props = {
+  side: TeamSide
   label: string
   players: RecordingPlayer[]
   score: string
@@ -17,6 +18,7 @@ type Props = {
 }
 
 export function TeamScoreSection({
+  side,
   label,
   players,
   score,
@@ -30,9 +32,16 @@ export function TeamScoreSection({
   const { colors, radii } = useAppTheme()
   const scoreNum = parseInt(score) || 0
   const matches = scoreNum === total
+  const totalBg = side === 'a' ? colors.primarySoftStrong : colors.secondarySoft
+  const totalText = side === 'a' ? colors.primaryText : colors.secondaryText
 
   return (
-    <View style={[styles.section, { backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: radii.sm }]}>
+    <View
+      style={[
+        styles.section,
+        { backgroundColor: side === 'a' ? colors.primarySubtle : colors.secondarySubtle, borderRadius: radii.sm },
+      ]}
+    >
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       <TextInput
         value={score}
@@ -79,10 +88,10 @@ export function TeamScoreSection({
       <View
         style={[
           styles.totalPill,
-          { backgroundColor: matches ? 'rgba(22,163,74,0.12)' : 'rgba(220,38,38,0.12)' },
+          { backgroundColor: matches ? totalBg : colors.dangerBg },
         ]}
       >
-        <Text style={{ color: matches ? '#166534' : '#991b1b', fontWeight: '600', fontSize: 12 }}>
+        <Text style={[styles.totalText, { color: matches ? totalText : colors.danger }]}>
           Total: {total} goles {matches ? '✓' : '✗'}
         </Text>
       </View>
@@ -130,6 +139,10 @@ const styles = StyleSheet.create({
     width: 38,
     textAlign: 'center',
     paddingVertical: 3,
+    fontSize: 12,
+  },
+  totalText: {
+    fontWeight: '600',
     fontSize: 12,
   },
   totalPill: {

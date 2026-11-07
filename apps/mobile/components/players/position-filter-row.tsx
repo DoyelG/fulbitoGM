@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 export type PositionFilter = string | null
 
@@ -61,15 +62,15 @@ function Chip({
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: active ? colors.brand : colors.chipBg,
-          borderColor: active ? colors.brand : colors.chipBorder,
+          backgroundColor: active ? colors.primary : colors.chipBg,
+          borderColor: active ? colors.primary : colors.chipBorder,
         },
         pressed && styles.pressed,
       ]}>
       <ThemedText
         style={[
           styles.chipText,
-          { color: active ? '#fff' : colors.muted },
+          { color: active ? ContrastColors.onColor : colors.muted },
         ]}>
         {label}
       </ThemedText>

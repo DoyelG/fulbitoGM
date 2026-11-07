@@ -1,8 +1,11 @@
 import { StyleSheet } from 'react-native'
 
-import { Spacing } from '@/constants/theme'
+import { Colors, ContrastColors, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
+  separator: {
+    height: 12,
+  },
   safe: {
     flex: 1,
   },
@@ -17,10 +20,12 @@ export const styles = StyleSheet.create({
   },
   viewSwitch: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 5,
     marginBottom: 12,
   },
   viewTab: {
+    flex: 1,
+    alignItems: 'center',
     paddingHorizontal: 4,
     paddingBottom: 8,
     borderBottomWidth: 2,
@@ -41,7 +46,7 @@ export const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
-    color: '#ffffff',
+    color: ContrastColors.onColor,
   },
   yearSheet: {
     paddingBottom: 8,
@@ -49,6 +54,10 @@ export const styles = StyleSheet.create({
   emptyContent: {
     flexGrow: 1,
     paddingBottom: 32,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
   },
   stateText: {
     textAlign: 'center',
@@ -59,7 +68,7 @@ export const styles = StyleSheet.create({
   errorText: {
     marginTop: 22,
     textAlign: 'center',
-    color: '#ef4444',
+    color: Colors.light.danger,
     fontWeight: '700',
     fontSize: 15,
   },

@@ -1,22 +1,54 @@
 'use client'
 
-import { useState } from 'react'
-import type { AppUser } from '@fulbito/firebase'
+import { useEffect, useState } from 'react'
+import { getMyTournamentPlayerRequest, getPlayers, getTournamentMembers, type AppUser } from '@fulbito/firebase'
+import { hasLinkablePlayers } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import { dismissPrompt, isPromptDismissed } from '@/lib/dismissed-prompts'
+import { useTournamentLinkPlayerActions } from '@/hooks/use-tournament-link-player-actions'
+import { dismissPrompt, isPromptDismissed, linkPlayerPromptKey } from '@/lib/dismissed-prompts'
+import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
 import LinkPlayerFlow, { linkPlayerStepTitles, type LinkPlayerStep } from './LinkPlayerFlow'
 import Modal from './Modal'
 
 export default function LinkPlayerModal() {
   const { user } = useFirebaseAuth()
-  if (!user || user.linkedPlayerId) return null
-  return <LinkPlayerModalContent key={user.uid} user={user} />
+  const activeTournament = useTournamentStore(selectActiveTournament)
+  if (!user || !activeTournament) return null
+  const tournamentId = activeTournament.tournament.id
+  return (
+    <LinkPlayerModalContent
+      key={`${user.uid}:${tournamentId}`}
+      user={user}
+      tournamentId={tournamentId}
+      isLinked={!!activeTournament.membership.playerId}
+    />
+  )
 }
 
-function LinkPlayerModalContent({ user }: { user: AppUser }) {
-  const storageKey = `linkPlayerPromptDismissed:${user.uid}`
-  const [isOpen, setIsOpen] = useState(() => !isPromptDismissed(storageKey))
+type LinkPlayerModalContentProps = { user: AppUser; tournamentId: string; isLinked: boolean }
+
+function LinkPlayerModalContent({ user, tournamentId, isLinked }: LinkPlayerModalContentProps) {
+  const storageKey = linkPlayerPromptKey(user.uid, tournamentId)
+  const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<LinkPlayerStep>('question')
+  const actions = useTournamentLinkPlayerActions(user, tournamentId)
+
+  useEffect(() => {
+    if (isLinked || isPromptDismissed(storageKey)) return
+    let isCurrent = true
+    Promise.all([
+      getMyTournamentPlayerRequest(tournamentId, user.uid),
+      getPlayers(tournamentId),
+      getTournamentMembers(tournamentId),
+    ])
+      .then(([request, players, members]) => {
+        if (isCurrent && request?.status !== 'pending' && hasLinkablePlayers(players, members)) setIsOpen(true)
+      })
+      .catch(() => undefined)
+    return () => {
+      isCurrent = false
+    }
+  }, [isLinked, storageKey, tournamentId, user.uid])
 
   const handleAnswerNo = () => {
     dismissPrompt(storageKey)
@@ -29,15 +61,15 @@ function LinkPlayerModalContent({ user }: { user: AppUser }) {
       onClose={() => setIsOpen(false)}
       title={linkPlayerStepTitles[step]}
       size={step === 'select' ? 'medium' : 'default'}
-      hideHeader={step === 'question' || step === 'sent' || step === 'revert'}
+      hideHeader={step === 'question' || step === 'sent' || step === 'linked' || step === 'revert'}
     >
       <LinkPlayerFlow
-        user={user}
         step={step}
         onStepChange={setStep}
         onAnswerNo={handleAnswerNo}
         onRequestSent={() => dismissPrompt(storageKey)}
         onFinish={() => setIsOpen(false)}
+        actions={actions}
       />
     </Modal>
   )

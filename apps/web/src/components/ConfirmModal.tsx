@@ -5,7 +5,7 @@ import type { IconType } from 'react-icons'
 import Button from './Button'
 import Modal from './Modal'
 
-type Tone = 'brand' | 'danger'
+type Tone = 'primary' | 'danger'
 type ConfirmVariant = 'primary' | 'danger'
 
 type Props = {
@@ -22,8 +22,8 @@ type Props = {
 }
 
 const toneStyles: Record<Tone, { circle: string; icon: string; button: ConfirmVariant }> = {
-  brand: { circle: 'bg-brand/10', icon: 'text-brand', button: 'primary' },
-  danger: { circle: 'bg-red-100', icon: 'text-red-600', button: 'danger' },
+  primary: { circle: 'bg-primary/10', icon: 'text-primary', button: 'primary' },
+  danger: { circle: 'bg-orange-100', icon: 'text-orange-600', button: 'danger' },
 }
 
 export default function ConfirmModal({
@@ -32,7 +32,7 @@ export default function ConfirmModal({
   onConfirm,
   title,
   icon: Icon,
-  tone = 'brand',
+  tone = 'primary',
   confirmVariant,
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',

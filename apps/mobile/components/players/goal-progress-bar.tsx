@@ -10,7 +10,7 @@ type Props = {
 }
 
 export function GoalProgressBar({ current, max = 7 }: Props) {
-  const { colors, isDark } = useAppTheme()
+  const { colors } = useAppTheme()
   const capped = Math.max(0, Math.min(max, current))
   const pct = (capped / max) * 100
 
@@ -23,7 +23,7 @@ export function GoalProgressBar({ current, max = 7 }: Props) {
       <View
         style={[
           styles.track,
-          { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : '#e5e7eb' },
+          { backgroundColor: colors.track },
         ]}>
         <View style={[styles.fill, { width: `${pct}%`, backgroundColor: BAR }]} />
       </View>

@@ -1,5 +1,5 @@
 const FIELD_BASE =
-  'block w-full rounded-md border border-gray-300 bg-white focus-visible:outline-1 focus-visible:outline-brand'
+  'block w-full rounded-md border border-gray-300 bg-white focus-visible:outline-1 focus-visible:outline-primary'
 
 export const fieldClassName = `${FIELD_BASE} h-10 px-3`
 export const selectClassName = `${FIELD_BASE} h-10 appearance-none pl-3 pr-8`

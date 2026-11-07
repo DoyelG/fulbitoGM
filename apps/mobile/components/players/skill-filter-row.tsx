@@ -1,4 +1,5 @@
 import type { SkillMode } from '@fulbito/types'
+import type { ReactNode } from 'react'
 import { StyleSheet, View } from 'react-native'
 
 import { SortChip } from '@/components/players/sort-chip'
@@ -10,15 +11,17 @@ type Props = {
   dir: 'asc' | 'desc'
   onSelect: (mode: SkillMode) => void
   playersCount: number
+  action?: ReactNode
 }
 
-export function SkillFilterRow({ mode, dir, onSelect, playersCount }: Props) {
+export function SkillFilterRow({ mode, dir, onSelect, playersCount, action }: Props) {
   const { colors } = useAppTheme()
 
   return (
     <View style={styles.container}>
       <ThemedText style={[styles.count, { color: colors.muted }]}>{playersCount} jugadores</ThemedText>
       <View style={styles.sortChipRow}>
+        {action}
         <SortChip
           label="🧤"
           accessibilityLabel="Ordenar por nivel de arquero"

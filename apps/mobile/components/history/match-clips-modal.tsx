@@ -10,18 +10,19 @@ import { VideoClipPlaybackModal } from '@/components/video-clip-playback-modal'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useAppTheme } from '@/hooks/use-theme'
 import { styles } from './match-clips-modal.styles'
+import { PrimaryGradient } from '@/components/primary-gradient'
 
 type Props = {
   visible: boolean
   match: Match | null
   clips: VideoClip[]
-  isAdmin: boolean
+  canManage: boolean
   onDelete: (clipId: string) => Promise<void>
   onAddVideo: () => void
   onClose: () => void
 }
 
-export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAddVideo, onClose }: Props) {
+export function MatchClipsModal({ visible, match, clips, canManage, onDelete, onAddVideo, onClose }: Props) {
   const { colors } = useAppTheme()
   const { user } = useFirebaseAuth()
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
@@ -64,13 +65,14 @@ export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAd
               </Pressable>
             </View>
 
-            {isAdmin && (
+            {canManage && (
               <Pressable
                 onPress={onAddVideo}
-                style={[styles.addVideoBtn, { backgroundColor: colors.brand }]}
+                style={styles.addVideoBtn}
                 accessibilityRole="button"
                 accessibilityLabel="Subir clip"
               >
+                <PrimaryGradient />
                 <ThemedText style={styles.addVideoBtnText}>+ Subir clip</ThemedText>
               </Pressable>
             )}
@@ -84,7 +86,7 @@ export function MatchClipsModal({ visible, match, clips, isAdmin, onDelete, onAd
               <VideoClipCarousel
                 clips={clips}
                 matchById={matchById}
-                canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
+                canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, canManage)}
                 onOpen={(clipId) => {
                   const clip = clips.find((c) => c.id === clipId)
                   if (clip) setPlaybackUrl(clip.url)

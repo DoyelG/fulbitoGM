@@ -10,7 +10,7 @@ export function StepBadge({ step, active = false }: StepBadgeProps) {
     <span
       aria-hidden="true"
       className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-lg font-semibold ${
-        active ? 'border-brand text-brand' : 'border-gray-300 text-gray-400'
+        active ? 'border-primary text-primary' : 'border-gray-300 text-gray-400'
       }`}
     >
       {step}

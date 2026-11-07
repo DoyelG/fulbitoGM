@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   avatar: {
@@ -8,11 +8,11 @@ export const styles = StyleSheet.create({
     height: 96,
     borderRadius: Radii.pill,
     borderWidth: 4,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: ContrastColors.onColorBorderStrong,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: ContrastColors.onColorFillStrong,
   },
   avatarImage: {
     width: '100%',
@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
   avatarText: {
     fontSize: 40,
     fontWeight: '700',
-    color: '#fff',
+    color: ContrastColors.onColor,
     textTransform: 'uppercase',
   },
   roles: {
@@ -35,11 +35,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: Radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: ContrastColors.onColorFillStrong,
   },
   roleText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
 })

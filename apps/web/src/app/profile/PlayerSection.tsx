@@ -53,7 +53,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
     setIsSaving(true)
     setErrorMessage(null)
     try {
-      const photoUrl = photoFile ? await uploadPlayerPhoto(photoFile, player.id) : undefined
+      const photoUrl = photoFile ? await uploadPlayerPhoto(photoFile, player.tournamentId, player.id) : undefined
       await updatePlayer(player.id, { name: trimmedName, position, ...(photoUrl ? { photoUrl } : {}) })
       setPhotoFile(null)
       setIsSaved(true)
@@ -68,7 +68,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
     <ProfileSection icon={FiUserCheck} title="Mi jugador" index={index}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-center gap-4">
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-brand/30">
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-primary/30">
             <Image
               src={photoPreview ?? '/silhouette.svg'}
               alt="Foto del jugador"
@@ -125,7 +125,7 @@ export default function PlayerSection({ player, index }: PlayerSectionProps) {
           </div>
         </div>
         {errorMessage && (
-          <p id="player-error" role="alert" className="text-sm text-red-700">
+          <p id="player-error" role="alert" className="text-sm text-orange-700">
             {errorMessage}
           </p>
         )}

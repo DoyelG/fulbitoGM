@@ -15,7 +15,7 @@ export function NameField({ value, onChange }: Props) {
 
   return (
     <>
-      <FormLabel text="Nombre del partido (opcional)" style={{ marginTop: 0 }} />
+      <FormLabel text="Nombre del partido (opcional)" style={fieldStyles.labelFirst} />
       <TextInput
         value={value}
         onChangeText={onChange}

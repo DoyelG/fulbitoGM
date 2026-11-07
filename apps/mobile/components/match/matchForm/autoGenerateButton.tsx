@@ -1,6 +1,8 @@
 import { StyleSheet, Text, TouchableOpacity } from 'react-native'
 
+import { PrimaryGradient } from '@/components/primary-gradient'
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   poolSize: number
@@ -20,11 +22,12 @@ export function AutoGenerateButton({ poolSize, playersPerTeam, hasTeams, onPress
       style={[
         styles.btn,
         {
-          backgroundColor: enabled ? colors.brand : colors.border,
+          backgroundColor: enabled ? undefined : colors.border,
           borderRadius: radii.sm,
         },
       ]}
     >
+      {enabled && <PrimaryGradient />}
       <Text style={styles.text}>{hasTeams ? 'Re-generar equipos' : 'Generar equipos'}</Text>
     </TouchableOpacity>
   )
@@ -36,9 +39,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 12,
     marginBottom: 4,
+    overflow: 'hidden',
   },
   text: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontWeight: '700',
     fontSize: 14,
   },

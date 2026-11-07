@@ -9,6 +9,7 @@ import {
 } from '@fulbito/utils'
 import { withFirebase } from '../firebase'
 import { jsonResult } from '../tool-result'
+import { tournamentIdSchema } from './tournaments'
 
 function rosterNamesById(matches: Match[]): Map<string, string> {
   const names = new Map<string, string>()
@@ -27,10 +28,10 @@ export function registerStatsTools(server: McpServer): void {
       title: 'Get player stats',
       description:
         'Aggregated stats per player across all final (non-draft) matches: matches played, goals, average performance, wins, losses and draws.',
-      inputSchema: {},
+      inputSchema: { tournamentId: tournamentIdSchema },
     },
-    withFirebase(async () => {
-      const [players, matches] = await Promise.all([getPlayers(), getMatches()])
+    withFirebase(async (_uid, { tournamentId }) => {
+      const [players, matches] = await Promise.all([getPlayers(tournamentId), getMatches(tournamentId)])
       const currentNames = new Map(players.map((player) => [player.id, player.name]))
       return jsonResult(
         computePlayerStatRows(players, matches)
@@ -55,10 +56,10 @@ export function registerStatsTools(server: McpServer): void {
       title: 'Get current streaks',
       description:
         'Current win/loss streak per player, computed over final matches (draws do not break a streak). Only players with an active streak are listed.',
-      inputSchema: {},
+      inputSchema: { tournamentId: tournamentIdSchema },
     },
-    withFirebase(async () => {
-      const finals = onlyFinalMatches(await getMatches())
+    withFirebase(async (_uid, { tournamentId }) => {
+      const finals = onlyFinalMatches(await getMatches(tournamentId))
       const streaks = calculateAllCurrentStreaks(finals)
       const names = rosterNamesById(finals)
       return jsonResult(
@@ -76,10 +77,10 @@ export function registerStatsTools(server: McpServer): void {
       title: 'Get shirt duty counts',
       description:
         'How many times each player has been responsible for washing the shirts, over final matches. Players who never had shirt duty are omitted (there are no zero-count rows).',
-      inputSchema: {},
+      inputSchema: { tournamentId: tournamentIdSchema },
     },
-    withFirebase(async () => {
-      const finals = onlyFinalMatches(await getMatches())
+    withFirebase(async (_uid, { tournamentId }) => {
+      const finals = onlyFinalMatches(await getMatches(tournamentId))
       const duties = getShirtDutiesByPlayerId(finals)
       const names = rosterNamesById(finals)
       return jsonResult(

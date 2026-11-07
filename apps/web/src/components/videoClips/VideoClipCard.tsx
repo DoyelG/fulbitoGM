@@ -20,7 +20,7 @@ export default function VideoClipCard({ clip, match, canDelete, onOpen, onDelete
       <button
         type="button"
         onClick={onOpen}
-        className="w-full text-left rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+        className="w-full text-left rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         aria-label={`Ver clip: ${label}`}
       >
         <div className="relative h-24 bg-black rounded-t-lg overflow-hidden">
@@ -49,7 +49,7 @@ export default function VideoClipCard({ clip, match, canDelete, onOpen, onDelete
           type="button"
           onClick={onDelete}
           aria-label={`Eliminar clip: ${label}`}
-          className="absolute top-1 right-1 z-10 text-xs bg-white/90 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="absolute top-1 right-1 z-10 text-xs bg-white/90 rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
           🗑
         </button>

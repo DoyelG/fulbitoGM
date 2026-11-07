@@ -1,6 +1,9 @@
 import type { Address } from '@fulbito/types'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { getAddresses, deleteAddress } from '@fulbito/firebase'
+
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
+import { useTournamentResource } from '@/hooks/use-tournament-resource'
 
 export type AddressesDataState = {
   addresses: Address[]
@@ -9,18 +12,15 @@ export type AddressesDataState = {
   deleteAddress: (id: string) => Promise<void>
 }
 
-export function useAddressesData(): AddressesDataState {
-  const [addresses, setAddresses] = useState<Address[]>([])
-  const [error, setError] = useState<string | null>(null)
+const EMPTY_ADDRESSES: Address[] = []
 
-  const reload = useCallback(async () => {
-    setError(null)
-    try {
-      setAddresses(await getAddresses())
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Error al cargar las canchas')
-    }
-  }, [])
+export function useAddressesData(): AddressesDataState {
+  const tournamentId = useActiveTournamentId()
+  const {
+    data: addresses,
+    error,
+    reload,
+  } = useTournamentResource(tournamentId, getAddresses, EMPTY_ADDRESSES, 'Error al cargar las canchas')
 
   const handleDeleteAddress = useCallback(
     async (id: string) => {
@@ -29,10 +29,6 @@ export function useAddressesData(): AddressesDataState {
     },
     [reload],
   )
-
-  useEffect(() => {
-    void reload()
-  }, [reload])
 
   return { addresses, error, reload, deleteAddress: handleDeleteAddress }
 }

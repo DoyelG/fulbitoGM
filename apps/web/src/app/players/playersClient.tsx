@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { calculateAllCurrentStreaks } from '@/lib/playerStats'
 import { onlyFinalMatches } from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
@@ -13,9 +13,8 @@ import PlayersTable, { type PlayerRow } from './PlayersTable'
 import ConfirmModal from '@/components/ConfirmModal'
 import PageTitle from '@/components/PageTitle'
 import { buttonClasses } from '@/components/Button'
-import LinkPlayerAlert from '@/components/LinkPlayerAlert'
+import SearchInput from '@/components/SearchInput'
 import Chevron from '../shared/Icons/Chevron'
-import { fieldClassName } from '@/lib/field-styles'
 
 export default function PlayersClient({
   players: initialPlayers,
@@ -24,7 +23,7 @@ export default function PlayersClient({
   players: Player[]
   matches: Match[]
 }) {
-  const { isAdmin } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
   const [showModal, setShowModal] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [showInactiveTable, setShowInactiveTable] = useState(false)
@@ -98,11 +97,10 @@ export default function PlayersClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <LinkPlayerAlert />
       <PageTitle
         spacing={8}
         actions={
-          isAdmin && (
+          canManage && (
             <Link href="/players/new" className={buttonClasses()}>
               Agregar jugador
             </Link>
@@ -113,31 +111,30 @@ export default function PlayersClient({
       </PageTitle>
 
       <div className="mb-6">
-        <input
-          type="text"
+        <SearchInput
           value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
+          onChange={setGlobalFilter}
           placeholder="Buscar por nombre..."
-          aria-label="Buscar jugador por nombre"
-          className={`${fieldClassName} sm:w-72 text-sm`}
+          ariaLabel="Buscar jugador por nombre"
+          className="w-full"
         />
       </div>
       <PlayersTable
         players={activePlayers}
-        isAdmin={isAdmin}
+        canManage={canManage}
         globalFilter={globalFilter}
         setGlobalFilter={setGlobalFilter}
         onDelete={handleDelete}
         onToggleActive={handleToggleActive}
         emptyMessage="No hay jugadores activos aún."
       />
-      {isAdmin && (
+      {canManage && inactivePlayers.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200">
           <button
             type="button"
             onClick={() => setShowInactiveTable((isShown) => !isShown)}
             aria-expanded={showInactiveTable}
-            className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             <h2 className="text-lg font-semibold text-gray-800">Inactivos</h2>
             <Chevron direction={showInactiveTable ? 'up' : 'down'} className="h-5 w-5 text-gray-500" />
@@ -146,7 +143,7 @@ export default function PlayersClient({
             <div className="px-4 pb-4 pt-1 border-t border-gray-100">
               <PlayersTable
                 players={inactivePlayers}
-                isAdmin={isAdmin}
+                canManage={canManage}
                 onDelete={handleDelete}
                 onToggleActive={handleToggleActive}
                 globalFilter={globalFilter}
@@ -179,7 +176,7 @@ export default function PlayersClient({
         onClose={() => setShowToggleModal(false)}
         onConfirm={handleConfirmToggle}
         icon={toggleTarget?.inactive ? FiUserX : FiUserCheck}
-        tone={toggleTarget?.inactive ? 'danger' : 'brand'}
+        tone={toggleTarget?.inactive ? 'danger' : 'primary'}
         confirmVariant="primary"
       >
         <p>

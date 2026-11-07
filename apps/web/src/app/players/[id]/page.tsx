@@ -1,11 +1,11 @@
 "use client";
 
-import Button, { buttonClasses } from "@/components/Button";
+import { buttonClasses } from "@/components/Button";
 import PageTitle from "@/components/PageTitle";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { uploadPlayerPhoto } from "@fulbito/firebase";
+import { useParams } from "next/navigation";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { useMatchStore } from "@/store/useMatchStore";
 import SkillBadge from "@/components/SkillBadge";
@@ -13,33 +13,20 @@ import StreakBadge from "@/components/StreakBadge";
 import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
-import { useRef } from 'react'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
 import { getMvpCountsByPlayerId, getGoalkeeping } from "@fulbito/utils";
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import Chevron from "@/app/shared/Icons/Chevron";
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import { selectActiveTournament, selectMyPlayerId, useTournamentStore } from '@/store/useTournamentStore'
 
 export default function PlayerDetailPage() {
-  const { user, isAdmin } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
+  const myPlayerId = useTournamentStore(selectMyPlayerId)
+  const tournamentPhotoUrl = useTournamentStore(selectActiveTournament)?.tournament.photoUrl
   const { id } = useParams();
-  const router = useRouter();
-  const updatePlayer = usePlayerStore((state) => state.updatePlayer);
   const initPlayersLoad = usePlayerStore((state) => state.initLoad);
   const playersInit = usePlayerStore((state) => state.playersInit);
   const { matches, initLoad: initMatchesLoad, matchesInit } = useMatchStore();
-  const fileRef = useRef<HTMLInputElement | null>(null)
-  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
-    if (!isAdmin) return
-    const file = event.target.files?.[0]
-    if (!file) return
-    setForm(previousForm => ({ ...previousForm, photo: file, photoUrl: URL.createObjectURL(file) }))
-  }
-  const deletePhoto = () => {
-    setForm(previousForm => ({ ...previousForm, photo: null, photoUrl: null }))
-    if (fileRef.current) fileRef.current.value = ''
-  }
-
   const player = usePlayerStore((state) =>
     state.players.find((playerRow) => playerRow.id === (id as string)),
   );
@@ -48,59 +35,6 @@ export default function PlayerDetailPage() {
     if (playersInit !== 'loaded') initPlayersLoad();
     if (matchesInit !== 'loaded') initMatchesLoad();
   }, [playersInit, matchesInit, initPlayersLoad, initMatchesLoad]);
-
-  const [editMode, setEditMode] = useState(false);
-  const [gkTouched, setGkTouched] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    position: "PLAYER",
-    physical: "5",
-    technical: "5",
-    tactical: "5",
-    psychological: "5",
-    goalkeeping: "5",
-    inactive: false,
-    photo: null as File | null,
-    photoUrl: null as string | null,
-  });
-  const [originalForm, setOriginalForm] = useState(form);
-  type PlayerFormState = typeof form;
-
-  useEffect(() => {
-    if (player) {
-      const base = player.skill ?? 5;
-      const loaded = {
-        name: player.name,
-        position: player.position,
-        physical: String(player.skills?.physical ?? base),
-        technical: String(player.skills?.technical ?? base),
-        tactical: String(player.skills?.tactical ?? base),
-        psychological: String(player.skills?.psychological ?? base),
-        goalkeeping: String(getGoalkeeping(player)),
-        inactive: player.inactive ?? false,
-        photo: null,
-        photoUrl: player.photoUrl ?? null,
-      };
-      setForm(loaded);
-      setOriginalForm(loaded);
-      setGkTouched(player.goalkeeping != null);
-    }
-  }, [player]);
-
-  const normalizeForComparison = (formState: PlayerFormState): PlayerFormState => ({
-    ...formState,
-    name: formState.name.trim(),
-  })
-
-  const hasFormChanged = (editedForm: PlayerFormState, savedForm: PlayerFormState) => {
-    const normalizedEdited = normalizeForComparison(editedForm)
-    const normalizedSaved = normalizeForComparison(savedForm)
-    const fieldNames = Object.keys(normalizedEdited) as Array<keyof PlayerFormState>
-
-    return fieldNames.some((fieldName) => normalizedEdited[fieldName] !== normalizedSaved[fieldName])
-  }
-
-  const canSubmitQuick = hasFormChanged(form, originalForm)
 
   const stats = useMemo(() => {
     const res = {
@@ -189,55 +123,13 @@ export default function PlayerDetailPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="mb-4">Jugador no encontrado.</p>
-          <Link href="/players" className="text-brand hover:underline">
+          <Link href="/players" className="text-primary hover:underline">
             Volver a jugadores
           </Link>
         </div>
       </div>
     );
   }
-
-  const handleCancel = () => {
-    if (form.photoUrl?.startsWith('blob:')) URL.revokeObjectURL(form.photoUrl)
-    setForm(originalForm)
-    setGkTouched(player.goalkeeping != null)
-    if (fileRef.current) fileRef.current.value = ''
-    setEditMode(false)
-  }
-
-  const handleSave = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const skills = {
-      physical: parseInt(form.physical, 10),
-      technical: parseInt(form.technical, 10),
-      tactical: parseInt(form.tactical, 10),
-      psychological: parseInt(form.psychological, 10),
-    };
-    const avg =
-      (skills.physical +
-        skills.technical +
-        skills.tactical +
-        skills.psychological) /
-      4;
-    const goalkeeping = gkTouched ? parseInt(form.goalkeeping, 10) : Math.round(avg);
-
-    let uploadedUrl: string | undefined
-    if (form.photo) {
-      uploadedUrl = await uploadPlayerPhoto(form.photo, player.id)
-    }
-    const photoChanged = form.photoUrl !== originalForm.photoUrl
-
-    await updatePlayer(player.id, {
-      name: form.name.trim(),
-      position: form.position,
-      skills,
-      skill: avg,
-      goalkeeping,
-      inactive: form.inactive,
-      ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}),
-    });
-    setEditMode(false);
-  };
 
   const gpm = stats.matches ? (stats.goals / stats.matches).toFixed(1) : "0.0";
   const winRate = stats.matches
@@ -261,12 +153,15 @@ export default function PlayerDetailPage() {
       Number(catSkills.tactical) +
       Number(catSkills.psychological)) /
     4;
-  const avgPreview =
-    (+form.physical + +form.technical + +form.tactical + +form.psychological) /
-    4;
-  const gkQuickValue = gkTouched ? form.goalkeeping : String(Math.round(avgPreview));
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <Link
+        href="/players"
+        className="mb-4 inline-flex items-center gap-1.5 rounded text-sm font-medium text-gray-700 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <ArrowLeftIcon className="h-4 w-4" aria-hidden />
+        Jugadores
+      </Link>
       <div className="mb-6 flex gap-5 items-center justify-between">
         <div className="space-y-2 grow">
           <PageTitle spacing={0}>{player.name}</PageTitle>
@@ -286,57 +181,25 @@ export default function PlayerDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) {
-                router.back()
-              } else {
-                router.push('/players')
-              }
-            }}
-          >
-            Volver
-          </Button>
-          {!editMode ? (
-            <>
-              {isAdmin && (
-                <>
-                  <Link
-                    href={`/players/edit/${player.id}`}
-                    className={buttonClasses({ variant: 'tertiary' })}
-                  >
-                    Abrir edición
-                  </Link>
-                  <Button onClick={() => setEditMode(true)}>Edición rápida</Button>
-                </>
-              )}
-            </>
-          ) : (
-            isAdmin ? (
-              <Button variant="secondary" onClick={handleCancel}>
-                Cancelar
-              </Button>
-            ) : null
+          {canManage && (
+            <Link href={`/players/edit/${player.id}`} className={buttonClasses()}>
+              Editar jugador
+            </Link>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-around my-8">
-          <div className="relative">
-            <PlayerCard
-              overall={overallAvg}
-              photoUrl={form.photoUrl}
-              skills={catSkills}
-              goalkeeping={getGoalkeeping(player)}
-              onAvatarClick={() => fileRef.current?.click()}
-              editMode={editMode}
-              deletePhoto={deletePhoto}
-            />
-            {editMode && isAdmin && (
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-            )}
-          </div>
+      <div className="grid gap-8 mb-6 md:grid-cols-[auto_1fr]">
+        <div className="flex flex-col items-center gap-6">
+          <PlayerCard
+            name={player.name}
+            position={player.position}
+            overall={overallAvg}
+            photoUrl={player.photoUrl}
+            skills={catSkills}
+            goalkeeping={getGoalkeeping(player)}
+            tournamentPhotoUrl={tournamentPhotoUrl}
+          />
           <RadarChart
             labels={['Físico','Técnico','Táctico','Mental']}
             values={[Number(catSkills.physical), Number(catSkills.technical), Number(catSkills.tactical), Number(catSkills.psychological)]}
@@ -345,215 +208,51 @@ export default function PlayerDetailPage() {
             height={180}
             labelSize={11}
           />
-      </div>
+        </div>
 
-      {editMode && isAdmin && (
-        <form
-          onSubmit={handleSave}
-          className="bg-white rounded-lg shadow p-4 mb-6 grid sm:grid-cols-3 gap-4 items-end"
-        >
-          <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
-            <input
-              value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
-              className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand"
-              required
-            />
+        <div className="grid sm:grid-cols-2 gap-4 md:auto-rows-fr">
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700">Partidos</div>
+            <div className="text-2xl font-semibold">{stats.matches}</div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Físico</label>
-            <div className="relative">
-              <select
-                value={form.physical}
-                onChange={(event) => setForm({ ...form, physical: event.target.value })}
-                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-              <Chevron select />
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700">Goles totales</div>
+            <div className="text-2xl font-semibold">{stats.goals}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700">Goles/Partido</div>
+            <div className="text-2xl font-semibold">{gpm}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700">Rendimiento promedio</div>
+            <div className="text-2xl font-semibold">
+              {(stats.totalPerformance / (stats.matches || 1)).toFixed(1)}★
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Técnico</label>
-            <div className="relative">
-              <select
-                value={form.technical}
-                onChange={(event) => setForm({ ...form, technical: event.target.value })}
-                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-              <Chevron select />
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700">Tasa de victorias</div>
+            <div className="text-2xl font-semibold">{winRate}%</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700">Rachas</div>
+            <div className="flex items-center justify-center gap-2">
+              <StreakBadge
+                kind={currentStreak.kind}
+                count={currentStreak.count}
+              />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Táctico</label>
-            <div className="relative">
-              <select
-                value={form.tactical}
-                onChange={(event) => setForm({ ...form, tactical: event.target.value })}
-                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-              <Chevron select />
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700">Llevo las Camisetas</div>
+            <div className="text-2xl font-semibold">{shirtDutiesCount} Veces</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 text-center flex flex-col justify-center">
+            <div className="text-sm text-gray-700 flex items-center justify-center gap-1.5">
+              <span aria-hidden="true">🏆</span>
+              MVP del partido
             </div>
+            <div className="text-2xl font-semibold">{mvpCount} Veces</div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Mental
-            </label>
-            <div className="relative">
-              <select
-                value={form.psychological}
-                onChange={(event) =>
-                  setForm({ ...form, psychological: event.target.value })
-                }
-                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-              <Chevron select />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Arquero</label>
-            <div className="relative">
-              <select
-                value={gkQuickValue}
-                onChange={(event) => { setGkTouched(true); setForm({ ...form, goalkeeping: event.target.value }) }}
-                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-              <Chevron select />
-            </div>
-          </div>
-          <div className="sm:col-span-3 text-sm text-gray-800">
-            General (promedio): <span className="font-semibold">Lv {avgPreview}</span>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Posición</label>
-            <div className="relative">
-              <select
-                value={form.position}
-                onChange={(event) => setForm({ ...form, position: event.target.value })}
-                className="w-full border rounded px-3 py-2 focus:border-brand focus:ring-brand pr-9 appearance-none"
-              >
-                <option value="GK">Arquero</option>
-                <option value="DEF">Defensor</option>
-                <option value="MID">Mediocampista</option>
-                <option value="FWD">Delantero</option>
-                <option value="PLAYER">Cualquier posición</option>
-              </select>
-              <Chevron select />
-            </div>
-          </div>
-          <div>
-            <span id="quick-status-label" className="block text-sm font-medium mb-1">
-              Estado
-            </span>
-            <div
-              role="group"
-              aria-labelledby="quick-status-label"
-              className="flex w-full rounded border border-gray-300 overflow-hidden"
-            >
-              <button
-                type="button"
-                aria-pressed={!form.inactive}
-                onClick={() => setForm({ ...form, inactive: false })}
-                className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
-                  !form.inactive ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Activo
-              </button>
-              <button
-                type="button"
-                aria-pressed={form.inactive}
-                onClick={() => setForm({ ...form, inactive: true })}
-                className={`flex-1 px-3 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
-                  form.inactive ? 'bg-gray-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Inactivo
-              </button>
-            </div>
-          </div>
-          <div className="sm:col-span-3 flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={handleCancel}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={!canSubmitQuick}>
-              Guardar
-            </Button>
-          </div>
-        </form>
-      )}
-
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Partidos</div>
-          <div className="text-2xl font-semibold">{stats.matches}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Goles totales</div>
-          <div className="text-2xl font-semibold">{stats.goals}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Goles/Partido</div>
-          <div className="text-2xl font-semibold">{gpm}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Rendimiento promedio</div>
-          <div className="text-2xl font-semibold">
-            {(stats.totalPerformance / (stats.matches || 1)).toFixed(1)}★
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Tasa de victorias</div>
-          <div className="text-2xl font-semibold">{winRate}%</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Rachas</div>
-          <div className="flex items-center justify-center gap-2">
-            <StreakBadge
-              kind={currentStreak.kind}
-              count={currentStreak.count}
-            />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700">Llevo las Camisetas</div>
-          <div className="text-2xl font-semibold">{shirtDutiesCount} Veces</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-sm text-gray-700 flex items-center justify-center gap-1.5">
-            <span aria-hidden="true">🏆</span>
-            MVP del partido
-          </div>
-          <div className="text-2xl font-semibold">{mvpCount} Veces</div>
         </div>
       </div>
 
@@ -577,7 +276,7 @@ export default function PlayerDetailPage() {
                         recentMatch.result === "W"
                           ? "bg-green-600"
                           : recentMatch.result === "L"
-                          ? "bg-red-600"
+                          ? "bg-orange-700"
                           : "bg-gray-600"
                       }`}
                     >
@@ -585,7 +284,7 @@ export default function PlayerDetailPage() {
                     </span>
                     <span className="text-sm">
                       {new Date(recentMatch.date).toLocaleDateString()}{" "}
-                      <span className="ml-2 inline-block bg-accent text-white text-xs px-2 py-0.5 rounded">
+                      <span className="ml-2 inline-block bg-secondary text-white text-xs px-2 py-0.5 rounded">
                         {recentMatch.type}
                       </span>
                       {recentMatch.isFriendly && (
@@ -615,9 +314,9 @@ export default function PlayerDetailPage() {
 
       <div className="mt-6">
         <VideoClipsSection
-          player={player}
+          playerId={player.id}
           matches={matches}
-          canUpload={isAdmin || user?.linkedPlayerId === player.id}
+          canUpload={canManage || myPlayerId === player.id}
         />
       </div>
     </div>

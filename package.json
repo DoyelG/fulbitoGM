@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "emulators": "node scripts/emulators.mjs"
   },
   "devDependencies": {
     "prettier": "^3.8.1",

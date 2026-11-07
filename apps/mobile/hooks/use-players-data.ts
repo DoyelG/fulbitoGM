@@ -1,15 +1,9 @@
 import type { Match, Player } from '@fulbito/types'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { getPlayers, getMatches, deletePlayer } from '@fulbito/firebase'
-import { shapeStorePlayers } from '@/lib/shape'
 
-async function fetchPlayersAndMatches(): Promise<{ players: Player[]; matches: Match[] }> {
-  const [rawPlayers, matches] = await Promise.all([getPlayers(), getMatches()])
-  return {
-    players: shapeStorePlayers(rawPlayers),
-    matches,
-  }
-}
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
+import { useTournamentResource } from '@/hooks/use-tournament-resource'
 
 export type PlayersDataState = {
   players: Player[]
@@ -22,31 +16,23 @@ export type PlayersDataState = {
   deletePlayer: (id: string) => Promise<void>
 }
 
+type PlayersData = { players: Player[]; matches: Match[] }
+
+const EMPTY_PLAYERS_DATA: PlayersData = { players: [], matches: [] }
+
+async function fetchPlayersData(tournamentId: string): Promise<PlayersData> {
+  const [players, matches] = await Promise.all([getPlayers(tournamentId), getMatches(tournamentId)])
+  return { players, matches }
+}
+
 export function usePlayersData(): PlayersDataState {
-  const [players, setPlayers] = useState<Player[]>([])
-  const [matches, setMatches] = useState<Match[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const reload = useCallback(async () => {
-    setError(null)
-    try {
-      const data = await fetchPlayersAndMatches()
-      setPlayers(data.players)
-      setMatches(data.matches)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cargar datos')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [])
-
-  const refresh = useCallback(async () => {
-    setRefreshing(true)
-    await reload()
-  }, [reload])
+  const tournamentId = useActiveTournamentId()
+  const { data, loading, refreshing, error, reload, refresh } = useTournamentResource(
+    tournamentId,
+    fetchPlayersData,
+    EMPTY_PLAYERS_DATA,
+    'Error al cargar datos',
+  )
 
   const handleDeletePlayer = useCallback(
     async (id: string) => {
@@ -56,9 +42,5 @@ export function usePlayersData(): PlayersDataState {
     [reload],
   )
 
-  useEffect(() => {
-    void reload()
-  }, [reload])
-
-  return { players, matches, loading, refreshing, error, reload, refresh, deletePlayer: handleDeletePlayer }
+  return { ...data, loading, refreshing, error, reload, refresh, deletePlayer: handleDeletePlayer }
 }

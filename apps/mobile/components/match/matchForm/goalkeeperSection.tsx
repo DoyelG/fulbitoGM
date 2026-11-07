@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { FormLabel } from './formLabel'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   poolPlayers: Player[]
@@ -40,14 +41,14 @@ export function GoalkeeperSection({ poolPlayers, goalkeeperIds, maxSize, onToggl
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: active ? colors.brand : 'transparent',
-                    borderColor: active ? colors.brand : colors.border,
+                    backgroundColor: active ? colors.primary : 'transparent',
+                    borderColor: active ? colors.primary : colors.border,
                     borderRadius: radii.pill,
                     opacity: disabled ? 0.4 : 1,
                   },
                 ]}
               >
-                <Text style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
+                <Text style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>
                   🧤 {p.name}
                 </Text>
               </TouchableOpacity>

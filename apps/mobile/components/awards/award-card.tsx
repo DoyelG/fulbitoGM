@@ -9,6 +9,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 import type { AwardEntry } from '@fulbito/utils'
 import type { AwardAccent, AwardIcon } from '@/hooks/use-annual-awards'
 import { styles } from './award-card.styles'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   title: string
@@ -39,8 +40,8 @@ export function AwardCard({
 }: Props) {
   const { colors, radii, isDark, shadows } = useAppTheme()
 
-  const badgeBg = accent === 'brand' ? colors.brand : accent === 'secondary' ? colors.secondary : colors.chipBg
-  const iconColor = accent === 'muted' ? colors.muted : '#ffffff'
+  const badgeBg = accent === 'primary' ? colors.primary : accent === 'secondary' ? colors.secondary : colors.chipBg
+  const iconColor = accent === 'muted' ? colors.muted : ContrastColors.onColor
 
   return (
     <View

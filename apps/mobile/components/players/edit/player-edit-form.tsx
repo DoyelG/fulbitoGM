@@ -12,7 +12,7 @@ import {
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
-import { Fonts, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Spacing } from '@/constants/theme'
 
 export type PlayerEditFormValues = {
   name: string
@@ -66,14 +66,14 @@ function SkillStepper({
           onPress={() => onChange(Math.max(1, value - 1))}
           style={[styles.stepBtn, { borderRightColor: colors.border }]}
           hitSlop={8}>
-          <ThemedText style={[styles.stepBtnText, { color: colors.brand }]}>−</ThemedText>
+          <ThemedText style={[styles.stepBtnText, { color: colors.primaryText }]}>−</ThemedText>
         </TouchableOpacity>
         <ThemedText style={[styles.stepValue, { color: colors.text }]}>{value}</ThemedText>
         <TouchableOpacity
           onPress={() => onChange(Math.min(10, value + 1))}
           style={[styles.stepBtn, { borderLeftColor: colors.border }]}
           hitSlop={8}>
-          <ThemedText style={[styles.stepBtnText, { color: colors.brand }]}>+</ThemedText>
+          <ThemedText style={[styles.stepBtnText, { color: colors.primaryText }]}>+</ThemedText>
         </TouchableOpacity>
       </View>
     </View>
@@ -130,13 +130,13 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: active ? colors.brand : 'transparent',
-                    borderColor: active ? colors.brand : colors.border,
+                    backgroundColor: active ? colors.primary : 'transparent',
+                    borderColor: active ? colors.primary : colors.border,
                     borderRadius: radii.sm,
                   },
                 ]}>
                 <ThemedText
-                  style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
+                  style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>
                   {position.label}
                 </ThemedText>
               </TouchableOpacity>
@@ -162,7 +162,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
 
         <View style={[styles.avgRow, { borderColor: colors.border, borderRadius: radii.sm }]}>
           <ThemedText style={[styles.avgLabel, { color: colors.muted }]}>General (promedio)</ThemedText>
-          <ThemedText style={[styles.avgValue, { color: colors.brand }]}>
+          <ThemedText style={[styles.avgValue, { color: colors.primaryText }]}>
             Lv {overall.toFixed(2)}
           </ThemedText>
         </View>
@@ -190,7 +190,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
             { value: true, label: 'Inactivo' },
           ].map((option, index) => {
             const active = values.inactive === option.value
-            const selectedColor = option.value ? '#6b7280' : colors.brand
+            const selectedColor = option.value ? colors.muted : colors.primary
             return (
               <TouchableOpacity
                 key={option.label}
@@ -202,7 +202,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
                   index > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border },
                   { backgroundColor: active ? selectedColor : 'transparent' },
                 ]}>
-                <ThemedText style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>
+                <ThemedText style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>
                   {option.label}
                 </ThemedText>
               </TouchableOpacity>
@@ -222,12 +222,12 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
             style={[
               styles.saveBtn,
               {
-                backgroundColor: canSave ? colors.brand : colors.muted,
+                backgroundColor: canSave ? colors.primary : colors.muted,
                 borderRadius: radii.sm,
               },
             ]}>
             {saving ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={ContrastColors.onColor} size="small" />
             ) : (
               <ThemedText style={styles.saveText}>Actualizar jugador</ThemedText>
             )}
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 14,
     fontFamily: Fonts.bold,
   },

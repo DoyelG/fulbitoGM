@@ -45,7 +45,7 @@ export function PlayerSection({ player, index, onSaved }: Props) {
     setIsSaving(true)
     setErrorMessage(null)
     try {
-      const players = await getPlayers()
+      const players = await getPlayers(player.tournamentId)
       const isNameTaken = players.some(
         (otherPlayer) =>
           otherPlayer.id !== player.id && otherPlayer.name.trim().toLowerCase() === trimmedName.toLowerCase(),
@@ -58,7 +58,7 @@ export function PlayerSection({ player, index, onSaved }: Props) {
       let photoUrl: string | undefined
       if (photoUri) {
         const blob = await (await fetch(photoUri)).blob()
-        photoUrl = await uploadPlayerPhoto(blob, player.id)
+        photoUrl = await uploadPlayerPhoto(blob, player.tournamentId, player.id)
       }
       await updatePlayer(player.id, { name: trimmedName, position, ...(photoUrl ? { photoUrl } : {}) })
       setPhotoUri(null)

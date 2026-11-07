@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Address } from '@fulbito/types'
 import { getAddresses, createAddress, updateAddress, deleteAddress } from '@fulbito/firebase'
+import { getActiveTournamentId, isStillActive } from './active-tournament'
 
 export type { Address }
 
@@ -14,6 +15,7 @@ type AddressStore = {
   editAddress: (id: string, data: AddressInput) => Promise<Address>
   removeAddress: (id: string) => Promise<void>
   resetAndReload: () => Promise<void>
+  reset: () => void
 }
 
 export const useAddressStore = create<AddressStore>()((set, get) => {
@@ -31,14 +33,13 @@ export const useAddressStore = create<AddressStore>()((set, get) => {
       if (state === 'loading' || state === 'loaded') return
       set({ addressesInit: 'loading' })
       try {
-        const data = await getAddresses()
-        set({ addresses: data, addressesInit: 'loaded' })
+        await get().resetAndReload()
       } catch {
         set({ addressesInit: 'error' })
       }
     },
     addAddress: async (data) => {
-      const id = await createAddress(data)
+      const id = await createAddress(getActiveTournamentId(), data)
       await get().resetAndReload()
       return findOrThrow(id)
     },
@@ -52,8 +53,10 @@ export const useAddressStore = create<AddressStore>()((set, get) => {
       await get().resetAndReload()
     },
     resetAndReload: async () => {
-      const data = await getAddresses()
-      set({ addresses: data, addressesInit: 'loaded' })
+      const tournamentId = getActiveTournamentId()
+      const data = await getAddresses(tournamentId)
+      if (isStillActive(tournamentId)) set({ addresses: data, addressesInit: 'loaded' })
     },
+    reset: () => set({ addresses: [], addressesInit: 'idle' }),
   }
 })

@@ -6,7 +6,7 @@ import type { MatchInput, MatchLocation, MatchType } from '@fulbito/types'
 import { buildMatchSchedule, onlyFinalMatches } from '@fulbito/utils'
 import type { Player } from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import {
   buildPlayedBeforeSet,
   computeLeastAssignedPoolIds,
@@ -57,7 +57,7 @@ export default function CreateDraftForm({
   onDraftChange,
 }: Props) {
   const router = useRouter()
-  const { isAdmin } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
   const { matches, addMatch } = useMatchStore()
 
   const [isCreatingDraft, setIsCreatingDraft] = useState(false)
@@ -174,7 +174,7 @@ export default function CreateDraftForm({
         </div>
       </div>
 
-      {isAdmin && (
+      {canManage && (
         <div className="mt-6 border-t border-gray-200 pt-4">
           <h4 className="font-semibold mb-3">Crear partido</h4>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[auto_auto_minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]">

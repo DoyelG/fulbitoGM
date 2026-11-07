@@ -22,19 +22,19 @@ const sectionVariants = {
 }
 
 const ACCENT_BAR: Record<AwardAccent, string> = {
-  brand: 'bg-[var(--color-brand)]',
-  secondary: 'bg-[var(--color-accent)]',
+  primary: 'bg-[var(--color-primary)]',
+  secondary: 'bg-[var(--color-secondary)]',
   muted: 'bg-gray-400',
 }
 
 const ACCENT_CHIP: Record<AwardAccent, string> = {
-  brand: 'bg-[var(--color-brand)]',
+  primary: 'bg-[var(--color-primary)]',
   secondary: 'bg-orange-700',
   muted: 'bg-gray-600',
 }
 
 const ACCENT_WASH: Record<AwardAccent, string> = {
-  brand: 'bg-gradient-to-b from-violet-100 via-violet-50 to-white',
+  primary: 'bg-gradient-to-b from-primary/10 via-primary/5 to-white',
   secondary: 'bg-gradient-to-b from-orange-100 via-orange-50 to-white',
   muted: 'bg-gradient-to-b from-gray-200 via-gray-100 to-white',
 }
@@ -51,7 +51,7 @@ export function AwardsClient({ players, matches }: Props) {
         seasonYear={isHallOfFame ? null : (selection as number)}
       />
 
-      <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
+      <div className="sticky top-[var(--site-header-offset,0px)] z-20 border-b transition-[top] duration-300 ease-out motion-reduce:transition-none border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <PageTitle variant="display" spacing={0}>
             {isHallOfFame ? 'Hall of Fame' : 'Premios del Año'}

@@ -5,7 +5,10 @@ import {
   type NewVideoClipData,
 } from '@fulbito/firebase'
 import type { VideoClip } from '@fulbito/types'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
+
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
+import { useTournamentResource } from '@/hooks/use-tournament-resource'
 
 export type { NewVideoClipData }
 
@@ -20,50 +23,40 @@ export type VideoClipsDataState = {
   deleteVideoClip: (id: string) => Promise<void>
 }
 
+const EMPTY_VIDEO_CLIPS: VideoClip[] = []
+
 export function useVideoClipsData(): VideoClipsDataState {
-  const [videoClips, setVideoClips] = useState<VideoClip[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const reload = useCallback(async () => {
-    setError(null)
-    try {
-      setVideoClips(await getVideoClips())
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cargar los clips')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [])
-
-  const refresh = useCallback(async () => {
-    setRefreshing(true)
-    await reload()
-  }, [reload])
+  const tournamentId = useActiveTournamentId()
+  const {
+    data: videoClips,
+    setData: setVideoClips,
+    loading,
+    refreshing,
+    error,
+    reload,
+    refresh,
+  } = useTournamentResource(tournamentId, getVideoClips, EMPTY_VIDEO_CLIPS, 'Error al cargar los clips')
 
   const addVideoClip = useCallback(
     async (data: NewVideoClipData, fileUri: string) => {
+      if (!tournamentId) return
       const blob = await (await fetch(fileUri)).blob()
-      await createVideoClip(data, blob)
+      await createVideoClip(tournamentId, data, blob)
       await reload()
     },
-    [reload],
+    [tournamentId, reload],
   )
 
   const deleteVideoClip = useCallback(
     async (id: string) => {
-      await removeVideoClip(id)
-      setVideoClips((previous) => previous.filter((clip) => clip.id !== id))
+      const clip = videoClips.find((item) => item.id === id)
+      if (!clip) return
+      await removeVideoClip(clip)
+      setVideoClips((previous) => previous.filter((item) => item.id !== id))
       await reload()
     },
-    [reload],
+    [videoClips, setVideoClips, reload],
   )
-
-  useEffect(() => {
-    void reload()
-  }, [reload])
 
   return { videoClips, loading, refreshing, error, reload, refresh, addVideoClip, deleteVideoClip }
 }

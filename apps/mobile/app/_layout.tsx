@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen'
 
 import { useColorScheme } from '@/hooks/use-color-scheme'
 import { FirebaseAuthProvider, useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { TournamentProvider } from '@/contexts/TournamentContext'
 import AnimatedSplash from '@/components/AnimatedSplash'
 import LinkPlayerModal from '@/components/players/link-player/link-player-modal'
 
@@ -74,7 +75,8 @@ export default function RootLayout() {
 
   return (
     <FirebaseAuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <TournamentProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <AuthGuard />
         <LinkPlayerModal />
         <Stack>
@@ -84,7 +86,8 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="auto" />
         <SplashGate />
-      </ThemeProvider>
+        </ThemeProvider>
+      </TournamentProvider>
     </FirebaseAuthProvider>
   )
 }

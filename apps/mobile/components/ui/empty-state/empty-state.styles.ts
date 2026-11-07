@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Radii, Spacing } from '@/constants/theme'
+import { Radii, PrimaryColors, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   wrap: {
@@ -31,7 +31,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     borderRadius: Radii.pill,
+    borderWidth: 1,
+    borderColor: PrimaryColors.border,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   actionText: {
     fontWeight: '700',

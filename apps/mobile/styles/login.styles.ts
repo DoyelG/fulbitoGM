@@ -1,27 +1,40 @@
 import { Platform, StyleSheet } from 'react-native'
 
-const BRAND = '#7c3aed'
+import { Colors, ContrastColors, Fonts, PrimaryColors, Radii, Spacing } from '@/constants/theme'
+
+const PRIMARY = PrimaryColors.border
 
 export const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xxl,
+    paddingVertical: Spacing.xxxl,
     maxWidth: 440,
     width: '100%',
     alignSelf: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 8,
-    marginTop: 16,
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.xxl,
   },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 24,
+  brandLogo: {
+    width: 44,
+    height: 44,
+  },
+  brandText: {
+    color: ContrastColors.onColor,
+    fontFamily: Fonts.extraBold,
+    fontSize: 30,
+  },
+  card: {
+    borderRadius: Radii.xl,
+    padding: Spacing.xxl,
   },
   segment: {
     flexDirection: 'row',
@@ -29,24 +42,24 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: Colors.light.chipBorder,
   },
   segmentBtn: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: Colors.light.chipBg,
   },
   segmentBtnActive: {
-    backgroundColor: BRAND,
+    backgroundColor: PRIMARY,
   },
   segmentText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#374151',
+    color: Colors.light.textSecondary,
   },
   segmentTextActive: {
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
   field: { marginBottom: 16 },
   label: {
@@ -62,12 +75,12 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   error: {
-    color: '#dc2626',
+    color: Colors.light.danger,
     fontSize: 14,
     marginBottom: 12,
   },
   primaryBtn: {
-    backgroundColor: BRAND,
+    backgroundColor: PRIMARY,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -75,18 +88,8 @@ export const styles = StyleSheet.create({
   },
   primaryBtnDisabled: { opacity: 0.7 },
   primaryBtnText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 16,
     fontWeight: '600',
-  },
-  hint: {
-    fontSize: 12,
-    marginTop: 12,
-    lineHeight: 18,
-  },
-  link: {
-    marginTop: 24,
-    alignSelf: 'center',
-    padding: 8,
   },
 })

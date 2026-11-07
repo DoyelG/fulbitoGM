@@ -51,8 +51,8 @@ export default function RadarChart({
 
   const gridRings = Array.from({ length: ringCount }, (_, i) => (i + 1) / ringCount)
 
-  const brand = 'hsl(270deg 78% 42%)'
-  const accent = 'hsl(24deg 85% 48%)'
+  const primary = 'hsl(270deg 78% 42%)'
+  const secondary = 'hsl(24deg 85% 48%)'
   const grid = '#E5E7EB'
   const axis = '#CBD5E1'
   const labelColor = '#111827'
@@ -68,12 +68,12 @@ export default function RadarChart({
           return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke={axis} strokeWidth={0.75} />
         })}
         {typeof baseline === 'number' && (
-          <path d={polygonPath(Array(N).fill(baseline))} fill={accent} opacity={0.12} stroke={accent} strokeWidth={1} />
+          <path d={polygonPath(Array(N).fill(baseline))} fill={secondary} opacity={0.12} stroke={secondary} strokeWidth={1} />
         )}
-        <path d={polygonPath(values)} fill={brand} opacity={0.18} stroke={brand} strokeWidth={2} />
+        <path d={polygonPath(values)} fill={primary} opacity={0.18} stroke={primary} strokeWidth={2} />
         {values.map((v, i) => {
           const [x, y] = point(i, v)
-          return <circle key={i} cx={x} cy={y} r={2.5} fill={brand} />
+          return <circle key={i} cx={x} cy={y} r={2.5} fill={primary} />
         })}
         {labels.map((label, i) => {
           const [lx, ly] = point(i, maxValue + 0.6)

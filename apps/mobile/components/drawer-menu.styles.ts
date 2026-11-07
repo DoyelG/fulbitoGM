@@ -1,23 +1,25 @@
 import { StyleSheet } from 'react-native'
 
+import { DrawerColors, PrimaryColors } from '@/constants/theme'
+
 export const styles = StyleSheet.create({
   root: {
     zIndex: 100,
     elevation: 100,
   },
   backdrop: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: DrawerColors.backdrop,
   },
   sheet: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#111827',
+    backgroundColor: DrawerColors.sheet,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 12,
-    shadowColor: '#000',
+    shadowColor: DrawerColors.shadow,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -27,7 +29,7 @@ export const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: DrawerColors.handle,
     alignSelf: 'center',
     marginBottom: 20,
   },
@@ -44,16 +46,16 @@ export const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F1F5F9',
+    color: DrawerColors.text,
     marginBottom: 2,
   },
   userEmail: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: DrawerColors.muted,
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DrawerColors.divider,
     marginHorizontal: 16,
     marginBottom: 8,
   },
@@ -65,13 +67,13 @@ export const styles = StyleSheet.create({
     gap: 14,
   },
   itemPressed: {
-    backgroundColor: 'rgba(167, 139, 250, 0.1)',
+    backgroundColor: DrawerColors.itemPressed,
   },
   iconWrapper: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: 'rgba(167, 139, 250, 0.15)',
+    backgroundColor: DrawerColors.iconBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -79,15 +81,23 @@ export const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   dangerIconWrapper: {
-    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    backgroundColor: DrawerColors.dangerBg,
   },
   dangerLabel: {
-    color: '#F87171',
+    color: DrawerColors.danger,
+  },
+  itemText: {
+    flex: 1,
   },
   itemLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F1F5F9',
+    color: DrawerColors.text,
+  },
+  itemSubtitle: {
+    fontSize: 12,
+    color: DrawerColors.muted,
+    marginTop: 2,
   },
   loginSection: {
     paddingHorizontal: 24,
@@ -97,11 +107,11 @@ export const styles = StyleSheet.create({
   loginTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#F1F5F9',
+    color: DrawerColors.text,
   },
   loginSubtitle: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: DrawerColors.muted,
     marginBottom: 12,
   },
   loginBtnHitArea: {
@@ -117,12 +127,12 @@ export const styles = StyleSheet.create({
     borderTopWidth: 40,
     borderTopColor: 'transparent',
     borderRightWidth: 12,
-    borderRightColor: '#7C3AED',
+    borderRightColor: PrimaryColors.border,
   },
   loginBtnMid: {
     height: 40,
     paddingHorizontal: 16,
-    backgroundColor: '#7C3AED',
+    backgroundColor: PrimaryColors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -133,13 +143,13 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 40,
     borderBottomColor: 'transparent',
     borderLeftWidth: 12,
-    borderLeftColor: '#7C3AED',
+    borderLeftColor: PrimaryColors.border,
   },
   loginBtnText: {
     fontSize: 14,
     fontWeight: '900',
     fontStyle: 'italic',
-    color: '#FFFFFF',
+    color: DrawerColors.onPrimary,
     letterSpacing: 1.5,
   },
   optionsContainer: {
@@ -154,6 +164,6 @@ export const styles = StyleSheet.create({
   },
   appVersionText: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: DrawerColors.muted,
   },
 })

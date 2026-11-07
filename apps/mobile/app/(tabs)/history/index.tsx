@@ -8,7 +8,6 @@ import {
   FlatList,
   RefreshControl,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native'
 
@@ -17,19 +16,20 @@ import { HistoryError } from '@/components/history/historyError'
 import { HistoryLoading } from '@/components/history/historyLoading'
 import { MatchCard } from '@/components/history/matchCard'
 import { MatchClipsModal } from '@/components/history/match-clips-modal'
+import { PlayersSearchBar } from '@/components/players/players-search-bar'
 import { VideoClipUploadModal } from '@/components/players/detail/video-clip-upload-modal'
 import { ThemedView } from '@/components/themed-view'
 import EmptyState from '@/components/ui/empty-state/empty-state'
 import { Spacing } from '@/constants/theme'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
-import { useIsAdmin } from '@/hooks/use-is-admin'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useMatchesData } from '@/hooks/use-matches-data'
 import { useVideoClipsData } from '@/hooks/use-video-clips-data'
 import { useAppTheme } from '@/hooks/use-theme'
 
 export default function HistoryScreen() {
   const router = useRouter()
-  const isAdmin = useIsAdmin()
+  const canManage = useCanManageTournament()
   const { colors } = useAppTheme()
 
   const { matches, players, loading, refreshing, error, reload, refresh, deleteMatch } =
@@ -109,27 +109,16 @@ export default function HistoryScreen() {
           ListFooterComponent={
             hasMore ? (
               <View style={styles.footer} accessibilityLiveRegion="polite">
-                <ActivityIndicator color={colors.brand} />
+                <ActivityIndicator color={colors.primaryText} />
               </View>
-            ) : null
+            ) : undefined
           }
           ListHeaderComponent={
             <View style={styles.filterBar}>
-              <TextInput
-                style={[
-                  styles.searchInput,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                placeholder="Buscar por título o jugador..."
-                placeholderTextColor={colors.muted}
+              <PlayersSearchBar
                 value={searchQuery}
-                onChangeText={setSearchQuery}
-                clearButtonMode="while-editing"
-                autoCorrect={false}
+                onChange={setSearchQuery}
+                placeholder="Buscar por título o jugador..."
               />
               <DateFilterBar
                 fromDate={fromDate}
@@ -147,21 +136,24 @@ export default function HistoryScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => void refresh()}
-              tintColor={colors.brand}
+              tintColor={colors.primaryText}
             />
           }
           contentContainerStyle={
             filteredMatches.length === 0 ? styles.emptyList : styles.listContent
           }
           ListEmptyComponent={
-            <EmptyState icon="clock" title="Sin partidos" description="Todavía no hay partidos registrados." />
+            <View style={styles.emptyState}>
+              <EmptyState icon="clock" title="Sin partidos" description="Todavía no hay partidos registrados." />
+            </View>
           }
           renderItem={({ item }) => (
             <MatchCard
               match={item}
               players={players}
-              isAdmin={isAdmin}
+              canManage={canManage}
               clipCount={videoClips.filter((c) => c.matchId === item.id).length}
+              onOpen={() => router.push({ pathname: '/(tabs)/history/[id]', params: { id: item.id } })}
               onEdit={() =>
                 router.push({
                   pathname: '/(tabs)/history/edit/[id]',
@@ -191,7 +183,7 @@ export default function HistoryScreen() {
         visible={viewClipsMatch !== null}
         match={viewClipsMatch}
         clips={viewClipsMatch ? videoClips.filter((c) => c.matchId === viewClipsMatch.id) : []}
-        isAdmin={isAdmin}
+        canManage={canManage}
         onDelete={deleteVideoClip}
         onAddVideo={() => {
           setVideoUploadMatch(viewClipsMatch)
@@ -213,21 +205,17 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
   },
   filterBar: {
+    gap: 10,
     marginBottom: 4,
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
-    marginBottom: 8,
   },
   listContent: {
     paddingBottom: 16,
   },
   emptyList: {
     flexGrow: 1,
+  },
+  emptyState: {
+    flex: 1,
     justifyContent: 'center',
   },
   footer: {

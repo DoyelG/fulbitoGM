@@ -7,7 +7,6 @@ import { useCallback, useMemo, useState } from 'react'
 import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import LinkPlayerAlert from '@/components/players/link-player/link-player-alert'
 import { PlayerCard } from '@/components/players/player-card'
 import { PlayersError } from '@/components/players/players-error'
 import { PlayersListHeader } from '@/components/players/players-list-header'
@@ -16,7 +15,7 @@ import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import EmptyState from '@/components/ui/empty-state/empty-state'
 import { Spacing } from '@/constants/theme'
-import { useIsAdmin } from '@/hooks/use-is-admin'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { usePlayerFilters } from '@/hooks/use-player-filters'
 import { usePlayerSort } from '@/hooks/use-player-sort'
 import { usePlayersData } from '@/hooks/use-players-data'
@@ -29,7 +28,7 @@ function withZeroAlpha(hex: string) {
 
 export default function PlayersScreen() {
   const router = useRouter()
-  const isAdmin = useIsAdmin()
+  const canManage = useCanManageTournament()
   const { colors } = useAppTheme()
 
   const {
@@ -90,7 +89,7 @@ export default function PlayersScreen() {
 
   const openAdminActions = useCallback(
     (player: Player) => {
-      if (!isAdmin) return
+      if (!canManage) return
       Alert.alert(player.name, 'Elegí una acción', [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -104,7 +103,7 @@ export default function PlayersScreen() {
         },
       ])
     },
-    [isAdmin, router, confirmDelete],
+    [canManage, router, confirmDelete],
   )
 
   if (loading) return <PlayersLoading />
@@ -113,7 +112,6 @@ export default function PlayersScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       <ThemedView style={styles.screen}>
-        <LinkPlayerAlert />
         <FlatList
           data={sortedPlayers}
           keyExtractor={(item) => item.id}
@@ -121,7 +119,7 @@ export default function PlayersScreen() {
             <PlayersListHeader
               query={query}
               onQueryChange={setQuery}
-              isAdmin={isAdmin}
+              canManage={canManage}
               onAdd={() => router.push('/(tabs)/players/new')}
               skillMode={skillMode}
               sortDir={sortDir}
@@ -133,33 +131,35 @@ export default function PlayersScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => void refresh()}
-              tintColor={colors.brand}
+              tintColor={colors.primaryText}
             />
           }
           contentContainerStyle={
             sortedPlayers.length === 0 ? styles.emptyList : styles.listContent
           }
           ListEmptyComponent={
-            <EmptyState
-              icon="user-plus"
-              title="Sin jugadores todavía"
-              description={
-                isAdmin ? 'No hay jugadores cargados. Creá el primero con el botón de abajo.' : 'No hay jugadores cargados.'
-              }
-              action={isAdmin ? { label: 'Nuevo jugador', href: '/(tabs)/players/new' } : undefined}
-            />
+            <View style={styles.emptyState}>
+              <EmptyState
+                icon="user-plus"
+                title="Sin jugadores todavía"
+                description={
+                  canManage ? 'No hay jugadores cargados. Creá el primero con el botón de abajo.' : 'No hay jugadores cargados.'
+                }
+                action={canManage ? { label: 'Nuevo jugador', href: '/(tabs)/players/new' } : undefined}
+              />
+            </View>
           }
           renderItem={({ item: player }) => (
             <PlayerCard
               player={player}
               streak={streaks[player.id] ?? { kind: null, count: 0 }}
               onPress={() => router.push(`/(tabs)/players/${player.id}`)}
-              onLongPress={isAdmin ? () => openAdminActions(player) : undefined}
+              onLongPress={canManage ? () => openAdminActions(player) : undefined}
               isGoalkeepingMode={skillMode === 'goalkeeper'}
             />
           )}
           ListFooterComponent={
-            isAdmin ? (
+            canManage && sortedInactivePlayers.length > 0 ? (
               <View style={styles.inactiveSection}>
                 <TouchableOpacity
                   style={styles.inactiveHeader}
@@ -177,26 +177,20 @@ export default function PlayersScreen() {
                 </TouchableOpacity>
                 {showInactive && (
                   <View style={styles.inactiveList}>
-                    {sortedInactivePlayers.length === 0 ? (
-                      <ThemedText style={{ color: colors.muted }}>
-                        No hay jugadores inactivos.
-                      </ThemedText>
-                    ) : (
-                      sortedInactivePlayers.map((player) => (
-                        <PlayerCard
-                          key={player.id}
-                          player={player}
-                          streak={streaks[player.id] ?? { kind: null, count: 0 }}
-                          onPress={() => router.push(`/(tabs)/players/${player.id}`)}
-                          onLongPress={() => openAdminActions(player)}
-                          isGoalkeepingMode={skillMode === 'goalkeeper'}
-                        />
-                      ))
-                    )}
+                    {sortedInactivePlayers.map((player) => (
+                      <PlayerCard
+                        key={player.id}
+                        player={player}
+                        streak={streaks[player.id] ?? { kind: null, count: 0 }}
+                        onPress={() => router.push(`/(tabs)/players/${player.id}`)}
+                        onLongPress={() => openAdminActions(player)}
+                        isGoalkeepingMode={skillMode === 'goalkeeper'}
+                      />
+                    ))}
                   </View>
                 )}
               </View>
-            ) : null
+            ) : undefined
           }
         />
         <LinearGradient
@@ -233,6 +227,10 @@ const styles = StyleSheet.create({
   },
   emptyList: {
     flexGrow: 1,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
   },
   inactiveSection: {
     marginTop: Spacing.lg,

@@ -8,7 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
-import { useAppTheme } from '@/hooks/use-theme'
+import { PrimaryColors } from '@/constants/theme'
 import { styles } from './AnimatedSplash.styles'
 
 type AnimatedSplashProps = {
@@ -17,7 +17,6 @@ type AnimatedSplashProps = {
 }
 
 export default function AnimatedSplash({ ready, onFinish }: AnimatedSplashProps) {
-  const theme = useAppTheme()
   const containerOpacity = useSharedValue(1)
   const wordmarkOpacity = useSharedValue(0)
   const wordmarkScale = useSharedValue(0.85)
@@ -45,7 +44,7 @@ export default function AnimatedSplash({ ready, onFinish }: AnimatedSplashProps)
 
   return (
     <Animated.View
-      style={[styles.container, { backgroundColor: theme.colors.brand }, containerStyle]}
+      style={[styles.container, { backgroundColor: PrimaryColors.border }, containerStyle]}
       pointerEvents="none"
       accessibilityLiveRegion="polite"
       accessibilityLabel="Cargando FulbitoApp"

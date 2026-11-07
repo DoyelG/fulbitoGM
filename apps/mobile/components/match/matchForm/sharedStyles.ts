@@ -1,9 +1,13 @@
 import { StyleSheet } from 'react-native'
+import { ContrastColors } from '@/constants/theme'
 
 export const sheetStyles = StyleSheet.create({
+  keyboard: {
+    flex: 1,
+  },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: ContrastColors.scrim,
   },
   container: {
     borderTopLeftRadius: 16,
@@ -17,7 +21,7 @@ export const sheetStyles = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: ContrastColors.dividerOnLight,
   },
   headerEnd: {
     justifyContent: 'flex-end',
@@ -41,9 +45,36 @@ export const sheetStyles = StyleSheet.create({
   optionText: {
     fontSize: 14,
   },
+  scroll: {
+    maxHeight: 300,
+  },
+  scrollTall: {
+    maxHeight: 320,
+  },
+  checkMark: {
+    fontWeight: '700',
+    fontSize: 16,
+  },
 })
 
 export const fieldStyles = StyleSheet.create({
+  labelFirst: {
+    marginTop: 0,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  randomBtn: {
+    paddingHorizontal: 14,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  randomIcon: {
+    fontSize: 18,
+    color: ContrastColors.onColor,
+  },
   label: {
     fontSize: 13,
     fontWeight: '600',
@@ -75,6 +106,7 @@ export const locationStyles = StyleSheet.create({
     flex: 1,
   },
   addBtn: {
+    overflow: 'hidden',
     width: 28,
     height: 39,
     justifyContent: 'center',
@@ -82,7 +114,7 @@ export const locationStyles = StyleSheet.create({
   },
   addBtnText: {
     fontSize: 20,
-    color: '#fff',
+    color: ContrastColors.onColor,
     lineHeight: 22,
   },
   pickerScroll: {

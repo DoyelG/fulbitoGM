@@ -41,7 +41,7 @@ export default function VideoClipCarousel({ clips, matchById, canDelete, onOpen,
           type="button"
           onClick={() => scrollBy(-SCROLL_AMOUNT)}
           aria-label="Ver clips anteriores"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 -translate-x-1/2 w-8 h-8 rounded-full bg-white border shadow flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 -translate-x-1/2 w-8 h-8 rounded-full bg-white border shadow flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
         >
           ‹
         </button>
@@ -68,7 +68,7 @@ export default function VideoClipCarousel({ clips, matchById, canDelete, onOpen,
           type="button"
           onClick={() => scrollBy(SCROLL_AMOUNT)}
           aria-label="Ver más clips"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 translate-x-1/2 w-8 h-8 rounded-full bg-white border shadow flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 translate-x-1/2 w-8 h-8 rounded-full bg-white border shadow flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
         >
           ›
         </button>

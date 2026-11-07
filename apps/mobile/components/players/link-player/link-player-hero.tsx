@@ -2,6 +2,7 @@ import Feather from '@expo/vector-icons/Feather'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Text, View } from 'react-native'
 
+import { PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { styles } from './link-player-hero.styles'
@@ -10,12 +11,12 @@ type Props = {
   icon: keyof typeof Feather.glyphMap
   title: string
   description: string
-  tone?: 'brand' | 'danger'
+  tone?: 'primary' | 'danger'
 }
 
-export default function LinkPlayerHero({ icon, title, description, tone = 'brand' }: Props) {
+export default function LinkPlayerHero({ icon, title, description, tone = 'primary' }: Props) {
   const { colors } = useAppTheme()
-  const gradientColors = tone === 'danger' ? [colors.danger, colors.danger] : [colors.shadow, colors.brand]
+  const gradientColors = tone === 'danger' ? [colors.danger, colors.danger] : PrimaryColors.gradient
 
   return (
     <View style={styles.container}>

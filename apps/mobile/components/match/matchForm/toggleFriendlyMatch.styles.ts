@@ -1,8 +1,9 @@
 import { StyleSheet } from 'react-native'
+import { ContrastColors } from '@/constants/theme'
 
-export const TRACK_WIDTH = 120
-export const TRACK_HEIGHT = 32
-export const TRACK_PADDING = 3
+export const TRACK_WIDTH = 132
+export const TRACK_HEIGHT = 34
+export const TRACK_PADDING = 5
 export const THUMB_SIZE = TRACK_HEIGHT - TRACK_PADDING * 2
 export const TRAVEL = TRACK_WIDTH - TRACK_PADDING * 2 - THUMB_SIZE
 export const HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 }
@@ -25,29 +26,29 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     fontSize: 12,
     fontWeight: '700',
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
   competitivoLabel: {
-    left: THUMB_SIZE + TRACK_PADDING * 2,
+    left: THUMB_SIZE + TRACK_PADDING * 2 + 6,
   },
   amistosoLabel: {
-    left: -68,
+    left: -78,
   },
   thumb: {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     borderRadius: THUMB_SIZE / 2,
-    backgroundColor: '#fff',
+    backgroundColor: ContrastColors.onColor,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: ContrastColors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
   },
   thumbEmoji: {
-    fontSize: 16,
-    marginTop: -2,
+    fontSize: 14,
+    marginTop: -1,
   },
 })

@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import type { ReactNode } from 'react'
 import { Text, View } from 'react-native'
 
-import { useAppTheme } from '@/hooks/use-theme'
+import { PrimaryColors } from '@/constants/theme'
 
 import { styles } from './gradient-header.styles'
 
@@ -15,11 +15,9 @@ type Props = {
 }
 
 export default function GradientHeader({ leading, title, subtitle, centered = false, children }: Props) {
-  const { colors } = useAppTheme()
-
   return (
     <LinearGradient
-      colors={[colors.shadow, colors.brand]}
+      colors={PrimaryColors.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.banner, centered && styles.bannerCentered]}

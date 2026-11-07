@@ -10,6 +10,7 @@ import {
   query,
   Timestamp,
   updateDoc,
+  where,
 } from 'firebase/firestore'
 
 const COLLECTION = 'addresses'
@@ -17,6 +18,7 @@ const COLLECTION = 'addresses'
 function docToAddress(id: string, data: Record<string, unknown>): Address {
   return {
     id,
+    tournamentId: typeof data.tournamentId === 'string' ? data.tournamentId : '',
     name: data.name as string,
     street: data.street as string,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt as string),
@@ -24,15 +26,20 @@ function docToAddress(id: string, data: Record<string, unknown>): Address {
   }
 }
 
-export async function getAddresses(): Promise<Address[]> {
+export async function getAddresses(tournamentId: string): Promise<Address[]> {
   const db = getFirestore()
-  const snap = await getDocs(query(collection(db, COLLECTION), orderBy('name')))
+  const snap = await getDocs(
+    query(collection(db, COLLECTION), where('tournamentId', '==', tournamentId), orderBy('name')),
+  )
   return snap.docs.map((addressDoc) => docToAddress(addressDoc.id, addressDoc.data()))
 }
 
-export async function createAddress(data: Omit<Address, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export type AddressInput = Omit<Address, 'id' | 'tournamentId' | 'createdAt' | 'updatedAt'>
+
+export async function createAddress(tournamentId: string, data: AddressInput): Promise<string> {
   const db = getFirestore()
   const ref = await addDoc(collection(db, COLLECTION), {
+    tournamentId,
     name: data.name,
     street: data.street,
     createdAt: Timestamp.now(),
@@ -41,7 +48,7 @@ export async function createAddress(data: Omit<Address, 'id' | 'createdAt' | 'up
   return ref.id
 }
 
-export async function updateAddress(id: string, data: Partial<Omit<Address, 'id' | 'createdAt'>>): Promise<void> {
+export async function updateAddress(id: string, data: Partial<AddressInput>): Promise<void> {
   const db = getFirestore()
   await updateDoc(doc(db, COLLECTION, id), { ...data, updatedAt: Timestamp.now() })
 }

@@ -102,7 +102,8 @@ function TeamColumn({
   onRemove: (id: string) => void
 }) {
   const { colors, radii } = useAppTheme()
-  const bg = side === 'a' ? 'rgba(22,163,74,0.07)' : 'rgba(59,130,246,0.07)'
+  const addColor = colors.primaryText
+  const bg = side === 'a' ? colors.primarySubtle : colors.secondarySubtle
   const label = side === 'a' ? 'Equipo A' : 'Equipo B'
 
   return (
@@ -118,21 +119,21 @@ function TeamColumn({
             {pinned.has(player.id) ? ' ⭐' : ''}
           </Text>
           <TouchableOpacity onPress={() => onRemove(player.id)}>
-            <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 14 }}>✕</Text>
+            <Text style={[styles.removeText, { color: colors.danger }]}>✕</Text>
           </TouchableOpacity>
         </View>
       ))}
       <TouchableOpacity
         onPress={onAdd}
-        style={[styles.addBtn, { borderColor: colors.brand, borderRadius: radii.sm }]}
+        style={[styles.addBtn, { borderColor: addColor, borderRadius: radii.sm }]}
       >
-        <Text style={{ color: colors.brand, fontWeight: '600', fontSize: 13 }}>+ Agregar</Text>
+        <Text style={[styles.addText, { color: addColor }]}>+ Agregar</Text>
       </TouchableOpacity>
       {team.length > 0 && (
         <View style={[styles.statBox, { borderTopColor: colors.border }]}>
           <Text style={[styles.statText, { color: colors.muted }]}>🧠 {stats.skill.toFixed(1)}</Text>
           <Text style={[styles.statText, { color: colors.muted }]}>💪 {stats.phys.toFixed(1)}</Text>
-          <Text style={[styles.statText, { color: colors.brand }]}>🏆 {stats.winPct}%</Text>
+          <Text style={[styles.statText, { color: colors.primaryText }]}>🏆 {stats.winPct}%</Text>
         </View>
       )}
     </View>
@@ -216,6 +217,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     flex: 1,
     marginRight: 4,
+  },
+  removeText: {
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  addText: {
+    fontWeight: '600',
+    fontSize: 13,
   },
   addBtn: {
     borderWidth: 1,

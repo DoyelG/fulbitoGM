@@ -25,12 +25,12 @@ type Props = {
 
 export function SkillsSection({ values, onChange }: Props) {
   const { colors, radii, shadows, isDark } = useAppTheme()
-  const trackBg = isDark ? 'rgba(255,255,255,0.12)' : '#e5e7eb'
+  const trackBg = colors.track
 
   return (
     <>
       {SKILLS.map((s) => {
-        const tone = values[s.key] <= LOW_SKILL_MAX ? colors.secondary : colors.brand
+        const tone = values[s.key] <= LOW_SKILL_MAX ? colors.secondary : colors.primary
         return (
           <View
             key={s.key}

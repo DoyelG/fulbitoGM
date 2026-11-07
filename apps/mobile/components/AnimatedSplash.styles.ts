@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native'
 
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,
@@ -14,13 +14,13 @@ export const styles = StyleSheet.create({
     fontFamily: Fonts.black,
     fontSize: 44,
     letterSpacing: 0.5,
-    color: '#ffffff',
+    color: ContrastColors.onColor,
   },
   underline: {
     height: 4,
     width: 64,
     marginTop: Spacing.md,
     borderRadius: Radii.pill,
-    backgroundColor: '#ffffff',
+    backgroundColor: ContrastColors.onColor,
   },
 })

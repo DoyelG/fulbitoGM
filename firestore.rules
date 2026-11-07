@@ -21,44 +21,6 @@ service cloud.firestore {
       return isSignedIn() && ((userRole() is list && 'ADMIN' in userRole()) || userRole() == 'ADMIN');
     }
 
-    // Public game data: anyone may read; only signed-in users may write.
-    match /players/{id} {
-      allow read: if true;
-      allow create: if isSignedIn() && (isAdmin() || !('linkedUserId' in request.resource.data));
-      allow update: if isSignedIn() && (
-        isAdmin()
-        || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['linkedUserId'])
-        || (resource.data.get('linkedUserId', null) == request.auth.uid && request.resource.data.linkedUserId == null)
-      );
-      allow delete: if isAdmin();
-    }
-
-    match /matches/{id} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    match /matchPlayers/{id} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    match /videoClips/{id} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if isAdmin() || (
-        isSignedIn()
-        && resource.data.get('createdBy', null) == request.auth.uid
-        && request.resource.data.createdBy == request.auth.uid
-      );
-      allow delete: if isSignedIn() && (isAdmin() || resource.data.get('createdBy', null) == request.auth.uid);
-    }
-
-    match /addresses/{id} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
     // User profiles hold roles and emails — never public.
     // Each user can only access their own document.
     match /users/{userId} {
@@ -77,51 +39,422 @@ service cloud.firestore {
       allow delete: if isSignedIn() && request.auth.uid == userId;
     }
 
-    match /roleRequests/{requestId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn()
-        && request.resource.data.keys().hasOnly([
-          'userId', 'requestedRole', 'playerId', 'newPlayerName', 'status',
-          'resolvedAt', 'resolvedBy', 'createdAt', 'updatedAt'
-        ])
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == 'pending'
-        && request.resource.data.resolvedAt == null
-        && request.resource.data.resolvedBy == null
-        && request.resource.data.requestedRole in ['ADMIN', 'PLAYER']
-        && (
-          request.resource.data.requestedRole == 'ADMIN'
-            ? (request.resource.data.playerId == null && request.resource.data.newPlayerName == null)
-            : ((request.resource.data.playerId == null) != (request.resource.data.newPlayerName == null))
-        )
-        && (
-          request.resource.data.newPlayerName == null
-          || (request.resource.data.newPlayerName is string && request.resource.data.newPlayerName.size() <= 50)
-        );
-      allow update: if isAdmin();
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid && resource.data.status == 'pending';
+    function tournamentPath(tournamentId) {
+      return /databases/$(database)/documents/tournaments/$(tournamentId);
     }
 
-    // A notification is only valid as the mirror of the roleRequest with the same id, written in the same batch.
-    match /notifications/{notificationId} {
-      allow read: if isAdmin();
+    function memberPath(tournamentId, uid) {
+      return /databases/$(database)/documents/tournaments/$(tournamentId)/members/$(uid);
+    }
+
+    function playerPath(playerId) {
+      return /databases/$(database)/documents/players/$(playerId);
+    }
+
+    function playerLinkPath(tournamentId, playerId) {
+      return /databases/$(database)/documents/tournaments/$(tournamentId)/playerLinks/$(playerId);
+    }
+
+    function isLinkablePlayer(tournamentId, playerId) {
+      return playerId is string
+        && get(playerPath(playerId)).data.tournamentId == tournamentId
+        && !exists(playerLinkPath(tournamentId, playerId));
+    }
+
+    function invitationPath(invitationId) {
+      return /databases/$(database)/documents/invitations/$(invitationId);
+    }
+
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function hasVerifiedEmail() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isActiveTournament(tournamentId) {
+      return exists(tournamentPath(tournamentId)) && get(tournamentPath(tournamentId)).data.deletedAt == null;
+    }
+
+    function tournamentRole(tournamentId) {
+      return get(memberPath(tournamentId, request.auth.uid)).data.role;
+    }
+
+    function isTournamentMember(tournamentId) {
+      return isSignedIn() && exists(memberPath(tournamentId, request.auth.uid)) && isActiveTournament(tournamentId);
+    }
+
+    function isTournamentAdmin(tournamentId) {
+      return isTournamentMember(tournamentId) && tournamentRole(tournamentId) in ['OWNER', 'ADMIN'];
+    }
+
+    function isTournamentOwner(tournamentId) {
+      return isTournamentMember(tournamentId) && tournamentRole(tournamentId) == 'OWNER';
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function isValidTournamentName(name) {
+      return name is string && name.size() > 0 && name.size() <= 60;
+    }
+
+    function isValidTournamentDescription(description) {
+      return description == null || (description is string && description.size() <= 280);
+    }
+
+    function canReadTournament(tournamentId) {
+      return isTournamentMember(tournamentId) || isAdmin();
+    }
+
+    function canManageTournament(tournamentId) {
+      return isTournamentAdmin(tournamentId) || isAdmin();
+    }
+
+    function myPlayerId(tournamentId) {
+      return get(memberPath(tournamentId, request.auth.uid)).data.get('playerId', null);
+    }
+
+    function keepsTournament() {
+      return request.resource.data.tournamentId == resource.data.tournamentId;
+    }
+
+    // Tournament data: every document carries a tournamentId, and list queries must filter by it
+    // so these rules can check membership.
+    match /players/{id} {
+      allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
       allow create: if isSignedIn()
-        && request.resource.data.type == 'ROLE_REQUEST'
-        && request.resource.data.audience == 'ADMIN'
-        && request.resource.data.status == 'pending'
-        && notificationId == request.resource.data.data.requestId
-        && request.resource.data.data.userId == request.auth.uid
-        && request.resource.data.data.userEmail == request.auth.token.email
-        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.userId == request.auth.uid
-        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.requestedRole
-          == request.resource.data.data.requestedRole
-        && getAfter(/databases/$(database)/documents/roleRequests/$(notificationId)).data.playerId
-          == request.resource.data.data.playerId;
-      allow update: if isAdmin();
+        && request.resource.data.tournamentId is string
+        && canManageTournament(request.resource.data.tournamentId)
+        && !('linkedUserId' in request.resource.data);
+      allow update: if isSignedIn()
+        && keepsTournament()
+        && !changedKeys().hasAny(['linkedUserId'])
+        && (
+          canManageTournament(resource.data.tournamentId)
+          || (
+            isTournamentMember(resource.data.tournamentId)
+            && myPlayerId(resource.data.tournamentId) == id
+            && changedKeys().hasOnly(['name', 'position', 'photoUrl', 'updatedAt'])
+          )
+        );
+      allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
+    }
+
+    match /matches/{id} {
+      allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
+      allow create: if isSignedIn()
+        && request.resource.data.tournamentId is string
+        && canManageTournament(request.resource.data.tournamentId);
+      allow update: if isSignedIn() && keepsTournament() && canManageTournament(resource.data.tournamentId);
+      allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
+    }
+
+    match /matchPlayers/{id} {
+      allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
+      allow create: if isSignedIn()
+        && request.resource.data.tournamentId is string
+        && canManageTournament(request.resource.data.tournamentId);
+      allow update: if isSignedIn() && keepsTournament() && canManageTournament(resource.data.tournamentId);
+      allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
+    }
+
+    // Pins a clip to its own uploaded file, so viewers never load an outside URL. The private hosts are the emulator.
+    function isOwnClipUrl(url, tournamentId, clipId) {
+      return url is string
+        && url.matches(
+          '(https://firebasestorage[.]googleapis[.]com|http://(localhost|127[.]0[.]0[.]1|10[.][0-9.]+|192[.]168[.][0-9.]+):9199)'
+          + '/v0/b/[^/]+/o/videoClips%2F' + tournamentId + '%2F' + clipId + '[?].*'
+        );
+    }
+
+    match /videoClips/{id} {
+      allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
+      allow create: if isSignedIn()
+        && request.resource.data.tournamentId is string
+        && canReadTournament(request.resource.data.tournamentId)
+        && request.resource.data.createdBy == request.auth.uid
+        && isOwnClipUrl(request.resource.data.url, request.resource.data.tournamentId, id)
+        && get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.tournamentId
+          == request.resource.data.tournamentId;
+      allow update: if isSignedIn()
+        && keepsTournament()
+        && request.resource.data.createdBy == resource.data.get('createdBy', null)
+        && request.resource.data.get('url', null) == resource.data.get('url', null)
+        && (
+          canManageTournament(resource.data.tournamentId)
+          || (isTournamentMember(resource.data.tournamentId) && resource.data.get('createdBy', null) == request.auth.uid)
+        );
       allow delete: if isSignedIn() && (
-        resource == null
-        || (resource.data.data.userId == request.auth.uid && resource.data.status == 'pending')
+        canManageTournament(resource.data.tournamentId)
+        || (isTournamentMember(resource.data.tournamentId) && resource.data.get('createdBy', null) == request.auth.uid)
       );
+    }
+
+    match /addresses/{id} {
+      allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
+      allow create: if isSignedIn()
+        && request.resource.data.tournamentId is string
+        && canManageTournament(request.resource.data.tournamentId);
+      allow update: if isSignedIn() && keepsTournament() && canManageTournament(resource.data.tournamentId);
+      allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if isSignedIn()
+        && request.auth.uid in resource.data.memberUids
+        && resource.data.deletedAt == null;
+
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          'name', 'description', 'photoUrl', 'ownerUid', 'memberUids', 'deletedAt', 'deletedBy', 'createdAt', 'updatedAt'
+        ])
+        && isValidTournamentName(request.resource.data.name)
+        && isValidTournamentDescription(request.resource.data.description)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid]
+        && request.resource.data.deletedAt == null
+        && request.resource.data.deletedBy == null
+        && getAfter(memberPath(tournamentId, request.auth.uid)).data.role == 'OWNER';
+
+      allow update: if resource.data.deletedAt == null && (
+        (
+          isTournamentAdmin(tournamentId)
+          && changedKeys().hasOnly(['name', 'description', 'photoUrl', 'updatedAt'])
+          && isValidTournamentName(request.resource.data.name)
+          && isValidTournamentDescription(request.resource.data.description)
+        )
+        || (
+          isTournamentOwner(tournamentId)
+          && resource.data.ownerUid == request.auth.uid
+          && changedKeys().hasOnly(['deletedAt', 'deletedBy', 'updatedAt'])
+          && request.resource.data.deletedAt is timestamp
+          && request.resource.data.deletedBy == request.auth.uid
+        )
+        || (
+          isSignedIn()
+          && changedKeys().hasOnly(['memberUids', 'updatedAt'])
+          && !(request.auth.uid in resource.data.memberUids)
+          && request.resource.data.memberUids.toSet() == resource.data.memberUids.toSet().union([request.auth.uid].toSet())
+          && !exists(memberPath(tournamentId, request.auth.uid))
+          && existsAfter(memberPath(tournamentId, request.auth.uid))
+        )
+        || (
+          isTournamentMember(tournamentId)
+          && tournamentRole(tournamentId) != 'OWNER'
+          && resource.data.ownerUid != request.auth.uid
+          && changedKeys().hasOnly(['memberUids', 'updatedAt'])
+          && request.resource.data.memberUids.toSet() == resource.data.memberUids.toSet().difference([request.auth.uid].toSet())
+          && !existsAfter(memberPath(tournamentId, request.auth.uid))
+        )
+        || (
+          isTournamentAdmin(tournamentId)
+          && changedKeys().hasOnly(['memberUids', 'updatedAt'])
+          && request.resource.data.memberUids.removeAll(resource.data.memberUids).size() == 0
+          && resource.data.memberUids.removeAll(request.resource.data.memberUids).size() == 1
+          && !existsAfter(memberPath(tournamentId, resource.data.memberUids.removeAll(request.resource.data.memberUids)[0]))
+        )
+      );
+
+      allow delete: if false;
+
+      match /members/{uid} {
+        allow read: if (isSignedIn() && uid == request.auth.uid) || isTournamentMember(tournamentId);
+
+        allow create: if isSignedIn()
+          && uid == request.auth.uid
+          && request.resource.data.uid == uid
+          && request.resource.data.tournamentId == tournamentId
+          && (
+            (
+              !exists(tournamentPath(tournamentId))
+              && getAfter(tournamentPath(tournamentId)).data.ownerUid == request.auth.uid
+              && request.resource.data.role == 'OWNER'
+              && request.resource.data.playerId == null
+              && request.resource.data.email == myEmail()
+            )
+            || (
+              hasVerifiedEmail()
+              && isActiveTournament(tournamentId)
+              && request.resource.data.invitationId is string
+              && get(invitationPath(request.resource.data.invitationId)).data.status == 'pending'
+              && getAfter(invitationPath(request.resource.data.invitationId)).data.status == 'accepted'
+              && get(invitationPath(request.resource.data.invitationId)).data.tournamentId == tournamentId
+              && get(invitationPath(request.resource.data.invitationId)).data.email == myEmail()
+              && get(invitationPath(request.resource.data.invitationId)).data.role == request.resource.data.role
+              // The inviter may have left or been demoted since sending it, so their authority is checked on accept.
+              && get(memberPath(tournamentId, get(invitationPath(request.resource.data.invitationId)).data.invitedBy))
+                .data.role in ['OWNER', 'ADMIN']
+              && (
+                request.resource.data.playerId == null
+                || (
+                  get(invitationPath(request.resource.data.invitationId)).data.playerId == request.resource.data.playerId
+                  && getAfter(playerLinkPath(tournamentId, request.resource.data.playerId)).data.uid == uid
+                )
+              )
+              && request.resource.data.email == myEmail()
+            )
+          );
+
+        allow update: if (
+          isTournamentOwner(tournamentId)
+          && resource.data.role != 'OWNER'
+          && changedKeys().hasOnly(['role', 'updatedAt'])
+          && request.resource.data.role in ['ADMIN', 'MEMBER']
+        ) || (
+          // The playerLinks lock written in the same batch is what keeps one member per player.
+          isTournamentAdmin(tournamentId)
+          && changedKeys().hasOnly(['playerId', 'updatedAt'])
+          && (
+            request.resource.data.playerId == null
+            || (
+              request.resource.data.playerId is string
+              && getAfter(playerPath(request.resource.data.playerId)).data.tournamentId == tournamentId
+              && getAfter(playerLinkPath(tournamentId, request.resource.data.playerId)).data.uid == uid
+            )
+          )
+          && (
+            resource.data.get('playerId', null) == null
+            || resource.data.playerId == request.resource.data.playerId
+            || !existsAfter(playerLinkPath(tournamentId, resource.data.playerId))
+          )
+        );
+
+        allow delete: if isSignedIn()
+          && resource.data.role != 'OWNER'
+          && !(uid in getAfter(tournamentPath(tournamentId)).data.memberUids)
+          && (
+            resource.data.get('playerId', null) == null
+            || !existsAfter(playerLinkPath(tournamentId, resource.data.playerId))
+          )
+          && (
+            uid == request.auth.uid
+            || (
+              uid != request.auth.uid
+              && isTournamentAdmin(tournamentId)
+              && (tournamentRole(tournamentId) == 'OWNER' || resource.data.role == 'MEMBER')
+            )
+          );
+      }
+
+      match /playerLinks/{playerId} {
+        allow get: if isSignedIn();
+        allow list: if isTournamentMember(tournamentId);
+
+        allow create: if isSignedIn()
+          && request.resource.data.keys().hasOnly(['uid'])
+          && request.resource.data.uid is string
+          && getAfter(memberPath(tournamentId, request.resource.data.uid)).data.playerId == playerId;
+
+        allow update: if false;
+
+        allow delete: if isSignedIn() && (
+          resource == null
+          || !existsAfter(memberPath(tournamentId, resource.data.uid))
+          || getAfter(memberPath(tournamentId, resource.data.uid)).data.get('playerId', null) != playerId
+        );
+      }
+
+      match /playerRequests/{uid} {
+        allow read: if (isSignedIn() && uid == request.auth.uid) || isTournamentAdmin(tournamentId);
+
+        allow create: if isTournamentMember(tournamentId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'uid', 'tournamentId', 'email', 'playerId', 'newPlayerName', 'status', 'resolvedBy', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.uid == uid
+          && request.resource.data.tournamentId == tournamentId
+          && request.resource.data.email == myEmail()
+          && request.resource.data.status == 'pending'
+          && request.resource.data.resolvedBy == null
+          && get(memberPath(tournamentId, uid)).data.get('playerId', null) == null
+          && ((request.resource.data.playerId == null) != (request.resource.data.newPlayerName == null))
+          && (request.resource.data.playerId == null || isLinkablePlayer(tournamentId, request.resource.data.playerId))
+          && (
+            request.resource.data.newPlayerName == null
+            || (
+              request.resource.data.newPlayerName is string
+              && request.resource.data.newPlayerName.size() > 0
+              && request.resource.data.newPlayerName.size() <= 50
+            )
+          );
+
+        allow update: if isTournamentAdmin(tournamentId)
+          && resource.data.status == 'pending'
+          && changedKeys().hasOnly(['status', 'resolvedBy', 'updatedAt'])
+          && request.resource.data.status == 'rejected'
+          && request.resource.data.resolvedBy == request.auth.uid;
+
+        allow delete: if (isSignedIn() && uid == request.auth.uid)
+          || (
+            isTournamentAdmin(tournamentId)
+            && resource.data.status == 'pending'
+            && getAfter(memberPath(tournamentId, uid)).data.get('playerId', null) != null
+          );
+      }
+
+      match /comments/{commentId} {
+        allow read: if isTournamentMember(tournamentId);
+
+        allow create: if isTournamentMember(tournamentId)
+          && request.resource.data.keys().hasOnly(['authorUid', 'authorName', 'text', 'createdAt'])
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.authorName is string
+          && request.resource.data.authorName.size() <= 80
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500
+          && request.resource.data.createdAt == request.time;
+
+        allow update: if false;
+
+        allow delete: if isTournamentAdmin(tournamentId);
+      }
+    }
+
+    match /invitations/{invitationId} {
+      // The email check goes first: queries by email can't evaluate the tournament lookup, and a failing left operand would reject them.
+      allow read: if isSignedIn() && (
+        (hasVerifiedEmail() && resource.data.email == myEmail())
+        || isTournamentAdmin(resource.data.tournamentId)
+      );
+
+      allow create: if isTournamentAdmin(request.resource.data.tournamentId)
+        && request.resource.data.keys().hasOnly([
+          'tournamentId', 'tournamentName', 'email', 'role', 'playerId', 'invitedBy', 'status', 'resolvedAt',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.invitedBy == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.email == request.resource.data.email.lower()
+        && request.resource.data.role in ['ADMIN', 'MEMBER']
+        && (
+          request.resource.data.playerId == null
+          || isLinkablePlayer(request.resource.data.tournamentId, request.resource.data.playerId)
+        );
+
+      allow update: if resource.data.status == 'pending'
+        && changedKeys().hasOnly(['status', 'resolvedAt', 'updatedAt'])
+        && (
+          (isTournamentAdmin(resource.data.tournamentId) && request.resource.data.status == 'revoked')
+          || (
+            hasVerifiedEmail()
+            && resource.data.email == myEmail()
+            && (
+              request.resource.data.status == 'rejected'
+              || (
+                request.resource.data.status == 'accepted'
+                && getAfter(memberPath(resource.data.tournamentId, request.auth.uid)).data.invitationId == invitationId
+              )
+            )
+          )
+        );
+
+      allow delete: if false;
     }
   }
 }

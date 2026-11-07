@@ -16,13 +16,13 @@ type Props = {
 const CARD_PATH = 'M40 0 L200 0 L240 40 L240 320 L200 360 L40 360 L0 320 L0 40 Z'
 
 const ACCENT_GRADIENTS: Record<AwardAccent, { fill: [string, string, string]; border: [string, string, string] }> = {
-  brand: {
+  primary: {
     fill: ['#f5f3ff', '#ddd6fe', '#c4b5fd'],
-    border: ['#f5f3ff', 'var(--color-brand)', 'var(--color-brand-dark)'],
+    border: ['#f5f3ff', 'var(--color-primary)', 'var(--color-primary-dark)'],
   },
   secondary: {
     fill: ['#fff7ed', '#fed7aa', '#fdba74'],
-    border: ['#fff7ed', 'var(--color-accent)', '#9a3412'],
+    border: ['#fff7ed', 'var(--color-secondary)', '#9a3412'],
   },
   muted: {
     fill: ['#f9fafb', '#e5e7eb', '#d1d5db'],
@@ -31,14 +31,14 @@ const ACCENT_GRADIENTS: Record<AwardAccent, { fill: [string, string, string]; bo
 }
 
 const ICON_TEXT: Record<AwardAccent, string> = {
-  brand: 'text-violet-700',
+  primary: 'text-primary',
   secondary: 'text-orange-800',
   muted: 'text-gray-700',
 }
 
 const RING_COLOR: Record<AwardAccent, string> = {
-  brand: 'var(--color-brand)',
-  secondary: 'var(--color-accent)',
+  primary: 'var(--color-primary)',
+  secondary: 'var(--color-secondary)',
   muted: '#9ca3af',
 }
 

@@ -1,24 +1,26 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import type { Match, Player, VideoClipCategory } from '@fulbito/types'
+import type { Match, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 import { canDeleteVideoClip } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
 import Button from '@/components/Button'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
 import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
+import WidgetError from '@/components/home/WidgetError'
 
 type Props = {
-  player: Player
   matches: Match[]
   canUpload: boolean
-}
+} & ({ playerId: string; matchId?: never } | { matchId: string; playerId?: never })
 
-export default function VideoClipsSection({ player, matches, canUpload }: Props) {
-  const { user, isAdmin } = useFirebaseAuth()
+export default function VideoClipsSection({ playerId, matchId, matches, canUpload }: Props) {
+  const { user } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
   const videoClips = useVideoClipStore((s) => s.videoClips)
   const videoClipsInit = useVideoClipStore((s) => s.videoClipsInit)
   const initLoad = useVideoClipStore((s) => s.initLoad)
@@ -32,19 +34,26 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (videoClipsInit !== 'loaded') initLoad()
+    if (videoClipsInit === 'idle') initLoad()
   }, [videoClipsInit, initLoad])
 
-  const playerClips = useMemo(
-    () => videoClips.filter((clip) => clip.playerIds.includes(player.id)),
-    [videoClips, player.id],
+  const scopedClips = useMemo(
+    () =>
+      videoClips.filter((clip) =>
+        matchId ? clip.matchId === matchId : playerId !== undefined && clip.playerIds.includes(playerId),
+      ),
+    [videoClips, matchId, playerId],
   )
   const filteredClips = useMemo(
-    () => (filter === 'all' ? playerClips : playerClips.filter((clip) => clip.category === filter)),
-    [playerClips, filter],
+    () => (filter === 'all' ? scopedClips : scopedClips.filter((clip) => clip.category === filter)),
+    [scopedClips, filter],
   )
   const matchById = useMemo(() => new Map(matches.map((match) => [match.id, match])), [matches])
-  const playbackClip = playbackClipId ? (playerClips.find((clip) => clip.id === playbackClipId) ?? null) : null
+  const uploadMatches = useMemo(
+    () => (matchId ? matches.filter((match) => match.id === matchId) : matches),
+    [matches, matchId],
+  )
+  const playbackClip = playbackClipId ? (scopedClips.find((clip) => clip.id === playbackClipId) ?? null) : null
 
   const handleUpload = async (data: NewVideoClipData, file: File) => {
     setUploadError(null)
@@ -88,13 +97,13 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
         {deleteError && (
           <div
             role="alert"
-            className="mb-4 flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+            className="mb-4 flex items-center justify-between rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-800"
           >
             <span>{deleteError}</span>
             <button
               type="button"
               onClick={() => setDeleteError(null)}
-              className="ml-3 text-red-800 hover:text-red-950 focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+              className="ml-3 text-orange-800 hover:text-orange-950 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded"
               aria-label="Descartar error"
             >
               ✕
@@ -108,7 +117,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
             aria-selected={filter === 'all'}
             onClick={() => setFilter('all')}
             className={`px-3 py-1 rounded text-sm border ${
-              filter === 'all' ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
+              filter === 'all' ? 'bg-primary text-white border-primary' : 'hover:bg-gray-50'
             }`}
           >
             Todos
@@ -121,7 +130,7 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
               aria-selected={filter === clipCategory.value}
               onClick={() => setFilter(clipCategory.value)}
               className={`px-3 py-1 rounded text-sm border ${
-                filter === clipCategory.value ? 'bg-brand text-white border-brand' : 'hover:bg-gray-50'
+                filter === clipCategory.value ? 'bg-primary text-white border-primary' : 'hover:bg-gray-50'
               }`}
             >
               {clipCategory.icon} {clipCategory.label}
@@ -130,18 +139,18 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
         </div>
 
         {videoClipsInit === 'error' ? (
-          <div role="alert" className="text-red-800">
-            No se pudieron cargar los clips.
-          </div>
+          <WidgetError message="No se pudieron cargar los clips." onRetry={() => void initLoad()} />
         ) : filteredClips.length === 0 ? (
           <div className="text-gray-800">
-            {videoClipsInit === 'loading' ? 'Cargando clips...' : 'No hay clips para este jugador todavía.'}
+            {videoClipsInit === 'loading'
+              ? 'Cargando clips...'
+              : `No hay clips para este ${matchId ? 'partido' : 'jugador'} todavía.`}
           </div>
         ) : (
           <VideoClipCarousel
             clips={filteredClips}
             matchById={matchById}
-            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, isAdmin)}
+            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, canManage)}
             onOpen={setPlaybackClipId}
             onDelete={handleDelete}
           />
@@ -157,8 +166,9 @@ export default function VideoClipsSection({ player, matches, canUpload }: Props)
         title="Subir clip"
       >
         <VideoClipUploadForm
-          matches={matches}
-          currentPlayerId={player.id}
+          matches={uploadMatches}
+          currentPlayerId={playerId}
+          lockedMatchId={matchId}
           onSubmit={handleUpload}
           onCancel={() => {
             setUploadOpen(false)

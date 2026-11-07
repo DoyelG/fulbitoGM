@@ -61,7 +61,7 @@ export default function DataStep({
         <TeamCard
           title="Equipo A"
           team={teamA}
-          color="brand"
+          color="primary"
           winProbability={probA}
           goalkeeperIds={goalkeeperIds}
           manualIds={manualIds}
@@ -69,7 +69,7 @@ export default function DataStep({
         <TeamCard
           title="Equipo B"
           team={teamB}
-          color="accent"
+          color="secondary"
           winProbability={probB}
           goalkeeperIds={goalkeeperIds}
           manualIds={manualIds}
