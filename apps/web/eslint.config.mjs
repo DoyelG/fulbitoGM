@@ -10,9 +10,14 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
+const scriptFiles = ["**/*.{js,jsx,mjs,cjs,ts,tsx}"];
+
+const withScriptFiles = (configs) => configs.map((config) => ({ ...config, files: scriptFiles }));
+
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  ...fulbito.configs.recommended,
+  ...withScriptFiles(compat.extends("next/core-web-vitals", "next/typescript")),
+  ...withScriptFiles(fulbito.configs.recommended),
+  ...fulbito.configs.css,
   {
     files: ["scripts/**/*.mjs"],
     rules: {

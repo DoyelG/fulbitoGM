@@ -14,15 +14,13 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Brand */
-  --color-primary: #4c1d95; /* purple */
+  --color-primary: #4c1d95;
   --color-primary-glow: #7c3aed;
-  --color-primary-dark: #4c1d95; /* deep purple, for gradients */
-  --color-secondary: #f97316; /* orange */
+  --color-primary-dark: #4c1d95;
+  --color-secondary: #f97316;
   --color-primary-contrast: #ffffff;
   --color-night: #0b0b1a;
 
-  /* Player card */
   --color-card-gold-light: #f6e3a1;
   --color-card-gold: #dcb75e;
   --color-card-gold-dark: #b8913a;
@@ -85,7 +83,6 @@ button {
   initial-value: transparent;
 }
 
-/* Gradients can't be transitioned, so the stops live in registered properties and the transition runs on those. */
 @utility bg-primary-gradient {
   --pg-glow: color-mix(in oklab, var(--color-primary-glow) 45%, transparent);
   --pg-start: color-mix(in oklab, var(--color-primary-dark) 70%, var(--color-night));
