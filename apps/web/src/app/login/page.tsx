@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authErrorMessage } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import Button from '@/components/Button'
 
 export default function LoginPage() {
   const [mode, setMode] = useState<'signin' | 'register'>('signin')
@@ -14,8 +15,8 @@ export default function LoginPage() {
   const router = useRouter()
   const { signIn, register, signInWithGoogle } = useFirebaseAuth()
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     setError(null)
     setLoading(true)
     try {
@@ -55,7 +56,7 @@ export default function LoginPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={event => setEmail(event.target.value)}
               className="w-full border rounded px-3 py-2"
               autoComplete="email"
               required
@@ -66,7 +67,7 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={event => setPassword(event.target.value)}
               className="w-full border rounded px-3 py-2"
               autoComplete="current-password"
               required
@@ -74,13 +75,9 @@ export default function LoginPage() {
             />
           </div>
           {error && <div className="text-orange-700 text-sm">{error}</div>}
-          <button
-            type="submit"
-            className="px-4 py-2 text-sm font-medium w-full border border-primary-dark bg-primary-gradient text-white rounded-xl hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30 disabled:opacity-70"
-            disabled={loading}
-          >
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Procesando…' : mode === 'signin' ? 'Entrar' : 'Crear cuenta'}
-          </button>
+          </Button>
         </form>
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
@@ -90,21 +87,22 @@ export default function LoginPage() {
             <span className="bg-white px-2">o</span>
           </div>
         </div>
-        <button
+        <Button
+          variant="secondary"
           onClick={async () => {
             setError(null)
             setLoading(true)
             try {
               await signInWithGoogle()
               router.push('/')
-            } catch (e) {
-              setError(authErrorMessage(e))
+            } catch (signInError) {
+              setError(authErrorMessage(signInError))
             } finally {
               setLoading(false)
             }
           }}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded py-2 text-sm hover:bg-gray-50 disabled:opacity-70"
+          className="w-full"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -125,7 +123,7 @@ export default function LoginPage() {
             />
           </svg>
           Continuar con Google
-        </button>
+        </Button>
       </div>
     </div>
   )

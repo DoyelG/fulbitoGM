@@ -19,6 +19,7 @@ import MatchInfoPanel from '@/components/matches/MatchInfoPanel'
 import MatchHighlightsPanel from '@/components/matches/MatchHighlightsPanel'
 import TournamentCommentsBox from '@/components/matches/TournamentCommentsBox'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
+import Modal from '@/components/Modal'
 import { RecordModal } from '../historyClient'
 
 const ACTION_CLASS =
@@ -149,14 +150,14 @@ export default function MatchDetailPage() {
         </div>
       </div>
 
-      {editing && (
+      <Modal open={editing} onClose={() => setEditing(false)} title="Editar Resultado del Partido" size="large">
         <RecordModal
           mode="edit"
           initial={match}
           onClose={() => setEditing(false)}
           onSave={(input) => updateMatch(match.id, input)}
         />
-      )}
+      </Modal>
     </div>
   )
 }

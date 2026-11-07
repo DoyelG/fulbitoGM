@@ -5,6 +5,7 @@ import PlayerForm from '../../PlayerForm'
 import { useEffect } from 'react'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import PageTitle from '@/components/PageTitle'
 
 export default function EditPlayerPage() {
   const { loading } = useFirebaseAuth()
@@ -15,8 +16,8 @@ export default function EditPlayerPage() {
   }, [loading, canManage, router])
   const { id } = useParams()
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Editar jugador</h1>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageTitle>Editar jugador</PageTitle>
       <PlayerForm mode="edit" playerId={id as string} />
     </div>
   )

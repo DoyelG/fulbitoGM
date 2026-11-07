@@ -1,7 +1,6 @@
 export * from './init'
 export * from './players'
 export * from './matches'
-export * from './stats'
 export * from './storage'
 export * from './auth'
 export * from './addresses'

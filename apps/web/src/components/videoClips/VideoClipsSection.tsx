@@ -8,6 +8,7 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Modal from '@/components/Modal'
+import Button from '@/components/Button'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
 import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
 import WidgetError from '@/components/home/WidgetError'
@@ -38,18 +39,21 @@ export default function VideoClipsSection({ playerId, matchId, matches, canUploa
 
   const scopedClips = useMemo(
     () =>
-      videoClips.filter((c) =>
-        matchId ? c.matchId === matchId : playerId !== undefined && c.playerIds.includes(playerId),
+      videoClips.filter((clip) =>
+        matchId ? clip.matchId === matchId : playerId !== undefined && clip.playerIds.includes(playerId),
       ),
     [videoClips, matchId, playerId],
   )
   const filteredClips = useMemo(
-    () => (filter === 'all' ? scopedClips : scopedClips.filter((c) => c.category === filter)),
+    () => (filter === 'all' ? scopedClips : scopedClips.filter((clip) => clip.category === filter)),
     [scopedClips, filter],
   )
-  const matchById = useMemo(() => new Map(matches.map((m) => [m.id, m])), [matches])
-  const uploadMatches = useMemo(() => (matchId ? matches.filter((m) => m.id === matchId) : matches), [matches, matchId])
-  const playbackClip = playbackClipId ? (scopedClips.find((c) => c.id === playbackClipId) ?? null) : null
+  const matchById = useMemo(() => new Map(matches.map((match) => [match.id, match])), [matches])
+  const uploadMatches = useMemo(
+    () => (matchId ? matches.filter((match) => match.id === matchId) : matches),
+    [matches, matchId],
+  )
+  const playbackClip = playbackClipId ? (scopedClips.find((clip) => clip.id === playbackClipId) ?? null) : null
 
   const handleUpload = async (data: NewVideoClipData, file: File) => {
     setUploadError(null)
@@ -77,16 +81,16 @@ export default function VideoClipsSection({ playerId, matchId, matches, canUploa
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold">Clips</h2>
         {canUpload && (
-          <button
+          <Button
             type="button"
+            size="sm"
             onClick={() => {
               setUploadError(null)
               setUploadOpen(true)
             }}
-            className="px-4 py-2 text-sm font-medium rounded-xl border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
           >
             + Subir clip
-          </button>
+          </Button>
         )}
       </div>
       <div className="p-4" aria-busy={videoClipsInit === 'loading'}>
@@ -118,18 +122,18 @@ export default function VideoClipsSection({ playerId, matchId, matches, canUploa
           >
             Todos
           </button>
-          {VIDEO_CLIP_CATEGORIES.map((c) => (
+          {VIDEO_CLIP_CATEGORIES.map((clipCategory) => (
             <button
-              key={c.value}
+              key={clipCategory.value}
               type="button"
               role="tab"
-              aria-selected={filter === c.value}
-              onClick={() => setFilter(c.value)}
+              aria-selected={filter === clipCategory.value}
+              onClick={() => setFilter(clipCategory.value)}
               className={`px-3 py-1 rounded text-sm border ${
-                filter === c.value ? 'bg-primary text-white border-primary' : 'hover:bg-gray-50'
+                filter === clipCategory.value ? 'bg-primary text-white border-primary' : 'hover:bg-gray-50'
               }`}
             >
-              {c.icon} {c.label}
+              {clipCategory.icon} {clipCategory.label}
             </button>
           ))}
         </div>

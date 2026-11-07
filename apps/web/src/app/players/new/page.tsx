@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import PlayerForm from '../PlayerForm'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import PageTitle from '@/components/PageTitle'
 
 export default function NewPlayerPage() {
   const { loading } = useFirebaseAuth()
@@ -16,13 +17,11 @@ export default function NewPlayerPage() {
   }, [loading, canManage, router])
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Agregar jugador</h1>
-        <p className="mt-1 text-sm text-gray-700">
-          Cargá sus datos y, si querés, vinculalo con una persona del torneo.
-        </p>
-      </header>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageTitle spacing={0}>Agregar jugador</PageTitle>
+      <p className="mt-1 mb-6 text-sm text-gray-700">
+        Cargá sus datos y, si querés, vinculalo con una persona del torneo.
+      </p>
       <PlayerForm mode="create" />
     </div>
   )

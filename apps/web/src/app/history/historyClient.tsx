@@ -5,11 +5,13 @@ import Link from 'next/link'
 
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
-import type { Match, MatchInput, MatchLocation } from '@fulbito/types'
+import type { Match, MatchInput, MatchLocation, MatchType } from '@fulbito/types'
 import { useMatchStore } from '@/store/useMatchStore'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Button from '@/components/Button'
+import ConfirmModal from '@/components/ConfirmModal'
 import Modal from '@/components/Modal'
+import Spinner from '@/components/Spinner'
 import VideoClipUploadForm from '@/components/videoClips/VideoClipUploadForm'
 import VideoClipCarousel from '@/components/videoClips/VideoClipCarousel'
 import {
@@ -25,6 +27,8 @@ import {
   formatMatchHour,
   formatMatchDate,
   canDeleteVideoClip,
+  MATCH_TYPES,
+  MAX_GOALKEEPERS,
 } from '@fulbito/utils'
 import HourField from '@/components/HourField'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -33,7 +37,8 @@ import { Pagination } from '../shared/Pagination'
 import { InfiniteScrollSentinel } from '../shared/InfiniteScrollSentinel'
 import { usePagination } from '../shared/use-pagination'
 import { MatchDescription } from './matchDescription'
-import { Backdrop } from '@/components/Backdrop'
+import FriendlySwitch from '@/components/FriendlySwitch'
+import { fieldClassName, selectClassName, textareaClassName, compactFieldClassName } from '@/lib/field-styles'
 import AddressPicker from '@/components/AddressPicker'
 import MatchLocationLink from '@/components/MatchLocationLink'
 import SearchInput from '@/components/SearchInput'
@@ -44,9 +49,6 @@ import CopyMatchImageButton from '@/components/tournaments/detail/CopyMatchImage
 import { buildMatchImageData } from '@/lib/match-image-data'
 import { useTournamentStore } from '@/store/useTournamentStore'
 
-type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
-const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
-const MAX_GOALKEEPERS = 2
 
 type RecordingPlayer = { id: string; name: string }
 
@@ -223,27 +225,21 @@ export default function HistoryClient() {
             />
           </label>
           {(fromDate || toDate) && (
-            <button
-              type="button"
-              className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm hover:bg-gray-50"
+            <Button
+              variant="secondary"
               onClick={() => {
                 setFromDate('')
                 setToDate('')
               }}
             >
               Limpiar filtros
-            </button>
+            </Button>
           )}
         </div>
       </div>
       <div className="space-y-4 mb-10">
         {isLoadingMatches ? (
-          <div className="flex items-center gap-2 text-gray-600" role="status" aria-live="polite" aria-busy="true">
-            <span className="animate-spin text-lg leading-none" aria-hidden="true">
-              ⚽
-            </span>
-            Buscando partidos…
-          </div>
+          <Spinner label="Buscando partidos…" />
         ) : filteredMatches.length === 0 ? (
           <div className="text-black">No se encontraron partidos que coincidan con la búsqueda.</div>
         ) : (
@@ -464,48 +460,42 @@ export default function HistoryClient() {
         />
       )}
 
-      <Modal title="Confirmar eliminación" open={showModal} onClose={() => setShowModal(false)}>
-        <div className="p-2 text-center">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 bg-orange-100">
-            <FiTrash2 className="text-orange-700" size={20} />
-          </div>
-          <p className="text-gray-600">
-            ¿Estás seguro de que querés eliminar al partido:{' '}
-            <span className="font-medium text-gray-900">{selectedMatch?.name}</span>?
-          </p>
-          <div className="flex justify-center gap-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="flex-1 px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmDelete}
-              className="flex-1 px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800 transition"
-            >
-              Eliminar
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <ConfirmModal
+        title="Confirmar eliminación"
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmDelete}
+        icon={FiTrash2}
+        tone="danger"
+        confirmLabel="Eliminar"
+      >
+        <p>
+          ¿Estás seguro de que querés eliminar al partido:{' '}
+          <span className="font-medium text-gray-900">{selectedMatch?.name}</span>?
+        </p>
+      </ConfirmModal>
 
-      {open && (
-        <RecordModal
-          mode={open.mode}
-          initial={open.mode === 'edit' ? open.match : undefined}
-          onClose={() => setOpen(false)}
-          onSave={async (match) => {
-            if (open.mode === 'edit' && open.match) {
-              await updateMatch(open.match.id, match)
-            } else {
-              await addMatch(match)
-            }
-          }}
-        />
-      )}
+      <Modal
+        open={open !== false}
+        onClose={() => setOpen(false)}
+        title={open !== false && open.mode === 'edit' ? 'Editar Resultado del Partido' : 'Registrar Resultado del Partido'}
+        size="large"
+      >
+        {open !== false && (
+          <RecordModal
+            mode={open.mode}
+            initial={open.mode === 'edit' ? open.match : undefined}
+            onClose={() => setOpen(false)}
+            onSave={async (match) => {
+              if (open.mode === 'edit' && open.match) {
+                await updateMatch(open.match.id, match)
+              } else {
+                await addMatch(match)
+              }
+            }}
+          />
+        )}
+      </Modal>
 
       <Modal
         open={videoUploadMatch !== null}
@@ -812,15 +802,7 @@ export function RecordModal({
   }
 
   return (
-    <Backdrop onClose={onClose} title="Registrar Resultado del Partido">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
-        <div className="flex justify-between items-center border-b pb-2 mb-4">
-          <h2 className="text-xl font-semibold">Registrar Resultado del Partido</h2>
-          <button className="text-black hover:text-black" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
+    <div>
         <div className="grid sm:grid-cols-[auto_auto_auto_1fr_auto] gap-3 mb-3">
           <HourField id="match-hour" value={matchHour} onChange={setMatchHour} />
           <div>
@@ -832,7 +814,7 @@ export function RecordModal({
               type="date"
               value={matchDate}
               onChange={(event) => setMatchDate(event.target.value)}
-              className="h-10 border rounded px-3 w-full"
+              className={fieldClassName}
             />
           </div>
           <div>
@@ -845,7 +827,7 @@ export function RecordModal({
                   setTeamB([])
                   setMatchType(event.target.value as MatchType)
                 }}
-                className="h-10 w-full appearance-none rounded border pl-3 pr-8"
+                className={selectClassName}
               >
                 {MATCH_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -860,71 +842,53 @@ export function RecordModal({
             <label className="block text-sm font-medium mb-1">Ubicación</label>
             <AddressPicker value={matchLocation} onChange={setMatchLocation} />
           </div>
-          <div>
-            <label htmlFor="fiendly-match" className="block text-sm font-medium mb-1">
-              Tipo de partido
-            </label>
-            <button
-              id="fiendly-match"
-              type="button"
-              role="switch"
-              aria-checked={isFriendly}
-              aria-label="Partido amistoso"
-              onClick={() => setIsFriendly((current) => !current)}
-              className={`relative inline-flex h-10 w-28 shrink-0 items-center overflow-hidden rounded-full p-1 transition-colors duration-300 ease-in-out focus:outline-none ${
-                isFriendly
-                  ? 'bg-gradient-to-r from-green-400 to-green-600'
-                  : 'bg-gradient-to-r from-primary to-secondary'
-              }`}
-            >
-              <span
-                className={`absolute left-9 whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                  isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                }`}
-              >
-                Competitivo
-              </span>
-
-              <span
-                className={`absolute -left-[60px] whitespace-nowrap text-xs font-semibold text-white transition-transform duration-[600ms] ease-in-out ${
-                  isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                }`}
-              >
-                Amistoso
-              </span>
-
-              <span
-                className={`relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-[600ms] ease-in-out ${
-                  isFriendly ? 'translate-x-[76px]' : 'translate-x-0'
-                }`}
-              >
-                <span className="text-md">{isFriendly ? '🤝' : '⚔️'}</span>
-              </span>
-            </button>
-          </div>
+          <FriendlySwitch
+            isFriendly={isFriendly}
+            onToggle={() => setIsFriendly((current) => !current)}
+            labelClassName="block text-sm font-medium mb-1"
+          />
           <div className="sm:col-span-5">
             <label className="block text-lg font-medium mb-1">Nombre del Partido</label>
             <input
               type="text"
               value={matchName}
               onChange={(event) => setMatchName(event.target.value)}
-              className="border rounded px-3 py-2 w-full"
+              className={fieldClassName}
             />
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-3 mb-4">
-          <DropColumn title="Jugadores Disponibles" onDrop={(event) => onDrop(event, 'unassigned')}>
+          <DropColumn
+            title="Jugadores Disponibles"
+            target="unassigned"
+            playersCount={unassigned.length}
+            onDrop={(event) => onDrop(event, 'unassigned')}
+          >
             {unassigned.map((player) => (
               <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
-          <DropColumn title={`Equipo A (${teamA.length}/${playersPerTeam})`} onDrop={(event) => onDrop(event, 'a')}>
+          <DropColumn
+            title="Equipo A"
+            target="a"
+            playersCount={teamA.length}
+            limit={playersPerTeam}
+            listClassName="max-h-96 overflow-y-auto"
+            onDrop={(event) => onDrop(event, 'a')}
+          >
             {teamA.map((player) => (
               <Draggable key={player.id} player={player} />
             ))}
           </DropColumn>
-          <DropColumn title={`Equipo B (${teamB.length}/${playersPerTeam})`} onDrop={(event) => onDrop(event, 'b')}>
+          <DropColumn
+            title="Equipo B"
+            target="b"
+            playersCount={teamB.length}
+            limit={playersPerTeam}
+            listClassName="max-h-96 overflow-y-auto"
+            onDrop={(event) => onDrop(event, 'b')}
+          >
             {teamB.map((player) => (
               <Draggable key={player.id} player={player} />
             ))}
@@ -940,7 +904,7 @@ export function RecordModal({
             value={matchDescription}
             onChange={(event) => setMatchDescription(event.target.value)}
             placeholder="Escribí la crónica del partido"
-            className="border min-w-full rounded px-3 py-2 w-full"
+            className={textareaClassName}
           />
         </div>
 
@@ -953,11 +917,11 @@ export function RecordModal({
               placeholder="Goles del Equipo A"
               value={teamAScore}
               onChange={(event) => setTeamAScore(event.target.value === '' ? '' : Number(event.target.value))}
-              className="w-24 text-center border rounded px-2 py-1 mb-2"
+              className={`${compactFieldClassName} w-24 text-center mb-2`}
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {teamA.map((player) => (
-                <div key={player.id} className="flex items-center justify-between bg-white border rounded px-3 py-2">
+                <div key={player.id} className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2">
                   <span className="font-medium">{player.name}</span>
                   <div className="flex items-center gap-2">
                     <input
@@ -971,7 +935,7 @@ export function RecordModal({
                           [player.id]: Number(event.target.value || 0),
                         }))
                       }
-                      className="w-16 text-center border rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                     <input
                       type="number"
@@ -985,7 +949,7 @@ export function RecordModal({
                           [player.id]: Number(event.target.value || 5),
                         }))
                       }
-                      className="w-16 text-center border rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                   </div>
                 </div>
@@ -1010,11 +974,11 @@ export function RecordModal({
               placeholder="Goles del Equipo B"
               value={teamBScore}
               onChange={(event) => setTeamBScore(event.target.value === '' ? '' : Number(event.target.value))}
-              className="w-24 text-center border rounded px-2 py-1 mb-2"
+              className={`${compactFieldClassName} w-24 text-center mb-2`}
             />
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {teamB.map((player) => (
-                <div key={player.id} className="flex items-center justify-between bg-white border rounded px-3 py-2">
+                <div key={player.id} className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2">
                   <span className="font-medium">{player.name}</span>
                   <div className="flex items-center gap-2">
                     <input
@@ -1028,7 +992,7 @@ export function RecordModal({
                           [player.id]: Number(event.target.value || 0),
                         }))
                       }
-                      className="w-16 text-center border rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                     <input
                       type="number"
@@ -1042,7 +1006,7 @@ export function RecordModal({
                           [player.id]: Number(event.target.value || 5),
                         }))
                       }
-                      className="w-16 text-center border rounded px-2 py-1"
+                      className={`${compactFieldClassName} w-16 text-center`}
                     />
                   </div>
                 </div>
@@ -1074,7 +1038,7 @@ export function RecordModal({
             <div className="flex-1">
               <div className="relative">
                 <select
-                  className="appearance-none border rounded pl-3 pr-8 py-2 w-full"
+                  className={selectClassName}
                   value={shirtsResponsibleId ?? ''}
                   onChange={(event) => setShirtsResponsibleId(event.target.value || null)}
                 >
@@ -1118,7 +1082,7 @@ export function RecordModal({
             <div className="flex-1">
               <div className="relative">
                 <select
-                  className="appearance-none border rounded pl-3 pr-8 py-2 w-full bg-white"
+                  className={selectClassName}
                   value={mvpId ?? ''}
                   onChange={(event) => setMvpId(event.target.value || null)}
                 >
@@ -1195,33 +1159,15 @@ export function RecordModal({
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            className="border px-4 py-2 rounded hover:bg-gray-50 disabled:opacity-50"
-            onClick={onClose}
-            disabled={isLoading}
-          >
+          <Button variant="secondary" onClick={onClose} disabled={isLoading}>
             Cancelar
-          </button>
+          </Button>
           {isDraft && (
-            <button
-              className={`px-4 py-2 text-sm font-medium rounded text-white ${
-                canUpdateDraft ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-400 cursor-not-allowed'
-              }`}
-              disabled={!canUpdateDraft || isLoading}
-              onClick={() => handleSave('draft')}
-            >
+            <Button variant="secondary" disabled={!canUpdateDraft || isLoading} onClick={() => handleSave('draft')}>
               {isLoading ? 'Actualizando...' : 'Actualizar borrador'}
-            </button>
+            </Button>
           )}
-          <button
-            className={`px-4 py-2 text-sm font-medium rounded text-white ${
-              canConfirm
-                ? 'border border-primary-dark bg-primary-gradient hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30'
-                : 'bg-gray-400 cursor-not-allowed'
-            }`}
-            disabled={!canConfirm || isLoading}
-            onClick={() => handleSave('final')}
-          >
+          <Button disabled={!canConfirm || isLoading} onClick={() => handleSave('final')}>
             {isLoading
               ? isDraft
                 ? 'Confirmando...'
@@ -1233,9 +1179,8 @@ export function RecordModal({
                 : mode === 'edit'
                   ? 'Actualizar Partido'
                   : 'Guardar Partido'}
-          </button>
+          </Button>
         </div>
-      </div>
-    </Backdrop>
+    </div>
   )
 }

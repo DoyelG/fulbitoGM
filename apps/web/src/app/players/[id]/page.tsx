@@ -1,5 +1,7 @@
 "use client";
 
+import { buttonClasses } from "@/components/Button";
+import PageTitle from "@/components/PageTitle";
 import { useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -59,13 +61,13 @@ export default function PlayerDetailPage() {
       const inB = match.teamB.find((playerRow) => playerRow.id === id);
       if (!inA && !inB) continue;
 
-      const me = inA || inB;
+      const playerInMatch = inA || inB;
       const team = inA ? ("A" as const) : ("B" as const);
       const teamAScore = match.teamAScore,
         teamBScore = match.teamBScore;
       res.matches++;
-      res.goals += me!.goals;
-      res.totalPerformance += me!.performance;
+      res.goals += playerInMatch!.goals;
+      res.totalPerformance += playerInMatch!.performance;
       if (team === "A") {
         if (teamAScore > teamBScore) res.wins++;
         else if (teamAScore < teamBScore) res.losses++;
@@ -79,8 +81,8 @@ export default function PlayerDetailPage() {
         date: match.date,
         type: match.type,
         team,
-        goals: me!.goals,
-        performance: me!.performance,
+        goals: playerInMatch!.goals,
+        performance: playerInMatch!.performance,
         score: `${teamAScore} - ${teamBScore}`,
         result: (team === "A"
           ? teamAScore > teamBScore
@@ -118,7 +120,7 @@ export default function PlayerDetailPage() {
 
   if (!player) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="mb-4">Jugador no encontrado.</p>
           <Link href="/players" className="text-primary hover:underline">
@@ -162,7 +164,7 @@ export default function PlayerDetailPage() {
       </Link>
       <div className="mb-6 flex gap-5 items-center justify-between">
         <div className="space-y-2 grow">
-          <h1 className="text-3xl font-bold">{player.name}</h1>
+          <PageTitle spacing={0}>{player.name}</PageTitle>
           <div className="flex flex-col gap-3 text-gray-800">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
@@ -180,10 +182,7 @@ export default function PlayerDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           {canManage && (
-            <Link
-              href={`/players/edit/${player.id}`}
-              className="px-4 py-2 text-sm font-medium rounded-xl border border-primary-dark bg-primary-gradient text-white hover:bg-primary-gradient-dark hover:border-primary hover:ring-2 hover:ring-primary/30"
-            >
+            <Link href={`/players/edit/${player.id}`} className={buttonClasses()}>
               Editar jugador
             </Link>
           )}
