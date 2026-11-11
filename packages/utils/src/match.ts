@@ -8,6 +8,37 @@ export function onlyFinalMatches<T extends Pick<Match, 'status'>>(matches: T[]):
   return matches.filter((m) => m.status !== 'draft')
 }
 
+export type MatchKindFilter = 'all' | 'competitive' | 'friendly'
+
+export type MatchFilters = {
+  types: MatchType[]
+  kind: MatchKindFilter
+  year: number | 'all'
+}
+
+export const DEFAULT_MATCH_FILTERS: MatchFilters = { types: [], kind: 'all', year: 'all' }
+
+function matchYear(match: Pick<Match, 'date'>): number {
+  return Number(match.date.slice(0, 4))
+}
+
+export function filterMatches<T extends Pick<Match, 'type' | 'isFriendly' | 'date'>>(
+  matches: T[],
+  filters: MatchFilters,
+): T[] {
+  return matches.filter((match) => {
+    if (filters.types.length > 0 && !filters.types.includes(match.type as MatchType)) return false
+    if (filters.kind === 'friendly' && !match.isFriendly) return false
+    if (filters.kind === 'competitive' && match.isFriendly) return false
+    if (filters.year !== 'all' && matchYear(match) !== filters.year) return false
+    return true
+  })
+}
+
+export function getMatchYears(matches: Pick<Match, 'date'>[]): number[] {
+  return [...new Set(matches.map(matchYear))].sort((yearA, yearB) => yearB - yearA)
+}
+
 export const MATCH_HOUR_OPTIONS: number[] = Array.from({ length: 24 }, (_, i) => i)
 
 export type MatchDateParts = { date: string; hour: number | null }
