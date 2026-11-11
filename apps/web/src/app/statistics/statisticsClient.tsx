@@ -2,13 +2,23 @@
 
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
-import { computePlayerStatRows, normalizeForSearch } from '@fulbito/utils'
+import {
+  DEFAULT_MATCH_FILTERS,
+  computePlayerStatRows,
+  filterMatches,
+  getMatchYears,
+  normalizeForSearch,
+  onlyFinalMatches,
+  type MatchFilters,
+} from '@fulbito/utils'
 import type { Match, Player } from '@fulbito/types'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import SearchInput from '@/components/SearchInput'
 import StatisticsTable, { type StatRow, type StatSortKey, type SortDir } from './StatisticsTable'
+import { Card } from '@/components/Card'
 import PageTitle from '@/components/PageTitle'
-import PlayerStatusSelect, { type PlayerStatusFilter } from './PlayerStatusSelect'
+import StatisticsSkeleton from './StatisticsSkeleton'
+import StatisticsToolbar, { type PlayerStatusFilter } from './StatisticsToolbar'
 
 export default function StatisticsClient({
   players: propsPlayers,
@@ -21,6 +31,7 @@ export default function StatisticsClient({
   const { hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
 
   const initialized = useRef(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     if (initialized.current) return
@@ -28,11 +39,19 @@ export default function StatisticsClient({
 
     hydrateMatches(propsMatches)
     hydratePlayers(propsPlayers)
-    resetMatches()
-    resetPlayers()
+    Promise.all([resetMatches(), resetPlayers()]).finally(() => setIsLoading(false))
   }, [hydrateMatches, propsMatches, hydratePlayers, propsPlayers, resetMatches, resetPlayers])
 
-  const stats = useMemo<StatRow[]>(() => computePlayerStatRows(storePlayers, matches), [storePlayers, matches])
+  const [filters, setFilters] = useState<MatchFilters>(DEFAULT_MATCH_FILTERS)
+
+  const availableYears = useMemo(() => getMatchYears(onlyFinalMatches(matches)), [matches])
+
+  const filteredMatches = useMemo(() => filterMatches(onlyFinalMatches(matches), filters), [matches, filters])
+
+  const stats = useMemo<StatRow[]>(
+    () => computePlayerStatRows(storePlayers, filteredMatches),
+    [storePlayers, filteredMatches],
+  )
 
   const [sortKey, setSortKey] = useState<StatSortKey>('goals')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -83,7 +102,7 @@ export default function StatisticsClient({
 
   const inactiveStats = useMemo(() => sorted.filter((stat) => inactiveIds.has(stat.id)), [sorted, inactiveIds])
 
-  const [playerStatusFilter, setPlayerStatusFilter] = useState<PlayerStatusFilter>('all')
+  const [playerStatusFilter, setPlayerStatusFilter] = useState<PlayerStatusFilter>('active')
 
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -95,9 +114,20 @@ export default function StatisticsClient({
     ? statusFiltered.filter((stat) => normalizeForSearch(stat.name).includes(normalizedQuery))
     : statusFiltered
 
+  const hasMatchFilters = filters.types.length > 0 || filters.kind !== 'all' || filters.year !== 'all'
+  const hasActiveFilters = hasMatchFilters || playerStatusFilter !== 'active' || normalizedQuery !== ''
+
+  const clearFilters = () => {
+    setFilters(DEFAULT_MATCH_FILTERS)
+    setPlayerStatusFilter('active')
+    setSearchQuery('')
+  }
+
   const emptyMessage =
     stats.length === 0
-      ? 'No hay estadísticas disponibles.'
+      ? hasMatchFilters
+        ? 'No hay partidos que coincidan con los filtros.'
+        : 'No hay estadísticas disponibles.'
       : normalizedQuery && statusFiltered.length > 0
         ? 'No se encontraron jugadores que coincidan con la búsqueda.'
         : playerStatusFilter === 'inactive'
@@ -106,12 +136,7 @@ export default function StatisticsClient({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <PageTitle
-        spacing={8}
-        actions={<PlayerStatusSelect value={playerStatusFilter} onChange={setPlayerStatusFilter} />}
-      >
-        Estadísticas
-      </PageTitle>
+      <PageTitle spacing={8}>Estadísticas</PageTitle>
 
       <div className="mb-6">
         <SearchInput
@@ -123,15 +148,34 @@ export default function StatisticsClient({
         />
       </div>
 
-      <StatisticsTable
-        stats={filteredPlayers}
-        inactiveIds={inactiveIds}
-        photoUrlById={photoUrlById}
-        sortKey={sortKey}
-        sortDir={sortDir}
-        onToggleSort={toggleSort}
-        emptyMessage={emptyMessage}
-      />
+      <Card padding={0}>
+        {isLoading ? (
+          <StatisticsSkeleton />
+        ) : (
+          <>
+            <StatisticsToolbar
+              filters={filters}
+              onFiltersChange={setFilters}
+              playerStatus={playerStatusFilter}
+              onPlayerStatusChange={setPlayerStatusFilter}
+              years={availableYears}
+              matchCount={filteredMatches.length}
+              playerCount={filteredPlayers.length}
+              onClear={clearFilters}
+            />
+            <StatisticsTable
+              stats={filteredPlayers}
+              inactiveIds={inactiveIds}
+              photoUrlById={photoUrlById}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onToggleSort={toggleSort}
+              emptyMessage={emptyMessage}
+              onClearFilters={hasActiveFilters ? clearFilters : undefined}
+            />
+          </>
+        )}
+      </Card>
     </div>
   )
 }
