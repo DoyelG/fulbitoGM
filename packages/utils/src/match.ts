@@ -1,6 +1,6 @@
 import type { Match, MatchType } from '@fulbito/types'
 
-export const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
+export { MATCH_TYPES } from '@fulbito/types'
 
 export const MAX_GOALKEEPERS = 2
 

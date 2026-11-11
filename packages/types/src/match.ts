@@ -54,4 +54,6 @@ export function isFinal(m: Pick<Match, 'status'>): boolean {
   return m.status !== 'draft'
 }
 
-export type MatchType = '5v5' | '6v6' | '7v7' | '8v8' | '9v9' | '10v10'
+export const MATCH_TYPES = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10', '11v11'] as const
+
+export type MatchType = (typeof MATCH_TYPES)[number]
