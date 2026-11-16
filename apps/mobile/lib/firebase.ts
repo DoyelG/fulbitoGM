@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { initFirebase } from '@fulbito/firebase'
-import { getApps } from 'firebase/app'
+import { getApps, initializeApp } from 'firebase/app'
 import { getReactNativePersistence, initializeAuth } from 'firebase/auth'
 import type { FirebaseOptions } from 'firebase/app'
+import { Platform } from 'react-native'
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -13,11 +14,15 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 }
 
-const alreadyInitialized = getApps().length > 0
-const app = initFirebase(firebaseConfig)
+const emulatorHost =
+  process.env.EXPO_PUBLIC_FIREBASE_EMULATOR_HOST || (Platform.OS === 'android' ? '10.0.2.2' : '127.0.0.1')
 
-if (app && !alreadyInitialized) {
-  initializeAuth(app, {
+if (firebaseConfig.apiKey && getApps().length === 0) {
+  initializeAuth(initializeApp(firebaseConfig), {
     persistence: getReactNativePersistence(AsyncStorage),
   })
 }
+
+initFirebase(firebaseConfig, {
+  emulatorHost: process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true' ? emulatorHost : undefined,
+})

@@ -10,7 +10,7 @@ import Svg, {
 } from 'react-native-svg'
 
 import { ThemedText } from '@/components/themed-text'
-import { CardColors, Fonts } from '@/constants/theme'
+import { CardColors, ContrastColors, Fonts } from '@/constants/theme'
 
 const INK = CardColors.ink
 const FILL = CardColors.fill
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   avatarEmpty: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: ContrastColors.onColorFillBright,
     justifyContent: 'flex-end',
   },
   avatarImg: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     left: 6,
     right: 6,
     paddingVertical: 8,
-    backgroundColor: 'rgba(255,255,255,0.32)',
+    backgroundColor: CardColors.nameBandBg,
     alignItems: 'center',
   },
   name: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     marginBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(31,36,48,0.12)',
+    borderBottomColor: CardColors.statDivider,
   },
   statValue: {
     fontFamily: Fonts.black,
@@ -241,6 +241,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     fontSize: 13,
     letterSpacing: 0.5,
-    color: '#6f6a5c',
+    color: CardColors.statLabel,
   },
 })

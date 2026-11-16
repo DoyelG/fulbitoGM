@@ -1,7 +1,9 @@
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet } from 'react-native'
 
+import { PrimaryGradient } from '@/components/primary-gradient'
 import { ThemedText } from '@/components/themed-text'
+import { PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
@@ -17,7 +19,8 @@ const HIT_SLOP = { top: 8, bottom: 8, left: 2, right: 2 }
 
 export function SortChip({ label, active, dir, onPress, activeColor, accessibilityLabel }: Props) {
   const { colors } = useAppTheme()
-  const tint = activeColor ?? colors.brand
+  const isPrimaryGradient = active && !activeColor
+  const tint = activeColor ?? PrimaryColors.border
   const arrow = active ? (dir === 'asc' ? ' ▲' : ' ▼') : ''
 
   return (
@@ -34,11 +37,12 @@ export function SortChip({ label, active, dir, onPress, activeColor, accessibili
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: active ? tint : colors.chipBg,
+          backgroundColor: isPrimaryGradient ? undefined : active ? tint : colors.chipBg,
           borderColor: active ? tint : colors.chipBorder,
         },
         pressed && styles.pressed,
       ]}>
+      {isPrimaryGradient && <PrimaryGradient />}
       <ThemedText style={[styles.label, { color: active ? colors.onAccent : colors.muted }]}>
         {label}
         {arrow}
@@ -56,6 +60,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   label: {
     fontSize: 14,

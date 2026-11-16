@@ -1,146 +1,149 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
-import { FiCamera, FiCheck, FiUserCheck } from 'react-icons/fi'
+import Link from 'next/link'
+import { FiCamera, FiChevronRight } from 'react-icons/fi'
 import { uploadPlayerPhoto } from '@fulbito/firebase'
-import type { Player } from '@fulbito/types'
-import { positionLabels } from '@fulbito/utils'
-import Button from '@/components/Button'
+import type { Match, Player } from '@fulbito/types'
+import { calculateCurrentStreakForPlayer, getPlayerMatchSummary, positionLabels } from '@fulbito/utils'
 import { usePlayerStore } from '@/store/usePlayerStore'
-import { fieldClassName, selectClassName } from '@/lib/field-styles'
-import Chevron from '../shared/Icons/Chevron'
-import ProfileSection from './ProfileSection'
 
 type PlayerSectionProps = {
   player: Player
+  matches: Match[]
   index: number
 }
 
-export default function PlayerSection({ player, index }: PlayerSectionProps) {
-  const { players, updatePlayer } = usePlayerStore()
-  const [name, setName] = useState(player.name)
-  const [position, setPosition] = useState(player.position)
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
-  const [photoPreview, setPhotoPreview] = useState(player.photoUrl ?? null)
+function PlayerPhotoButton({ player }: { player: Player }) {
+  const updatePlayer = usePlayerStore((state) => state.updatePlayer)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [isSaved, setIsSaved] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const trimmedName = name.trim()
-  const hasChanges = trimmedName !== player.name || position !== player.position || photoFile !== null
-
-  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
+    event.target.value = ''
     if (!file) return
-    setPhotoFile(file)
-    setPhotoPreview(URL.createObjectURL(file))
-  }
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setIsSaved(false)
-    const isNameTaken = players.some(
-      (otherPlayer) =>
-        otherPlayer.id !== player.id && otherPlayer.name.trim().toLowerCase() === trimmedName.toLowerCase(),
-    )
-    if (isNameTaken) {
-      setErrorMessage('Ya existe un jugador con ese nombre')
-      return
-    }
-
-    setIsSaving(true)
+    setPreview(URL.createObjectURL(file))
     setErrorMessage(null)
+    setIsUploading(true)
     try {
-      const photoUrl = photoFile ? await uploadPlayerPhoto(photoFile, player.id) : undefined
-      await updatePlayer(player.id, { name: trimmedName, position, ...(photoUrl ? { photoUrl } : {}) })
-      setPhotoFile(null)
-      setIsSaved(true)
+      const photoUrl = await uploadPlayerPhoto(file, player.tournamentId, player.id)
+      await updatePlayer(player.id, { photoUrl })
     } catch {
-      setErrorMessage('No se pudieron guardar los cambios. Probá de nuevo más tarde.')
+      setPreview(null)
+      setErrorMessage('No se pudo cambiar la foto. Probá de nuevo.')
     } finally {
-      setIsSaving(false)
+      setIsUploading(false)
     }
   }
 
   return (
-    <ProfileSection icon={FiUserCheck} title="Mi jugador" index={index}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="flex shrink-0 flex-col items-center gap-2">
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isUploading}
+        aria-label={`Cambiar foto de ${player.name}`}
+        aria-describedby={errorMessage ? 'player-photo-error' : undefined}
+        aria-busy={isUploading}
+        className="group relative h-20 w-20 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-wait"
+      >
+        <span className="absolute inset-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-primary/30">
+          <Image
+            src={preview ?? player.photoUrl ?? '/silhouette.svg'}
+            alt=""
+            fill
+            unoptimized
+            sizes="80px"
+            className="object-cover transition group-hover:brightness-90"
+          />
+          {isUploading && (
+            <span className="absolute inset-0 grid place-items-center bg-black/40">
+              <span className="animate-spin text-lg leading-none">⚽</span>
+            </span>
+          )}
+        </span>
+        <span
+          aria-hidden
+          className="absolute -bottom-0.5 -right-0.5 grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-primary text-white shadow-sm"
+        >
+          <FiCamera className="h-4 w-4" />
+        </span>
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={(event) => void handlePhotoChange(event)}
+        tabIndex={-1}
+        aria-hidden
+        className="hidden"
+      />
+      <span role="status" className="sr-only">
+        {isUploading ? 'Subiendo foto…' : ''}
+      </span>
+      {errorMessage && (
+        <p id="player-photo-error" role="alert" className="max-w-32 text-center text-xs text-orange-700">
+          {errorMessage}
+        </p>
+      )}
+    </div>
+  )
+}
+
+export default function PlayerSection({ player, matches, index }: PlayerSectionProps) {
+  const summary = useMemo(() => getPlayerMatchSummary(matches, player.id), [matches, player.id])
+  const streak = useMemo(() => calculateCurrentStreakForPlayer(matches, player.id), [matches, player.id])
+  const streakValue = streak.kind && streak.count > 0 ? `${streak.kind === 'win' ? 'W' : 'L'}${streak.count}` : '—'
+  const streakDescription =
+    streak.kind && streak.count > 0
+      ? `${streak.count} ${streak.kind === 'win' ? 'ganados' : 'perdidos'} seguidos`
+      : 'Sin racha'
+  const stats = [
+    { label: 'Partidos', value: summary.matches },
+    { label: 'Goles', value: summary.goals },
+    { label: 'Victorias', value: `${summary.winRate}%` },
+    { label: 'Racha', value: streakValue, description: streakDescription },
+  ]
+
+  return (
+    <div style={{ animationDelay: `${index * 80}ms` }} className="animate-fade-up">
+      <section aria-label="Mi jugador" className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-brand/30">
-            <Image
-              src={photoPreview ?? '/silhouette.svg'}
-              alt="Foto del jugador"
-              fill
-              unoptimized
-              className="object-cover"
-            />
-          </div>
-          <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
-            <FiCamera aria-hidden className="mr-2 self-center" />
-            Cambiar foto
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            aria-label="Subir foto del jugador"
-            className="hidden"
-          />
-        </div>
-        <div>
-          <label htmlFor="player-name" className="block text-sm font-medium text-gray-900">
-            Nombre
-          </label>
-          <input
-            id="player-name"
-            type="text"
-            required
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            aria-describedby={errorMessage ? 'player-error' : undefined}
-            className={`${fieldClassName} mt-1`}
-          />
-        </div>
-        <div>
-          <label htmlFor="player-position" className="block text-sm font-medium text-gray-900">
-            Posición
-          </label>
-          <div className="relative mt-1">
-            <select
-              id="player-position"
-              value={position}
-              onChange={(event) => setPosition(event.target.value)}
-              className={selectClassName}
-            >
-              {Object.entries(positionLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
+          <PlayerPhotoButton player={player} />
+          <Link
+            href={`/players/${player.id}`}
+            className="group -m-2 min-w-0 flex-1 rounded-xl p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <span className="flex items-center justify-between gap-2">
+              <span className="min-w-0">
+                <span className="block truncate text-lg font-bold text-gray-900">{player.name}</span>
+                <span className="block text-sm text-gray-700">
+                  {positionLabels[player.position] ?? player.position}
+                </span>
+              </span>
+              <span className="flex shrink-0 items-center text-sm font-semibold text-primary">
+                <span className="max-sm:sr-only">Ver perfil</span>
+                <FiChevronRight aria-hidden className="h-5 w-5 transition group-hover:translate-x-0.5" />
+              </span>
+            </span>
+            <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {stats.map((stat) => (
+                <div key={stat.label} className="rounded-lg bg-gray-50 px-3 py-2">
+                  <dt className="text-xs font-medium text-gray-700">{stat.label}</dt>
+                  <dd className="text-lg font-bold tabular-nums text-gray-900">
+                    <span aria-hidden={stat.description ? true : undefined}>{stat.value}</span>
+                    {stat.description && <span className="sr-only">{stat.description}</span>}
+                  </dd>
+                </div>
               ))}
-            </select>
-            <Chevron select />
-          </div>
+            </dl>
+          </Link>
         </div>
-        {errorMessage && (
-          <p id="player-error" role="alert" className="text-sm text-red-700">
-            {errorMessage}
-          </p>
-        )}
-        {isSaved && (
-          <p role="status" className="flex items-center gap-1 text-sm text-green-700">
-            <FiCheck aria-hidden />
-            Cambios guardados
-          </p>
-        )}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={!hasChanges || !trimmedName || isSaving}>
-            Guardar cambios
-          </Button>
-        </div>
-      </form>
-    </ProfileSection>
+      </section>
+    </div>
   )
 }

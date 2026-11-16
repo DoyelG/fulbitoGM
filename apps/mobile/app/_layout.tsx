@@ -8,6 +8,8 @@ import * as SplashScreen from 'expo-splash-screen'
 
 import { useColorScheme } from '@/hooks/use-color-scheme'
 import { FirebaseAuthProvider, useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { TournamentProvider } from '@/contexts/TournamentContext'
+import { UnreadCommentsProvider } from '@/contexts/UnreadCommentsContext'
 import AnimatedSplash from '@/components/AnimatedSplash'
 import LinkPlayerModal from '@/components/players/link-player/link-player-modal'
 
@@ -74,17 +76,21 @@ export default function RootLayout() {
 
   return (
     <FirebaseAuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AuthGuard />
-        <LinkPlayerModal />
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-        </Stack>
-        <StatusBar style="auto" />
-        <SplashGate />
-      </ThemeProvider>
+      <TournamentProvider>
+        <UnreadCommentsProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <AuthGuard />
+            <LinkPlayerModal />
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style="auto" />
+            <SplashGate />
+          </ThemeProvider>
+        </UnreadCommentsProvider>
+      </TournamentProvider>
     </FirebaseAuthProvider>
   )
 }

@@ -6,7 +6,7 @@ export function HistoryLoading() {
   const { colors } = useAppTheme()
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={colors.brand} />
+      <ActivityIndicator size="large" color={colors.primaryText} />
       <Text style={[styles.text, { color: colors.muted }]}>Cargando historial…</Text>
     </View>
   )

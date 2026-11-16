@@ -54,7 +54,7 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 
 ### Styling
 - Use Tailwind utility classes — follow existing patterns in the codebase
-- Use CSS custom properties for brand colors: `var(--color-brand)` (#7c3aed), `var(--color-accent)` (#f97316)
+- Use CSS custom properties for brand colors: `var(--color-primary)` (#4c1d95), `var(--color-secondary)` (#f97316); `bg-primary-gradient` for the violet gradient
 - Never hardcode color hex values directly in components — use the design tokens
 
 ### Data fetching

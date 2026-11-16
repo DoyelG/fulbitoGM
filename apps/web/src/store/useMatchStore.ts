@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Match, MatchInput } from '@fulbito/types'
 import { getMatches, createMatch, updateMatch, deleteMatch } from '@fulbito/firebase'
+import { getActiveTournamentId, isStillActive } from './active-tournament'
 
 type MatchStore = {
   matches: Match[]
@@ -11,6 +12,7 @@ type MatchStore = {
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
   resetAndReload: () => Promise<void>
+  reset: () => void
 }
 
 export const useMatchStore = create<MatchStore>()((set, get) => ({
@@ -20,31 +22,34 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     const state = get().matchesInit
     if (state === 'loading' || state === 'loaded') return
     set({ matchesInit: 'loading' })
+    let tournamentId: string | null = null
     try {
-      const data = await getMatches()
-      set({ matches: data, matchesInit: 'loaded' })
+      tournamentId = getActiveTournamentId()
+      await get().resetAndReload()
     } catch {
-      set({ matchesInit: 'error' })
+      if (!tournamentId || isStillActive(tournamentId)) set({ matchesInit: 'error' })
     }
   },
   hydrateMatches: (matches) => {
     set({ matches, matchesInit: 'loaded' })
   },
   addMatch: async (m) => {
-    const id = await createMatch(m)
+    const id = await createMatch(getActiveTournamentId(), m)
     await get().resetAndReload()
     return id
   },
   updateMatch: async (id, m) => {
-    await updateMatch(id, m)
+    await updateMatch(getActiveTournamentId(), id, m)
     await get().resetAndReload()
   },
   deleteMatch: async (id) => {
-    await deleteMatch(id)
+    await deleteMatch(getActiveTournamentId(), id)
     await get().resetAndReload()
   },
   resetAndReload: async () => {
-    const data = await getMatches()
-    set({ matches: data, matchesInit: 'loaded' })
+    const tournamentId = getActiveTournamentId()
+    const data = await getMatches(tournamentId)
+    if (isStillActive(tournamentId)) set({ matches: data, matchesInit: 'loaded' })
   },
+  reset: () => set({ matches: [], matchesInit: 'idle' }),
 }))

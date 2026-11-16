@@ -54,11 +54,11 @@ export function PositionField({ value, onChange }: Props) {
               <ThemedText
                 style={[
                   styles.rowText,
-                  { color: active ? colors.brand : colors.text, fontFamily: active ? Fonts.bold : Fonts.medium },
+                  { color: active ? colors.primaryText : colors.text, fontFamily: active ? Fonts.bold : Fonts.medium },
                 ]}>
                 {p.label}
               </ThemedText>
-              {active ? <Feather name="check" size={18} color={colors.brand} /> : null}
+              {active ? <Feather name="check" size={18} color={colors.primaryText} /> : null}
             </TouchableOpacity>
           )
         })}

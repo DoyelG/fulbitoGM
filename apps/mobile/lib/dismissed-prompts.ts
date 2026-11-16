@@ -15,3 +15,7 @@ export async function dismissPrompt(storageKey: string): Promise<void> {
     return
   }
 }
+
+export function linkPlayerPromptKey(uid: string, tournamentId: string): string {
+  return `linkPlayerPromptDismissed:${uid}:${tournamentId}`
+}

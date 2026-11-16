@@ -15,7 +15,7 @@ export default function MatchLocationLink({ location }: Props) {
         href={matchLocationMapsUrl(location)}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-brand hover:underline"
+        className="text-primary hover:underline"
       >
         {location.name}
       </a>

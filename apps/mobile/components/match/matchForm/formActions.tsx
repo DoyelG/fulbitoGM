@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -37,7 +38,7 @@ export function FormActions({ mode, saving, canSave, showSave, onCancel, onSave 
           style={[
             styles.save,
             {
-              backgroundColor: canSave && !saving ? colors.brand : colors.muted,
+              backgroundColor: canSave && !saving ? colors.primary : colors.muted,
               borderRadius: radii.sm,
             },
           ]}
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 14,
     fontWeight: '700',
   },

@@ -1,17 +1,24 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { uploadPlayerPhoto } from '@fulbito/firebase'
-import { usePlayerStore } from '@/store/usePlayerStore'
-import { getGoalkeeping } from '@fulbito/utils'
+import { InvitationError, TournamentMemberError, uploadPlayerPhoto } from '@fulbito/firebase'
+import type { SkillValue } from '@fulbito/types'
+import { getGoalkeeping, isTournamentAdminRole } from '@fulbito/utils'
 import Button from '@/components/Button'
-import ConfirmModal from '@/components/ConfirmModal'
-import Tooltip from '@/components/Tooltip'
-import { FiEdit2, FiTrash2 } from 'react-icons/fi'
-import Chevron from '@/app/shared/Icons/Chevron'
-import { fieldClassName, selectClassName } from '@/lib/field-styles'
+import Modal from '@/components/Modal'
+import SkillBadge from '@/components/SkillBadge'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useTournamentMembers } from '@/hooks/use-tournament-members'
+import { getActiveTournamentId } from '@/store/active-tournament'
+import { usePlayerStore, type PlayerLink } from '@/store/usePlayerStore'
+import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
+import FormSection from './form/FormSection'
+import PlayerLinkSection from './form/PlayerLinkSection'
+import PlayerPhotoField from './form/PlayerPhotoField'
+import PlayerSaveSummary, { type SummaryRow } from './form/PlayerSaveSummary'
+import SkillSlider from './form/SkillSlider'
+import StatusToggle from './form/StatusToggle'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -26,26 +33,6 @@ const positionLabels: Record<string, string> = {
   PLAYER: 'Cualquier posición',
 }
 
-type PlayerFormValues = {
-  name: string
-  position: string
-  physical: string
-  technical: string
-  tactical: string
-  psychological: string
-  inactive: boolean
-}
-
-type OriginalPlayerData = PlayerFormValues & { goalkeeping: string }
-
-type SummaryRow = {
-  label: string
-  before?: string
-  after: string
-  beforeImg?: string | null
-  afterImg?: string | null
-}
-
 const skillLabels = {
   physical: 'Físico',
   technical: 'Técnico',
@@ -57,299 +44,354 @@ type SkillKey = keyof typeof skillLabels
 
 const skillKeys = Object.keys(skillLabels) as SkillKey[]
 
+type PlayerFormValues = {
+  name: string
+  position: string
+  inactive: boolean
+} & Record<SkillKey, number>
+
+type OriginalPlayerData = PlayerFormValues & { goalkeeping: number }
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const fieldClassName =
+  'mt-1 h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40'
+
 const statusLabel = (inactive: boolean) => (inactive ? 'Inactivo' : 'Activo')
 const photoStatusLabel = (photoUrl: string | null) => (photoUrl ? 'Con foto' : 'Sin foto')
-
 const positionLabel = (position: string) => positionLabels[position] ?? position
+const toLevel = (value: SkillValue | null | undefined, fallback: number) =>
+  typeof value === 'number' ? Math.round(value) : fallback
+
+const linkKey = (link: PlayerLink) =>
+  link.kind === 'member'
+    ? `member:${link.uid}`
+    : link.kind === 'invite'
+      ? `invite:${link.email.trim().toLowerCase()}`
+      : 'none'
+
+function linkErrorMessage(error: unknown): string {
+  if (error instanceof InvitationError || error instanceof TournamentMemberError) return error.message
+  return 'Intentá de nuevo desde la pantalla de miembros del torneo.'
+}
 
 export default function PlayerForm({ mode, playerId }: Props) {
   const router = useRouter()
-  const { addPlayer, updatePlayer, getPlayer } = usePlayerStore()
-  const [formData, setFormData] = useState({
+  const { user } = useFirebaseAuth()
+  const { players, addPlayer, updatePlayer, linkPlayer } = usePlayerStore()
+  const activeTournamentId = useTournamentStore((state) => state.activeTournamentId)
+  const canLink = isTournamentAdminRole(useTournamentStore(selectActiveTournament)?.membership.role)
+  const members = useTournamentMembers(canLink ? activeTournamentId : null)
+  const [formData, setFormData] = useState<PlayerFormValues>({
     name: '',
     position: 'PLAYER',
-    physical: '5',
-    technical: '5',
-    tactical: '5',
-    psychological: '5',
+    physical: 5,
+    technical: 5,
+    tactical: 5,
+    psychological: 5,
     inactive: false,
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string | null>(null)
-  const [goalkeeping, setGoalkeeping] = useState<string>('5')
+  const [goalkeeping, setGoalkeeping] = useState(5)
   const [gkTouched, setGkTouched] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
+  const [linkDraft, setLinkDraft] = useState<PlayerLink | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const [createdPlayerId, setCreatedPlayerId] = useState<string | null>(null)
   const [originalData, setOriginalData] = useState<OriginalPlayerData | null>(null)
 
   useEffect(() => {
-    if (mode === 'edit' && playerId) {
-      const player = getPlayer(playerId)
-      if (player) {
-        const defaultSkill = player.skill === null ? 5 : player.skill
-        const loadedFormData = {
-          name: player.name,
-          position: player.position,
-          physical: String(player.skills?.physical ?? defaultSkill),
-          technical: String(player.skills?.technical ?? defaultSkill),
-          tactical: String(player.skills?.tactical ?? defaultSkill),
-          psychological: String(player.skills?.psychological ?? defaultSkill),
-          inactive: player.inactive ?? false,
-        }
-        setFormData(loadedFormData)
-        setPhotoPreview(player.photoUrl ?? null)
-        setOriginalPhotoUrl(player.photoUrl ?? null)
-        const loadedGoalkeeping = String(getGoalkeeping(player))
-        setGoalkeeping(loadedGoalkeeping)
-        setGkTouched(player.goalkeeping != null)
-        setOriginalData({ ...loadedFormData, goalkeeping: loadedGoalkeeping })
-      }
+    if (mode !== 'edit' || !playerId || originalData) return
+    const player = players.find(({ id }) => id === playerId)
+    if (!player) return
+    const defaultSkill = toLevel(player.skill, 5)
+    const loadedFormData = {
+      name: player.name,
+      position: player.position,
+      physical: toLevel(player.skills?.physical, defaultSkill),
+      technical: toLevel(player.skills?.technical, defaultSkill),
+      tactical: toLevel(player.skills?.tactical, defaultSkill),
+      psychological: toLevel(player.skills?.psychological, defaultSkill),
+      inactive: player.inactive ?? false,
     }
-  }, [mode, playerId, getPlayer])
+    setFormData(loadedFormData)
+    setPhotoPreview(player.photoUrl ?? null)
+    setOriginalPhotoUrl(player.photoUrl ?? null)
+    const loadedGoalkeeping = getGoalkeeping(player)
+    setGoalkeeping(loadedGoalkeeping)
+    setGkTouched(player.goalkeeping != null)
+    setOriginalData({ ...loadedFormData, goalkeeping: loadedGoalkeeping })
+  }, [mode, playerId, players, originalData])
 
-  const avgPreview = useMemo(() => (
-    (+formData.physical + +formData.technical + +formData.tactical + +formData.psychological) / 4
-  ), [formData])
-
-  const gkValue = gkTouched ? goalkeeping : String(Math.round(avgPreview))
-
+  const average = (formData.physical + formData.technical + formData.tactical + formData.psychological) / 4
+  const gkValue = gkTouched ? goalkeeping : Math.round(average)
   const photoChanged = photoPreview !== originalPhotoUrl
 
+  const currentLinkedUid =
+    mode === 'edit' ? (members.find((member) => playerId && member.playerId === playerId)?.uid ?? null) : null
+  const originalLink = useMemo<PlayerLink>(
+    () => (currentLinkedUid ? { kind: 'member', uid: currentLinkedUid } : { kind: 'none' }),
+    [currentLinkedUid],
+  )
+  const link = linkDraft ?? originalLink
+  const linkChanged = canLink && linkKey(link) !== linkKey(originalLink)
+
+  const inviteEmail = link.kind === 'invite' ? link.email.trim().toLowerCase() : ''
+  const emailError = useMemo(() => {
+    if (link.kind !== 'invite' || !inviteEmail) return null
+    if (!EMAIL_PATTERN.test(inviteEmail)) return 'Ingresá un email válido.'
+    if (members.some((member) => member.email === inviteEmail)) {
+      return 'Ese email ya es miembro del torneo. Elegilo en "Miembro del torneo".'
+    }
+    return null
+  }, [link.kind, inviteEmail, members])
+  const linkIsValid =
+    link.kind === 'none' || (link.kind === 'member' ? Boolean(link.uid) : Boolean(inviteEmail) && !emailError)
+
+  const describeLink = useCallback(
+    (target: PlayerLink) => {
+      if (target.kind === 'member') {
+        return members.find((member) => member.uid === target.uid)?.email ?? 'Miembro del torneo'
+      }
+      if (target.kind === 'invite') return `Invitación a ${target.email.trim().toLowerCase()}`
+      return 'Sin vincular'
+    },
+    [members],
+  )
+  const linkLabel = describeLink(link)
+
   const summaryRows = useMemo(() => {
-    const getOriginalValue = (selectValue: (original: OriginalPlayerData) => string) =>
-      originalData ? selectValue(originalData) : undefined
+    const before = <T,>(select: (original: OriginalPlayerData) => T) =>
+      originalData ? String(select(originalData)) : undefined
 
     const fieldRows: SummaryRow[] = [
-      { label: 'Nombre', before: getOriginalValue((original) => original.name), after: formData.name.trim() },
+      { label: 'Nombre', before: before((original) => original.name), after: formData.name.trim() },
       {
         label: 'Posición',
-        before: getOriginalValue((original) => positionLabel(original.position)),
+        before: before((original) => positionLabel(original.position)),
         after: positionLabel(formData.position),
       },
       ...skillKeys.map((skillKey) => ({
         label: skillLabels[skillKey],
-        before: getOriginalValue((original) => original[skillKey]),
-        after: formData[skillKey],
+        before: before((original) => original[skillKey]),
+        after: String(formData[skillKey]),
       })),
-      { label: 'Nivel de arquero', before: getOriginalValue((original) => original.goalkeeping), after: gkValue },
+      { label: 'Nivel de arquero', before: before((original) => original.goalkeeping), after: String(gkValue) },
       {
         label: 'Estado',
-        before: getOriginalValue((original) => statusLabel(original.inactive)),
+        before: before((original) => statusLabel(original.inactive)),
         after: statusLabel(formData.inactive),
       },
     ]
 
     const photoRow: SummaryRow = {
       label: 'Foto',
-      before: getOriginalValue(() => photoStatusLabel(originalPhotoUrl)),
+      before: before(() => photoStatusLabel(originalPhotoUrl)),
       after: photoStatusLabel(photoPreview),
       beforeImg: originalPhotoUrl,
       afterImg: photoPreview,
     }
 
-    const visibleFieldRows = mode === 'create' ? fieldRows : fieldRows.filter((row) => row.before !== row.after)
-    const shouldShowPhotoRow = mode === 'create' ? !!photoPreview : photoChanged
+    if (mode === 'create') {
+      return [...fieldRows, ...(photoPreview ? [photoRow] : []), { label: 'Vínculo', after: linkLabel }]
+    }
+    const changedRows = fieldRows.filter((row) => row.before !== row.after)
+    if (photoChanged) changedRows.push(photoRow)
+    if (linkChanged) changedRows.push({ label: 'Vínculo', before: describeLink(originalLink), after: linkLabel })
+    return changedRows
+  }, [
+    mode,
+    originalData,
+    formData,
+    gkValue,
+    originalPhotoUrl,
+    photoPreview,
+    photoChanged,
+    linkChanged,
+    describeLink,
+    originalLink,
+    linkLabel,
+  ])
 
-    return shouldShowPhotoRow ? [...visibleFieldRows, photoRow] : visibleFieldRows
-  }, [mode, originalData, formData, gkValue, originalPhotoUrl, photoPreview, photoChanged])
+  const canSubmit = linkIsValid && (mode === 'create' ? formData.name.trim().length > 0 : summaryRows.length > 0)
+  const goToPlayers = () => router.push(mode === 'edit' && playerId ? `/players/${playerId}` : '/players')
 
-  const canSubmit = mode === 'create' ? formData.name.trim().length > 0 : summaryRows.length > 0
-
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
+    setSaveError(null)
     setModalOpen(true)
   }
 
   const savePlayer = async () => {
-    const skills = {
-      physical: parseInt(formData.physical, 10),
-      technical: parseInt(formData.technical, 10),
-      tactical: parseInt(formData.tactical, 10),
-      psychological: parseInt(formData.psychological, 10),
-    }
-    const avg = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
-    const goalkeepingValue = gkTouched ? parseInt(goalkeeping, 10) : Math.round(avg)
+    setSaving(true)
+    setSaveError(null)
+    let savedPlayerId: string
+    try {
+      let uploadedUrl: string | undefined
+      if (photoFile) {
+        const photoId = (mode === 'edit' && playerId) || createdPlayerId || crypto.randomUUID()
+        uploadedUrl = await uploadPlayerPhoto(photoFile, getActiveTournamentId(), photoId)
+      }
 
-    let uploadedUrl: string | undefined
-    if (photoFile) {
-      const photoId = mode === 'edit' && playerId ? playerId : crypto.randomUUID()
-      uploadedUrl = await uploadPlayerPhoto(photoFile, photoId)
+      const playerData = {
+        name: formData.name.trim(),
+        position: formData.position,
+        skills: {
+          physical: formData.physical,
+          technical: formData.technical,
+          tactical: formData.tactical,
+          psychological: formData.psychological,
+        },
+        skill: average,
+        goalkeeping: gkValue,
+        inactive: formData.inactive,
+      }
+
+      if (mode === 'create' && createdPlayerId) {
+        await updatePlayer(createdPlayerId, { ...playerData, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+        savedPlayerId = createdPlayerId
+      } else if (mode === 'create') {
+        savedPlayerId = await addPlayer({ ...playerData, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
+        setCreatedPlayerId(savedPlayerId)
+      } else if (playerId) {
+        await updatePlayer(playerId, { ...playerData, ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}) })
+        savedPlayerId = playerId
+      } else {
+        return
+      }
+    } catch {
+      setSaveError('No se pudo guardar el jugador. Intentá de nuevo.')
+      setSaving(false)
+      return
     }
 
-    const playerData = {
-      name: formData.name.trim(),
-      position: formData.position,
-      skills,
-      skill: avg,
-      goalkeeping: goalkeepingValue,
-      inactive: formData.inactive,
+    if (linkChanged && user) {
+      try {
+        await linkPlayer(
+          savedPlayerId,
+          link.kind === 'invite' ? { kind: 'invite', email: inviteEmail } : link,
+          user.uid,
+          currentLinkedUid,
+        )
+      } catch (error) {
+        setLinkError(linkErrorMessage(error))
+        setSaving(false)
+        return
+      }
     }
 
-    if (mode === 'create') {
-      await addPlayer({ ...playerData, ...(uploadedUrl ? { photoUrl: uploadedUrl } : {}) })
-    } else if (playerId) {
-      await updatePlayer(playerId, { ...playerData, ...(photoChanged ? { photoUrl: uploadedUrl ?? null } : {}) })
-    }
     setModalOpen(false)
-    router.push(mode === 'edit' && playerId ? `/players/${playerId}` : '/players')
+    goToPlayers()
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-black">Nombre del jugador</label>
-        <input
-          type="text"
-          id="name"
-          required
-          value={formData.name}
-          onChange={(event) => setFormData({...formData, name: event.target.value})}
-          className={`mt-1 ${fieldClassName}`}
-        />
-      </div>
-
-      <div className="grid sm:grid-cols-2 gap-4">
-        {[
-          { key: 'physical', label: 'Físico' },
-          { key: 'technical', label: 'Técnico' },
-          { key: 'tactical', label: 'Táctico' },
-          { key: 'psychological', label: 'Mental' },
-        ].map(cat => (
-          <div key={cat.key}>
-            <label className="block text-sm font-medium text-black">{cat.label}</label>
-            <div className="relative mt-1">
-              <select
-                value={(formData as unknown as { [key: string]: number | string })[cat.key]}
-                onChange={(event) => setFormData({ ...formData, [cat.key]: event.target.value })}
-                className={selectClassName}
-              >
-                {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
-              </select>
-              <Chevron select />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <FormSection id="player-data-title" title="Datos del jugador">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+          <PlayerPhotoField
+            previewUrl={photoPreview}
+            onSelect={(file) => {
+              setPhotoFile(file)
+              setPhotoPreview(URL.createObjectURL(file))
+            }}
+            onRemove={() => {
+              setPhotoFile(null)
+              setPhotoPreview(null)
+            }}
+          />
+          <div className="grid flex-1 gap-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-900">
+                Nombre
+              </label>
+              <input
+                type="text"
+                id="name"
+                required
+                placeholder="Ej: Juan Pérez"
+                value={formData.name}
+                onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+                className={fieldClassName}
+              />
             </div>
-          </div>
-        ))}
-      </div>
-
-      <div>
-        <div className="relative mt-2 w-16 h-16">
-          <div
-            className="relative w-16 h-16 rounded-full overflow-hidden ring-1 ring-gray-300 bg-white cursor-pointer"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Subir foto"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') fileInputRef.current?.click() }}
-          >
-            {photoPreview ? (
-              <Image src={photoPreview} alt="preview" fill unoptimized className="object-cover" />
-            ) : (
-              <Image src="/silhouette.svg" alt="placeholder" fill unoptimized className="object-cover" />
-            )}
-          </div>
-
-          {photoPreview && (
-            <div className="absolute -top-1 -right-1">
-              <Tooltip label="Eliminar foto" variant="danger" position="top">
-                <button
-                  type="button"
-                  aria-label="Eliminar foto"
-                  onClick={() => {
-                    setPhotoFile(null)
-                    setPhotoPreview(null)
-                    if (fileInputRef.current) fileInputRef.current.value = ''
-                  }}
-                  className="w-6 h-6 rounded-full bg-white ring-1 ring-gray-300 shadow flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+              <div>
+                <label htmlFor="position" className="block text-sm font-medium text-gray-900">
+                  Posición
+                </label>
+                <select
+                  id="position"
+                  value={formData.position}
+                  onChange={(event) => setFormData({ ...formData, position: event.target.value })}
+                  className={fieldClassName}
                 >
-                  <FiTrash2 size={14} />
-                </button>
-              </Tooltip>
+                  {Object.entries(positionLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <StatusToggle
+                inactive={formData.inactive}
+                onChange={(inactive) => setFormData({ ...formData, inactive })}
+              />
             </div>
-          )}
+          </div>
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(event) => {
-            const file = event.target.files?.[0] || null
-            setPhotoFile(file)
-            setPhotoPreview(file ? URL.createObjectURL(file) : photoPreview)
-          }}
-          className="hidden"
-        />
-      </div>
+      </FormSection>
 
-      <div className="text-sm text-gray-800">General (promedio): <span className="font-semibold">Lv {avgPreview}</span></div>
-
-      <div>
-        <label htmlFor="goalkeeping" className="block text-sm font-medium text-black">Nivel de arquero</label>
-        <div className="relative mt-1">
-          <select
+      <FormSection id="player-skills-title" title="Habilidades" description="Se usan para armar equipos parejos.">
+        <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+          {skillKeys.map((skillKey) => (
+            <SkillSlider
+              key={skillKey}
+              id={`skill-${skillKey}`}
+              label={skillLabels[skillKey]}
+              value={formData[skillKey]}
+              onChange={(value) => setFormData({ ...formData, [skillKey]: value })}
+            />
+          ))}
+        </div>
+        <div className="mt-6 grid gap-5 border-t border-gray-100 pt-5 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-4 py-3" aria-live="polite">
+            <span className="text-sm font-medium text-gray-900">General (promedio)</span>
+            <SkillBadge skill={average} />
+          </div>
+          <SkillSlider
             id="goalkeeping"
+            label="Nivel de arquero"
             value={gkValue}
-            onChange={(event) => { setGkTouched(true); setGoalkeeping(event.target.value) }}
-            className={selectClassName}
-          >
-            {[1,2,3,4,5,6,7,8,9,10].map(level => <option key={level} value={level}>{level}</option>)}
-          </select>
-          <Chevron select />
+            isGoalkeeper
+            hint={gkTouched ? 'Valor fijado a mano.' : 'Sigue el promedio hasta que lo cambies.'}
+            onChange={(value) => {
+              setGkTouched(true)
+              setGoalkeeping(value)
+            }}
+          />
         </div>
-        <p className="mt-1 text-xs text-gray-700">Por defecto sigue el promedio del jugador. Editalo para fijar un valor.</p>
-      </div>
+      </FormSection>
 
-      <div>
-        <label htmlFor="position" className="block text-sm font-medium text-black">Posición</label>
-        <div className="relative mt-1">
-          <select
-            id="position"
-            value={formData.position}
-            onChange={(event) => setFormData({...formData, position: event.target.value})}
-            className={selectClassName}
-          >
-            <option value="GK">Arquero</option>
-            <option value="DEF">Defensor</option>
-            <option value="MID">Mediocampista</option>
-            <option value="FWD">Delantero</option>
-            <option value="PLAYER">Cualquier posición</option>
-          </select>
-          <Chevron select />
-        </div>
-      </div>
+      {canLink && (
+        <PlayerLinkSection
+          value={link}
+          onChange={setLinkDraft}
+          members={members}
+          currentUid={currentLinkedUid}
+          emailError={emailError}
+        />
+      )}
 
-      <div>
-        <label className="block text-sm font-medium text-black mb-1">Estado</label>
-        <div
-          role="group"
-          aria-label="Estado del jugador"
-          className="inline-flex rounded-md border border-gray-300 overflow-hidden"
+      <div className="flex justify-end gap-3 pt-1">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => (mode === 'edit' ? router.back() : router.push('/players'))}
         >
-          <button
-            type="button"
-            aria-pressed={!formData.inactive}
-            onClick={() => setFormData({ ...formData, inactive: false })}
-            className={`w-20 px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
-              !formData.inactive ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Activo
-          </button>
-          <button
-            type="button"
-            aria-pressed={formData.inactive}
-            onClick={() => setFormData({ ...formData, inactive: true })}
-            className={`w-20 px-3 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
-              formData.inactive ? 'bg-gray-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Inactivo
-          </button>
-        </div>
-      </div>
-
-      <div className="flex justify-end space-x-3 pt-4">
-        <Button type="button" variant="secondary" onClick={() => (mode === 'edit' && playerId ? router.back() : router.push("/players"))}>
           Cancelar
         </Button>
         <Button type="submit" disabled={!canSubmit}>
@@ -357,52 +399,27 @@ export default function PlayerForm({ mode, playerId }: Props) {
         </Button>
       </div>
 
-      <ConfirmModal
+      <Modal
         title={`${mode === 'edit' ? 'Actualizar' : 'Guardar'} datos`}
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={savePlayer}
-        icon={FiEdit2}
-        confirmLabel={mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
+        onClose={() => {
+          if (saving) return
+          if (linkError) goToPlayers()
+          setModalOpen(false)
+        }}
       >
-        <p>
-          ¿Confirmás {mode === 'edit' ? 'actualizar' : 'guardar'} los datos de{' '}
-          <span className="font-medium text-gray-900">{formData.name}</span>?
-        </p>
-        {summaryRows.length > 0 && (
-          <div className="mt-3 space-y-1 text-sm text-gray-600 text-left">
-            {summaryRows.map((row) =>
-              row.label === 'Foto' ? (
-                <div key={row.label} className="flex items-center gap-2">
-                  <span>{row.label}:</span>
-                  {row.beforeImg && (
-                    <Image src={row.beforeImg} alt="Foto anterior" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-gray-300 opacity-50" />
-                  )}
-                  {row.beforeImg && <span className="text-gray-400">→</span>}
-                  {row.afterImg ? (
-                    <Image src={row.afterImg} alt="Foto nueva" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-1 ring-brand" />
-                  ) : (
-                    <span className="font-medium text-black">Sin foto</span>
-                  )}
-                </div>
-              ) : (
-                <p key={row.label}>
-                  {row.label}:{' '}
-                  {row.before !== undefined && (
-                    <span className="line-through text-gray-400">{row.before}</span>
-                  )}{' '}
-                  <span className="font-medium text-black">{row.after}</span>
-                </p>
-              )
-            )}
-          </div>
-        )}
-      </ConfirmModal>
-       
-      
-      
+        <PlayerSaveSummary
+          mode={mode}
+          playerName={formData.name.trim()}
+          rows={summaryRows}
+          saving={saving}
+          error={saveError}
+          linkError={linkError}
+          onCancel={() => setModalOpen(false)}
+          onConfirm={savePlayer}
+          onContinue={goToPlayers}
+        />
+      </Modal>
     </form>
   )
 }
-
-

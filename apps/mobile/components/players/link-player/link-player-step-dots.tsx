@@ -22,7 +22,7 @@ export default function LinkPlayerStepDots({ current, total }: Props) {
             key={index}
             style={[
               styles.dot,
-              { width: isCurrent ? 32 : 16, backgroundColor: isCurrent || isDone ? colors.brand : colors.chipBg },
+              { width: isCurrent ? 32 : 16, backgroundColor: isCurrent || isDone ? colors.primary : colors.chipBg },
               isDone && { opacity: 0.5 },
             ]}
           />

@@ -48,7 +48,7 @@ export default function Modal({ open, onClose, title, children, size = 'default'
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-700 hover:text-black focus:outline-none focus:ring-2 focus:ring-brand rounded"
+            className="text-gray-700 hover:text-black focus:outline-none focus:ring-2 focus:ring-primary rounded"
             aria-label="Cerrar"
           >
             ✕

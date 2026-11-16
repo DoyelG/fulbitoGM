@@ -13,4 +13,12 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ]
 
+const singleFirebaseInstanceOrigin = path.join(projectRoot, 'package.json')
+
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  const isFirebase = moduleName === 'firebase' || moduleName.startsWith('firebase/')
+  const resolveFrom = isFirebase ? { ...context, originModulePath: singleFirebaseInstanceOrigin } : context
+  return context.resolveRequest(resolveFrom, moduleName, platform)
+}
+
 module.exports = config

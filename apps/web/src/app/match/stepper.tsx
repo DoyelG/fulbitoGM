@@ -65,7 +65,7 @@ export function Stepper({
                 type="button"
                 onClick={() => onStepClick(step.id)}
                 aria-label={`Volver al paso ${step.id}: ${step.title}`}
-                className="flex items-center gap-3 rounded-md hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+                className="flex items-center gap-3 rounded-md hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
               >
                 {stepLabel}
               </button>
@@ -74,7 +74,7 @@ export function Stepper({
             )}
             {!isLast && (
               <div aria-hidden="true" className="mx-3 h-0.5 flex-1 overflow-hidden rounded-full bg-gray-200">
-                <div className="h-full bg-brand transition-all duration-400" style={{ width: `${fill * 100}%` }} />
+                <div className="h-full bg-primary transition-all duration-400" style={{ width: `${fill * 100}%` }} />
               </div>
             )}
           </li>

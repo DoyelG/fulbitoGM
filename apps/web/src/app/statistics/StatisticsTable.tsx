@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 
 export type StatRow = {
@@ -26,9 +27,11 @@ type Props = {
   onToggleSort: (key: StatSortKey) => void
   emptyMessage: string
   inactiveIds?: Set<string>
+  photoUrlById?: Map<string, string>
 }
 
-const COLUMNS: { key: StatSortKey | null; label: string; ariaLabel?: string }[] = [
+const COLUMNS: { key: StatSortKey | null; label: string; ariaLabel?: string; srOnly?: boolean }[] = [
+  { key: null, label: 'Imagen', srOnly: true },
   { key: 'name', label: 'Nombre' },
   { key: 'matches', label: 'Partidos' },
   { key: 'goals', label: 'Goles' },
@@ -53,6 +56,7 @@ export default function StatisticsTable({
   onToggleSort,
   emptyMessage,
   inactiveIds = new Set<string>(),
+  photoUrlById = new Map<string, string>(),
 }: Props) {
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -61,10 +65,10 @@ export default function StatisticsTable({
           <caption className="sr-only">Estadísticas por jugador</caption>
           <thead className="bg-gray-50">
             <tr>
-              {COLUMNS.map(({ key, label, ariaLabel }) =>
+              {COLUMNS.map(({ key, label, ariaLabel, srOnly }) =>
                 key === null ? (
                   <th key={label} scope="col" className={`px-4 py-3 text-left text-sm font-semibold text-gray-700`}>
-                    {label}
+                    {srOnly ? <span className="sr-only">{label}</span> : label}
                   </th>
                 ) : (
                   <th
@@ -77,7 +81,7 @@ export default function StatisticsTable({
                       type="button"
                       onClick={() => onToggleSort(key)}
                       aria-label={ariaLabel}
-                      className="inline-flex items-center gap-1 rounded hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                      className="inline-flex items-center gap-1 rounded hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                     >
                       {label}
                       {sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : null}
@@ -99,12 +103,23 @@ export default function StatisticsTable({
                 const perMatch = stat.matches === 0 ? 0 : stat.goals / stat.matches
                 const winRate = stat.matches === 0 ? 0 : (stat.wins / stat.matches) * 100
                 const isRowMuted = inactiveIds.has(stat.id)
-                const nameColor = isRowMuted ? 'text-gray-400' : 'text-blue-600'
+                const nameColor = isRowMuted ? 'text-gray-400' : 'text-primary'
                 const cellColor = isRowMuted ? 'text-gray-400' : 'text-gray-800'
                 return (
                   <tr key={stat.id} className="hover:bg-gray-50">
-                    <td className={`px-4 py-3 hover:underline ${nameColor}`}>
-                      <Link href={`/players/${stat.id}`}>{stat.name}</Link>
+                    <td className="px-4 py-3">
+                      <Image
+                        src={photoUrlById.get(stat.id) ?? '/silhouette.svg'}
+                        alt={stat.name}
+                        width={32}
+                        height={32}
+                        className={`mx-auto h-full max-h-8 w-full max-w-8 rounded-full object-cover ${isRowMuted ? 'grayscale filter' : ''}`}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link href={`/players/${stat.id}`} className={`font-medium hover:underline ${nameColor}`}>
+                        {stat.name}
+                      </Link>
                     </td>
                     <td className={`px-4 py-3 ${cellColor}`}>{stat.matches}</td>
                     <td className={`px-4 py-3 ${cellColor}`}>{stat.goals}</td>

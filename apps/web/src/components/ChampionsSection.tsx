@@ -37,7 +37,7 @@ export function ChampionsSection({ championship, champions, seasonYear }: Props)
   return (
     <section
       aria-label="Campeones"
-      className="w-full border-t border-white/10 bg-gradient-to-br from-violet-950 via-brand-dark to-violet-950 text-white"
+      className="w-full border-t border-white/10 bg-gradient-to-br from-violet-950 via-primary-dark to-violet-950 text-white"
     >
       <div className="mx-auto max-w-4xl px-6 py-14">
         {seasonYear !== null && (

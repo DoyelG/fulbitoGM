@@ -1,5 +1,6 @@
 'use strict'
 
+const css = require('@eslint/css').default ?? require('@eslint/css')
 const noComments = require('./rules/no-comments')
 
 const plugin = {
@@ -16,6 +17,17 @@ plugin.configs = {
   recommended: [
     {
       plugins: { fulbito: plugin },
+      rules: {
+        'fulbito/no-comments': 'error',
+      },
+    },
+  ],
+  css: [
+    {
+      files: ['**/*.css'],
+      plugins: { css, fulbito: plugin },
+      language: 'css/css',
+      languageOptions: { tolerant: true },
       rules: {
         'fulbito/no-comments': 'error',
       },

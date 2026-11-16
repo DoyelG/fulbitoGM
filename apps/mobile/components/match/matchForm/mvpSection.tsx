@@ -58,7 +58,7 @@ export function MvpSection({ teamA, teamB, mvpId, onChange, goalsA, goalsB, perf
       </TouchableOpacity>
 
       <BottomSheet visible={open} title="MVP del partido" closeLabel="Listo" onConfirm={() => setOpen(false)}>
-        <ScrollView style={{ maxHeight: 320 }}>
+        <ScrollView style={sheetStyles.scrollTall}>
           <TouchableOpacity
             onPress={() => {
               onChange(null)
@@ -67,7 +67,7 @@ export function MvpSection({ teamA, teamB, mvpId, onChange, goalsA, goalsB, perf
             style={[
               sheetStyles.option,
               { borderBottomColor: colors.border },
-              mvpId === null && { backgroundColor: colors.brandSoft },
+              mvpId === null && { backgroundColor: colors.primarySoft },
             ]}
           >
             <Text style={[sheetStyles.optionText, { color: colors.text }]}>Sin MVP</Text>
@@ -85,7 +85,7 @@ export function MvpSection({ teamA, teamB, mvpId, onChange, goalsA, goalsB, perf
                 style={[
                   sheetStyles.option,
                   { borderBottomColor: colors.border },
-                  mvpId === p.id && { backgroundColor: colors.brandSoft },
+                  mvpId === p.id && { backgroundColor: colors.primarySoft },
                 ]}
               >
                 <Text style={[sheetStyles.optionText, { color: colors.text }]}>

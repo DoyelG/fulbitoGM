@@ -9,8 +9,8 @@ export function PlayersLoading() {
 
   return (
     <ThemedView style={styles.centered}>
-      <View style={[styles.iconWrap, { backgroundColor: colors.brandSoft }]}>
-        <ActivityIndicator size="large" color={colors.brand} />
+      <View style={[styles.iconWrap, { backgroundColor: colors.primarySoft }]}>
+        <ActivityIndicator size="large" color={colors.primaryText} />
       </View>
       <ThemedText type="defaultSemiBold" style={styles.title}>
         Cargando plantel

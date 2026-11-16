@@ -7,11 +7,13 @@ import { addressToMatchLocation } from '@fulbito/utils'
 import { createAddress, updateAddress } from '@fulbito/firebase'
 import { useAppTheme } from '@/hooks/use-theme'
 import { useAddressesData } from '@/hooks/use-addresses-data'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 
 import { BottomSheet } from './bottomSheet'
 import { FormLabel } from './formLabel'
 import { fieldStyles, locationStyles, sheetStyles } from './sharedStyles'
+import { PrimaryGradient } from '@/components/primary-gradient'
 
 const EMPTY_FORM = { id: '', name: '', street: '' }
 
@@ -23,7 +25,8 @@ type Props = {
 }
 
 export function LocationField({ value, onChange }: Props) {
-  const { isAdmin } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
+  const tournamentId = useActiveTournamentId()
   const { colors, radii } = useAppTheme()
   const { addresses: allAddresses, error, reload, deleteAddress } = useAddressesData()
   const addresses = allAddresses.filter((address) => address.name?.trim())
@@ -50,7 +53,8 @@ export function LocationField({ value, onChange }: Props) {
         await updateAddress(form.id, { name, street })
         if (value?.addressId === form.id) onChange({ name, street, addressId: form.id })
       } else {
-        const id = await createAddress({ name, street })
+        if (!tournamentId) return
+        const id = await createAddress(tournamentId, { name, street })
         onChange({ name, street, addressId: id })
       }
       switchLocationSheet('closed')
@@ -89,13 +93,14 @@ export function LocationField({ value, onChange }: Props) {
           </Text>
         </TouchableOpacity>
 
-        {isAdmin && (
+        {canManage && (
           <TouchableOpacity
             onPress={() => switchLocationSheet('form')}
-            style={[locationStyles.addBtn, { borderRadius: radii.sm, backgroundColor: colors.brand }]}
+            style={[locationStyles.addBtn, { borderRadius: radii.sm }]}
             accessibilityRole="button"
             accessibilityLabel="Agregar cancha nueva"
           >
+            <PrimaryGradient />
             <Text style={locationStyles.addBtnText}>+</Text>
           </TouchableOpacity>
         )}
@@ -110,7 +115,7 @@ export function LocationField({ value, onChange }: Props) {
                 sheetStyles.option,
                 locationStyles.optionRow,
                 { borderBottomColor: colors.border },
-                value?.addressId === address.id && { backgroundColor: colors.brandSoft },
+                value?.addressId === address.id && { backgroundColor: colors.primarySoft },
               ]}
             >
               <TouchableOpacity
@@ -125,7 +130,7 @@ export function LocationField({ value, onChange }: Props) {
                 <Text style={[sheetStyles.optionText, { color: colors.text }]}>{address.name}</Text>
               </TouchableOpacity>
 
-              {isAdmin && (
+              {canManage && (
                 <>
                   <TouchableOpacity
                     onPress={() => switchLocationSheet('form', address)}

@@ -8,6 +8,7 @@ import { PlayerAvatar } from '@/components/players/player-avatar'
 import { SkillBig } from '@/components/players/skill-big'
 import { StreakBadge } from '@/components/players/streak-badge'
 import { ThemedText } from '@/components/themed-text'
+import { PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type StreakKind = 'win' | 'loss' | null
@@ -25,6 +26,7 @@ const AVATAR_SIZE = 48
 export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeepingMode = false }: Props) {
   const { colors, isDark, shadows, radii } = useAppTheme()
   const winGoalProgress = streak.kind === 'win' ? streak.count : 0
+  const gradientBase = isGoalkeepingMode ? colors.goalkeeper : PrimaryColors.border
 
   const displayedSkill = isGoalkeepingMode ? getGoalkeeping(player) : (player.skill ?? null)
 
@@ -45,10 +47,10 @@ export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeeping
       ]}>
       <LinearGradient
         pointerEvents="none"
-        colors={[isGoalkeepingMode ? colors.goalkeeper : colors.brand, colors.surface]}
+        colors={[gradientBase, `${gradientBase}CC`, `${gradientBase}66`, `${gradientBase}1A`, `${gradientBase}00`]}
         start={{ x: 1, y: 0 }}
         end={{ x: 0, y: 0 }}
-        locations={[0, 0.6]}
+        locations={[0, 0.12, 0.27, 0.4, 0.5]}
         style={[StyleSheet.absoluteFill, { borderRadius: radii.lg - 1 }]}
       />
       <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={AVATAR_SIZE} />

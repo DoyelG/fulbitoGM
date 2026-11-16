@@ -2,7 +2,7 @@
 
 Read-only [MCP](https://modelcontextprotocol.io) server that lets Claude answer questions about the fulbito app: players, matches, stats, streaks and shirt duties.
 
-It reuses `@fulbito/firebase` (client SDK) and `@fulbito/utils` directly — no `firebase-admin`, no service account. Reads work unauthenticated because `players`, `matches` and `matchPlayers` allow public reads in `firestore.rules`, and the server never writes.
+It reuses `@fulbito/firebase` (client SDK) and `@fulbito/utils` directly — no `firebase-admin`, no service account. Data is scoped per tournament, so the server signs in as a regular email/password account and only sees the tournaments that account is a member of. Use a dedicated account with the MEMBER role — the server never writes.
 
 ## Setup
 
@@ -12,7 +12,7 @@ Requires Node 22.23.4+.
 cp apps/mcp/.env.example apps/mcp/.env
 ```
 
-Fill it with the same public Firebase client config the web/mobile apps use (Firebase console → Project settings → Your apps). Only `FIREBASE_API_KEY` and `FIREBASE_PROJECT_ID` are required. The variables can also be provided through the environment instead of the file.
+Fill it with the same public Firebase client config the web/mobile apps use (Firebase console → Project settings → Your apps), plus `FIREBASE_MCP_EMAIL` and `FIREBASE_MCP_PASSWORD` for the account the server signs in as. Invite that account to each tournament it should read. `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID` and both account variables are required. The variables can also be provided through the environment instead of the file.
 
 Without config the server still connects and lists its tools — calling any tool returns these setup instructions instead of data.
 
@@ -49,6 +49,7 @@ Claude Desktop's config supports only `command`, `args` and `env` (no `cwd`), so
 
 | Tool                    | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
+| `list_tournaments`      | Tournaments the account belongs to, with its role           |
 | `list_players`          | All players, ordered by skill                               |
 | `get_player`            | One player by id                                            |
 | `search_players`        | Filter players by partial name/position                     |
@@ -58,4 +59,4 @@ Claude Desktop's config supports only `command`, `args` and `env` (no `cwd`), so
 | `get_streaks`           | Active win/loss streak per player (streakless omitted)      |
 | `get_shirt_duty_counts` | Shirt-washing duty count per player (zero-count omitted)    |
 
-All tools are read-only. There are deliberately no create/update/delete tools.
+Every tool except `list_tournaments` takes a `tournamentId`. All tools are read-only. There are deliberately no create/update/delete tools.

@@ -5,6 +5,7 @@ import { Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PlayerCreateForm, type PlayerCreateFormValues } from '@/components/players/new/player-create-form'
+import { useActiveTournamentId } from '@/contexts/TournamentContext'
 import { usePickPhoto } from '@/hooks/use-pick-photo'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { useAppTheme } from '@/hooks/use-theme'
@@ -13,6 +14,7 @@ export default function NewPlayerScreen() {
   const router = useRouter()
   const { colors } = useAppTheme()
   const { reload } = usePlayersData()
+  const tournamentId = useActiveTournamentId()
 
   const [values, setValues] = useState<PlayerCreateFormValues>({
     name: '',
@@ -32,6 +34,7 @@ export default function NewPlayerScreen() {
   }, [pickPhoto])
 
   const handleSave = useCallback(async () => {
+    if (!tournamentId) return
     setSaving(true)
     try {
       const skills = {
@@ -42,7 +45,7 @@ export default function NewPlayerScreen() {
       }
       const skill = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
 
-      const playerId = await createPlayer({
+      const playerId = await createPlayer(tournamentId, {
         name: values.name.trim(),
         position: values.position,
         skills,
@@ -53,7 +56,7 @@ export default function NewPlayerScreen() {
       if (photoUri) {
         const response = await fetch(photoUri)
         const blob = await response.blob()
-        const photoUrl = await uploadPlayerPhoto(blob, playerId)
+        const photoUrl = await uploadPlayerPhoto(blob, tournamentId, playerId)
         await updatePlayer(playerId, { photoUrl })
       }
 
@@ -64,7 +67,7 @@ export default function NewPlayerScreen() {
     } finally {
       setSaving(false)
     }
-  }, [values, photoUri, reload, router])
+  }, [tournamentId, values, photoUri, reload, router])
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>

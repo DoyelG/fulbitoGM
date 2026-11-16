@@ -38,29 +38,30 @@ export default function ScoreboardResult({ match }: { match: Match }) {
         {srScorers('Equipo A', scorersA)}
         {srScorers('Equipo B', scorersB)}
       </p>
-      <div aria-hidden className="mx-auto grid max-w-2xl grid-cols-[1fr_auto_1fr] gap-x-3 gap-y-4 sm:gap-x-8">
-        <div className="self-center">
+      <div aria-hidden className="mx-auto max-w-2xl">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 sm:gap-x-8">
           <TeamColumn label="Equipo A" summary={summarizeTeam(match.teamA)} isWinner={a > b} />
-        </div>
-        <p className="text-glow-brand self-center text-5xl leading-none font-black tabular-nums sm:text-7xl">
-          {a}
-          <span className="mx-2 text-white/35">:</span>
-          {b}
-        </p>
-        <div className="self-center">
+          <p className="text-glow-primary text-5xl leading-none font-black tabular-nums sm:text-7xl">
+            {a}
+            <span className="mx-2 text-white/35">:</span>
+            {b}
+          </p>
           <TeamColumn label="Equipo B" summary={summarizeTeam(match.teamB)} isWinner={b > a} />
         </div>
         {hasScorers && (
-          <>
-            <TeamScorers scorers={scorersA} />
-            <span />
-            <TeamScorers scorers={scorersB} />
-          </>
+          <div className="mt-5 grid grid-cols-2 gap-x-3 border-t border-white/10 pt-4 sm:gap-x-8">
+            <div>
+              <TeamScorers scorers={scorersA} />
+            </div>
+            <div>
+              <TeamScorers scorers={scorersB} />
+            </div>
+          </div>
         )}
       </div>
       {mvpName && (
-        <p className="mx-auto mt-5 max-w-2xl text-sm text-gray-300">
-          <span aria-hidden>⭐ </span>
+        <p className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-gray-100">
+          <span aria-hidden>⭐</span>
           MVP {mvpName}
         </p>
       )}

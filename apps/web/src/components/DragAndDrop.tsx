@@ -6,8 +6,8 @@ import { FaGripVertical } from 'react-icons/fa'
 export type DropTarget = 'unassigned' | 'a' | 'b'
 
 const BORDER_BY_TEAM: Record<Exclude<DropTarget, 'unassigned'>, string> = {
-  a: 'border-brand',
-  b: 'border-accent',
+  a: 'border-primary',
+  b: 'border-secondary',
 }
 
 type DropColumnProps = {
@@ -48,7 +48,7 @@ export function DropColumn({
                 {Array.from({ length: limit }, (_, index) => (
                   <div key={index} className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
                     <div
-                      className={`h-full bg-brand transition-[width] duration-400 ease-out ${index < playersCount ? 'w-full' : 'w-0'}`}
+                      className={`h-full bg-primary transition-[width] duration-400 ease-out ${index < playersCount ? 'w-full' : 'w-0'}`}
                     />
                   </div>
                 ))}

@@ -1,8 +1,8 @@
 import type { PlayerInfo, TeamResult } from '@/lib/teamUtils'
 
 const TEAM_COLOR_STYLES = {
-  brand: { title: 'text-brand' },
-  accent: { title: 'text-accent' },
+  primary: { title: 'text-primary' },
+  secondary: { title: 'text-secondary' },
 }
 
 type Props = {
@@ -29,7 +29,7 @@ export default function TeamCard({ title, team, color, winProbability, goalkeepe
                 🧤
               </span>
             )}
-            {!manualIds.has(player.id) && <span className="ml-2 text-xs font-medium text-brand">auto</span>}
+            {!manualIds.has(player.id) && <span className="ml-2 text-xs font-medium text-primary">auto</span>}
           </div>
         ))}
       </div>

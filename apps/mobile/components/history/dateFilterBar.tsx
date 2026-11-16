@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   fromDate: string
@@ -92,7 +93,7 @@ export function DateFilterBar({ fromDate, toDate, onChangeFrom, onChangeTo, onCl
           <View style={[styles.iosSheet, { backgroundColor: colors.surface }]}>
             <View style={styles.iosSheetHeader}>
               <TouchableOpacity onPress={() => closeIOSPicker(activePicker)}>
-                <Text style={[styles.iosDone, { color: colors.brand }]}>Listo</Text>
+                <Text style={[styles.iosDone, { color: colors.primaryText }]}>Listo</Text>
               </TouchableOpacity>
             </View>
             <DateTimePicker
@@ -128,7 +129,7 @@ function FilterChip({
   label: string
   active: boolean
   onPress: () => void
-  colors: { brand: string; brandSoft: string; border: string; text: string; muted: string }
+  colors: { primary: string; primaryText: string; primarySoft: string; border: string; text: string; muted: string }
   radii: { pill: number }
 }) {
   return (
@@ -137,13 +138,13 @@ function FilterChip({
       style={[
         styles.chip,
         {
-          backgroundColor: active ? colors.brandSoft : 'transparent',
-          borderColor: active ? colors.brand : colors.border,
+          backgroundColor: active ? colors.primarySoft : 'transparent',
+          borderColor: active ? colors.primaryText : colors.border,
           borderRadius: radii.pill,
         },
       ]}
     >
-      <Text style={[styles.chipText, { color: active ? colors.brand : colors.muted }]}>
+      <Text style={[styles.chipText, { color: active ? colors.primaryText : colors.muted }]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: ContrastColors.scrimLight,
   },
   iosSheet: {
     paddingBottom: 30,

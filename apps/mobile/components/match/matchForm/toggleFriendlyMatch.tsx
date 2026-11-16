@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Pressable, Text } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 
+import { PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { HIT_SLOP, styles, TRAVEL } from './toggleFriendlyMatch.styles'
@@ -25,9 +26,7 @@ export function ToggleFriendlyMatch({ isMatchFriendly, setIsMatchFriendly }: Tog
     transform: [{ translateX: progress.value * TRAVEL }],
   }))
 
-  const gradientColors = isMatchFriendly
-    ? (['#4ade80', colors.friendlyBrand] as const)
-    : ([colors.brand, colors.secondary] as const)
+  const gradientColors = isMatchFriendly ? ([colors.secondary, colors.secondary] as const) : PrimaryColors.gradient
 
   return (
     <>

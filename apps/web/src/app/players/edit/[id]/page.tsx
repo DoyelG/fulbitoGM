@@ -4,14 +4,16 @@ import { useParams, useRouter } from 'next/navigation'
 import PlayerForm from '../../PlayerForm'
 import { useEffect } from 'react'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import PageTitle from '@/components/PageTitle'
 
 export default function EditPlayerPage() {
-  const { isAdmin, loading } = useFirebaseAuth()
+  const { loading } = useFirebaseAuth()
+  const canManage = useCanManageTournament()
   const router = useRouter()
   useEffect(() => {
-    if (!loading && !isAdmin) router.replace('/login')
-  }, [loading, isAdmin, router])
+    if (!loading && !canManage) router.replace('/login')
+  }, [loading, canManage, router])
   const { id } = useParams()
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

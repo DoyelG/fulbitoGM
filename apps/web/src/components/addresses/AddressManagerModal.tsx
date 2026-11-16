@@ -80,7 +80,7 @@ export default function AddressManagerModal({ open, onClose, onAddressUpdated, o
   return (
     <Modal open={open} onClose={handleClose} title={TITLES[view.kind]}>
       {error && (
-        <p role="alert" className="mb-3 text-sm text-red-600">
+        <p role="alert" className="mb-3 text-sm text-orange-700">
           {error}
         </p>
       )}

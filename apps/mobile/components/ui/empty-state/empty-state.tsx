@@ -3,7 +3,9 @@ import { useRouter, type Href } from 'expo-router'
 import type { ComponentProps } from 'react'
 import { Pressable, View } from 'react-native'
 
+import { PrimaryGradient } from '@/components/primary-gradient'
 import { ThemedText } from '@/components/themed-text'
+import { PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { styles } from './empty-state.styles'
@@ -29,8 +31,8 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
 
   return (
     <View style={styles.wrap} accessibilityLiveRegion="polite">
-      <View style={[styles.iconWrap, { backgroundColor: colors.brandSoft }]}>
-        <Feather name={icon} size={36} color={colors.brand} accessible={false} />
+      <View style={[styles.iconWrap, { backgroundColor: colors.primarySoft }]}>
+        <Feather name={icon} size={36} color={colors.primaryText} accessible={false} />
       </View>
       <ThemedText type="defaultSemiBold" style={styles.title} accessibilityRole="header">
         {title}
@@ -41,9 +43,10 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
           onPress={handleActionPress}
           accessibilityRole="button"
           accessibilityLabel={action.label}
-          style={({ pressed }) => [styles.action, { backgroundColor: colors.brand }, pressed && { opacity: 0.9 }]}
+          style={({ pressed }) => [styles.action, pressed && { opacity: 0.9 }]}
         >
-          <ThemedText style={[styles.actionText, { color: colors.onBrand }]}>{action.label}</ThemedText>
+          <PrimaryGradient />
+          <ThemedText style={[styles.actionText, { color: PrimaryColors.onPrimary }]}>{action.label}</ThemedText>
         </Pressable>
       )}
     </View>

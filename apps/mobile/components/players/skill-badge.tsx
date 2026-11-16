@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 
 import { useColorScheme } from '@/hooks/use-color-scheme'
+import { Colors, ContrastColors } from '@/constants/theme'
 
 function colorForSkill(skill: number): string {
   if (skill <= 5) {
@@ -17,15 +18,15 @@ type Props = { skill: number | 'unknown' }
 
 export function SkillBadge({ skill }: Props) {
   const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark'
+  const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light']
   if (skill === 'unknown') {
     return (
       <View
         style={[
           styles.badge,
-          { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)' },
+          { backgroundColor: colors.neutralFill },
         ]}>
-        <Text style={[styles.unknownText, { color: isDark ? '#d1d5db' : '#4b5563' }]}>Unknown</Text>
+        <Text style={[styles.unknownText, { color: colors.subtleText }]}>Unknown</Text>
       </View>
     )
   }
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   text: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.2,

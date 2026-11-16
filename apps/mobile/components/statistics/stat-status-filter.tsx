@@ -38,7 +38,6 @@ export function StatStatusFilter({ value, onChange }: Props) {
         accessibilityHint="Abre la lista para filtrar por estado de jugador"
         style={[
           styles.select,
-          styles.wrapper,
           {
             backgroundColor: colors.chipBg,
             borderColor: colors.chipBorder,
@@ -66,10 +65,10 @@ export function StatStatusFilter({ value, onChange }: Props) {
               accessibilityState={{ selected }}
               style={[sheetStyles.option, { borderBottomColor: colors.border }]}
             >
-              <ThemedText style={[sheetStyles.optionText, { color: selected ? colors.brand : colors.text }]}>
+              <ThemedText style={[sheetStyles.optionText, { color: selected ? colors.primaryText : colors.text }]}>
                 {option.label}
               </ThemedText>
-              {selected && <ThemedText style={[styles.check, { color: colors.brand }]}>✓</ThemedText>}
+              {selected && <ThemedText style={[styles.check, { color: colors.primaryText }]}>✓</ThemedText>}
             </Pressable>
           )
         })}

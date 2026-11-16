@@ -38,7 +38,7 @@ function getSkillValue(player: Player, mode: SkillMode) {
 
 type Props = {
   players: PlayerRow[]
-  isAdmin: boolean
+  canManage: boolean
   onDelete: (playerId: string) => void
   onToggleActive: (playerId: string, inactive: boolean) => void
   emptyMessage: string
@@ -48,7 +48,7 @@ type Props = {
 
 export default function PlayersTable({
   players,
-  isAdmin,
+  canManage,
   onDelete,
   onToggleActive,
   emptyMessage,
@@ -92,7 +92,7 @@ export default function PlayersTable({
         cell: ({ getValue, row }) => (
           <Link
             href={`/players/${row.original.id}`}
-            className={`hover:underline font-medium ${row.original.inactive ? 'text-gray-400' : 'text-brand'}`}
+            className={`hover:underline font-medium ${row.original.inactive ? 'text-gray-400' : 'text-primary'}`}
           >
             {getValue()}
           </Link>
@@ -223,14 +223,14 @@ export default function PlayersTable({
                         )}
                       </th>
                     ))}
-                    {isAdmin && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}
+                    {canManage && <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Acciones</th>}
                   </tr>
                 ))}
               </thead>
               <tbody className="divide-y">
                 {table.getRowModel().rows.length === 0 ? (
                   <tr>
-                    <td colSpan={isAdmin ? 7 : 6} className="px-4 py-8 text-center text-gray-800">
+                    <td colSpan={canManage ? 7 : 6} className="px-4 py-8 text-center text-gray-800">
                       {emptyMessage}
                     </td>
                   </tr>
@@ -239,7 +239,7 @@ export default function PlayersTable({
                     const player = row.original
                     const actions: RowAction[] = [
                       { icon: <FiEye size={16} />, variant: 'primary', href: `/players/${player.id}`, tooltip: 'Ver' },
-                      ...(isAdmin
+                      ...(canManage
                         ? [
                             {
                               icon: <FiEdit2 size={16} />,

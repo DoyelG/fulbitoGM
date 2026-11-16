@@ -4,11 +4,10 @@ import { Fonts } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   select: {
-    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
+    minHeight: 36,
     borderWidth: 1,
   },
   selectText: {
@@ -18,9 +17,6 @@ export const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 6,
-  },
-  wrapper: {
-    marginBottom: 8,
   },
   check: {
     fontSize: 16,

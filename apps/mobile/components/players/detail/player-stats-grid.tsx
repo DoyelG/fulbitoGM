@@ -41,7 +41,7 @@ export function PlayerStatsGrid({ stats }: Props) {
   const { colors } = useAppTheme()
 
   const winsColor =
-    stats.wins > stats.losses ? '#16a34a' : stats.losses > stats.wins ? colors.danger : colors.muted
+    stats.wins > stats.losses ? colors.success : stats.losses > stats.wins ? colors.danger : colors.muted
 
   return (
     <View style={styles.grid}>
@@ -58,7 +58,7 @@ export function PlayerStatsGrid({ stats }: Props) {
         value={stats.avgPerformance.toFixed(1)}
         sub={`W${stats.wins} D${stats.draws} L${stats.losses}`}
       />
-      <StatBox label="MVP" value={String(stats.mvps)} sub="🏆" accent="#f59e0b" />
+      <StatBox label="MVP" value={String(stats.mvps)} sub="🏆" accent={colors.medal} />
     </View>
   )
 }

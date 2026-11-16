@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, TouchableOpacity } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
-import { Fonts, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Spacing } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 type Props = {
@@ -26,7 +26,7 @@ export function FormActions({ canSave, saving, onSave, onCancel }: Props) {
           canSave && shadows.cta(colors.secondary),
         ]}>
         {saving ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={ContrastColors.onColor} />
         ) : (
           <ThemedText style={styles.saveText}>Guardar Jugador</ThemedText>
         )}
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 16,
     fontFamily: Fonts.extraBoldItalic,
     textTransform: 'uppercase',

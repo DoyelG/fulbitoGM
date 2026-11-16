@@ -9,6 +9,7 @@ export type Skills = {
 
 export type Player = {
   id: string
+  tournamentId: string
   name: string
   skill: number | null
   position: string
