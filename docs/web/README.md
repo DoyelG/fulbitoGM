@@ -20,13 +20,13 @@ Arriba, el recorrido de un dato, de izquierda a derecha:
 
 1. **Datos:** Firestore, Auth y Storage de Firebase.
 2. **Acceso:** las lecturas y escrituras pasan por `@fulbito/firebase`, que se inicializa en `src/lib/firebase.ts` con las variables de `.env.local`. La excepción es `src/store/useVideoClipStore.ts`, que usa el SDK de Firebase directamente.
-3. **Estado:** los stores de Zustand (`src/store/`, uno por colección) guardan los datos en memoria y exponen las acciones para modificarlos. La sesión y el rol del usuario viven en `FirebaseAuthContext`.
-4. **Pantalla:** `layout.tsx` monta la barra de navegación, el proveedor de sesión y la carga inicial (`shared/AppBootstrap`). Cada ruta tiene un `page.tsx` que renderiza su `<ruta>Client.tsx`, el componente cliente que lee los stores y arma la vista con `src/components/`.
+3. **Estado:** los stores de Zustand (`src/store/`, uno por colección) guardan los datos en memoria y exponen las acciones para modificarlos. Cargan solo los datos del torneo activo (`src/store/active-tournament.ts`), y `useTournamentStore` guarda los torneos del usuario. La sesión y el rol del usuario viven en `FirebaseAuthContext`.
+4. **Pantalla:** `layout.tsx` monta la barra de navegación, el proveedor de sesión, la carga inicial (`shared/AppBootstrap`) y dos controles de acceso: `AuthGate` exige iniciar sesión y `ActiveTournamentGate` envía a `/tournaments` si no hay un torneo activo. Cada ruta tiene un `page.tsx` que renderiza su `<ruta>Client.tsx`, el componente cliente que lee los stores y arma la vista con `src/components/`.
 5. **Navegador:** la app publicada en Vercel.
 
 Los cálculos vienen de `@fulbito/utils` y los tipos de `@fulbito/types`. `src/hooks/` agrupa lógica que comparten varias pantallas, y `src/lib/` contiene la inicialización de Firebase y atajos a `@fulbito/utils`.
 
-Abajo, dónde se hace cada tipo de cambio y qué otra parte suele requerir ajuste. La única ruta que lee datos en el servidor es `/awards`: su `page.tsx` usa `getPlayersServer` y `getMatchesServer` y le pasa el resultado al cliente.
+Abajo, dónde se hace cada tipo de cambio y qué otra parte suele requerir ajuste.
 
 ## Levantarla
 
@@ -49,32 +49,37 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
+NEXT_PUBLIC_USE_FIREBASE_EMULATOR=false   # true para usar los emuladores de `pnpm emulators`
 ```
 
 - Se leen solo en `apps/web/src/lib/firebase.ts`. Reiniciá `pnpm dev` al cambiarlas.
 - `NEXT_PUBLIC_` las manda al navegador. No es un problema: la config web de Firebase no es secreta. Los datos los protegen `firestore.rules` y `storage.rules`.
 - **Si falta la API key, la app no avisa:** falla después con errores de Firebase poco claros. Revisá este archivo primero.
 - En producción van en el proyecto de Vercel. El CI usa además `VERCEL_TOKEN`, `VERCEL_ORG_ID` y `VERCEL_FRONTEND_PROJECT_ID`.
-- `NEXT_PUBLIC_LOCATIONIQ_TOKEN` y `NEXT_PUBLIC_USE_FIREBASE_EMULATOR` son restos: nadie las lee.
+- Con `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true`, la app se conecta a los emuladores locales en lugar del proyecto real. Si no están levantados, falla con `auth/network-request-failed`.
+- `NEXT_PUBLIC_LOCATIONIQ_TOKEN` es un resto: nadie la lee.
 - Los scripts de `apps/web/scripts/` usan este archivo más `SEED_EMAIL`, `SEED_PASSWORD` y `NEON_DATABASE_URL`, y **escriben datos reales**.
 
 ## Mapa de la app
 
-Cada pantalla pide los datos a un store de Zustand, que los trae de Firebase a través de `@fulbito/firebase`. La lógica de cálculo viene de `@fulbito/utils`.
+Cada pantalla pide los datos a un store de Zustand, que los trae de Firebase a través de `@fulbito/firebase`. La lógica de cálculo viene de `@fulbito/utils`. Salvo `/login`, todas las rutas exigen sesión, y las que muestran datos del juego exigen además un torneo activo.
 
-| Ruta                        | Para qué sirve                                                    | Quién puede                  |
-| --------------------------- | ----------------------------------------------------------------- | ---------------------------- |
-| `/`                         | Próximo partido, último resultado, campeonato                     | Todos                        |
-| `/login`                    | Ingresar o registrarse                                            | Todos                        |
-| `/players`, `/players/[id]` | Plantel y detalle de cada jugador                                 | Ver: todos. Editar: admin    |
-| `/match`                    | Armar equipos y crear un partido                                  | Armar: todos. Guardar: admin |
-| `/history`                  | Historial; cargar o editar resultados                             | Ver: todos. Editar: admin    |
-| `/statistics`               | Estadísticas por jugador, filtrables por modo, tipo, año y estado | Todos                        |
-| `/awards`                   | Premios y Salón de la Fama                                        | Todos                        |
-| `/profile`                  | Mi cuenta y vincular mi jugador                                   | Logueados                    |
-| `/notifications`            | Solicitudes de rol                                                | Admin                        |
+| Ruta                        | Para qué sirve                                                    | Quién puede                      |
+| --------------------------- | ----------------------------------------------------------------- | -------------------------------- |
+| `/`                         | Próximo partido, último resultado, campeonato                     | Miembros                         |
+| `/login`                    | Ingresar o registrarse                                            | Todos                            |
+| `/tournaments`              | Mis torneos e invitaciones; crear un torneo                       | Con sesión                       |
+| `/tournaments/[id]`         | Detalle del torneo y mensajes                                     | Ver: miembros. Editar: admins    |
+| `/tournaments/[id]/members` | Miembros, invitaciones y roles                                    | Ver: miembros. Gestionar: admins |
+| `/players`, `/players/[id]` | Plantel y detalle de cada jugador                                 | Ver: miembros. Editar: admins    |
+| `/match`                    | Armar equipos y crear un partido                                  | Armar: miembros. Guardar: admins |
+| `/history`, `/history/[id]` | Historial y detalle de cada partido; cargar o editar resultados   | Ver: miembros. Editar: admins    |
+| `/statistics`               | Estadísticas por jugador, filtrables por modo, tipo, año y estado | Miembros                         |
+| `/awards`                   | Premios y Salón de la Fama                                        | Miembros                         |
+| `/profile`                  | Mi cuenta y pedido para vincular mi jugador                       | Con sesión                       |
+| `/api/match-image`          | Genera la imagen de un partido para compartir                     | —                                |
 
-Roles: `USER` (al registrarse), `PLAYER` (cuenta vinculada a un jugador) y `ADMIN`. Se piden en `/profile` y un admin los acepta en `/notifications`. **La UI solo esconde botones:** no hay middleware, y cualquier usuario logueado puede escribir partidos y canchas según las reglas de Firebase.
+"Miembros" y "admins" se refieren al torneo activo. Roles por torneo: `OWNER` (quien lo creó), `ADMIN` y `MEMBER`; se asignan al invitar a alguien por mail y el owner los puede cambiar. Un miembro pide vincularse a un jugador desde `/profile` y lo aprueba un admin. Las reglas de Firestore exigen ser admin del torneo para escribir jugadores, partidos y canchas, así que ocultar un botón no es la única protección.
 
 ## Dónde está cada cosa
 
@@ -87,5 +92,3 @@ Roles: `USER` (al registrarse), `PLAYER` (cuenta vinculada a un jugador) y `ADMI
 | Colores y tema            | `apps/web/src/app/globals.css`                                             |
 
 Cada store carga su colección con `initLoad()` y vuelve a traerla entera después de cada cambio. Los equipos de un partido están en la colección `matchPlayers`, no dentro de `matches`.
-
-

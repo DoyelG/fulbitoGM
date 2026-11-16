@@ -24,7 +24,7 @@
     <text x="120.0" y="198.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">login y usuarios</text>
     <rect x="40" y="253.0" width="160" height="76" rx="8" fill="#0f4d3a" stroke="#4fbf98" stroke-width="1.2"/>
     <text x="120.0" y="287.0" font-size="14" font-weight="600" fill="#d5f5e8" text-anchor="middle">Firestore</text>
-    <text x="120.0" y="305.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">partidos, jugadores…</text>
+    <text x="120.0" y="305.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">torneos, partidos…</text>
     <rect x="40" y="360.0" width="160" height="76" rx="8" fill="#0f4d3a" stroke="#4fbf98" stroke-width="1.2"/>
     <text x="120.0" y="394.0" font-size="14" font-weight="600" fill="#d5f5e8" text-anchor="middle">Storage</text>
     <text x="120.0" y="412.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">fotos y videos</text>
