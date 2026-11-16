@@ -5,7 +5,7 @@ export { MATCH_TYPES } from '@fulbito/types'
 export const MAX_GOALKEEPERS = 2
 
 export function onlyFinalMatches<T extends Pick<Match, 'status'>>(matches: T[]): T[] {
-  return matches.filter((m) => m.status !== 'draft')
+  return matches.filter((match) => match.status !== 'draft')
 }
 
 export type MatchKindFilter = 'all' | 'competitive' | 'friendly'

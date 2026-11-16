@@ -46,12 +46,12 @@ export type MatchLike = {
   isFriendly?: boolean
 }
 
-export function isDraft(m: Pick<Match, 'status'>): boolean {
-  return m.status === 'draft'
+export function isDraft(match: Pick<Match, 'status'>): boolean {
+  return match.status === 'draft'
 }
 
-export function isFinal(m: Pick<Match, 'status'>): boolean {
-  return m.status !== 'draft'
+export function isFinal(match: Pick<Match, 'status'>): boolean {
+  return match.status !== 'draft'
 }
 
 export const MATCH_TYPES = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10', '11v11'] as const
