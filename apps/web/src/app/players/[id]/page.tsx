@@ -12,10 +12,11 @@ import SkillBadge from "@/components/SkillBadge";
 import StreakBadge from "@/components/StreakBadge";
 import RadarChart from '@/components/RadarChart'
 import PlayerCard from '@/components/PlayerCard'
+import OwnPlayerForm from '@/app/players/[id]/OwnPlayerForm'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
-import { getMvpCountsByPlayerId, getGoalkeeping } from "@fulbito/utils";
+import { getMvpCountsByPlayerId, getGoalkeeping, getPositionLabel } from "@fulbito/utils";
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { selectActiveTournament, selectMyPlayerId, useTournamentStore } from '@/store/useTournamentStore'
 
@@ -176,7 +177,7 @@ export default function PlayerDetailPage() {
                 </span>
               )}
               </div>
-              <span className="text-sm">Posición: {player.position}</span>
+              <span className="text-sm">Posición: {getPositionLabel(player.position)}</span>
             </div>
           </div>
         </div>
@@ -199,6 +200,7 @@ export default function PlayerDetailPage() {
             skills={catSkills}
             goalkeeping={getGoalkeeping(player)}
             tournamentPhotoUrl={tournamentPhotoUrl}
+            photoFooter={player.id === myPlayerId ? <OwnPlayerForm player={player} /> : undefined}
           />
           <RadarChart
             labels={['Físico','Técnico','Táctico','Mental']}

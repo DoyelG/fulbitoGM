@@ -23,6 +23,7 @@ export default function NewPlayerScreen() {
     technical: 5,
     tactical: 5,
     psychological: 5,
+    goalkeeping: 5,
   })
   const [photoUri, setPhotoUri] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -50,7 +51,7 @@ export default function NewPlayerScreen() {
         position: values.position,
         skills,
         skill,
-        goalkeeping: Math.round(skill),
+        goalkeeping: values.goalkeeping,
       })
 
       if (photoUri) {

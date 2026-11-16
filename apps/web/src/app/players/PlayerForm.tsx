@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { useRouter } from 'next/navigation'
 import { InvitationError, TournamentMemberError, uploadPlayerPhoto } from '@fulbito/firebase'
 import type { SkillValue } from '@fulbito/types'
-import { getGoalkeeping, isTournamentAdminRole } from '@fulbito/utils'
+import { getGoalkeeping, getPositionLabel, isTournamentAdminRole, positionOptions } from '@fulbito/utils'
 import Button from '@/components/Button'
 import Modal from '@/components/Modal'
 import SkillBadge from '@/components/SkillBadge'
@@ -23,14 +23,6 @@ import StatusToggle from './form/StatusToggle'
 type Props = {
   mode: 'create' | 'edit'
   playerId?: string
-}
-
-const positionLabels: Record<string, string> = {
-  GK: 'Arquero',
-  DEF: 'Defensor',
-  MID: 'Mediocampista',
-  FWD: 'Delantero',
-  PLAYER: 'Cualquier posición',
 }
 
 const skillLabels = {
@@ -59,7 +51,6 @@ const fieldClassName =
 
 const statusLabel = (inactive: boolean) => (inactive ? 'Inactivo' : 'Activo')
 const photoStatusLabel = (photoUrl: string | null) => (photoUrl ? 'Con foto' : 'Sin foto')
-const positionLabel = (position: string) => positionLabels[position] ?? position
 const toLevel = (value: SkillValue | null | undefined, fallback: number) =>
   typeof value === 'number' ? Math.round(value) : fallback
 
@@ -172,8 +163,8 @@ export default function PlayerForm({ mode, playerId }: Props) {
       { label: 'Nombre', before: before((original) => original.name), after: formData.name.trim() },
       {
         label: 'Posición',
-        before: before((original) => positionLabel(original.position)),
-        after: positionLabel(formData.position),
+        before: before((original) => getPositionLabel(original.position)),
+        after: getPositionLabel(formData.position),
       },
       ...skillKeys.map((skillKey) => ({
         label: skillLabels[skillKey],
@@ -329,7 +320,7 @@ export default function PlayerForm({ mode, playerId }: Props) {
                   onChange={(event) => setFormData({ ...formData, position: event.target.value })}
                   className={fieldClassName}
                 >
-                  {Object.entries(positionLabels).map(([value, label]) => (
+                  {positionOptions.map(({ value, label }) => (
                     <option key={value} value={value}>
                       {label}
                     </option>

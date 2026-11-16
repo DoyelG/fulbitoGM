@@ -1,3 +1,4 @@
+import { getPositionLabel, positionOrder } from '@fulbito/utils'
 import * as Haptics from 'expo-haptics'
 import { Pressable, ScrollView, StyleSheet } from 'react-native'
 
@@ -7,8 +8,6 @@ import { ContrastColors } from '@/constants/theme'
 
 export type PositionFilter = string | null
 
-const ORDER = ['GK', 'DEF', 'MID', 'FWD', 'PLAYER']
-
 type Props = {
   positions: string[]
   value: PositionFilter
@@ -17,8 +16,8 @@ type Props = {
 
 export function PositionFilterRow({ positions, value, onChange }: Props) {
   const sorted = [...positions].sort((a, b) => {
-    const ia = ORDER.indexOf(a)
-    const ib = ORDER.indexOf(b)
+    const ia = positionOrder.indexOf(a)
+    const ib = positionOrder.indexOf(b)
     if (ia === -1 && ib === -1) return a.localeCompare(b)
     if (ia === -1) return 1
     if (ib === -1) return -1
@@ -34,7 +33,7 @@ export function PositionFilterRow({ positions, value, onChange }: Props) {
       {sorted.map((pos) => (
         <Chip
           key={pos}
-          label={pos}
+          label={getPositionLabel(pos)}
           active={value === pos}
           onPress={() => onChange(pos)}
         />

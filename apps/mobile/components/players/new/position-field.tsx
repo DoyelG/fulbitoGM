@@ -1,4 +1,5 @@
 import Feather from '@expo/vector-icons/Feather'
+import { getPositionLabel, positionOptions } from '@fulbito/utils'
 import { useState } from 'react'
 import { Platform, StyleSheet, TouchableOpacity } from 'react-native'
 
@@ -7,13 +8,6 @@ import { ThemedText } from '@/components/themed-text'
 import { Fonts, Spacing } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
-export const POSITIONS = [
-  { value: 'PLAYER', label: 'Cualquier Posición' },
-  { value: 'GK', label: 'Arquero' },
-  { value: 'DEF', label: 'Defensor' },
-  { value: 'MID', label: 'Mediocampista' },
-  { value: 'FWD', label: 'Delantero' },
-]
 
 type Props = {
   value: string
@@ -24,7 +18,7 @@ export function PositionField({ value, onChange }: Props) {
   const { colors, radii } = useAppTheme()
   const [open, setOpen] = useState(false)
 
-  const selectedLabel = POSITIONS.find((p) => p.value === value)?.label ?? 'Cualquier Posición'
+  const selectedLabel = getPositionLabel(value)
 
   return (
     <>
@@ -38,7 +32,7 @@ export function PositionField({ value, onChange }: Props) {
       </TouchableOpacity>
 
       <BottomSheet visible={open} title="Posición predeterminada" onConfirm={() => setOpen(false)}>
-        {POSITIONS.map((p) => {
+        {positionOptions.map((p) => {
           const active = p.value === value
           return (
             <TouchableOpacity

@@ -113,7 +113,7 @@ export default function StatisticsTable({
                         alt={stat.name}
                         width={32}
                         height={32}
-                        className={`mx-auto h-full max-h-8 w-full max-w-8 rounded-full object-cover ${isRowMuted ? 'grayscale filter' : ''}`}
+                        className={`mx-auto aspect-square h-8 w-8 rounded-full object-cover ${isRowMuted ? 'grayscale filter' : ''}`}
                       />
                     </td>
                     <td className="px-4 py-3">

@@ -4,8 +4,7 @@ import { Fonts, PlayerCardColors, Spacing } from '@/constants/theme'
 
 export const CARD_WIDTH = 240
 export const CARD_HEIGHT = 310
-export const PHOTO_SIZE = 160
-export const PLACEHOLDER_SIZE = 112
+export const AVATAR_SIZE = 132
 export const BADGE_SIZE = 32
 
 export const styles = StyleSheet.create({
@@ -64,8 +63,28 @@ export const styles = StyleSheet.create({
     width: BADGE_SIZE,
     height: BADGE_SIZE,
   },
-  placeholder: {
-    marginTop: 20,
+  photo: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+  },
+  avatarLoading: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nameBox: {
+    alignSelf: 'stretch',
+  },
+  nameMeasure: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    opacity: 0,
+  },
+  nameTwoLines: {
+    marginTop: Spacing.xs,
+    fontSize: 17,
+    lineHeight: 18,
   },
   name: {
     marginTop: Spacing.md,
