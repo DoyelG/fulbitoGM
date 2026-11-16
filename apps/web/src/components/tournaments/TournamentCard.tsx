@@ -1,10 +1,17 @@
 import type { Match, MyTournament } from '@fulbito/types'
-import { formatMatchDate, formatMatchHour, isTournamentAdminRole, parseMatchDate } from '@fulbito/utils'
+import {
+  formatMatchDate,
+  formatMatchHour,
+  isTournamentAdminRole,
+  parseMatchDate,
+  unreadCommentsLabel,
+} from '@fulbito/utils'
 import type { ComponentType } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRightStartOnRectangleIcon,
+  ChatBubbleLeftRightIcon,
   CheckCircleIcon,
   InformationCircleIcon,
   PencilSquareIcon,
@@ -25,6 +32,7 @@ type Props = {
   onLinkPlayer: (item: MyTournament) => void
   nextMatch?: Pick<Match, 'id' | 'date' | 'hasTime'> | null
   playerName?: string | null
+  unreadComments?: number
 }
 
 function formatNextMatch(match: Pick<Match, 'date' | 'hasTime'>): string {
@@ -40,7 +48,7 @@ type CardActionProps = {
 }
 
 const actionClassName =
-  'flex h-11 w-11 items-center justify-center rounded-lg sm:h-9 sm:w-9 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+  'relative z-10 flex h-11 w-11 items-center justify-center rounded-lg sm:h-9 sm:w-9 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 
 function CardAction({ label, icon: Icon, onClick, tone = 'default' }: CardActionProps) {
   const toneClassName =
@@ -48,10 +56,7 @@ function CardAction({ label, icon: Icon, onClick, tone = 'default' }: CardAction
   return (
     <button
       type="button"
-      onClick={(event) => {
-        event.stopPropagation()
-        onClick()
-      }}
+      onClick={onClick}
       aria-label={label}
       title={label}
       className={`${actionClassName} ${toneClassName}`}
@@ -71,6 +76,7 @@ export default function TournamentCard({
   onLinkPlayer,
   nextMatch = null,
   playerName = null,
+  unreadComments = 0,
 }: Props) {
   const { tournament, membership } = item
   const canEdit = isTournamentAdminRole(membership.role)
@@ -79,9 +85,8 @@ export default function TournamentCard({
   return (
     <article
       aria-current={active ? 'true' : undefined}
-      onClick={active ? undefined : () => onActivate(tournament.id)}
-      className={`grid h-full grid-cols-[auto_minmax(0,1fr)] overflow-hidden rounded-xl border bg-white shadow-sm transition-colors sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:grid-rows-[auto_1fr] ${
-        active ? 'border-primary ring-2 ring-primary/30' : 'cursor-pointer border-gray-200 hover:border-primary/50'
+      className={`group relative grid h-full grid-cols-[auto_minmax(0,1fr)] overflow-hidden rounded-xl border bg-white shadow-sm transition-colors sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:grid-rows-[auto_1fr] ${
+        active ? 'border-primary ring-2 ring-primary/30' : 'border-gray-200 hover:border-primary/50'
       }`}
     >
       <div className="relative m-4 mr-0 h-20 w-20 overflow-hidden rounded-lg bg-primary/5 sm:row-span-2 sm:m-0 sm:h-auto sm:w-auto sm:rounded-none">
@@ -96,8 +101,7 @@ export default function TournamentCard({
           <h2 className="text-lg font-semibold text-gray-900 break-words">
             <Link
               href={`/tournaments/${tournament.id}`}
-              onClick={(event) => event.stopPropagation()}
-              className="rounded hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="rounded after:absolute after:inset-0 after:rounded-xl after:content-[''] group-hover:text-primary group-hover:underline focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-primary"
             >
               {tournament.name}
             </Link>
@@ -107,6 +111,18 @@ export default function TournamentCard({
           >
             {ROLE_LABELS[membership.role]}
           </span>
+          {unreadComments > 0 && (
+            <Link
+              href="/profile"
+              title={unreadCommentsLabel(unreadComments)}
+              onClick={() => onActivate(tournament.id)}
+              aria-label={`${unreadCommentsLabel(unreadComments)}. Activar ${tournament.name} y verlos en tu perfil`}
+              className="relative z-10 inline-flex items-center gap-1 rounded-full bg-secondary/15 px-2 py-0.5 text-xs font-semibold text-orange-800 ring-1 ring-inset ring-secondary/40 hover:bg-secondary/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+            >
+              <ChatBubbleLeftRightIcon className="h-4 w-4" aria-hidden />
+              {unreadComments > 99 ? '99+' : unreadComments}
+            </Link>
+          )}
         </div>
         {tournament.description && <p className="mt-1 text-sm text-gray-700">{tournament.description}</p>}
       </div>
@@ -139,7 +155,6 @@ export default function TournamentCard({
         )}
         <Link
           href={`/tournaments/${tournament.id}`}
-          onClick={(event) => event.stopPropagation()}
           aria-label={`Ver información de ${tournament.name}`}
           title="Ver información del torneo"
           className={`${actionClassName} text-gray-700 hover:bg-gray-100 hover:text-primary`}

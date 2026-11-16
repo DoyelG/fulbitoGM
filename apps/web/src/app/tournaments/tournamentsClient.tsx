@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { PlusIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import type { Match, MyTournament } from '@fulbito/types'
-import { getDraftMatches, getPlayersByIds } from '@fulbito/firebase'
+import { getDraftMatches } from '@fulbito/firebase'
 import { pickNextMatch, toLocalDay } from '@fulbito/utils'
 import { useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
+import { useUnreadCommentsStore } from '@/store/useUnreadCommentsStore'
+import { useLinkedPlayerNames } from '@/hooks/use-linked-player-names'
 import Button from '@/components/Button'
 import EmptyState from '@/components/EmptyState'
 import Modal from '@/components/Modal'
@@ -29,6 +31,7 @@ function TournamentsSkeleton() {
 }
 
 export default function TournamentsClient() {
+  const unreadByTournament = useUnreadCommentsStore((state) => state.unreadByTournament)
   const { user, loading: authLoading } = useFirebaseAuth()
   const {
     myTournaments,
@@ -42,29 +45,16 @@ export default function TournamentsClient() {
     exitTournament,
     setActiveTournament,
   } = useTournamentStore()
-  const [playerNameById, setPlayerNameById] = useState<Map<string, string>>(new Map())
-  const [nextMatchByTournament, setNextMatchByTournament] = useState<Map<string, Pick<Match, 'id' | 'date' | 'hasTime'>>>(
-    new Map(),
-  )
+  const playerNameById = useLinkedPlayerNames(myTournaments)
+  const [nextMatchByTournament, setNextMatchByTournament] = useState<
+    Map<string, Pick<Match, 'id' | 'date' | 'hasTime'>>
+  >(new Map())
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<MyTournament | null>(null)
   const [deleting, setDeleting] = useState<MyTournament | null>(null)
   const [leaving, setLeaving] = useState<MyTournament | null>(null)
   const [linking, setLinking] = useState<MyTournament | null>(null)
   const [photoFailed, setPhotoFailed] = useState(false)
-
-  const linkedPlayerIds = myTournaments.flatMap(({ membership }) => (membership.playerId ? [membership.playerId] : []))
-  const linkedPlayerIdsKey = linkedPlayerIds.join(',')
-  useEffect(() => {
-    if (!linkedPlayerIdsKey) return
-    let isCurrent = true
-    getPlayersByIds(linkedPlayerIdsKey.split(',')).then((linkedPlayers) => {
-      if (isCurrent) setPlayerNameById(new Map(linkedPlayers.map((player) => [player.id, player.name])))
-    })
-    return () => {
-      isCurrent = false
-    }
-  }, [linkedPlayerIdsKey])
 
   const tournamentIdsKey = myTournaments.map(({ tournament }) => tournament.id).join(',')
   useEffect(() => {
@@ -192,6 +182,7 @@ export default function TournamentsClient() {
                     onLinkPlayer={handleLinkPlayer}
                     playerName={playerName(item.membership.playerId)}
                     nextMatch={nextMatchByTournament.get(item.tournament.id) ?? null}
+                    unreadComments={unreadByTournament[item.tournament.id] ?? 0}
                   />
                 </li>
               ))}

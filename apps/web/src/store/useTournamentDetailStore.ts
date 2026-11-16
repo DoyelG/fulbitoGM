@@ -24,6 +24,7 @@ import {
   revokeInvitation,
   setMemberPlayer,
   setMemberRole,
+  subscribeToTournamentCommentsSince,
   type TournamentCommentsCursor,
 } from '@fulbito/firebase'
 
@@ -32,6 +33,11 @@ type LoadStatus = 'idle' | 'loading' | 'loaded' | 'error'
 type CommentAuthor = { uid: string; name: string }
 
 let pendingCommentsPage: { cursor: TournamentCommentsCursor; promise: Promise<void> } | null = null
+const NO_COMMENTS_SINCE = new Date(0)
+
+function withoutDuplicate(comment: TournamentComment, comments: TournamentComment[]): TournamentComment[] {
+  return comments.some((existing) => existing.id === comment.id) ? comments : [comment, ...comments]
+}
 
 type TournamentDetailStore = {
   tournamentId: string | null
@@ -55,6 +61,7 @@ type TournamentDetailStore = {
   changeMemberRole: (uid: string, role: InvitationRole) => Promise<void>
   removeMember: (uid: string, actorUid: string) => Promise<void>
   loadMoreComments: () => Promise<void>
+  watchComments: (tournamentId: string) => () => void
   addComment: (text: string, author: CommentAuthor) => Promise<void>
   removeComment: (commentId: string) => Promise<void>
 }
@@ -178,11 +185,27 @@ export const useTournamentDetailStore = create<TournamentDetailStore>()((set, ge
     pendingCommentsPage = { cursor: commentsCursor, promise }
     return promise
   },
+  watchComments: (tournamentId) => {
+    const since = get().tournamentId === tournamentId ? (get().comments[0]?.createdAt ?? NO_COMMENTS_SINCE) : null
+    if (!since) return () => undefined
+    let liveIds = new Set<string>()
+    return subscribeToTournamentCommentsSince(tournamentId, since, (live) => {
+      if (get().tournamentId !== tournamentId) return
+      const previousIds = liveIds
+      liveIds = new Set(live.map((comment) => comment.id))
+      set((state) => ({
+        comments: [
+          ...live,
+          ...state.comments.filter((comment) => !liveIds.has(comment.id) && !previousIds.has(comment.id)),
+        ],
+      }))
+    })
+  },
   addComment: async (text, author) => {
     const tournamentId = get().tournamentId
     if (!tournamentId) throw new Error('No tournament loaded')
     const comment = await addTournamentComment({ tournamentId, authorUid: author.uid, authorName: author.name, text })
-    if (get().tournamentId === tournamentId) set((state) => ({ comments: [comment, ...state.comments] }))
+    if (get().tournamentId === tournamentId) set((state) => ({ comments: withoutDuplicate(comment, state.comments) }))
   },
   removeComment: async (commentId) => {
     const tournamentId = get().tournamentId

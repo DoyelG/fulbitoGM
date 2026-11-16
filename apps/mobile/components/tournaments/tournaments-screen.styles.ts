@@ -13,7 +13,15 @@ export const styles = StyleSheet.create({
   },
   createRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  title: {
+    flexShrink: 1,
+    fontFamily: Fonts.blackItalic,
+    fontSize: 18,
+    letterSpacing: 0.5,
   },
   loading: {
     paddingVertical: Spacing.xxl,

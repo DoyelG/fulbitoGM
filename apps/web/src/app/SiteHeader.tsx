@@ -19,6 +19,10 @@ export default function SiteHeader({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    document.documentElement.style.setProperty('--site-header-height', `${height}px`)
+  }, [height])
+
+  useEffect(() => {
     document.documentElement.style.setProperty('--site-header-offset', hidden ? '0px' : `${height}px`)
   }, [hidden, height])
 

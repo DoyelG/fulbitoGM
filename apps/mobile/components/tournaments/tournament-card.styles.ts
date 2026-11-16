@@ -56,10 +56,34 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
   },
+  activateBadge: {
+    borderRadius: Radii.pill,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+  },
+  activateHitSlop: {
+    top: Spacing.md,
+    bottom: Spacing.md,
+    left: Spacing.sm,
+    right: Spacing.sm,
+  },
   activeText: {
     fontFamily: Fonts.black,
     fontSize: 10,
     letterSpacing: 0.5,
+  },
+  unreadChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+  },
+  unreadText: {
+    fontFamily: Fonts.bold,
+    fontSize: 11,
   },
   description: {
     fontFamily: Fonts.regular,

@@ -110,8 +110,8 @@ export default function CreateDraftForm({
         mvpId: null,
         isFriendly,
       }
-      await addMatch(newMatch)
-      router.push('/history')
+      const matchId = await addMatch(newMatch)
+      router.push(`/history/${matchId}`)
     } catch (error) {
       console.error(error)
       alert('Error al crear el partido')

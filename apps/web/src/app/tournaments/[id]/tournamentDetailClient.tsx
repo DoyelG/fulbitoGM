@@ -12,10 +12,14 @@ import {
   pickRecentMatches,
   isTournamentAdminRole,
   toLocalDay,
+  buildMentionCandidates,
 } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
 import { useTournamentDetailStore } from '@/store/useTournamentDetailStore'
+import { useUnreadCommentsStore } from '@/store/useUnreadCommentsStore'
+import { useCommentsUnreadSince } from '@/hooks/use-comments-unread-since'
+import { useLiveTournamentComments } from '@/hooks/use-live-tournament-comments'
 import EmptyState from '@/components/EmptyState'
 import Modal from '@/components/Modal'
 import TournamentForm from '@/components/tournaments/TournamentForm'
@@ -66,6 +70,14 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
   const isModerator = item !== null && isTournamentAdminRole(item.membership.role)
   const isDetailLoaded = detail.tournamentId === tournamentId && detail.status === 'loaded'
   const { loadPlayerRequests, loadInvitations } = detail
+  const markCommentsSeen = useUnreadCommentsStore((state) => state.markSeen)
+  const commentsUnreadSince = useCommentsUnreadSince(item, user?.uid ?? null, isDetailLoaded)
+  useLiveTournamentComments(tournamentId, isDetailLoaded)
+
+  useEffect(() => {
+    if (!isDetailLoaded || !window.location.hash) return
+    document.getElementById(decodeURIComponent(window.location.hash.slice(1)))?.scrollIntoView({ block: 'start' })
+  }, [isDetailLoaded])
 
   useEffect(() => {
     if (!isModerator || !isDetailLoaded) return
@@ -85,6 +97,7 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
     }
     return photos
   }, [detail.members, playerById])
+  const mentionCandidates = useMemo(() => buildMentionCandidates(players, detail.members), [detail.members, players])
   const invitablePlayers = useMemo(() => getInvitablePlayers(players, detail.members), [detail.members, players])
   const statRows = useMemo(() => computePlayerStatRows(players, finalMatches), [players, finalMatches])
   const today = toLocalDay(new Date())
@@ -225,10 +238,16 @@ export default function TournamentDetailClient({ tournamentId }: { tournamentId:
                 comments={detail.comments}
                 hasMore={detail.commentsCursor !== null}
                 photoByUid={photoByUid}
+                mentionCandidates={mentionCandidates}
                 canModerate={isModerator}
-                onSubmit={(text) => detail.addComment(text, { uid: user.uid, name: authorName })}
+                onSubmit={async (text) => {
+                  await detail.addComment(text, { uid: user.uid, name: authorName })
+                  void markCommentsSeen(tournamentId, user.uid)
+                }}
                 onDelete={detail.removeComment}
                 onLoadMore={detail.loadMoreComments}
+                unreadSince={commentsUnreadSince}
+                currentUid={user.uid}
               />
             )}
             {!isDetailLoaded && detail.status !== 'error' && (

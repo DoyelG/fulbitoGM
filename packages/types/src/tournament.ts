@@ -23,6 +23,7 @@ export type TournamentMember = {
   email: string
   role: TournamentRole
   playerId: string | null
+  commentsSeenAt?: Date
   joinedAt: Date
   updatedAt: Date
 }

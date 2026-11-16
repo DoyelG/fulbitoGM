@@ -2,12 +2,15 @@ import {
   addTournamentComment,
   deleteTournamentComment,
   getTournamentComments,
+  subscribeToTournamentCommentsSince,
   type TournamentCommentsCursor,
 } from '@fulbito/firebase'
 import type { TournamentComment } from '@fulbito/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 type Status = 'loading' | 'loaded' | 'error'
+
+const NO_COMMENTS_SINCE = new Date(0)
 
 export type TournamentCommentsState = {
   comments: TournamentComment[]
@@ -27,11 +30,13 @@ export function useTournamentComments(tournamentId: string | null): TournamentCo
   const [loadingMore, setLoadingMore] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
   const activeId = useRef(tournamentId)
+  const [liveSince, setLiveSince] = useState<Date | null>(null)
 
   useEffect(() => {
     activeId.current = tournamentId
     setComments([])
     setCursor(null)
+    setLiveSince(null)
     if (!tournamentId) return
     setStatus('loading')
     let isCurrent = true
@@ -40,6 +45,7 @@ export function useTournamentComments(tournamentId: string | null): TournamentCo
         if (!isCurrent) return
         setComments(page.comments)
         setCursor(page.nextCursor)
+        setLiveSince(page.comments[0]?.createdAt ?? NO_COMMENTS_SINCE)
         setStatus('loaded')
       })
       .catch(() => {
@@ -49,6 +55,21 @@ export function useTournamentComments(tournamentId: string | null): TournamentCo
       isCurrent = false
     }
   }, [tournamentId, reloadKey])
+
+  useEffect(() => {
+    if (!tournamentId || !liveSince) return
+    let liveIds = new Set<string>()
+    return subscribeToTournamentCommentsSince(tournamentId, liveSince, (live) => {
+      if (activeId.current !== tournamentId) return
+      const previousIds = liveIds
+      const nextIds = new Set(live.map((comment) => comment.id))
+      liveIds = nextIds
+      setComments((current) => [
+        ...live,
+        ...current.filter((comment) => !nextIds.has(comment.id) && !previousIds.has(comment.id)),
+      ])
+    })
+  }, [tournamentId, liveSince])
 
   const reload = useCallback(() => setReloadKey((key) => key + 1), [])
 
@@ -69,7 +90,11 @@ export function useTournamentComments(tournamentId: string | null): TournamentCo
     async (text: string, author: { uid: string; name: string }) => {
       if (!tournamentId) throw new Error('No hay torneo activo')
       const comment = await addTournamentComment({ tournamentId, authorUid: author.uid, authorName: author.name, text })
-      if (activeId.current === tournamentId) setComments((current) => [comment, ...current])
+      if (activeId.current === tournamentId) {
+        setComments((current) =>
+          current.some((existing) => existing.id === comment.id) ? current : [comment, ...current],
+        )
+      }
     },
     [tournamentId],
   )

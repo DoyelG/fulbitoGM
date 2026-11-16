@@ -1,31 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo } from 'react'
 import { MapPinIcon } from '@heroicons/react/24/outline'
-import {
-  formatLongMatchDate,
-  formatMatchClock,
-  matchLocationMapsUrl,
-  parseMatchDate,
-  pickNextMatch,
-} from '@fulbito/utils'
-import { useMatchStore } from '@/store/useMatchStore'
+import { formatLongMatchDate, formatMatchClock, matchLocationMapsUrl, parseMatchDate } from '@fulbito/utils'
+import { useNextMatch } from '@/hooks/use-next-match'
 import { useHomeStatus } from '@/hooks/use-home-status'
 
 const FOCUS_ON_DARK = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white'
 
-function localToday(): string {
-  const now = new Date()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  return `${now.getFullYear()}-${month}-${String(now.getDate()).padStart(2, '0')}`
-}
-
 export default function NextMatchHero() {
-  const matches = useMatchStore((s) => s.matches)
   const { status } = useHomeStatus()
-  const today = localToday()
-  const next = useMemo(() => pickNextMatch(matches, today), [matches, today])
+  const next = useNextMatch()
 
   if (status === 'error') return null
 

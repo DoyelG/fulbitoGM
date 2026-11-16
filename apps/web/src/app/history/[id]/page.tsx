@@ -104,7 +104,7 @@ export default function MatchDetailPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:items-start">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3">
         <div className="contents lg:col-span-2 lg:flex lg:flex-col lg:gap-5">
           <div className="order-1">
             <MatchHero match={match} tournamentPhotoUrl={tournamentPhotoUrl} />
@@ -144,7 +144,7 @@ export default function MatchDetailPage() {
               <MatchHighlightsPanel match={match} />
             </div>
           )}
-          <div className="order-6">
+          <div className="order-6 lg:flex lg:flex-1 lg:flex-col">
             <TournamentCommentsBox />
           </div>
         </div>

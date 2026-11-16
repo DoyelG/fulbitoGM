@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useMemo } from 'react'
-import { isTournamentAdminRole } from '@fulbito/utils'
+import { buildMentionCandidates, isTournamentAdminRole } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
 import { useTournamentDetailStore } from '@/store/useTournamentDetailStore'
 import CommentsPanel from '@/components/tournaments/detail/CommentsPanel'
+import { useLiveTournamentComments } from '@/hooks/use-live-tournament-comments'
 
 export default function TournamentCommentsBox() {
   const { user } = useFirebaseAuth()
@@ -21,6 +22,8 @@ export default function TournamentCommentsBox() {
     if (tournamentId && !isCurrent) load(tournamentId)
   }, [tournamentId, isCurrent, load])
 
+  useLiveTournamentComments(tournamentId, isCurrent && detail.status === 'loaded')
+
   const photoByUid = useMemo(() => {
     const photos = new Map<string, string>()
     for (const member of detail.members) {
@@ -29,6 +32,7 @@ export default function TournamentCommentsBox() {
     }
     return photos
   }, [detail.members, players])
+  const mentionCandidates = useMemo(() => buildMentionCandidates(players, detail.members), [detail.members, players])
 
   if (!active || !user) return null
 
@@ -52,6 +56,7 @@ export default function TournamentCommentsBox() {
       comments={detail.comments}
       hasMore={detail.commentsCursor !== null}
       photoByUid={photoByUid}
+      mentionCandidates={mentionCandidates}
       canModerate={isTournamentAdminRole(membership.role)}
       onSubmit={(text) => detail.addComment(text, { uid: user.uid, name: authorName })}
       onDelete={detail.removeComment}

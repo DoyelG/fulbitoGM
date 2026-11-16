@@ -14,7 +14,7 @@ export type MatchesDataState = {
   reload: () => Promise<void>
   refresh: () => Promise<void>
   deleteMatch: (id: string) => Promise<void>
-  addMatch: (m: MatchInput) => Promise<void>
+  addMatch: (m: MatchInput) => Promise<string>
   updateMatch: (id: string, m: MatchInput) => Promise<void>
 }
 
@@ -51,8 +51,9 @@ export function useMatchesData(): MatchesDataState {
 
   const handleAddMatch = useCallback(
     async (m: MatchInput) => {
-      await createMatch(requireTournament(tournamentId), m)
+      const matchId = await createMatch(requireTournament(tournamentId), m)
       await reload()
+      return matchId
     },
     [tournamentId, reload],
   )

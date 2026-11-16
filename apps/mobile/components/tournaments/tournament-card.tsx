@@ -1,7 +1,13 @@
 import Feather from '@expo/vector-icons/Feather'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import type { Match, MyTournament } from '@fulbito/types'
-import { formatMatchDate, formatMatchHour, isTournamentAdminRole, parseMatchDate } from '@fulbito/utils'
+import {
+  formatMatchDate,
+  formatMatchHour,
+  isTournamentAdminRole,
+  parseMatchDate,
+  unreadCommentsLabel,
+} from '@fulbito/utils'
 import { Image } from 'expo-image'
 import type { ComponentProps } from 'react'
 import { Pressable, Text, TouchableOpacity, View } from 'react-native'
@@ -19,7 +25,9 @@ type Props = {
   active: boolean
   playerName: string | null
   nextMatch: NextMatchSummary | null
+  unreadComments: number
   onOpen: (item: MyTournament) => void
+  onActivate: (item: MyTournament) => void
   onOpenMatch: (item: MyTournament, matchId: string) => void
   onLinkPlayer: (item: MyTournament) => void
   onMembers: (item: MyTournament) => void
@@ -57,7 +65,9 @@ export function TournamentCard({
   active,
   playerName,
   nextMatch,
+  unreadComments,
   onOpen,
+  onActivate,
   onOpenMatch,
   onLinkPlayer,
   onMembers,
@@ -87,8 +97,14 @@ export function TournamentCard({
       <Pressable
         onPress={() => onOpen(item)}
         accessibilityRole="button"
-        accessibilityLabel={active ? `Ir a ${tournament.name}` : `Activar ${tournament.name}`}
+        accessibilityLabel={`${active ? `Ir a ${tournament.name}` : `Activar ${tournament.name}`}${
+          unreadComments > 0 ? `. ${unreadCommentsLabel(unreadComments)}` : ''
+        }`}
         accessibilityState={{ selected: active }}
+        accessibilityActions={active ? undefined : [{ name: 'activate', label: `Activar ${tournament.name}` }]}
+        onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === 'activate') onActivate(item)
+        }}
         style={({ pressed }) => [styles.main, pressed && styles.pressed]}
       >
         <View style={[styles.photo, { backgroundColor: colors.primarySoft }]}>
@@ -108,14 +124,35 @@ export function TournamentCard({
             <Text style={[styles.name, { color: colors.text }]} numberOfLines={2}>
               {tournament.name}
             </Text>
-            {active && (
+            {active ? (
               <View style={styles.activeBadge}>
                 <PrimaryGradient />
                 <Text style={[styles.activeText, { color: colors.onPrimary }]}>ACTIVO</Text>
               </View>
+            ) : (
+              <Pressable
+                onPress={() => onActivate(item)}
+                hitSlop={styles.activateHitSlop}
+                accessibilityRole="button"
+                accessibilityLabel={`Activar ${tournament.name}`}
+                style={({ pressed }) => [
+                  styles.activateBadge,
+                  { borderColor: colors.primaryText, backgroundColor: pressed ? colors.primarySoft : colors.surface },
+                ]}
+              >
+                <Text style={[styles.activeText, { color: colors.primaryText }]}>ACTIVAR</Text>
+              </Pressable>
             )}
           </View>
           <RoleBadge role={membership.role} />
+          {unreadComments > 0 && (
+            <View style={[styles.unreadChip, { backgroundColor: colors.secondarySoft }]}>
+              <Feather name="message-circle" size={12} color={colors.secondaryText} accessible={false} />
+              <Text style={[styles.unreadText, { color: colors.secondaryText }]}>
+                {unreadCommentsLabel(unreadComments)}
+              </Text>
+            </View>
+          )}
           {tournament.description && (
             <Text style={[styles.description, { color: colors.muted }]} numberOfLines={2}>
               {tournament.description}

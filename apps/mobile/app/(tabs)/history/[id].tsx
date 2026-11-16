@@ -1,5 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import { teamTotals, winProbabilityA, isTournamentAdminRole } from '@fulbito/utils'
+import { buildMentionCandidates, teamTotals, winProbabilityA, isTournamentAdminRole } from '@fulbito/utils'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useMemo } from 'react'
 import {
@@ -24,7 +24,9 @@ import { PlayerClipsSection } from '@/components/players/detail/player-clips-sec
 import { PrimaryGradient } from '@/components/primary-gradient'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useMyPlayerId, useTournaments } from '@/contexts/TournamentContext'
+import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import { useCommentsUnreadSince } from '@/hooks/use-comments-unread-since'
 import { useMatchesData } from '@/hooks/use-matches-data'
 import { useTournamentComments } from '@/hooks/use-tournament-comments'
 import { useTournamentMembers } from '@/hooks/use-tournament-members'
@@ -55,6 +57,8 @@ export default function MatchDetailScreen() {
   const { matches, players, loading, error, refreshing, refresh, reload } = useMatchesData()
   const tournamentId = activeTournament?.tournament.id ?? null
   const comments = useTournamentComments(tournamentId)
+  const { markSeen: markCommentsSeen } = useUnreadComments()
+  const commentsUnreadSince = useCommentsUnreadSince(activeTournament, comments.status === 'loaded')
   const members = useTournamentMembers(tournamentId)
 
   const match = matches.find((row) => row.id === id) ?? null
@@ -67,6 +71,7 @@ export default function MatchDetailScreen() {
     }
     return photos
   }, [members, playerById])
+  const mentionCandidates = useMemo(() => buildMentionCandidates(players, members), [players, members])
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/history'))
 
@@ -182,8 +187,14 @@ export default function MatchDetailScreen() {
               <TournamentCommentsCard
                 state={comments}
                 photoByUid={photoByUid}
+                mentionCandidates={mentionCandidates}
                 canModerate={isTournamentAdminRole(membership?.role)}
-                onSubmit={(text) => comments.addComment(text, { uid: user.uid, name: authorName })}
+                unreadSince={commentsUnreadSince}
+                currentUid={user.uid}
+                onSubmit={async (text) => {
+                  await comments.addComment(text, { uid: user.uid, name: authorName })
+                  if (tournamentId) markCommentsSeen(tournamentId)
+                }}
               />
             </>
           )}

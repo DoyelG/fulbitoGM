@@ -8,6 +8,8 @@ import type { User } from '@/constants/auth'
 import { PrimaryColors, Spacing } from '@/constants/theme'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournaments } from '@/contexts/TournamentContext'
+import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
+import { unreadCommentsLabel } from '@fulbito/utils'
 import { useCanManageTournamentMembers } from '@/hooks/use-can-manage-tournament'
 import { useLinkedPlayer } from '@/hooks/use-linked-player'
 import { usePendingPlayerRequests } from '@/hooks/use-pending-player-requests'
@@ -32,6 +34,7 @@ export function Navbar() {
   const linkedPlayer = useLinkedPlayer(activeTournament?.membership.playerId ?? undefined)
   const { requests } = usePendingPlayerRequests()
   const pendingCount = requests.length
+  const { totalUnread } = useUnreadComments()
   const tournamentId = activeTournament?.tournament.id ?? null
 
   const user = useMemo<User | null>(() => {
@@ -105,6 +108,7 @@ export function Navbar() {
 
   const pathname = usePathname()
   const isOnTournaments = pathname.startsWith('/tournaments')
+  const isOnMessages = pathname.startsWith('/messages')
   const returnPath = useRef<string | null>(null)
 
   const openTournaments = useCallback(() => {
@@ -138,32 +142,60 @@ export function Navbar() {
 
         {user ? (
           <View style={styles.actions}>
-            <Pressable
-              onPress={toggleTournaments}
-              hitSlop={8}
-              style={({ pressed }) => [
-                styles.tournamentChip,
-                isOnTournaments && styles.tournamentChipActive,
-                pressed && styles.tournamentChipPressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={
-                activeTournament ? `Torneo activo: ${activeTournament.tournament.name}` : 'Mis torneos'
-              }
-              accessibilityHint={isOnTournaments ? 'Vuelve a la pantalla anterior' : 'Abre Mis torneos'}
-              accessibilityState={{ selected: isOnTournaments }}
-            >
-              {activeTournament?.tournament.photoUrl ? (
-                <Image
-                  source={{ uri: activeTournament.tournament.photoUrl }}
-                  style={styles.tournamentPhoto}
-                  contentFit="cover"
-                  accessible={false}
-                />
-              ) : (
-                <Ionicons name="trophy-outline" size={18} color={PrimaryColors.onPrimary} />
+            <View>
+              <Pressable
+                onPress={toggleTournaments}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.tournamentChip,
+                  isOnTournaments && styles.tournamentChipActive,
+                  pressed && styles.tournamentChipPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  activeTournament ? `Torneo activo: ${activeTournament.tournament.name}` : 'Mis torneos'
+                }
+                accessibilityHint={isOnTournaments ? 'Vuelve a la pantalla anterior' : 'Abre Mis torneos'}
+                accessibilityState={{ selected: isOnTournaments }}
+              >
+                {activeTournament?.tournament.photoUrl ? (
+                  <Image
+                    source={{ uri: activeTournament.tournament.photoUrl }}
+                    style={styles.tournamentPhoto}
+                    contentFit="cover"
+                    accessible={false}
+                  />
+                ) : (
+                  <Ionicons name="trophy-outline" size={18} color={PrimaryColors.onPrimary} />
+                )}
+              </Pressable>
+            </View>
+
+            <View>
+              <Pressable
+                onPress={() => {
+                  close()
+                  router.navigate('/messages')
+                }}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.tournamentChip,
+                  isOnMessages && styles.tournamentChipActive,
+                  pressed && styles.tournamentChipPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={`Mensajes${totalUnread > 0 ? `. ${unreadCommentsLabel(totalUnread)}` : ''}`}
+                accessibilityHint="Abre los mensajes de tus torneos"
+                accessibilityState={{ selected: isOnMessages }}
+              >
+                <Ionicons name="chatbubbles-outline" size={18} color={PrimaryColors.onPrimary} />
+              </Pressable>
+              {totalUnread > 0 && (
+                <View style={styles.badge} pointerEvents="none" importantForAccessibility="no-hide-descendants">
+                  <NotificationBadge count={totalUnread} />
+                </View>
               )}
-            </Pressable>
+            </View>
 
             <Pressable
               onPress={toggle}

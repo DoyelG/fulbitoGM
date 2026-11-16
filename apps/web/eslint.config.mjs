@@ -25,7 +25,7 @@ const eslintConfig = [
     },
   },
   {
-    files: ["src/app/api/**/*.tsx"],
+    files: ["src/app/api/match-image/route.tsx"],
     rules: {
       "@next/next/no-img-element": "off",
     },

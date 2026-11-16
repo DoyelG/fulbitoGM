@@ -61,3 +61,11 @@ export function hasLinkablePlayers(players: Player[], members: TournamentMember[
 export function canChangeMemberRole(actorRole: TournamentRole, targetRole: TournamentRole): boolean {
   return actorRole === 'OWNER' && targetRole !== 'OWNER'
 }
+
+export function commentsSeenSince(membership: Pick<TournamentMember, 'commentsSeenAt' | 'joinedAt'>): Date {
+  return membership.commentsSeenAt ?? membership.joinedAt
+}
+
+export function unreadCommentsLabel(count: number): string {
+  return count === 1 ? '1 mensaje sin leer' : `${count} mensajes sin leer`
+}

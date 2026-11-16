@@ -1,8 +1,9 @@
 import { StyleSheet } from 'react-native'
 
-import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
+import { Fonts, Radii, Spacing } from '@/constants/theme'
 
 const AVATAR_SIZE = 36
+const UNREAD_DOT_SIZE = 8
 
 export const styles = StyleSheet.create({
   card: {
@@ -10,51 +11,15 @@ export const styles = StyleSheet.create({
     borderRadius: Radii.lg,
     padding: Spacing.lg,
   },
-  input: {
-    minHeight: 80,
-    borderWidth: 1,
-    borderRadius: Radii.md,
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.md,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    textAlignVertical: 'top',
-  },
-  formFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: Spacing.sm,
-  },
-  counter: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-  },
-  sendBtn: {
-    overflow: 'hidden',
-    minHeight: 44,
-    minWidth: 112,
-    borderRadius: Radii.pill,
-    paddingHorizontal: Spacing.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendBtnDisabled: {
-    opacity: 0.5,
-  },
-  sendText: {
-    color: ContrastColors.onColor,
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-  },
   error: {
     marginTop: Spacing.sm,
     fontFamily: Fonts.medium,
     fontSize: 13,
   },
-  list: {
+  listSpacing: {
     marginTop: Spacing.lg,
+  },
+  list: {
     gap: Spacing.lg,
   },
   retry: {
@@ -96,7 +61,18 @@ export const styles = StyleSheet.create({
   authorBlock: {
     flex: 1,
   },
+  authorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  unreadDot: {
+    width: UNREAD_DOT_SIZE,
+    height: UNREAD_DOT_SIZE,
+    borderRadius: Radii.pill,
+  },
   author: {
+    flexShrink: 1,
     fontFamily: Fonts.semiBold,
     fontSize: 13,
   },
@@ -115,6 +91,9 @@ export const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: Fonts.regular,
     fontSize: 14,
+  },
+  mention: {
+    fontFamily: Fonts.semiBold,
   },
   moreBtn: {
     minHeight: 44,

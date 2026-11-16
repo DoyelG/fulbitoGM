@@ -1,4 +1,4 @@
-import { getDraftMatches, getPlayersByIds } from '@fulbito/firebase'
+import { getDraftMatches } from '@fulbito/firebase'
 import type { MyTournament } from '@fulbito/types'
 import { pickNextMatch, toLocalDay } from '@fulbito/utils'
 import { useRouter } from 'expo-router'
@@ -17,27 +17,9 @@ import { VerifyEmailNotice } from '@/components/tournaments/verify-email-notice'
 import EmptyState from '@/components/ui/empty-state/empty-state'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournaments, type TournamentInput } from '@/contexts/TournamentContext'
+import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
+import { useLinkedPlayerNames } from '@/hooks/use-linked-player-names'
 import { useAppTheme } from '@/hooks/use-theme'
-
-function useLinkedPlayerNames(myTournaments: MyTournament[]): Map<string, string> {
-  const [names, setNames] = useState<Map<string, string>>(new Map())
-  const playerIdsKey = myTournaments
-    .flatMap(({ membership }) => (membership.playerId ? [membership.playerId] : []))
-    .join(',')
-
-  useEffect(() => {
-    if (!playerIdsKey) return
-    let isCurrent = true
-    getPlayersByIds(playerIdsKey.split(',')).then((players) => {
-      if (isCurrent) setNames(new Map(players.map((player) => [player.id, player.name])))
-    })
-    return () => {
-      isCurrent = false
-    }
-  }, [playerIdsKey])
-
-  return names
-}
 
 function useNextMatches(myTournaments: MyTournament[], reloadKey: number): Map<string, NextMatchSummary> {
   const [nextMatches, setNextMatches] = useState<Map<string, NextMatchSummary>>(new Map())
@@ -79,6 +61,7 @@ export default function TournamentsScreen() {
     deleteTournament,
     leaveTournament,
   } = useTournaments()
+  const { unreadByTournament } = useUnreadComments()
   const playerNames = useLinkedPlayerNames(myTournaments)
   const [nextMatchesReloadKey, setNextMatchesReloadKey] = useState(0)
   const nextMatches = useNextMatches(myTournaments, nextMatchesReloadKey)
@@ -172,6 +155,9 @@ export default function TournamentsScreen() {
           {user.emailVerified ? (
             <>
               <View style={styles.createRow}>
+                <Text accessibilityRole="header" style={[styles.title, { color: colors.text }]}>
+                  MIS TORNEOS
+                </Text>
                 <ProfileButton label="Crear torneo" onPress={() => setIsCreating(true)} />
               </View>
 
@@ -209,7 +195,9 @@ export default function TournamentsScreen() {
                     active={item.tournament.id === activeTournamentId}
                     playerName={item.membership.playerId ? (playerNames.get(item.membership.playerId) ?? null) : null}
                     nextMatch={nextMatches.get(item.tournament.id) ?? null}
+                    unreadComments={unreadByTournament[item.tournament.id] ?? 0}
                     onOpen={handleOpen}
+                    onActivate={(item) => setActiveTournament(item.tournament.id)}
                     onOpenMatch={handleOpenMatch}
                     onLinkPlayer={handleLinkPlayer}
                     onMembers={handleMembers}

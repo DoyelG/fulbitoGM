@@ -179,6 +179,14 @@ export function MatchCard({ match, players, canManage, clipCount, onOpen, onEdit
             </View>
           ) : null}
           <TouchableOpacity
+            onPress={onOpen}
+            style={[styles.actionBtn, { backgroundColor: colors.primarySoft }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Ver detalle del partido${match.name ? `: ${match.name}` : ''}`}
+          >
+            <Feather name="eye" size={18} color={colors.primaryText} accessible={false} />
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={onViewClips}
             style={[styles.actionBtn, { backgroundColor: colors.primarySoft }]}
             accessibilityRole="button"

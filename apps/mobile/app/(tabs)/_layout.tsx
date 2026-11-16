@@ -10,7 +10,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme'
 
 import { styles } from '@/components/tabs-layout.styles'
 
-const ROUTES_WITHOUT_TOURNAMENT = ['/tournaments', '/profile']
+const ROUTES_WITHOUT_TOURNAMENT = ['/tournaments', '/profile', '/messages']
 
 export default function TabLayout() {
   const colorScheme = useColorScheme()
@@ -91,6 +91,7 @@ export default function TabLayout() {
         <Tabs.Screen name="tournaments" options={{ tabBarItemStyle: styles.hiddenTabItem }} />
         <Tabs.Screen name="requests" options={{ tabBarItemStyle: styles.hiddenTabItem }} />
         <Tabs.Screen name="profile" options={{ tabBarItemStyle: styles.hiddenTabItem }} />
+        <Tabs.Screen name="messages" options={{ tabBarItemStyle: styles.hiddenTabItem }} />
       </Tabs>
       {isWaiting && (
         <View style={[styles.overlay, { backgroundColor: palette.background }]} accessibilityLiveRegion="polite">

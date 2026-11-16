@@ -12,7 +12,7 @@ export default function NavAuth({ closeNavBar }: Props) {
   const { user } = useFirebaseAuth()
 
   return (
-    <div className="flex flex-col lg:flex-row items-center gap-3">
+    <div className="flex flex-col lg:flex-row lg:items-center gap-3">
       {user ? (
         <UserMenu closeNavBar={closeNavBar} />
       ) : (

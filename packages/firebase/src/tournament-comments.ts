@@ -6,16 +6,21 @@ import {
   getDocs,
   getFirestore,
   limit,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   startAfter,
+  Timestamp,
+  updateDoc,
+  where,
   type QueryConstraint,
   type QueryDocumentSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore'
 import type { TournamentComment } from '@fulbito/types'
 import { toDate } from './dates'
-import { TOURNAMENTS_COLLECTION } from './tournaments'
+import { MEMBERS_COLLECTION, TOURNAMENTS_COLLECTION } from './tournaments'
 
 export const COMMENTS_COLLECTION = 'comments'
 export const TOURNAMENT_COMMENT_MAX_LENGTH = 500
@@ -95,4 +100,36 @@ export async function addTournamentComment(input: AddTournamentCommentInput): Pr
 
 export async function deleteTournamentComment(tournamentId: string, commentId: string): Promise<void> {
   await deleteDoc(doc(commentsRef(tournamentId), commentId))
+}
+
+export const TOURNAMENT_COMMENTS_LIVE_LIMIT = 100
+
+export function subscribeToTournamentCommentsSince(
+  tournamentId: string,
+  since: Date,
+  onChange: (comments: TournamentComment[]) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  const liveQuery = query(
+    commentsRef(tournamentId),
+    where('createdAt', '>', Timestamp.fromDate(since)),
+    orderBy('createdAt', 'desc'),
+    limit(TOURNAMENT_COMMENTS_LIVE_LIMIT),
+  )
+  return onSnapshot(
+    liveQuery,
+    (snap) =>
+      onChange(
+        snap.docs.map((comment) =>
+          docToTournamentComment(tournamentId, comment.id, comment.data({ serverTimestamps: 'estimate' })),
+        ),
+      ),
+    onError,
+  )
+}
+
+export async function markTournamentCommentsSeen(tournamentId: string, uid: string): Promise<void> {
+  await updateDoc(doc(getFirestore(), TOURNAMENTS_COLLECTION, tournamentId, MEMBERS_COLLECTION, uid), {
+    commentsSeenAt: serverTimestamp(),
+  })
 }

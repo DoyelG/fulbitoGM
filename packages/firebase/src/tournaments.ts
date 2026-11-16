@@ -58,6 +58,7 @@ export function docToTournamentMember(
     email: typeof data['email'] === 'string' ? data['email'] : '',
     role: (data['role'] as TournamentRole | undefined) ?? 'MEMBER',
     playerId: optionalString(data['playerId']) ?? null,
+    commentsSeenAt: toOptionalDate(data['commentsSeenAt']),
     joinedAt: toDate(data['joinedAt']),
     updatedAt: toDate(data['updatedAt']),
   }

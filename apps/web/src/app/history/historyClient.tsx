@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
@@ -42,7 +43,7 @@ import { fieldClassName, selectClassName, textareaClassName, compactFieldClassNa
 import AddressPicker from '@/components/AddressPicker'
 import MatchLocationLink from '@/components/MatchLocationLink'
 import SearchInput from '@/components/SearchInput'
-import { FiCheckCircle, FiEdit2, FiTrash2, FiVideo } from 'react-icons/fi'
+import { FiCheckCircle, FiEdit2, FiEye, FiTrash2, FiVideo } from 'react-icons/fi'
 import Chevron from '../shared/Icons/Chevron'
 import WidgetError from '@/components/home/WidgetError'
 import CopyMatchImageButton from '@/components/tournaments/detail/CopyMatchImageButton'
@@ -61,6 +62,7 @@ const MATCH_COMPLETE_CLASS = `${MATCH_ACTION_SHAPE} bg-primary text-white hover:
 const MATCH_DELETE_CLASS = `${MATCH_ACTION_SHAPE} bg-secondary/10 text-orange-700 hover:bg-secondary/20 focus-visible:ring-secondary/40`
 
 export default function HistoryClient() {
+  const router = useRouter()
   const { user } = useFirebaseAuth()
   const canManage = useCanManageTournament()
   const { addMatch, updateMatch, deleteMatch, matches: storeMatches, matchesInit } = useMatchStore()
@@ -398,6 +400,14 @@ export default function HistoryClient() {
                       )}
                     </div>
                     <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <Link
+                        href={`/history/${match.id}`}
+                        className={MATCH_ACTION_CLASS}
+                        aria-label={`Ver detalle del partido${match.name ? `: ${match.name}` : ''}`}
+                      >
+                        <FiEye className="h-[18px] w-[18px] sm:h-4 sm:w-4" aria-hidden="true" />
+                        <span className="hidden sm:inline">Ver detalle</span>
+                      </Link>
                       <button
                         type="button"
                         className={MATCH_ACTION_CLASS}
@@ -490,7 +500,8 @@ export default function HistoryClient() {
               if (open.mode === 'edit' && open.match) {
                 await updateMatch(open.match.id, match)
               } else {
-                await addMatch(match)
+                const matchId = await addMatch(match)
+                router.push(`/history/${matchId}`)
               }
             }}
           />

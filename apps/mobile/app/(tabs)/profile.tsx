@@ -1,11 +1,12 @@
 import { getPlayer } from '@fulbito/firebase'
-import type { Player } from '@fulbito/types'
-import { TOURNAMENT_ROLE_LABELS } from '@fulbito/utils'
+import type { MyTournament, Player } from '@fulbito/types'
+import { router } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
-import { ScrollView } from 'react-native'
+import { ScrollView, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
+import { MyTournamentsSection } from '@/components/profile/my-tournaments-section'
 import { PlayerRequestSection } from '@/components/profile/player-request-section'
 import { PlayerSection } from '@/components/profile/player-section'
 import { ProfileHeader } from '@/components/profile/profile-header'
@@ -15,11 +16,17 @@ import { ThemedView } from '@/components/themed-view'
 import EmptyState from '@/components/ui/empty-state/empty-state'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournaments } from '@/contexts/TournamentContext'
+import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
+import { useLinkedPlayerNames } from '@/hooks/use-linked-player-names'
 import { useMatchesData } from '@/hooks/use-matches-data'
+import { useAppTheme } from '@/hooks/use-theme'
 
 export default function ProfileScreen() {
   const { user, isAdmin } = useFirebaseAuth()
-  const { activeTournament } = useTournaments()
+  const { activeTournament, myTournaments, setActiveTournament } = useTournaments()
+  const { unreadByTournament } = useUnreadComments()
+  const playerNameById = useLinkedPlayerNames(myTournaments)
+  const { colors } = useAppTheme()
   const { matches } = useMatchesData()
   const [player, setPlayer] = useState<Player | null>(null)
 
@@ -47,20 +54,44 @@ export default function ProfileScreen() {
   }
 
   const badges = [
-    ...(activeTournament
-      ? [`${TOURNAMENT_ROLE_LABELS[activeTournament.membership.role]} en ${activeTournament.tournament.name}`]
-      : []),
+    myTournaments.length === 1 ? '1 torneo' : `${myTournaments.length} torneos`,
     ...(isAdmin ? ['Superadmin'] : []),
   ]
+
+  const openTournament = (item: MyTournament) => {
+    setActiveTournament(item.tournament.id)
+    router.navigate('/home')
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       <ThemedView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content}>
           <ProfileHeader email={user.email} badges={badges} photoUrl={player?.photoUrl} />
-          {player && <PlayerSection key={player.id} player={player} index={0} onSaved={() => void loadPlayer()} />}
+          <MyTournamentsSection
+            myTournaments={myTournaments}
+            activeTournamentId={activeTournament?.tournament.id ?? null}
+            playerNameById={playerNameById}
+            unreadByTournament={unreadByTournament}
+            index={0}
+            onOpen={openTournament}
+          />
+          {activeTournament && (
+            <Text style={[styles.groupTitle, { color: colors.muted }]} accessibilityRole="header">
+              EN {activeTournament.tournament.name.toUpperCase()}
+            </Text>
+          )}
           {player && (
-            <ProfileSection icon="film" title="Mis clips" index={1}>
+            <PlayerSection
+              key={player.id}
+              player={player}
+              matches={matches}
+              index={1}
+              onPhotoChanged={() => void loadPlayer()}
+            />
+          )}
+          {player && (
+            <ProfileSection icon="film" title="Mis clips" index={2}>
               <PlayerClipsSection playerId={player.id} matches={matches} canUpload />
             </ProfileSection>
           )}
@@ -70,7 +101,7 @@ export default function ProfileScreen() {
               user={user}
               tournamentId={activeTournament.tournament.id}
               tournamentName={activeTournament.tournament.name}
-              index={0}
+              index={1}
             />
           )}
           {!activeTournament && (

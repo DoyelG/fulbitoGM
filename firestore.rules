@@ -299,6 +299,11 @@ service cloud.firestore {
           );
 
         allow update: if (
+          uid == request.auth.uid
+          && isTournamentMember(tournamentId)
+          && changedKeys().hasOnly(['commentsSeenAt'])
+          && request.resource.data.commentsSeenAt == request.time
+        ) || (
           isTournamentOwner(tournamentId)
           && resource.data.role != 'OWNER'
           && changedKeys().hasOnly(['role', 'updatedAt'])

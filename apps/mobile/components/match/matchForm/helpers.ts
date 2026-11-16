@@ -69,7 +69,7 @@ export type BuildPayloadInput = {
   matchLocation?: MatchLocation | null
 }
 
-export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
+export function buildFinalMatchPayload(input: BuildPayloadInput): MatchInput {
   const buildTeamPlayers = (
     team: RecordingPlayer[],
     goals: Record<string, string>,

@@ -1,4 +1,4 @@
-import type { ComponentType, MouseEvent, ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import Link from 'next/link'
 import { CalendarDaysIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/outline'
 
@@ -28,7 +28,7 @@ type StatProps = {
 const tileClassName =
   'flex min-h-10 min-w-0 items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-sm ring-1 ring-inset ring-gray-200'
 const interactiveClassName =
-  'transition-colors hover:bg-primary/5 hover:ring-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+  'relative z-10 transition-colors hover:bg-primary/5 hover:ring-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 
 function Stat({ icon: Icon, children, muted = false, href, ariaLabel, onNavigate, onClick }: StatProps) {
   const content = (
@@ -44,10 +44,7 @@ function Stat({ icon: Icon, children, muted = false, href, ariaLabel, onNavigate
     return (
       <button
         type="button"
-        onClick={(event) => {
-          event.stopPropagation()
-          onClick()
-        }}
+        onClick={onClick}
         aria-label={ariaLabel}
         className={`${tileClassName} ${interactiveClassName} text-left`}
       >
@@ -58,15 +55,10 @@ function Stat({ icon: Icon, children, muted = false, href, ariaLabel, onNavigate
 
   if (!href) return <div className={tileClassName}>{content}</div>
 
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.stopPropagation()
-    onNavigate()
-  }
-
   return (
     <Link
       href={href}
-      onClick={handleClick}
+      onClick={onNavigate}
       aria-label={ariaLabel}
       className={`${tileClassName} ${interactiveClassName}`}
     >

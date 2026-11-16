@@ -18,7 +18,7 @@ import { DescriptionField } from './matchForm/descriptionField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { HourField } from './matchForm/hourField'
-import { buildMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
+import { buildFinalMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
 import { MvpSection } from './matchForm/mvpSection'
 import { NameField } from './matchForm/nameField'
 import { PoolSection } from './matchForm/poolSection'
@@ -156,7 +156,7 @@ export function MatchForm({
   const handleSave = async () => {
     if (!canSave) return
     try {
-      const payload = buildMatchPayload({
+      const payload = buildFinalMatchPayload({
         matchDate,
         matchHour,
         matchType,

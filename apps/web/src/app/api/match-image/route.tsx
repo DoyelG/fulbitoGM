@@ -1,7 +1,6 @@
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import { parseMatchImageData, type MatchImageTeam } from '@/lib/match-image'
+import { loadMontserrat } from './montserrat'
 import { loadTournamentLogo } from './tournament-logo'
 
 const WIDTH = 1200
@@ -22,12 +21,6 @@ const IMAGE_COLORS = {
   muted: '#4b5563',
   onPrimary: '#ffffff',
 }
-
-const fontsPromise = Promise.all(
-  ['Montserrat_500Medium.ttf', 'Montserrat_800ExtraBold.ttf'].map((file) =>
-    readFile(join(process.cwd(), 'assets/fonts', file)),
-  ),
-)
 
 function Team({ team, accent }: { team: MatchImageTeam; accent: string }) {
   return (
@@ -96,7 +89,7 @@ export async function POST(request: Request) {
   const data = parseMatchImageData(await request.json().catch(() => null))
   if (!data) return new Response('Invalid match', { status: 400 })
 
-  const [[medium, extraBold], logo] = await Promise.all([fontsPromise, loadTournamentLogo(data.tournamentPhotoUrl)])
+  const [fonts, logo] = await Promise.all([loadMontserrat(), loadTournamentLogo(data.tournamentPhotoUrl)])
   const rows = Math.max(data.teamA.players.length, data.teamB.players.length, 1)
   const height = HEADER_HEIGHT + TEAM_CHROME_HEIGHT + rows * PLAYER_ROW_HEIGHT
   const when = data.hourLabel ? `${data.dateLabel} · ${data.hourLabel}` : data.dateLabel
@@ -184,10 +177,7 @@ export async function POST(request: Request) {
     {
       width: WIDTH,
       height,
-      fonts: [
-        { name: 'Montserrat', data: medium, weight: 500, style: 'normal' },
-        { name: 'Montserrat', data: extraBold, weight: 800, style: 'normal' },
-      ],
+      fonts: fonts.length > 0 ? fonts : undefined,
     },
   )
 }
