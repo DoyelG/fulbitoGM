@@ -1,3 +1,4 @@
+import { MATCH_TYPES, type MatchType } from '@fulbito/types'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 import { PrimaryGradient } from '@/components/primary-gradient'
@@ -5,11 +6,10 @@ import { ContrastColors, PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { FormLabel } from './formLabel'
-import { MATCH_TYPES, type MatchType } from './types'
 
 type Props = {
   value: MatchType
-  onChange: (t: MatchType) => void
+  onChange: (type: MatchType) => void
 }
 
 export function TypeSelector({ value, onChange }: Props) {
@@ -19,12 +19,12 @@ export function TypeSelector({ value, onChange }: Props) {
     <>
       <FormLabel text="Modo de partido" />
       <View style={styles.row}>
-        {MATCH_TYPES.map((t) => {
-          const active = t === value
+        {MATCH_TYPES.map((type) => {
+          const active = type === value
           return (
             <TouchableOpacity
-              key={t}
-              onPress={() => onChange(t)}
+              key={type}
+              onPress={() => onChange(type)}
               style={[
                 styles.chip,
                 {
@@ -34,7 +34,7 @@ export function TypeSelector({ value, onChange }: Props) {
               ]}
             >
               {active && <PrimaryGradient />}
-              <Text style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>{t}</Text>
+              <Text style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>{type}</Text>
             </TouchableOpacity>
           )
         })}

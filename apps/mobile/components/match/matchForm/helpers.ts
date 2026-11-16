@@ -1,15 +1,15 @@
-import type { MatchInput, Player, MatchLocation } from '@fulbito/types'
+import type { MatchInput, Player, MatchLocation, MatchType } from '@fulbito/types'
 import { buildMatchSchedule } from '@fulbito/utils'
 
-import type { MatchType, RecordingPlayer } from './types'
+import type { RecordingPlayer } from './types'
 
-export function toPlayerInfo(p: Player) {
+export function toPlayerInfo(player: Player) {
   return {
-    id: p.id,
-    name: p.name,
-    position: p.position,
-    skill: (p.skill ?? 'unknown') as number | 'unknown',
-    physical: (p.skills?.physical ?? 'unknown') as number | 'unknown',
+    id: player.id,
+    name: player.name,
+    position: player.position,
+    skill: (player.skill ?? 'unknown') as number | 'unknown',
+    physical: (player.skills?.physical ?? 'unknown') as number | 'unknown',
   }
 }
 
@@ -27,19 +27,19 @@ export function computeTeamStats(
   teamB: RecordingPlayer[],
   poolPlayers: Player[],
 ): TeamStats {
-  const norm = (v: number | null | undefined) => (v == null ? 5 : v)
-  const normPhys = (v: number | 'unknown' | null | undefined) =>
-    v === 'unknown' || v == null ? 5 : v
+  const normalizeSkill = (value: number | null | undefined) => (value == null ? 5 : value)
+  const normalizePhysical = (value: number | 'unknown' | null | undefined) =>
+    value === 'unknown' || value == null ? 5 : value
 
-  const teamAIds = new Set(teamA.map((p) => p.id))
-  const teamBIds = new Set(teamB.map((p) => p.id))
-  const playersA = poolPlayers.filter((p) => teamAIds.has(p.id))
-  const playersB = poolPlayers.filter((p) => teamBIds.has(p.id))
+  const teamAIds = new Set(teamA.map((player) => player.id))
+  const teamBIds = new Set(teamB.map((player) => player.id))
+  const playersA = poolPlayers.filter((player) => teamAIds.has(player.id))
+  const playersB = poolPlayers.filter((player) => teamBIds.has(player.id))
 
-  const skillA = playersA.reduce((s, p) => s + norm(p.skill), 0)
-  const skillB = playersB.reduce((s, p) => s + norm(p.skill), 0)
-  const physA = playersA.reduce((s, p) => s + normPhys(p.skills?.physical), 0)
-  const physB = playersB.reduce((s, p) => s + normPhys(p.skills?.physical), 0)
+  const skillA = playersA.reduce((total, player) => total + normalizeSkill(player.skill), 0)
+  const skillB = playersB.reduce((total, player) => total + normalizeSkill(player.skill), 0)
+  const physA = playersA.reduce((total, player) => total + normalizePhysical(player.skills?.physical), 0)
+  const physB = playersB.reduce((total, player) => total + normalizePhysical(player.skills?.physical), 0)
 
   const total = skillA + skillB
   const winPctA = total > 0 ? Math.round((skillA / total) * 100) : 50
@@ -75,11 +75,11 @@ export function buildFinalMatchPayload(input: BuildPayloadInput): MatchInput {
     goals: Record<string, string>,
     perf: Record<string, string>,
   ) =>
-    team.map((p) => ({
-      id: p.id,
-      name: p.name,
-      goals: parseInt(goals[p.id] ?? '0') || 0,
-      performance: parseFloat(perf[p.id] ?? '5') || 5,
+    team.map((player) => ({
+      id: player.id,
+      name: player.name,
+      goals: parseInt(goals[player.id] ?? '0') || 0,
+      performance: parseFloat(perf[player.id] ?? '5') || 5,
     }))
 
   return {

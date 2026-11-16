@@ -1,4 +1,4 @@
-import type { Match, MatchInput, MatchLocation, Player } from '@fulbito/types'
+import type { Match, MatchInput, MatchLocation, MatchType, Player } from '@fulbito/types'
 import {
   balanceRemainingPlayers,
   calculateAllCurrentStreaks,
@@ -26,7 +26,6 @@ import { ShirtsSection } from './matchForm/shirtsSection'
 import { TeamAssignmentSection } from './matchForm/teamAssignmentSection'
 import { TeamScoreSection } from './matchForm/teamScoreSection'
 import { ToggleFriendlyMatch } from './matchForm/toggleFriendlyMatch'
-import type { MatchType } from './matchForm/types'
 import { TypeSelector } from './matchForm/typeSelector'
 import { usePool } from './matchForm/usePool'
 import { useScores } from './matchForm/useScores'
@@ -40,7 +39,7 @@ export type MatchFormProps = {
   players: Player[]
   allMatches: Match[]
   saving: boolean
-  onSave: (m: MatchInput) => Promise<void>
+  onSave: (match: MatchInput) => Promise<void>
   onCancel: () => void
   onTitleChange?: (title: string) => void
 }
@@ -95,14 +94,14 @@ export function MatchForm({
     scoreB === scores.totalGoalsB
 
   useEffect(() => {
-    const mvpStillInTeams = !mvpId || [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
+    const mvpStillInTeams = !mvpId || [...teams.teamA, ...teams.teamB].some((player) => player.id === mvpId)
     if (!mvpStillInTeams) setMvpId(null)
   }, [teams.teamA, teams.teamB, mvpId])
 
   const handlePoolChange = (ids: Set<string>) => {
     pool.setPoolIds(ids)
     teams.filterByPool(ids)
-    setGoalkeeperIds((prev) => new Set([...prev].filter((id) => ids.has(id))))
+    setGoalkeeperIds((prev) => new Set([...prev].filter((playerId) => ids.has(playerId))))
   }
 
   const toggleGoalkeeper = (id: string) => {
@@ -118,20 +117,20 @@ export function MatchForm({
     })
   }
 
-  const handleTypeChange = (t: MatchType) => {
-    setMatchType(t)
+  const handleTypeChange = (type: MatchType) => {
+    setMatchType(type)
     teams.reset()
   }
 
   const generateRemainingTeams = () => {
-    const toInfo = (p: Player) => {
-      const info = toPlayerInfo(p)
-      return goalkeeperIds.has(p.id) ? { ...info, skill: getGoalkeeping(p) } : info
+    const toInfo = (player: Player) => {
+      const info = toPlayerInfo(player)
+      return goalkeeperIds.has(player.id) ? { ...info, skill: getGoalkeeping(player) } : info
     }
 
     const poolInfos = pool.poolPlayers.map(toInfo)
-    const pinnedSeedA = poolInfos.filter((p) => teams.pinnedA.has(p.id))
-    const pinnedSeedB = poolInfos.filter((p) => teams.pinnedB.has(p.id))
+    const pinnedSeedA = poolInfos.filter((player) => teams.pinnedA.has(player.id))
+    const pinnedSeedB = poolInfos.filter((player) => teams.pinnedB.has(player.id))
     const streaks = calculateAllCurrentStreaks(onlyFinalMatches(allMatches))
 
     const { seedA, seedB, rest } = seedPriorityPlayers(poolInfos, playersPerTeam, {
@@ -141,7 +140,7 @@ export function MatchForm({
       initialSeedB: pinnedSeedB,
     })
 
-    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map((p) => p.id))
+    const hardLockedIds = new Set([...pinnedSeedA, ...pinnedSeedB].map((player) => player.id))
     const hotStreakIds = getHotStreakIds(poolInfos, streaks)
     const shuffledRest = [...rest].sort(() => Math.random() - 0.5)
     const result = balanceRemainingPlayers(shuffledRest, seedA, seedB, playersPerTeam, {
@@ -149,8 +148,8 @@ export function MatchForm({
       goalkeeperIds,
       hotStreakIds,
     })
-    teams.setTeamA(result.teamA.players.map((p) => ({ id: p.id, name: p.name })))
-    teams.setTeamB(result.teamB.players.map((p) => ({ id: p.id, name: p.name })))
+    teams.setTeamA(result.teamA.players.map((player) => ({ id: player.id, name: player.name })))
+    teams.setTeamB(result.teamB.players.map((player) => ({ id: player.id, name: player.name })))
   }
 
   const handleSave = async () => {
@@ -190,9 +189,9 @@ export function MatchForm({
     >
       <NameField
         value={matchName}
-        onChange={(v) => {
-          setMatchName(v)
-          onTitleChange?.(v)
+        onChange={(name) => {
+          setMatchName(name)
+          onTitleChange?.(name)
         }}
       />
 
