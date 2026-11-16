@@ -2,7 +2,7 @@ const ROWS = 10
 const NUMERIC_COLUMNS = 8
 
 const pulse = 'animate-pulse rounded bg-gray-200'
-const rowGrid = 'grid items-center gap-x-4 px-4 sm:grid-cols-[minmax(9rem,2fr)_repeat(8,minmax(0,1fr))]'
+const rowGrid = 'grid items-center gap-x-4 px-4 sm:grid-cols-[minmax(12rem,2fr)_repeat(8,minmax(0,1fr))]'
 
 function NumericCells({ height, width }: { height: string; width: string }) {
   return Array.from({ length: NUMERIC_COLUMNS }, (_, column) => (
@@ -25,9 +25,10 @@ export default function StatisticsSkeleton() {
         </div>
         <div className="divide-y divide-gray-100">
           {Array.from({ length: ROWS }, (_, row) => (
-            <div key={row} className={`${rowGrid} py-3`}>
+            <div key={row} className={`${rowGrid} py-2.5`}>
               <div className="flex items-center gap-3">
                 <div className="size-6 shrink-0 animate-pulse rounded-full bg-gray-200" />
+                <div className="size-8 shrink-0 animate-pulse rounded-full bg-gray-200" />
                 <div className={`h-4 w-28 ${pulse}`} />
               </div>
               <NumericCells height="h-4" width="w-8" />

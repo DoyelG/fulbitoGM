@@ -27,18 +27,18 @@ export default function StatisticsClient({
   players: Player[]
   matches: Match[]
 }) {
-  const { hydrateMatches, matches, resetAndReload: resetMatches } = useMatchStore()
-  const { hydratePlayers, players: storePlayers, resetAndReload: resetPlayers } = usePlayerStore()
+  const { hydrateMatches, matches, matchesInit, resetAndReload: resetMatches } = useMatchStore()
+  const { hydratePlayers, players: storePlayers, playersInit, resetAndReload: resetPlayers } = usePlayerStore()
 
   const initialized = useRef(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(() => matchesInit !== 'loaded' || playersInit !== 'loaded')
 
   useEffect(() => {
     if (initialized.current) return
     initialized.current = true
 
-    hydrateMatches(propsMatches)
-    hydratePlayers(propsPlayers)
+    if (propsMatches.length > 0) hydrateMatches(propsMatches)
+    if (propsPlayers.length > 0) hydratePlayers(propsPlayers)
     Promise.all([resetMatches(), resetPlayers()]).finally(() => setIsLoading(false))
   }, [hydrateMatches, propsMatches, hydratePlayers, propsPlayers, resetMatches, resetPlayers])
 
