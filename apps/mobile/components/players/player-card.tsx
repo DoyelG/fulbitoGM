@@ -1,5 +1,5 @@
 import type { Player } from '@fulbito/types'
-import { getGoalkeeping } from '@fulbito/utils'
+import { getGoalkeeping, getPositionLabel } from '@fulbito/utils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, View } from 'react-native'
 
@@ -66,7 +66,7 @@ export function PlayerCard({ player, streak, onPress, onLongPress, isGoalkeeping
           <ThemedText
             numberOfLines={1}
             style={[styles.position, { color: colors.muted }]}>
-            {player.position}
+            {getPositionLabel(player.position)}
           </ThemedText>
           {streak.kind ? <StreakBadge kind={streak.kind} count={streak.count} /> : null}
         </View>

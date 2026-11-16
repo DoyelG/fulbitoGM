@@ -1,9 +1,9 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { Image } from 'expo-image'
-import { Text, View } from 'react-native'
+import { useState, type ReactNode } from 'react'
+import { ActivityIndicator, Text, View } from 'react-native'
 import Svg, {
   Circle,
-  ClipPath,
   Defs,
   G,
   Image as SvgImage,
@@ -15,9 +15,11 @@ import Svg, {
   Stop,
 } from 'react-native-svg'
 
-import { PlayerCardColors } from '@/constants/theme'
+import { positionShortLabels, splitNameInTwoLines } from '@fulbito/utils'
 
-import { BADGE_SIZE, CARD_HEIGHT, CARD_WIDTH, PHOTO_SIZE, PLACEHOLDER_SIZE, styles } from './player-gold-card.styles'
+import { PlayerCardColors, Radii } from '@/constants/theme'
+
+import { AVATAR_SIZE, BADGE_SIZE, CARD_HEIGHT, CARD_WIDTH, styles } from './player-gold-card.styles'
 
 type Props = {
   name: string
@@ -27,13 +29,6 @@ type Props = {
   goalkeeping?: number
   photoUrl?: string | null
   tournamentPhotoUrl?: string | null
-}
-
-const POSITION_SHORT_LABELS: Record<string, string> = {
-  GK: 'ARQ',
-  DEF: 'DEF',
-  MID: 'MED',
-  FWD: 'DEL',
 }
 
 const CARD_PATH =
@@ -60,43 +55,97 @@ function CardShape() {
   )
 }
 
-function PlayerPhoto({ uri }: { uri: string }) {
+function FadeMaskDefs({ id, size, radius = 0 }: { id: string; size: number; radius?: number }) {
   return (
-    <Svg width={PHOTO_SIZE} height={PHOTO_SIZE}>
-      <Defs>
-        <LinearGradient id="playerPhotoFade" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0.8" stopColor="white" stopOpacity={1} />
-          <Stop offset="1" stopColor="white" stopOpacity={0} />
-        </LinearGradient>
-        <Mask id="playerPhotoMask">
-          <Rect width={PHOTO_SIZE} height={PHOTO_SIZE} fill="url(#playerPhotoFade)" />
-        </Mask>
-      </Defs>
-      <SvgImage
-        width={PHOTO_SIZE}
-        height={PHOTO_SIZE}
-        href={{ uri }}
-        preserveAspectRatio="xMidYMin slice"
-        mask="url(#playerPhotoMask)"
-      />
-    </Svg>
+    <Defs>
+      <LinearGradient id={`${id}GradientX`} x1="0" y1="0" x2="1" y2="0">
+        <Stop offset="0" stopColor="white" stopOpacity={0} />
+        <Stop offset="0.11" stopColor="white" stopOpacity={1} />
+        <Stop offset="0.89" stopColor="white" stopOpacity={1} />
+        <Stop offset="1" stopColor="white" stopOpacity={0} />
+      </LinearGradient>
+      <LinearGradient id={`${id}GradientY`} x1="0" y1="0" x2="0" y2="1">
+        <Stop offset="0" stopColor="white" stopOpacity={0} />
+        <Stop offset="0.11" stopColor="white" stopOpacity={1} />
+        <Stop offset="0.89" stopColor="white" stopOpacity={1} />
+        <Stop offset="1" stopColor="white" stopOpacity={0} />
+      </LinearGradient>
+      <Mask id={`${id}X`}>
+        <Rect width={size} height={size} rx={radius} fill={`url(#${id}GradientX)`} />
+      </Mask>
+      <Mask id={`${id}Y`}>
+        <Rect width={size} height={size} fill={`url(#${id}GradientY)`} />
+      </Mask>
+    </Defs>
+  )
+}
+
+function Faded({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <G mask={`url(#${id}Y)`}>
+      <G mask={`url(#${id}X)`}>{children}</G>
+    </G>
+  )
+}
+
+function PlayerPhoto({ uri, name }: { uri: string; name: string }) {
+  const [status, setStatus] = useState<'loading' | 'loaded'>('loading')
+
+  return (
+    <View style={styles.photo}>
+      <Svg width={AVATAR_SIZE} height={AVATAR_SIZE}>
+        <FadeMaskDefs id="playerPhotoFade" size={AVATAR_SIZE} radius={Radii.lg} />
+        <Faded id="playerPhotoFade">
+          <SvgImage
+            width={AVATAR_SIZE}
+            height={AVATAR_SIZE}
+            href={{ uri }}
+            preserveAspectRatio="xMidYMid slice"
+            onLoad={() => setStatus('loaded')}
+          />
+        </Faded>
+      </Svg>
+      {status === 'loading' && (
+        <View style={styles.avatarLoading} accessibilityLiveRegion="polite">
+          <ActivityIndicator color={PlayerCardColors.edge} accessibilityLabel={`Cargando foto de ${name}`} />
+        </View>
+      )}
+    </View>
   )
 }
 
 function Silhouette() {
   return (
-    <Svg width={PLACEHOLDER_SIZE} height={PLACEHOLDER_SIZE} viewBox="0 0 128 128" style={styles.placeholder}>
-      <Defs>
-        <ClipPath id="silhouetteClip">
-          <Circle cx={64} cy={64} r={64} />
-        </ClipPath>
-      </Defs>
-      <Circle cx={64} cy={64} r={64} fill={PlayerCardColors.placeholderBg} />
-      <G clipPath="url(#silhouetteClip)" fill={PlayerCardColors.placeholderFg}>
-        <Circle cx={64} cy={48} r={22} />
-        <Path d="M12 132C12 100 36 78 64 78s52 22 52 54z" />
-      </G>
+    <Svg width={AVATAR_SIZE} height={AVATAR_SIZE} viewBox="0 0 128 128" style={styles.photo}>
+      <FadeMaskDefs id="silhouetteFade" size={128} />
+      <Faded id="silhouetteFade">
+        <G fill={PlayerCardColors.placeholderFg}>
+          <Circle cx={64} cy={48} r={22} />
+          <Path d="M12 132C12 100 36 78 64 78s52 22 52 54z" />
+        </G>
+      </Faded>
     </Svg>
+  )
+}
+
+function CardName({ name }: { name: string }) {
+  const [wraps, setWraps] = useState(false)
+  const lines = wraps ? splitNameInTwoLines(name) : null
+
+  return (
+    <View style={styles.nameBox}>
+      <Text
+        style={[styles.name, styles.nameMeasure]}
+        onTextLayout={(event) => setWraps(event.nativeEvent.lines.length > 1)}
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
+      >
+        {name}
+      </Text>
+      <Text style={wraps ? [styles.name, styles.nameTwoLines] : styles.name} numberOfLines={wraps ? 2 : 1}>
+        {lines ? `${lines[0]}\n${lines[1]}` : name}
+      </Text>
+    </View>
   )
 }
 
@@ -110,7 +159,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 export function PlayerGoldCard({ name, position, overall, skills, goalkeeping, photoUrl, tournamentPhotoUrl }: Props) {
-  const positionLabel = POSITION_SHORT_LABELS[position] ?? '—'
+  const positionLabel: string | undefined = positionShortLabels[position]
   const rating = Math.round(overall)
 
   return (
@@ -118,13 +167,13 @@ export function PlayerGoldCard({ name, position, overall, skills, goalkeeping, p
       style={styles.card}
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`${name}, general ${rating}, ${positionLabel}`}
+      accessibilityLabel={[name, `general ${rating}`, positionLabel].filter(Boolean).join(', ')}
     >
       <CardShape />
       <View style={styles.content}>
         <View style={styles.ratingBox}>
           <Text style={styles.rating}>{rating}</Text>
-          <Text style={styles.position}>{positionLabel}</Text>
+          {positionLabel && <Text style={styles.position}>{positionLabel}</Text>}
         </View>
         <View style={styles.badge}>
           {tournamentPhotoUrl ? (
@@ -134,11 +183,9 @@ export function PlayerGoldCard({ name, position, overall, skills, goalkeeping, p
           )}
         </View>
 
-        {photoUrl ? <PlayerPhoto uri={photoUrl} /> : <Silhouette />}
+        {photoUrl ? <PlayerPhoto key={photoUrl} uri={photoUrl} name={name} /> : <Silhouette />}
 
-        <Text style={styles.name} numberOfLines={1}>
-          {name}
-        </Text>
+        <CardName key={name} name={name} />
 
         <View style={styles.statsRow}>
           <Stat label="FÍS" value={skills.physical} />

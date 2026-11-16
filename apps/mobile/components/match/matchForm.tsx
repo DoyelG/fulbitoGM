@@ -18,7 +18,7 @@ import { DescriptionField } from './matchForm/descriptionField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { HourField } from './matchForm/hourField'
-import { buildFinalMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
+import { buildDraftMatchPayload, buildFinalMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
 import { MvpSection } from './matchForm/mvpSection'
 import { NameField } from './matchForm/nameField'
 import { PoolSection } from './matchForm/poolSection'
@@ -68,9 +68,7 @@ export function MatchForm({
   const [matchName, setMatchName] = useState(initial?.name ?? '')
   const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
   const MAX_GOALKEEPERS = 2
-  const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(
-    () => new Set(initial?.goalkeeperIds ?? []),
-  )
+  const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(() => new Set(initial?.goalkeeperIds ?? []))
   const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null)
   const [isMatchFriendly, setIsMatchFriendly] = useState<boolean>(initial?.isFriendly ?? false)
 
@@ -86,13 +84,15 @@ export function MatchForm({
 
   const scoreA = parseInt(scores.teamAScore) || 0
   const scoreB = parseInt(scores.teamBScore) || 0
+  const isCreating = mode === 'create'
+  const teamsComplete = teams.teamA.length === playersPerTeam && teams.teamB.length === playersPerTeam
   const canSave =
-    teams.teamA.length === playersPerTeam &&
-    teams.teamB.length === playersPerTeam &&
-    scores.teamAScore !== '' &&
-    scores.teamBScore !== '' &&
-    scoreA === scores.totalGoalsA &&
-    scoreB === scores.totalGoalsB
+    teamsComplete &&
+    (isCreating ||
+      (scores.teamAScore !== '' &&
+        scores.teamBScore !== '' &&
+        scoreA === scores.totalGoalsA &&
+        scoreB === scores.totalGoalsB))
 
   useEffect(() => {
     const mvpStillInTeams = !mvpId || [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
@@ -156,7 +156,7 @@ export function MatchForm({
   const handleSave = async () => {
     if (!canSave) return
     try {
-      const payload = buildFinalMatchPayload({
+      const base = {
         matchDate,
         matchHour,
         matchType,
@@ -164,18 +164,23 @@ export function MatchForm({
         matchDescription,
         teamA: teams.teamA,
         teamB: teams.teamB,
-        teamAScore: scoreA,
-        teamBScore: scoreB,
-        goalsA: scores.goalsA,
-        goalsB: scores.goalsB,
-        perfA: scores.perfA,
-        perfB: scores.perfB,
         shirtsResponsibleId: pickShirtsResponsible(shirts.shirtsResponsibleId, shirts.dutyPoolIds),
         goalkeeperIds: [...goalkeeperIds],
-        mvpId,
         isMatchFriendly,
         matchLocation,
-      })
+      }
+      const payload = isCreating
+        ? buildDraftMatchPayload(base)
+        : buildFinalMatchPayload({
+            ...base,
+            teamAScore: scoreA,
+            teamBScore: scoreB,
+            goalsA: scores.goalsA,
+            goalsB: scores.goalsB,
+            perfA: scores.perfA,
+            perfB: scores.perfB,
+            mvpId,
+          })
       await onSave(payload)
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'Error al guardar')
@@ -236,7 +241,7 @@ export function MatchForm({
         onRemoveFromTeam={teams.removeFromTeam}
       />
 
-      {mode === 'create' ? (
+      {isCreating ? (
         <AutoGenerateButton
           poolSize={pool.poolIds.size}
           playersPerTeam={playersPerTeam}
@@ -245,43 +250,47 @@ export function MatchForm({
         />
       ) : null}
 
-      <View style={styles.scoresRow}>
-        <TeamScoreSection
-          side="a"
-          label="Equipo A"
-          players={teams.teamA}
-          score={scores.teamAScore}
-          total={scores.totalGoalsA}
-          goals={scores.goalsA}
-          perf={scores.perfA}
-          onScoreChange={scores.setTeamAScore}
-          onGoalChange={scores.setGoalA}
-          onPerfChange={scores.setPerfA}
-        />
-        <TeamScoreSection
-          side="b"
-          label="Equipo B"
-          players={teams.teamB}
-          score={scores.teamBScore}
-          total={scores.totalGoalsB}
-          goals={scores.goalsB}
-          perf={scores.perfB}
-          onScoreChange={scores.setTeamBScore}
-          onGoalChange={scores.setGoalB}
-          onPerfChange={scores.setPerfB}
-        />
-      </View>
+      {isCreating ? null : (
+        <>
+          <View style={styles.scoresRow}>
+            <TeamScoreSection
+              side="a"
+              label="Equipo A"
+              players={teams.teamA}
+              score={scores.teamAScore}
+              total={scores.totalGoalsA}
+              goals={scores.goalsA}
+              perf={scores.perfA}
+              onScoreChange={scores.setTeamAScore}
+              onGoalChange={scores.setGoalA}
+              onPerfChange={scores.setPerfA}
+            />
+            <TeamScoreSection
+              side="b"
+              label="Equipo B"
+              players={teams.teamB}
+              score={scores.teamBScore}
+              total={scores.totalGoalsB}
+              goals={scores.goalsB}
+              perf={scores.perfB}
+              onScoreChange={scores.setTeamBScore}
+              onGoalChange={scores.setGoalB}
+              onPerfChange={scores.setPerfB}
+            />
+          </View>
 
-      <MvpSection
-        teamA={teams.teamA}
-        teamB={teams.teamB}
-        mvpId={mvpId}
-        onChange={setMvpId}
-        goalsA={scores.goalsA}
-        goalsB={scores.goalsB}
-        perfA={scores.perfA}
-        perfB={scores.perfB}
-      />
+          <MvpSection
+            teamA={teams.teamA}
+            teamB={teams.teamB}
+            mvpId={mvpId}
+            onChange={setMvpId}
+            goalsA={scores.goalsA}
+            goalsB={scores.goalsB}
+            perfA={scores.perfA}
+            perfB={scores.perfB}
+          />
+        </>
+      )}
 
       <ShirtsSection
         players={players}

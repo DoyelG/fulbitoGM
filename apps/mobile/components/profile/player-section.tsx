@@ -1,7 +1,7 @@
 import Feather from '@expo/vector-icons/Feather'
 import { updatePlayer, uploadPlayerPhoto } from '@fulbito/firebase'
 import type { Match, Player } from '@fulbito/types'
-import { calculateCurrentStreakForPlayer, getPlayerMatchSummary, positionLabels } from '@fulbito/utils'
+import { calculateCurrentStreakForPlayer, getPlayerMatchSummary, getPositionLabel } from '@fulbito/utils'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
@@ -100,7 +100,7 @@ export function PlayerSection({ player, matches, index, onPhotoChanged }: Props)
     { label: 'Victorias', value: `${summary.winRate}%`, spoken: `${summary.winRate}%` },
     { label: 'Racha', value: streakValue, spoken: streakDescription },
   ]
-  const position = positionLabels[player.position] ?? player.position
+  const position = getPositionLabel(player.position)
   const profileLabel = [
     `Ver perfil de ${player.name}`,
     position,

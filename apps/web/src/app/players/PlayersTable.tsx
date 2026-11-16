@@ -17,7 +17,7 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-import { getGoalkeeping } from '@fulbito/utils'
+import { getGoalkeeping, getPositionLabel } from '@fulbito/utils'
 import SkillBadge from '@/components/SkillBadge'
 import Arrow from '@/app/shared/Icons/Arrow'
 import SkillSortHeader from './SkillSortHeader'
@@ -82,7 +82,7 @@ export default function PlayersTable({
             alt={row.original.name}
             width={32}
             height={32}
-            className={`object-cover w-full h-full max-w-8 max-h-8 rounded-full mx-auto ${row.original.inactive ? 'filter grayscale' : ''}`}
+            className={`mx-auto aspect-square h-8 w-8 rounded-full object-cover ${row.original.inactive ? 'filter grayscale' : ''}`}
           />
         ),
       }),
@@ -123,7 +123,8 @@ export default function PlayersTable({
           )
         },
       }),
-      columnHelper.accessor('position', {
+      columnHelper.accessor((row) => getPositionLabel(row.position), {
+        id: 'position',
         header: 'Posición',
         enableSorting: true,
         cell: ({ getValue, row }) => (
@@ -148,38 +149,47 @@ export default function PlayersTable({
           ),
         },
       ),
-      columnHelper.accessor('winGoalProgress', {
-        id: 'goal7',
-        header: 'Objetivo (7W)',
-        enableSorting: true,
-        cell: ({ getValue, row }) => {
-          const winGoalProgress = getValue()
-          return winGoalProgress >= 7 ? (
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${row.original.inactive ? 'bg-gray-200 text-gray-500' : 'text-white'}`}
-              style={row.original.inactive ? undefined : { backgroundColor: 'hsl(270deg 80% 36%)' }}
-            >
-              Objetivo ✓
-            </span>
-          ) : (
-            <div className="w-28">
-              <div className="flex justify-between text-[10px] text-gray-700 mb-0.5">
-                <span>W{Math.min(7, winGoalProgress)}</span>
-                <span>7</span>
+      columnHelper.accessor(
+        (row) => (row.streak.kind === 'loss' ? -row.streak.count : row.winGoalProgress),
+        {
+          id: 'goal7',
+          header: 'Objetivo (7W)',
+          enableSorting: true,
+          cell: ({ row }) => {
+            const { inactive, winGoalProgress, streak } = row.original
+            if (winGoalProgress >= 7) {
+              return (
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${inactive ? 'bg-gray-200 text-gray-500' : 'text-white'}`}
+                  style={inactive ? undefined : { backgroundColor: 'hsl(270deg 80% 36%)' }}
+                >
+                  Objetivo ✓
+                </span>
+              )
+            }
+            const isLosing = streak.kind === 'loss' && streak.count > 0
+            const progress = isLosing ? streak.count : winGoalProgress
+            const barColor = inactive ? 'bg-gray-400' : isLosing ? 'bg-orange-600' : ''
+            return (
+              <div className="w-28">
+                <div className="flex justify-between text-[10px] text-gray-700 mb-0.5">
+                  <span>{isLosing ? `L${streak.count}` : `W${Math.min(7, winGoalProgress)}`}</span>
+                  <span>7</span>
+                </div>
+                <div className="h-1.5 bg-gray-200 rounded">
+                  <div
+                    className={`h-1.5 rounded ${barColor}`}
+                    style={{
+                      width: `${(Math.min(7, progress) / 7) * 100}%`,
+                      backgroundColor: inactive || isLosing ? undefined : 'hsl(270deg 75% 45%)',
+                    }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 bg-gray-200 rounded">
-                <div
-                  className={`h-1.5 rounded ${row.original.inactive ? 'bg-gray-400' : ''}`}
-                  style={{
-                    width: `${(Math.min(7, winGoalProgress) / 7) * 100}%`,
-                    backgroundColor: row.original.inactive ? undefined : 'hsl(270deg 75% 45%)',
-                  }}
-                />
-              </div>
-            </div>
-          )
+            )
+          },
         },
-      }),
+      ),
     ],
     [skillMode, selectSkillMode],
   )
