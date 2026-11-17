@@ -25,6 +25,7 @@ export function usePushToken(): PushTokenState {
         if (!cancelled) setState({ status: 'denied', error: null })
         return
       }
+      if (cancelled) return
       const stop = await registerPushToken(uid)
       if (cancelled) stop()
       else {

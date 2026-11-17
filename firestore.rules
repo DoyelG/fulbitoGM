@@ -39,7 +39,12 @@ service cloud.firestore {
       allow delete: if isSignedIn() && request.auth.uid == userId;
 
       match /devices/{token} {
-        allow read, write: if isSignedIn() && request.auth.uid == userId;
+        allow read, delete: if isSignedIn() && request.auth.uid == userId;
+        allow create, update: if isSignedIn() && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['platform', 'updatedAt'])
+          && request.resource.data.platform in ['ios', 'android']
+          && request.resource.data.updatedAt is timestamp
+          && token.size() < 300;
       }
     }
 
