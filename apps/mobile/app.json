@@ -11,10 +11,16 @@
     "ios": {
       "buildNumber": "4",
       "infoPlist": {
-        "CFBundleShortVersionString": "1.0.1"
+        "CFBundleShortVersionString": "1.0.1",
+        "UIBackgroundModes": ["remote-notification"]
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.fulbitoapp.app"
+      "bundleIdentifier": "com.fulbitoapp.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "entitlements": {
+        "aps-environment": "development"
+      },
+      "appleTeamId": "KFQ42Y6Z73"
     },
     "android": {
       "package": "com.fulbitoapp.app",
@@ -26,7 +32,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -47,6 +54,26 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "./plugins/with-nse-dynamic-frameworks",
+      [
+        "react-native-notify-kit",
+        {
+          "ios": {
+            "notificationServiceExtension": true
+          },
+          "android": {
+            "icons": [
+              {
+                "name": "notification_small",
+                "path": "./assets/images/android-icon-monochrome.png",
+                "type": "small"
+              }
+            ]
+          }
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -63,7 +90,8 @@
             "enableShrinkResourcesInReleaseBuilds": true
           },
           "ios": {
-            "enableSceneSupport": true
+            "enableSceneSupport": true,
+            "useFrameworks": "dynamic"
           }
         }
       ],
