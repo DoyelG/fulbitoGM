@@ -1,7 +1,6 @@
 import { getMessaging, onMessage, type RemoteMessage } from '@react-native-firebase/messaging'
 import { Linking } from 'react-native'
-import notifee, { EventType } from 'react-native-notify-kit'
-import type { Event, FcmRemoteMessage } from 'react-native-notify-kit'
+import notifee, { EventType, type Event, type FcmRemoteMessage } from 'react-native-notify-kit'
 
 import { ensureNotificationChannels, MATCHES_CHANNEL_ID } from '@/lib/notifications/channels'
 
@@ -10,7 +9,7 @@ export async function configurePushNotificationDisplay(): Promise<void> {
   await ensureNotificationChannels()
 }
 
-export async function displayPushNotification(remoteMessage: FcmRemoteMessage): Promise<void> {
+async function displayPushNotification(remoteMessage: FcmRemoteMessage): Promise<void> {
   await ensureNotificationChannels()
   await notifee.handleFcmMessage(remoteMessage)
 }
@@ -32,12 +31,26 @@ export function listenForForegroundPushNotifications(): () => void {
   })
 }
 
-function openNotificationUrl({ type, detail }: Event): void {
-  const url = detail.notification?.data?.url
-  if (type === EventType.PRESS && typeof url === 'string') Linking.openURL(url).catch(() => undefined)
+const ALLOWED_URL_HOSTS = new Set(['maps.app.goo.gl', 'maps.google.com', 'www.google.com'])
+
+function isAllowedUrl(raw: string): boolean {
+  try {
+    const url = new URL(raw)
+    return url.protocol === 'https:' && ALLOWED_URL_HOSTS.has(url.hostname)
+  } catch {
+    return false
+  }
 }
 
+function openNotificationUrl({ type, detail }: Event): void {
+  const url = detail.notification?.data?.url
+  if (type === EventType.PRESS && typeof url === 'string' && isAllowedUrl(url)) {
+    Linking.openURL(url).catch(() => undefined)
+  }
+}
+
+notifee.onBackgroundEvent(async (event) => openNotificationUrl(event))
+
 export function listenForNotificationPresses(): () => void {
-  notifee.onBackgroundEvent(async (event) => openNotificationUrl(event))
   return notifee.onForegroundEvent(openNotificationUrl)
 }
