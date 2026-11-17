@@ -86,10 +86,10 @@ importers:
         version: 5.2.1
       '@react-native-firebase/app':
         specifier: 27.1.1
-        version: 27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))(expo@57.0.31)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+        version: 27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))(expo@58.0.24)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       '@react-native-firebase/messaging':
         specifier: 27.1.1
-        version: 27.1.1(@react-native-firebase/app@27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))(expo@57.0.31)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(expo@57.0.31)
+        version: 27.1.1(@react-native-firebase/app@27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))(expo@58.0.24)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(expo@58.0.24)
       '@react-navigation/bottom-tabs':
         specifier: ^7.4.0
         version: 7.15.6(@react-native-masked-view/masked-view@0.3.2(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(@react-navigation/native@7.1.34(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native-safe-area-context@5.11.1(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native-screens@4.30.1(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
@@ -170,7 +170,7 @@ importers:
         version: 3.3.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
       react-native-notify-kit:
         specifier: 10.10.0
-        version: 10.10.0(expo@57.0.31)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(typescript@6.0.3)
+        version: 10.10.0(expo@58.0.24)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(typescript@6.0.3)
       react-native-reanimated:
         specifier: ~4.7.1
         version: 4.7.1(react-native-worklets@0.13.0(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
@@ -1020,12 +1020,9 @@ packages:
 
   '@expo/image-utils@0.12.7':
     resolution: {integrity: sha512-fuiRQxvvkbj932BamtYh1UKuyRJ5tXBJ3XxpGm5pT4zzynPmygd3RtOQrzIhcsIZGcG6i1n+KvrszYRnk3evqQ==}
-    
+
   '@expo/image-utils@0.8.17':
     resolution: {integrity: sha512-1eVrX6FFkPNl9DJNiw3Gjsf6PtG7HttbapEVvcROVrA9PCMikujOJWWHDYKGptmKoVIIVajFZE8UHGHUb3mPug==}
-
-  '@expo/inline-modules@0.1.8':
-    resolution: {integrity: sha512-5OCHzv/VHVuam9UT6/yeArtUnmkp5VdAH6k4JwdRzK/34ukzdjQK7B9n71fiswZKtm2MmZlPuy4hJo2Ao8CZNw==}
 
   '@expo/inline-modules@0.2.10':
     resolution: {integrity: sha512-WFqhlOrUUc0VZxrUPq5X328aP2e/cQKvJJXhwNxNj9fqWS9iFWC1E9VRHHhJIqdu+qy2YU3s2OBDlyIz9X/5aA==}
@@ -1111,6 +1108,14 @@ packages:
 
   '@expo/prebuild-config@58.0.20':
     resolution: {integrity: sha512-lqXK5d6ni2MCNO/MbuXhojKC+Iy/gaYm0a3vVebwf/njoe1Fp3iw8mXDwoofmvlzZ3HO+beL7XCX6e6ZEYmVyg==}
+
+  '@expo/require-utils@55.0.8':
+    resolution: {integrity: sha512-DDS5R67iz2SJwncbpcUMHtnsq31dSfllhaEncKxGlK0/ewgc2CaXUCkDA2AumfT7ubnSXiPkU9Gn8v2xCrvj+A==}
+    peerDependencies:
+      typescript: ^5.0.0 || ^5.0.0-0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@expo/require-utils@58.0.6':
     resolution: {integrity: sha512-k9Ce7indjY3+nRBNT6wKw7NghN7pP6WhFnYNjuDiAypwjtVgaZHpD9fo0/g3/emDUpM6ebl8Ekz/teyUGfD9og==}
@@ -4084,6 +4089,10 @@ packages:
   get-tsconfig@4.13.6:
     resolution: {integrity: sha512-shZT/QMiSHc/YBLxxOkMtgSid5HFoauqCE3/exfsEcwg1WkeqjG+V40yBbBrsD+jW2HDXcs28xOfcbm2jI8Ddw==}
 
+  getenv@2.0.0:
+    resolution: {integrity: sha512-VilgtJj/ALgGY77fiLam5iD336eSWi96Q15JSAG1zi8NRBysm3LXKdGnHb4m5cuyxvOLQQKWpBZAT6ni4FI2iQ==}
+    engines: {node: '>=6'}
+
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -5163,7 +5172,6 @@ packages:
 
   react-native-reanimated@4.7.1:
     resolution: {integrity: sha512-HviDFSZ6V4KTRsrLS6hRbBJ4j63l/L8a5az0EoWdJwaMLYnBNyYISTDxwXpEYkMbAbLzCMCviIdiOxXHYQWcNA==}
-
     peerDependencies:
       react: '*'
       react-native: 0.86 - 0.88
@@ -7187,7 +7195,7 @@ snapshots:
       idb: 7.1.1
       tslib: 2.8.1
 
-  '@firebase/auth-compat@0.5.28(@firebase/app-compat@0.4.2)(@firebase/app-types@0.9.3)(@firebase/app@0.13.2)(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))':
+  '@firebase/auth-compat@0.5.28(@firebase/app-compat@0.4.2)(@firebase/app-types@0.9.3)(@firebase/app@0.13.2)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))':
     dependencies:
       '@firebase/app-compat': 0.4.2
       '@firebase/auth': 1.10.8(@firebase/app@0.13.2)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))
@@ -7200,11 +7208,11 @@ snapshots:
       - '@firebase/app-types'
       - '@react-native-async-storage/async-storage'
 
-  '@firebase/auth-compat@0.6.13(@firebase/app-compat@0.5.20)(@firebase/app-types@0.9.6)(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))':
+  '@firebase/auth-compat@0.6.13(@firebase/app-compat@0.5.20)(@firebase/app-types@0.9.6)(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))':
     dependencies:
       '@firebase/app': 0.16.4
       '@firebase/app-compat': 0.5.20
-      '@firebase/auth': 1.13.8(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))
+      '@firebase/auth': 1.13.8(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))
       '@firebase/auth-types': 0.13.2(@firebase/app-types@0.9.6)(@firebase/util@1.15.3)
       '@firebase/component': 0.7.5
       '@firebase/util': 1.15.3
@@ -7213,7 +7221,7 @@ snapshots:
       - '@firebase/app-types'
       - '@react-native-async-storage/async-storage'
 
-  '@firebase/auth-compat@0.6.6(@firebase/app-compat@0.5.12)(@firebase/app-types@0.9.5)(@firebase/app@0.14.12)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))':
+  '@firebase/auth-compat@0.6.6(@firebase/app-compat@0.5.12)(@firebase/app-types@0.9.5)(@firebase/app@0.14.12)(@react-native-async-storage/async-storage@3.1.1(react-native@0.88.1(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))':
     dependencies:
       '@firebase/app-compat': 0.5.12
       '@firebase/auth': 1.13.1(@firebase/app@0.14.12)(@react-native-async-storage/async-storage@3.1.1(react-native@0.88.1(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
@@ -7260,7 +7268,7 @@ snapshots:
       '@firebase/app-types': 0.9.6
       '@firebase/util': 1.15.3
 
-  '@firebase/auth@1.10.8(@firebase/app@0.13.2)(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))':
+  '@firebase/auth@1.10.8(@firebase/app@0.13.2)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))':
     dependencies:
       '@firebase/app': 0.13.2
       '@firebase/component': 0.6.18
@@ -7290,7 +7298,7 @@ snapshots:
     optionalDependencies:
       '@react-native-async-storage/async-storage': 3.1.1(react-native@0.88.1(@babel/core@7.29.0)(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
 
-  '@firebase/auth@1.13.8(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))':
+  '@firebase/auth@1.13.8(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))':
     dependencies:
       '@firebase/app': 0.16.4
       '@firebase/component': 0.7.5
@@ -7298,7 +7306,7 @@ snapshots:
       '@firebase/util': 1.15.3
       tslib: 2.8.1
     optionalDependencies:
-      '@react-native-async-storage/async-storage': 2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))
+      '@react-native-async-storage/async-storage': 2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))
 
   '@firebase/component@0.6.18':
     dependencies:
@@ -8391,23 +8399,23 @@ snapshots:
 
   '@react-native-community/slider@5.2.1': {}
 
-  '@react-native-firebase/app@27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))(expo@57.0.31)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)':
+  '@react-native-firebase/app@27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))(expo@58.0.24)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
     dependencies:
-      firebase: 13.1.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))
-      react: 19.2.3
-      react-native: 0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)
+      firebase: 13.1.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))
+      react: 19.3.0
+      react-native: 0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)
     optionalDependencies:
-      expo: 57.0.31(@babel/core@7.29.0)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.17)(expo-router@57.0.29)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      expo: 58.0.24(@babel/core@7.29.0)(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.15)(expo-router@58.0.31)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native-worklets@0.13.0(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
 
-  '@react-native-firebase/messaging@27.1.1(@react-native-firebase/app@27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))(expo@57.0.31)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(expo@57.0.31)':
+  '@react-native-firebase/messaging@27.1.1(@react-native-firebase/app@27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))(expo@58.0.24)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(expo@58.0.24)':
     dependencies:
-      '@react-native-firebase/app': 27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))(expo@57.0.31)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+      '@react-native-firebase/app': 27.1.1(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))(expo@58.0.24)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
     optionalDependencies:
-      expo: 57.0.31(@babel/core@7.29.0)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.17)(expo-router@57.0.29)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      expo: 58.0.24(@babel/core@7.29.0)(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.15)(expo-router@58.0.31)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native-worklets@0.13.0(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
 
-  '@react-native-masked-view/masked-view@0.3.2(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)':
+  '@react-native-masked-view/masked-view@0.3.2(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
     dependencies:
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)
@@ -9824,9 +9832,9 @@ snapshots:
       '@typescript-eslint/eslint-plugin': 8.72.1(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3)
       '@typescript-eslint/parser': 8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3)
       eslint: 9.39.4(jiti@2.6.1)
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-expo: 1.2.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-react-hooks: 7.1.1(eslint@9.39.4(jiti@2.6.1))
       globals: 16.5.0
@@ -9864,6 +9872,21 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)):
+    dependencies:
+      '@nolyfill/is-core-module': 1.0.39
+      debug: 4.4.3
+      eslint: 9.39.4(jiti@2.6.1)
+      get-tsconfig: 4.13.6
+      is-bun-module: 2.0.0
+      stable-hash: 0.0.5
+      tinyglobby: 0.2.15
+      unrs-resolver: 1.11.1
+    optionalDependencies:
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
+    transitivePeerDependencies:
+      - supports-color
+
   eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
@@ -9875,7 +9898,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -9890,14 +9913,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3)
       eslint: 9.39.4(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -9939,7 +9962,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -9950,7 +9973,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.39.4(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.72.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.3))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -10598,7 +10621,7 @@ snapshots:
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
 
-  firebase@13.1.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))):
+  firebase@13.1.0(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))):
     dependencies:
       '@firebase/ai': 3.0.0(@firebase/app-types@0.9.6)(@firebase/app@0.16.4)
       '@firebase/analytics': 0.10.25(@firebase/app@0.16.4)
@@ -10608,8 +10631,8 @@ snapshots:
       '@firebase/app-check-compat': 0.4.7(@firebase/app-compat@0.5.20)(@firebase/app@0.16.4)
       '@firebase/app-compat': 0.5.20
       '@firebase/app-types': 0.9.6
-      '@firebase/auth': 1.13.8(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))
-      '@firebase/auth-compat': 0.6.13(@firebase/app-compat@0.5.20)(@firebase/app-types@0.9.6)(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)))
+      '@firebase/auth': 1.13.8(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))
+      '@firebase/auth-compat': 0.6.13(@firebase/app-compat@0.5.20)(@firebase/app-types@0.9.6)(@firebase/app@0.16.4)(@react-native-async-storage/async-storage@2.2.0(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)))
       '@firebase/data-connect': 0.7.4(@firebase/app@0.16.4)
       '@firebase/database': 1.1.5
       '@firebase/database-compat': 2.1.7(@firebase/app-compat@0.5.20)(@firebase/app@0.16.4)
@@ -10720,6 +10743,8 @@ snapshots:
   get-tsconfig@4.13.6:
     dependencies:
       resolve-pkg-maps: 1.0.0
+
+  getenv@2.0.0: {}
 
   glob-parent@5.1.2:
     dependencies:
@@ -11959,23 +11984,21 @@ snapshots:
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)
 
-  react-native-notify-kit@10.10.0(expo@57.0.31)(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(typescript@6.0.3):
+  react-native-notify-kit@10.10.0(expo@58.0.24)(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(typescript@6.0.3):
     dependencies:
       '@expo/image-utils': 0.8.17(typescript@6.0.3)
-      react-native: 0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3)
+      react-native: 0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)
     optionalDependencies:
       chalk: 4.1.2
       commander: 12.1.0
-      expo: 57.0.31(@babel/core@7.29.0)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.17)(expo-router@57.0.29)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      expo: 58.0.24(@babel/core@7.29.0)(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.15)(expo-router@58.0.31)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native-worklets@0.13.0(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
       plist: 3.1.0
       simple-plist: 1.3.1
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-
   react-native-reanimated@4.7.1(react-native-worklets@0.13.0(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0):
-
     dependencies:
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.0)(@react-native/metro-config@0.86.3(@babel/core@7.29.0))(@types/react@19.3.0)(react@19.3.0)
