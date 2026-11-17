@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react'
-import { Modal, Pressable, StyleProp, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleProp,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
 
@@ -31,17 +41,19 @@ export function BottomSheet({
   if (!visible) return null
 
   return (
-    <Modal transparent animationType="fade" visible>
-      <Pressable style={sheetStyles.backdrop} onPress={onDismiss ?? onConfirm} />
-      <View style={[sheetStyles.container, { backgroundColor: colors.surface }, containerStyle]}>
-        <View style={[sheetStyles.header, hideTitle && sheetStyles.headerEnd]}>
-          {!hideTitle && <Text style={[sheetStyles.title, { color: colors.text }]}>{title}</Text>}
-          <TouchableOpacity onPress={onConfirm}>
-            <Text style={[sheetStyles.close, { color: colors.brand }]}>{closeLabel}</Text>
-          </TouchableOpacity>
+    <Modal transparent animationType="fade" visible onRequestClose={onDismiss ?? onConfirm}>
+      <KeyboardAvoidingView style={sheetStyles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Pressable style={sheetStyles.backdrop} onPress={onDismiss ?? onConfirm} />
+        <View style={[sheetStyles.container, { backgroundColor: colors.surface }, containerStyle]}>
+          <View style={[sheetStyles.header, hideTitle && sheetStyles.headerEnd]}>
+            {!hideTitle && <Text style={[sheetStyles.title, { color: colors.text }]}>{title}</Text>}
+            <TouchableOpacity onPress={onConfirm}>
+              <Text style={[sheetStyles.close, { color: colors.primaryText }]}>{closeLabel}</Text>
+            </TouchableOpacity>
+          </View>
+          {children}
         </View>
-        {children}
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }

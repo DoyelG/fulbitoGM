@@ -22,14 +22,9 @@ export type TeamStats = {
   winPctB: number
 }
 
-export function computeTeamStats(
-  teamA: RecordingPlayer[],
-  teamB: RecordingPlayer[],
-  poolPlayers: Player[],
-): TeamStats {
+export function computeTeamStats(teamA: RecordingPlayer[], teamB: RecordingPlayer[], poolPlayers: Player[]): TeamStats {
   const norm = (v: number | null | undefined) => (v == null ? 5 : v)
-  const normPhys = (v: number | 'unknown' | null | undefined) =>
-    v === 'unknown' || v == null ? 5 : v
+  const normPhys = (v: number | 'unknown' | null | undefined) => (v === 'unknown' || v == null ? 5 : v)
 
   const teamAIds = new Set(teamA.map((p) => p.id))
   const teamBIds = new Set(teamB.map((p) => p.id))
@@ -69,12 +64,34 @@ export type BuildPayloadInput = {
   matchLocation?: MatchLocation | null
 }
 
-export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
-  const buildTeamPlayers = (
-    team: RecordingPlayer[],
-    goals: Record<string, string>,
-    perf: Record<string, string>,
-  ) =>
+export type BuildDraftPayloadInput = Omit<
+  BuildPayloadInput,
+  'teamAScore' | 'teamBScore' | 'goalsA' | 'goalsB' | 'perfA' | 'perfB' | 'mvpId'
+>
+
+export function buildDraftMatchPayload(input: BuildDraftPayloadInput): MatchInput {
+  const toDraftPlayer = (p: RecordingPlayer) => ({ id: p.id, name: p.name, goals: 0, performance: 0 })
+
+  return {
+    ...buildMatchSchedule(input.matchDate, input.matchHour),
+    type: input.matchType,
+    name: input.matchName.trim() || undefined,
+    location: input.matchLocation ?? undefined,
+    description: input.matchDescription.trim() || undefined,
+    status: 'draft',
+    teamAScore: 0,
+    teamBScore: 0,
+    teamA: input.teamA.map(toDraftPlayer),
+    teamB: input.teamB.map(toDraftPlayer),
+    shirtsResponsibleId: input.shirtsResponsibleId,
+    goalkeeperIds: input.goalkeeperIds ?? [],
+    mvpId: null,
+    isFriendly: input.isMatchFriendly ?? false,
+  }
+}
+
+export function buildFinalMatchPayload(input: BuildPayloadInput): MatchInput {
+  const buildTeamPlayers = (team: RecordingPlayer[], goals: Record<string, string>, perf: Record<string, string>) =>
     team.map((p) => ({
       id: p.id,
       name: p.name,
@@ -88,6 +105,7 @@ export function buildMatchPayload(input: BuildPayloadInput): MatchInput {
     name: input.matchName.trim() || undefined,
     location: input.matchLocation ?? undefined,
     description: input.matchDescription.trim() || undefined,
+    status: 'final',
     teamAScore: input.teamAScore,
     teamBScore: input.teamBScore,
     teamA: buildTeamPlayers(input.teamA, input.goalsA, input.perfA),

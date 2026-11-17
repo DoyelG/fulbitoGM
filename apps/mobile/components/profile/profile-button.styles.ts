@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     borderRadius: Radii.pill,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   label: {
     fontSize: 15,

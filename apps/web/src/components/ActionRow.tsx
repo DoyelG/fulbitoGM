@@ -21,8 +21,8 @@ type Props = {
 }
 
 const variantStyles: Record<RowAction['variant'], string> = {
-  primary: 'text-gray-500 hover:text-brand hover:bg-brand/10',
-  danger: 'text-gray-500 hover:text-red-600 hover:bg-red-50',
+  primary: 'text-gray-500 hover:text-primary hover:bg-primary/10',
+  danger: 'text-gray-500 hover:text-orange-700 hover:bg-orange-50',
 }
 
 export default function ActionRow({ actions, children, className = '', tooltipPosition = 'bottom' }: Props) {

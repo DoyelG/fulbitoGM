@@ -82,7 +82,7 @@ export default function AddressPicker({ id, value, onChange }: AddressPickerProp
 
       <Modal open={modal === 'create'} onClose={() => setModal('none')} title="Agregar Cancha">
         {createError && (
-          <p role="alert" className="mb-3 text-sm text-red-600">
+          <p role="alert" className="mb-3 text-sm text-orange-700">
             {createError}
           </p>
         )}

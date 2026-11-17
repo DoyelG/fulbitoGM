@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native'
+import { Colors, Fonts } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   card: {
@@ -35,10 +36,10 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   featured: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   featuredValue: {
-    color: '#f97316',
+    color: Colors.light.secondary,
     fontWeight: '800',        
     fontSize: 32,            
     lineHeight: 32,           
@@ -54,23 +55,23 @@ export const styles = StyleSheet.create({
     marginVertical: 10,       
   },
   metrics: {
+    paddingTop: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 4,                   
   },
   metricItem: {
     flex: 1,
     alignItems: 'center',
   },
-  metricValue: {
-    fontSize: 18,             
-    lineHeight: 22,           
-    fontWeight: '700',       
+  metricDivider: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
   },
-  metricLabel: {
-    marginTop: 2,
-    fontSize: 10,            
-    fontWeight: '600',        
-    letterSpacing: 0.4,
+  metricValue: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontFamily: Fonts.medium,
+  },
+  metricIcon: {
+    marginBottom: 4,
   },
 })

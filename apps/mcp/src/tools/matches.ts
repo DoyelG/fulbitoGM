@@ -5,6 +5,7 @@ import { isDraft } from '@fulbito/types'
 import { onlyFinalMatches } from '@fulbito/utils'
 import { withFirebase } from '../firebase'
 import { errorResult, jsonResult } from '../tool-result'
+import { tournamentIdSchema } from './tournaments'
 
 export function registerMatchTools(server: McpServer): void {
   server.registerTool(
@@ -14,12 +15,13 @@ export function registerMatchTools(server: McpServer): void {
       description:
         'All matches ordered by date (newest first), each with scores and both rosters including per-player goals and performance. Optionally filter by status and cap the amount returned.',
       inputSchema: {
+        tournamentId: tournamentIdSchema,
         status: z.enum(['draft', 'final']).optional().describe('Only matches with this status'),
         limit: z.number().int().positive().optional().describe('Max matches to return'),
       },
     },
-    withFirebase(async ({ status, limit }) => {
-      let matches = await getMatches()
+    withFirebase(async (_uid, { tournamentId, status, limit }) => {
+      let matches = await getMatches(tournamentId)
       if (status) matches = status === 'draft' ? matches.filter(isDraft) : onlyFinalMatches(matches)
       if (limit) matches = matches.slice(0, limit)
       return jsonResult(matches)
@@ -31,10 +33,10 @@ export function registerMatchTools(server: McpServer): void {
     {
       title: 'Get match',
       description: 'One match by id, with scores, both rosters, MVP and goalkeeper ids.',
-      inputSchema: { id: z.string().min(1).describe('Match id') },
+      inputSchema: { tournamentId: tournamentIdSchema, id: z.string().min(1).describe('Match id') },
     },
-    withFirebase(async ({ id }) => {
-      const match = await getMatch(id)
+    withFirebase(async (_uid, { tournamentId, id }) => {
+      const match = await getMatch(tournamentId, id)
       return match ? jsonResult(match) : errorResult(`Match ${id} not found`)
     }),
   )

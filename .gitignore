@@ -31,6 +31,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# firebase emulator data
+.firebase-emulator/
+firebase-export-*/
 
 # env files
 .env

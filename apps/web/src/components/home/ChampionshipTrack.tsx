@@ -24,7 +24,7 @@ export default function ChampionshipTrack({ streak, label, size = 'md' }: Champi
       className={`flex ${gap}`}
     >
       {Array.from({ length: CHAMPIONSHIP_THRESHOLD }, (_, i) => (
-        <span key={i} className={`${segment} flex-1 rounded-full ${i < filled ? 'bg-brand' : 'bg-brand/15'}`} />
+        <span key={i} className={`${segment} flex-1 rounded-full ${i < filled ? 'bg-primary' : 'bg-primary/15'}`} />
       ))}
     </div>
   )

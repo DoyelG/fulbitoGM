@@ -12,7 +12,7 @@ export function SkillBig({ skill, isGoalkeepingMode = false }: Props) {
 
   if (skill === null || skill === undefined || Number.isNaN(skill)) {
     return (
-      <View style={[styles.unknownPill, { backgroundColor: isDark ? colors.chipBg : 'rgba(0,0,0,0.06)' }]}>
+      <View style={[styles.unknownPill, { backgroundColor: isDark ? colors.chipBg : colors.neutralFill }]}>
         <Text style={[styles.unknownText, { color: colors.muted }]}>—</Text>
       </View>
     )

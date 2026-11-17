@@ -50,6 +50,22 @@ pnpm --filter @fulbito/mobile start
 pnpm --silent --filter @fulbito/mcp start
 ```
 
+### Local Firebase emulators
+
+Use the emulators (Auth, Firestore, Storage) to try rule changes without touching the shared Firebase project. They need Java 11+.
+
+```bash
+pnpm emulators
+```
+
+Then add `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true` to `apps/web/.env.local` and restart the web dev server.
+
+For the mobile app, add `EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true` to `apps/mobile/.env` and restart Expo with `pnpm expo start -c` (the flag is inlined at build time, so the cache must be cleared). The iOS simulator reaches the emulators at `127.0.0.1` and the Android emulator at `10.0.2.2` with no extra setup. A physical device cannot reach `127.0.0.1` on your machine: set `EXPO_PUBLIC_FIREBASE_EMULATOR_HOST` to your machine's LAN IP and start the emulators listening on all interfaces (`"host": "0.0.0.0"` on each emulator in `firebase.json`, without committing it).
+
+The emulator UI is at http://127.0.0.1:4000. Data is saved to `.firebase-emulator/` on exit and loaded on the next start.
+
+Every start also makes sure two verified test accounts exist, both with password `123456`: `test@test.com` and `test2@test.com`. If it's missing, it also creates "Torneo de prueba", owned by `test@test.com`, with 20 players and 5 matches played at a court with a random name and address (`scripts/emulator-seed.mjs`).
+
 ## Apps
 
 | App           | Port  | Description                                      |

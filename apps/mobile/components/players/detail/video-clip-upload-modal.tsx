@@ -9,6 +9,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
 import { styles } from './video-clip-upload-modal.styles'
+import { PrimaryGradient } from '@/components/primary-gradient'
 
 type UploadData = {
   matchId: string
@@ -129,7 +130,7 @@ export function VideoClipUploadModal({
                   onPress={() => selectMatch(m.id)}
                   style={[
                     styles.optionRow,
-                    { borderColor: matchId === m.id ? colors.brand : colors.border },
+                    { borderColor: matchId === m.id ? colors.primaryText : colors.border },
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel={`Partido ${new Date(m.date).toLocaleDateString()} ${m.type}`}
@@ -137,7 +138,7 @@ export function VideoClipUploadModal({
                   <ThemedText style={[styles.optionText, { color: colors.text }]}>
                     {new Date(m.date).toLocaleDateString()} · {m.type}
                   </ThemedText>
-                  {matchId === m.id && <MaterialIcons name="check" size={18} color={colors.brand} />}
+                  {matchId === m.id && <MaterialIcons name="check" size={18} color={colors.primaryText} />}
                 </Pressable>
               ))
             )}
@@ -157,9 +158,9 @@ export function VideoClipUploadModal({
                   <MaterialIcons
                     name={playerIds.includes(p.id) ? 'check-box' : 'check-box-outline-blank'}
                     size={22}
-                    color={playerIds.includes(p.id) ? colors.brand : colors.muted}
+                    color={playerIds.includes(p.id) ? colors.primaryText : colors.muted}
                   />
-                  <ThemedText style={{ color: colors.text }}>{p.name}</ThemedText>
+                  <ThemedText>{p.name}</ThemedText>
                 </Pressable>
               ))}
             </View>
@@ -174,13 +175,13 @@ export function VideoClipUploadModal({
                   onPress={() => setCategory(c.value)}
                   style={[
                     styles.categoryChip,
-                    { borderColor: category === c.value ? colors.brand : colors.border },
+                    { borderColor: category === c.value ? colors.primaryText : colors.border },
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel={c.label}
                   accessibilityState={{ selected: category === c.value }}>
                   <ThemedText>{c.icon}</ThemedText>
-                  <ThemedText style={{ color: colors.text }}>{c.label}</ThemedText>
+                  <ThemedText>{c.label}</ThemedText>
                 </Pressable>
               ))}
             </View>
@@ -201,7 +202,7 @@ export function VideoClipUploadModal({
             style={[styles.pickBtn, { borderColor: colors.border }]}
             accessibilityRole="button"
             accessibilityLabel={videoUri ? 'Video seleccionado, elegir otro' : 'Elegir video'}>
-            <ThemedText style={{ color: colors.text }}>
+            <ThemedText>
               {videoUri ? 'Video seleccionado ✓ (tocá para cambiar)' : 'Elegir video'}
             </ThemedText>
           </Pressable>
@@ -209,10 +210,11 @@ export function VideoClipUploadModal({
           <Pressable
             onPress={handleSubmit}
             disabled={!canSubmit}
-            style={[styles.submitBtn, { backgroundColor: colors.brand, opacity: canSubmit ? 1 : 0.5 }]}
+            style={[styles.submitBtn, { opacity: canSubmit ? 1 : 0.5 }]}
             accessibilityRole="button"
             accessibilityLabel="Subir clip"
             accessibilityState={{ disabled: !canSubmit, busy: submitting }}>
+            <PrimaryGradient />
             <ThemedText style={styles.submitText}>{submitting ? 'Subiendo...' : 'Subir clip'}</ThemedText>
           </Pressable>
         </ScrollView>

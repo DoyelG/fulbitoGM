@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <clipPath id="silhouette-clip">
+      <circle cx="64" cy="64" r="64"/>
+    </clipPath>
+  </defs>
   <circle cx="64" cy="64" r="64" fill="#f3f4f6"/>
-  <circle cx="64" cy="48" r="22" fill="#9ca3af"/>
-  <path d="M16 110c7-22 26-34 48-34s41 12 48 34" fill="#9ca3af"/>
+  <g clip-path="url(#silhouette-clip)" fill="#9ca3af">
+    <circle cx="64" cy="48" r="22"/>
+    <path d="M12 132C12 100 36 78 64 78s52 22 52 54z"/>
+  </g>
 </svg>
-
-

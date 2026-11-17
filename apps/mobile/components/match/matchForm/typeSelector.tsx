@@ -1,5 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
+import { PrimaryGradient } from '@/components/primary-gradient'
+import { ContrastColors, PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
 import { FormLabel } from './formLabel'
@@ -26,13 +28,13 @@ export function TypeSelector({ value, onChange }: Props) {
               style={[
                 styles.chip,
                 {
-                  backgroundColor: active ? colors.brand : 'transparent',
-                  borderColor: active ? colors.brand : colors.border,
+                  borderColor: active ? PrimaryColors.border : colors.border,
                   borderRadius: radii.sm,
                 },
               ]}
             >
-              <Text style={[styles.chipText, { color: active ? '#fff' : colors.muted }]}>{t}</Text>
+              {active && <PrimaryGradient />}
+              <Text style={[styles.chipText, { color: active ? ContrastColors.onColor : colors.muted }]}>{t}</Text>
             </TouchableOpacity>
           )
         })}
@@ -51,6 +53,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 6,
+    overflow: 'hidden',
   },
   chipText: {
     fontSize: 13,

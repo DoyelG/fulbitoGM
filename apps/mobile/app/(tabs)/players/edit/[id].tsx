@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { updatePlayer } from '@fulbito/firebase'
 import { getGoalkeeping } from '@fulbito/utils'
 import { PlayerEditForm, type PlayerEditFormValues } from '@/components/players/edit/player-edit-form'
-import { useIsAdmin } from '@/hooks/use-is-admin'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { useAppTheme } from '@/hooks/use-theme'
 
@@ -14,7 +14,7 @@ export default function EditPlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const navigation = useNavigation()
   const router = useRouter()
-  const isAdmin = useIsAdmin()
+  const canManage = useCanManageTournament()
   const { colors } = useAppTheme()
 
   const { players, reload } = usePlayersData()
@@ -37,12 +37,12 @@ export default function EditPlayerScreen() {
   }, [navigation])
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!canManage) {
       Alert.alert('Sin permisos', 'Solo los administradores pueden editar jugadores.', [
         { text: 'Volver', onPress: () => router.back() },
       ])
     }
-  }, [isAdmin, router])
+  }, [canManage, router])
 
   useEffect(() => {
     if (player) {

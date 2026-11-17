@@ -8,15 +8,26 @@ import {
   getAuth,
   GoogleAuthProvider,
   reauthenticateWithPopup,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
   type User as FirebaseUser,
 } from 'firebase/auth'
-import { deleteDoc, doc, getDoc, getFirestore, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
+import { deleteDoc, doc, getDoc, getFirestore, setDoc, Timestamp } from 'firebase/firestore'
+import { getMyTournaments, leaveTournament } from './tournaments'
+
+export class AccountDeletionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AccountDeletionError'
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
+}
 
 export type AppUser = {
   uid: string
   email: string
+  emailVerified: boolean
   role: Role[]
   linkedPlayerId?: string
 }
@@ -45,7 +56,7 @@ export async function signIn(email: string, password: string): Promise<AppUser> 
   const auth = getAuth()
   const cred = await signInWithEmailAndPassword(auth, email, password)
   const profile = await getUserProfile(cred.user.uid)
-  return { uid: cred.user.uid, email: cred.user.email!, ...profile }
+  return { uid: cred.user.uid, email: cred.user.email!, emailVerified: cred.user.emailVerified, ...profile }
 }
 
 export async function register(email: string, password: string): Promise<AppUser> {
@@ -59,7 +70,8 @@ export async function register(email: string, password: string): Promise<AppUser
     createdAt: now,
     updatedAt: now,
   })
-  return { uid: cred.user.uid, email, role: ['USER'] }
+  await sendEmailVerification(cred.user).catch(() => undefined)
+  return { uid: cred.user.uid, email, emailVerified: false, role: ['USER'] }
 }
 
 export async function signInWithGoogle(): Promise<AppUser> {
@@ -71,7 +83,7 @@ export async function signInWithGoogle(): Promise<AppUser> {
 
   await ensureUserDoc(uid, email)
   const profile = await getUserProfile(uid)
-  return { uid, email, ...profile }
+  return { uid, email, emailVerified: cred.user.emailVerified, ...profile }
 }
 
 export async function signOut(): Promise<void> {
@@ -88,19 +100,16 @@ export async function deleteUser(): Promise<void> {
   if (user.providerData.some((p) => p.providerId === 'google.com')) {
     await reauthenticateWithPopup(user, new GoogleAuthProvider())
   } else if (Date.now() - Date.parse(user.metadata.lastSignInTime ?? '') > RECENT_LOGIN_WINDOW_IN_MS) {
-    throw new Error('Volvé a iniciar sesión para eliminar tu cuenta')
+    throw new AccountDeletionError('Volvé a iniciar sesión para eliminar tu cuenta')
   }
 
-  const db = getFirestore()
-  const { linkedPlayerId } = await getUserProfile(user.uid)
-  if (linkedPlayerId) {
-    const playerRef = doc(db, 'players', linkedPlayerId)
-    if ((await getDoc(playerRef)).exists()) {
-      await updateDoc(playerRef, { linkedUserId: null, updatedAt: Timestamp.now() })
-    }
+  const tournaments = await getMyTournaments(user.uid)
+  if (tournaments.some(({ membership }) => membership.role === 'OWNER')) {
+    throw new AccountDeletionError('Eliminá los torneos que creaste antes de eliminar tu cuenta')
   }
+  for (const { tournament } of tournaments) await leaveTournament(tournament.id, user.uid)
 
-  await deleteDoc(doc(db, 'users', user.uid))
+  await deleteDoc(doc(getFirestore(), 'users', user.uid))
   await firebaseDeleteUser(user)
 }
 
@@ -112,8 +121,28 @@ export function onAuthStateChanged(callback: (user: AppUser | null) => void): ()
       return
     }
     const profile = await getUserProfile(firebaseUser.uid)
-    callback({ uid: firebaseUser.uid, email: firebaseUser.email!, ...profile })
+    callback({
+      uid: firebaseUser.uid,
+      email: firebaseUser.email!,
+      emailVerified: firebaseUser.emailVerified,
+      ...profile,
+    })
   })
+}
+
+export async function resendVerificationEmail(): Promise<void> {
+  const user = getAuth().currentUser
+  if (!user) throw new Error('No hay un usuario autenticado')
+  await sendEmailVerification(user)
+}
+
+export async function reloadCurrentUser(): Promise<AppUser | null> {
+  const user = getAuth().currentUser
+  if (!user) return null
+  await user.reload()
+  await user.getIdToken(true)
+  const profile = await getUserProfile(user.uid)
+  return { uid: user.uid, email: user.email!, emailVerified: user.emailVerified, ...profile }
 }
 
 export function isAdmin(user: AppUser | null): boolean {

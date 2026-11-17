@@ -30,7 +30,7 @@ export function EditMatch({ matchId }: Props) {
   if (loading || !match) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.brand} size="large" />
+        <ActivityIndicator color={colors.primaryText} size="large" />
       </View>
     )
   }

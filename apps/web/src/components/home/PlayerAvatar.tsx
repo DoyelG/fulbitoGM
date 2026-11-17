@@ -39,7 +39,7 @@ export default function PlayerAvatar({ name, photoUrl, size = 'sm', onDark = fal
   return (
     <span
       aria-hidden
-      className={`${className} grid shrink-0 place-items-center rounded-full font-bold text-brand ${onDark ? 'bg-white' : 'bg-brand/10'}`}
+      className={`${className} grid shrink-0 place-items-center rounded-full font-bold text-primary ${onDark ? 'bg-white' : 'bg-primary/10'}`}
     >
       {initials(name)}
     </span>

@@ -1,10 +1,14 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native'
 
 import { BasicInfoCard } from '@/components/players/new/basic-info-card'
 import { FormActions } from '@/components/players/new/form-actions'
-import { PlayerCreateCard } from '@/components/players/new/player-create-card'
-import { SKILLS, SkillsSection, type SkillKey, type SkillValues } from '@/components/players/new/skills-section'
-import { Spacing } from '@/constants/theme'
+import { PlayerGoldCard } from '@/components/players/detail/player-gold-card'
+import { SkillsSection, type SkillKey, type SkillValues } from '@/components/players/new/skills-section'
+import { ThemedText } from '@/components/themed-text'
+import { useTournaments } from '@/contexts/TournamentContext'
+import { useAppTheme } from '@/hooks/use-theme'
+
+import { styles } from './player-create-form.styles'
 
 export type PlayerCreateFormValues = SkillValues & {
   name: string
@@ -30,9 +34,10 @@ export function PlayerCreateForm({
   onSave,
   onCancel,
 }: Props) {
-  const overall = Math.round(
-    (values.physical + values.technical + values.tactical + values.psychological) / 4,
-  )
+  const { colors } = useAppTheme()
+  const { activeTournament } = useTournaments()
+  const overall = (values.physical + values.technical + values.tactical + values.psychological) / 4
+  const displayName = values.name.trim() || 'Nuevo jugador'
 
   const canSave = values.name.trim().length >= 2 && !saving
 
@@ -48,14 +53,30 @@ export function PlayerCreateForm({
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
         <View style={styles.cardWrap}>
-          <PlayerCreateCard
-            name={values.name}
-            position={values.position}
-            overall={overall}
-            photoUri={photoUri}
-            onPickPhoto={onPickPhoto}
-            stats={SKILLS.map((s) => ({ key: s.key, label: s.cardLabel, value: values[s.key] }))}
-          />
+          <Pressable
+            onPress={onPickPhoto}
+            accessibilityRole="button"
+            accessibilityLabel={photoUri ? 'Cambiar foto del jugador' : 'Subir foto del jugador'}
+            style={({ pressed }) => pressed && styles.pressed}
+          >
+            <PlayerGoldCard
+              name={displayName}
+              position={values.position}
+              overall={overall}
+              skills={{
+                physical: values.physical,
+                technical: values.technical,
+                tactical: values.tactical,
+                psychological: values.psychological,
+              }}
+              goalkeeping={values.goalkeeping}
+              photoUrl={photoUri}
+              tournamentPhotoUrl={activeTournament?.tournament.photoUrl}
+            />
+          </Pressable>
+          <ThemedText style={[styles.photoHint, { color: colors.textSecondary }]}>
+            {photoUri ? 'Tocá la card para cambiar la foto' : 'Tocá la card para subir una foto'}
+          </ThemedText>
         </View>
 
         <BasicInfoCard
@@ -74,15 +95,3 @@ export function PlayerCreateForm({
     </KeyboardAvoidingView>
   )
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-  },
-  cardWrap: {
-    marginBottom: Spacing.xl,
-  },
-  bottomPad: { height: 32 },
-})

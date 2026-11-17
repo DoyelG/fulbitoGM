@@ -1,53 +1,47 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FiBell, FiLogOut, FiUser } from 'react-icons/fi'
+import { FiChevronUp, FiLogOut, FiMessageSquare, FiUser } from 'react-icons/fi'
+import { unreadCommentsLabel } from '@fulbito/utils'
 import PlayerAvatar from '@/components/home/PlayerAvatar'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import { useNotificationStore } from '@/store/useNotificationStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
+import { selectMyPlayerId, useTournamentStore } from '@/store/useTournamentStore'
+import { selectOnlyUnreadTournamentId, selectTotalUnread, useUnreadCommentsStore } from '@/store/useUnreadCommentsStore'
+import UnreadBadge from '@/components/tournaments/UnreadBadge'
+import { useDismissable } from '@/hooks/use-dismissable'
+import { menuItemClassName } from './menu-item-class'
 
 type UserMenuProps = {
   closeNavBar?: () => void
 }
 
-const itemClassName =
-  'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand'
-
 export default function UserMenu({ closeNavBar }: UserMenuProps) {
   const { user, signOut } = useFirebaseAuth()
-  const { players } = usePlayerStore()
-  const pendingCount = useNotificationStore((state) => state.notifications.length)
+  const myPlayerId = useTournamentStore(selectMyPlayerId)
+  const linkedPlayer = usePlayerStore((state) => state.players.find((player) => player.id === myPlayerId))
+  const unread = useUnreadCommentsStore(selectTotalUnread)
+  const onlyUnreadTournamentId = useUnreadCommentsStore(selectOnlyUnreadTournamentId)
+  const setActiveTournament = useTournamentStore((state) => state.setActiveTournament)
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    if (!isOpen) return
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false)
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsOpen(false)
-    }
-    document.addEventListener('mousedown', handlePointerDown)
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen])
+  const closeMenu = useCallback(() => setIsOpen(false), [])
+  const containerRef = useDismissable<HTMLDivElement>(isOpen, closeMenu)
 
   if (!user) return null
 
-  const linkedPlayer = players.find((player) => player.id === user.linkedPlayerId)
   const displayName = linkedPlayer?.name ?? user.email.split('@')[0]
 
   const closeAll = () => {
     setIsOpen(false)
     closeNavBar?.()
+  }
+
+  const openUnread = () => {
+    if (onlyUnreadTournamentId) setActiveTournament(onlyUnreadTournamentId)
+    closeAll()
   }
 
   const handleSignOut = async () => {
@@ -60,54 +54,60 @@ export default function UserMenu({ closeNavBar }: UserMenuProps) {
     <div ref={containerRef} className="relative">
       <button
         type="button"
-        aria-label={pendingCount > 0 ? `Menú de usuario, ${pendingCount} notificaciones pendientes` : 'Menú de usuario'}
+        aria-label={unread > 0 ? `Menú de usuario. ${unreadCommentsLabel(unread)}` : 'Menú de usuario'}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
-        className="relative block rounded-full ring-2 ring-white/40 transition hover:ring-white/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="flex w-full items-center gap-3 rounded-2xl text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 max-sm:bg-primary-gradient max-sm:p-3 max-sm:text-white max-sm:shadow-md max-sm:hover:brightness-110 max-sm:focus-visible:outline-primary sm:block sm:w-auto sm:rounded-full sm:ring-2 sm:ring-white/40 sm:hover:ring-white/80 sm:focus-visible:outline-white"
       >
-        <PlayerAvatar name={displayName} photoUrl={linkedPlayer?.photoUrl} size="base" onDark />
-        {pendingCount > 0 && (
-          <span aria-hidden className="absolute -right-1 -top-1 flex h-5 min-w-5">
-            <span className="absolute inset-0 animate-ping rounded-full bg-accent opacity-75" />
-            <span className="relative flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold text-white ring-2 ring-night">
-              {pendingCount}
-            </span>
-          </span>
-        )}
+        <span className="relative block shrink-0 rounded-full max-sm:ring-2 max-sm:ring-white/30">
+          <PlayerAvatar name={displayName} photoUrl={linkedPlayer?.photoUrl} size="base" onDark />
+          <UnreadBadge count={unread} className="absolute -right-1.5 -top-1.5" />
+        </span>
+        <span className="min-w-0 flex-1 sm:hidden">
+          <span className="block truncate text-sm font-bold">{displayName}</span>
+          <span className="block truncate text-xs text-white/80">{user.email}</span>
+        </span>
+        <FiChevronUp
+          aria-hidden
+          className={`h-5 w-5 shrink-0 text-white/80 transition-transform sm:hidden ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
       {isOpen && (
         <div
           role="menu"
           aria-label="Menú de usuario"
-          className="animate-pop-in absolute bottom-full left-0 z-30 mb-3 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-gray-900 shadow-xl md:bottom-auto md:left-auto md:right-0 md:mb-0 md:mt-3"
+          className="animate-pop-in absolute bottom-full left-0 z-30 mb-3 flex w-full flex-col gap-1 rounded-2xl border border-gray-200 bg-white p-2 text-gray-900 shadow-xl sm:bottom-auto sm:left-auto sm:right-0 sm:top-full sm:mb-0 sm:mt-3 sm:w-64"
         >
-          <div className="mb-2 flex items-center gap-3 rounded-xl bg-scoreboard p-3 text-white">
+          <div className="mb-2 hidden items-center gap-3 rounded-xl bg-primary-gradient p-3 text-white sm:flex">
             <PlayerAvatar name={displayName} photoUrl={linkedPlayer?.photoUrl} size="md" onDark />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{displayName}</p>
               <p className="truncate text-xs text-white/80">{user.email}</p>
             </div>
           </div>
-          <Link href="/profile" role="menuitem" onClick={closeAll} className={itemClassName}>
-            <FiUser aria-hidden className="text-brand" />
+          {unread > 0 && (
+            <Link
+              href="/profile"
+              role="menuitem"
+              onClick={openUnread}
+              className={`${menuItemClassName} text-orange-800`}
+            >
+              <FiMessageSquare aria-hidden className="text-secondary" />
+              <span className="flex-1">{unreadCommentsLabel(unread)}</span>
+              <UnreadBadge count={unread} className="max-sm:hidden" />
+            </Link>
+          )}
+          <Link href="/profile" role="menuitem" onClick={closeAll} className={menuItemClassName}>
+            <FiUser aria-hidden className="text-primary" />
             Ver perfil
-          </Link>
-          <Link href="/notifications" role="menuitem" onClick={closeAll} className={itemClassName}>
-            <FiBell aria-hidden className="text-brand" />
-            Notificaciones
-            {pendingCount > 0 && (
-              <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
-                {pendingCount}
-              </span>
-            )}
           </Link>
           <div className="my-1 h-px bg-gray-200" />
           <button
             type="button"
             role="menuitem"
             onClick={handleSignOut}
-            className={`${itemClassName} text-red-600 hover:bg-red-50`}
+            className={`${menuItemClassName} text-orange-700 hover:bg-orange-50`}
           >
             <FiLogOut aria-hidden />
             Cerrar sesión

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { FiAlertTriangle, FiCamera, FiCheckCircle, FiFilm, FiLink, FiUser } from 'react-icons/fi'
-import { cancelRoleRequest, createRoleRequest, RoleRequestError, type AppUser } from '@fulbito/firebase'
+import type { Player } from '@fulbito/types'
+import { TournamentPlayerRequestError, type LinkPlayerOutcome } from '@fulbito/firebase'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import Button from './Button'
 import LinkPlayerHero from './LinkPlayerHero'
@@ -10,7 +11,7 @@ import LinkPlayerStepDots from './LinkPlayerStepDots'
 import PlayersGrid from './PlayersGrid'
 import { fieldClassName } from '@/lib/field-styles'
 
-export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'revert'
+export type LinkPlayerStep = 'question' | 'select' | 'newPlayer' | 'sent' | 'linked' | 'revert'
 
 const benefits = [
   { icon: FiUser, text: 'Tener tu propio perfil de jugador' },
@@ -23,27 +24,42 @@ export const linkPlayerStepTitles: Record<LinkPlayerStep, string> = {
   select: 'Vincular con un jugador',
   newPlayer: 'Vincular con un jugador',
   sent: 'Vincular con un jugador',
+  linked: 'Vincular con un jugador',
   revert: 'Vincular con un jugador',
 }
 
+export type LinkPlayerRequest = { playerId: string } | { newPlayerName: string }
+
+export type LinkPlayerActions = {
+  send: (request: LinkPlayerRequest) => Promise<LinkPlayerOutcome>
+  cancel: () => Promise<void>
+  isPlayerUnavailable: (player: Player) => boolean
+  linksDirectly: boolean
+  reviewerDescription: string
+}
+
 type LinkPlayerFlowProps = {
-  user: AppUser
   step: LinkPlayerStep
   onStepChange: (step: LinkPlayerStep) => void
   onAnswerNo: () => void
   onRequestSent: () => void
   onFinish: () => void
   onCancel?: () => void
+  actions: LinkPlayerActions
+}
+
+function isKnownRequestError(error: unknown): error is Error {
+  return error instanceof TournamentPlayerRequestError
 }
 
 export default function LinkPlayerFlow({
-  user,
   step,
   onStepChange,
   onAnswerNo,
   onRequestSent,
   onFinish,
   onCancel,
+  actions,
 }: LinkPlayerFlowProps) {
   const players = usePlayerStore((state) => state.players)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -51,24 +67,19 @@ export default function LinkPlayerFlow({
   const [newPlayerName, setNewPlayerName] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
-  const [sentRequestId, setSentRequestId] = useState<string | null>(null)
+  const { send, cancel, isPlayerUnavailable, linksDirectly, reviewerDescription } = actions
+  const submitLabel = linksDirectly ? 'Vincular' : 'Enviar solicitud'
 
-  const sendRequest = async (request: { playerId: string } | { newPlayerName: string }) => {
+  const sendRequest = async (request: LinkPlayerRequest) => {
     setIsSending(true)
     setErrorMessage(null)
     try {
-      const requestId = await createRoleRequest({
-        userId: user.uid,
-        userEmail: user.email,
-        requestedRole: 'PLAYER',
-        ...request,
-      })
-      setSentRequestId(requestId)
+      const outcome = await send(request)
       onRequestSent()
-      onStepChange('sent')
+      onStepChange(outcome === 'linked' ? 'linked' : 'sent')
     } catch (error) {
       setErrorMessage(
-        error instanceof RoleRequestError ? error.message : 'No se pudo enviar la solicitud. Probá de nuevo más tarde.',
+        isKnownRequestError(error) ? error.message : 'No se pudo vincular el jugador. Probá de nuevo más tarde.',
       )
     } finally {
       setIsSending(false)
@@ -76,17 +87,14 @@ export default function LinkPlayerFlow({
   }
 
   const revertRequest = async () => {
-    if (!sentRequestId) return
     setIsSending(true)
     setErrorMessage(null)
     try {
-      await cancelRoleRequest(sentRequestId)
+      await cancel()
       onStepChange('select')
     } catch (error) {
       setErrorMessage(
-        error instanceof RoleRequestError
-          ? error.message
-          : 'No se pudo revertir la solicitud. Probá de nuevo más tarde.',
+        isKnownRequestError(error) ? error.message : 'No se pudo revertir la solicitud. Probá de nuevo más tarde.',
       )
     } finally {
       setIsSending(false)
@@ -99,7 +107,7 @@ export default function LinkPlayerFlow({
   }
 
   const errorAlert = errorMessage && (
-    <p role="alert" className="mt-3 text-sm text-red-700">
+    <p role="alert" className="mt-3 text-sm text-orange-700">
       {errorMessage}
     </p>
   )
@@ -116,7 +124,10 @@ export default function LinkPlayerFlow({
         <ul className="mt-6 space-y-2">
           {benefits.map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-900">
-              <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+              <span
+                aria-hidden
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"
+              >
                 <Icon />
               </span>
               {text}
@@ -137,7 +148,7 @@ export default function LinkPlayerFlow({
 
   if (step === 'select') {
     const selectedPlayerId = [...selectedIds][0]
-    const linkablePlayers = players.filter((player) => !player.inactive && !player.linkedUserId)
+    const linkablePlayers = players.filter((player) => !player.inactive && !isPlayerUnavailable(player))
     const normalizedQuery = playerQuery.trim().toLowerCase()
     const visiblePlayers = linkablePlayers.filter((player) => player.name.toLowerCase().includes(normalizedQuery))
     return (
@@ -168,9 +179,9 @@ export default function LinkPlayerFlow({
           <button
             type="button"
             onClick={() => goToStep('newPlayer')}
-            className="rounded font-medium text-brand hover:underline focus:outline-none focus:ring-2 focus:ring-brand"
+            className="rounded font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            Solicitar un jugador nuevo
+            {linksDirectly ? 'Crear un jugador nuevo' : 'Solicitar un jugador nuevo'}
           </button>
         </p>
         {errorAlert}
@@ -183,7 +194,7 @@ export default function LinkPlayerFlow({
             disabled={!selectedPlayerId || isSending}
             onClick={() => sendRequest({ playerId: selectedPlayerId })}
           >
-            Enviar solicitud
+            {submitLabel}
           </Button>
         </div>
       </div>
@@ -216,7 +227,7 @@ export default function LinkPlayerFlow({
             disabled={!trimmedName || isSending}
             onClick={() => sendRequest({ newPlayerName: trimmedName })}
           >
-            Enviar solicitud
+            {submitLabel}
           </Button>
         </div>
       </div>
@@ -230,7 +241,7 @@ export default function LinkPlayerFlow({
           icon={FiAlertTriangle}
           tone="danger"
           title="¿Revertir la solicitud?"
-          description="Se va a cancelar y el administrador ya no la va a ver."
+          description="Se va a cancelar y los organizadores ya no la van a ver."
         />
         {errorAlert}
         <div className="mt-6 flex justify-center gap-3">
@@ -245,15 +256,29 @@ export default function LinkPlayerFlow({
     )
   }
 
+  if (step === 'linked') {
+    return (
+      <div>
+        <LinkPlayerStepDots current={3} total={3} />
+        <LinkPlayerHero
+          icon={FiCheckCircle}
+          tone="success"
+          title="Ya estás vinculado"
+          description="Ahora podés editar tu jugador desde tu perfil."
+        />
+        <div className="mt-6 flex justify-center">
+          <Button type="button" block onClick={onFinish}>
+            Cerrar
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <LinkPlayerStepDots current={3} total={3} />
-      <LinkPlayerHero
-        icon={FiCheckCircle}
-        tone="success"
-        title="Solicitud enviada"
-        description="Un administrador la va a revisar. Cuando la acepte, volvé a iniciar sesión para ver el cambio."
-      />
+      <LinkPlayerHero icon={FiCheckCircle} tone="success" title="Solicitud enviada" description={reviewerDescription} />
       <div className="mt-6 flex justify-center gap-3">
         <Button type="button" variant="dangerousSecondary" block onClick={() => goToStep('revert')}>
           Revertir solicitud

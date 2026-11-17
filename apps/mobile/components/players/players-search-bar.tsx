@@ -10,8 +10,8 @@ type Props = {
 }
 
 export function PlayersSearchBar({ value, onChange, placeholder = 'Buscar jugador...' }: Props) {
-  const { colors, isDark } = useAppTheme()
-  const bg = isDark ? colors.chipBg : '#f3f4f6'
+  const { colors } = useAppTheme()
+  const bg = colors.chipBg
 
   return (
     <View style={[styles.wrap, { backgroundColor: bg, borderColor: colors.border }]}>

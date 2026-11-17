@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   safe: { flex: 1 },
@@ -83,6 +83,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   submitBtn: {
+    overflow: 'hidden',
     borderRadius: Radii.sm,
     paddingVertical: Spacing.md,
     alignItems: 'center',
@@ -90,7 +91,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   submitText: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontFamily: Fonts.semiBold,
     fontSize: 15,
   },

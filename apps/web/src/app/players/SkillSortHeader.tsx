@@ -51,7 +51,7 @@ export default function SkillSortHeader({ mode, sortDirection, onSelect }: Props
                 event.stopPropagation()
                 onSelect(option.mode)
               }}
-              className={`group relative inline-flex items-center gap-1 overflow-hidden rounded-full px-3 py-1 text-xs font-semibold text-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 active:scale-95 ${
+              className={`group relative inline-flex items-center gap-1 overflow-hidden rounded-full px-3 py-1 text-xs font-semibold text-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-95 ${
                 isActive ? 'shadow-md' : ''
               }`}
             >

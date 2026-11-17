@@ -81,7 +81,7 @@ export function computePlayerStatRows(players: Player[], allMatches: Match[]): P
   return Object.values(map)
 }
 
-export type AwardAccent = 'brand' | 'secondary' | 'muted'
+export type AwardAccent = 'primary' | 'secondary' | 'muted'
 export type AwardKey = 'matches' | 'goals' | 'lossStreak' | 'lostFinals' | 'shirts' | 'mvps'
 
 export type AwardDef = {
@@ -100,7 +100,7 @@ export const AWARD_DEFS: AwardDef[] = [
     subtitle:
       'Este premio es otorgado al jugador con mejor asistencia de la temporada, el que siempre está anotado en la lista.',
     unitLabel: 'PARTIDOS',
-    accent: 'brand',
+    accent: 'primary',
     getValue: (row) => row.matches,
   },
   {
@@ -140,7 +140,7 @@ export const AWARD_DEFS: AwardDef[] = [
     title: 'Máximo MVP',
     subtitle: 'La estrella indiscutida de la cancha esta temporada',
     unitLabel: 'MVPS',
-    accent: 'brand',
+    accent: 'primary',
     getValue: (row) => row.mvps,
   },
 ]
@@ -236,4 +236,25 @@ export function listAvailableSeasons(matches: Match[]): number[] {
   const years = new Set(matches.map((m) => new Date(m.date).getFullYear()))
   years.add(new Date().getFullYear())
   return Array.from(years).sort((a, b) => b - a)
+}
+
+export type CurrentChampion = {
+  playerId: string
+  playerName: string
+  playerPhotoUrl?: string | null
+  wonAt: string
+}
+
+export function pickCurrentChampion(players: Player[], matches: Match[]): CurrentChampion | null {
+  const eventsById = findAllStreakEvents(matches, CHAMPIONSHIP_THRESHOLD)
+  let latest: CurrentChampion | null = null
+
+  for (const p of players) {
+    for (const e of eventsById[p.id] ?? []) {
+      if (e.kind !== 'title' || (latest && e.date <= latest.wonAt)) continue
+      latest = { playerId: p.id, playerName: p.name, playerPhotoUrl: p.photoUrl, wonAt: e.date }
+    }
+  }
+
+  return latest
 }

@@ -7,6 +7,7 @@ import { Pressable, View } from 'react-native'
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
 import { styles } from './video-clip-card.styles'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   clip: VideoClip
@@ -36,7 +37,7 @@ export function VideoClipCard({ clip, match, canDelete, onOpen, onDelete }: Prop
         <View style={styles.thumbnail}>
           <VideoView
             player={player}
-            style={{ width: '100%', height: '100%' }}
+            style={styles.video}
             contentFit="cover"
             nativeControls={false}
             allowsPictureInPicture={false}
@@ -60,11 +61,11 @@ export function VideoClipCard({ clip, match, canDelete, onOpen, onDelete }: Prop
       {canDelete && (
         <Pressable
           onPress={onDelete}
-          style={[styles.deleteBtn, { backgroundColor: 'rgba(0,0,0,0.55)' }]}
+          style={styles.deleteBtn}
           accessibilityRole="button"
           accessibilityLabel={`Eliminar clip: ${label}`}
         >
-          <MaterialIcons name="delete" size={18} color="#fff" />
+          <MaterialIcons name="delete" size={18} color={ContrastColors.onColor} />
         </Pressable>
       )}
     </View>

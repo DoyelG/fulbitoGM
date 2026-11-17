@@ -3,9 +3,11 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { registerPlayerTools } from './tools/players'
 import { registerMatchTools } from './tools/matches'
 import { registerStatsTools } from './tools/stats'
+import { registerTournamentTools } from './tools/tournaments'
 
 async function main(): Promise<void> {
   const server = new McpServer({ name: 'fulbito', version: '0.1.0' })
+  registerTournamentTools(server)
   registerPlayerTools(server)
   registerMatchTools(server)
   registerStatsTools(server)

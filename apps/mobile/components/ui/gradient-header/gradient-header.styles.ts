@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 
-import { Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   banner: {
@@ -27,10 +27,10 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#fff',
+    color: ContrastColors.onColor,
   },
   subtitle: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
+    color: ContrastColors.onColorSoft,
   },
 })

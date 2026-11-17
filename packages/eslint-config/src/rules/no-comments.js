@@ -14,14 +14,22 @@ module.exports = {
     },
   },
   create(context) {
+    const sourceCode = context.sourceCode ?? context.getSourceCode()
+
+    function reportComments(comments) {
+      for (const comment of comments) {
+        if (comment.type === 'Shebang' || comment.type === 'Hashbang') continue
+        if (DIRECTIVE_PATTERN.test(comment.value)) continue
+        context.report({ node: comment, loc: comment.loc, messageId: 'unexpected' })
+      }
+    }
+
     return {
       Program() {
-        const sourceCode = context.sourceCode ?? context.getSourceCode()
-        for (const comment of sourceCode.getAllComments()) {
-          if (comment.type === 'Shebang' || comment.type === 'Hashbang') continue
-          if (DIRECTIVE_PATTERN.test(comment.value)) continue
-          context.report({ node: comment, messageId: 'unexpected' })
-        }
+        reportComments(sourceCode.getAllComments())
+      },
+      StyleSheet() {
+        reportComments(sourceCode.comments)
       },
     }
   },

@@ -22,14 +22,14 @@ export function MatchDescription({ text }: Props) {
   const isTruncatable = textHeight > LINE_HEIGHT
 
   return (
-    <div className="mt-3 flex flex-wrap pb-4 items-start gap-3">
+    <div className="flex flex-wrap items-start gap-3">
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
         disabled={!isTruncatable}
         aria-expanded={isExpanded}
         aria-label={isExpanded ? 'Contraer descripción' : 'Expandir descripción'}
-        className="flex flex-1 min-w-0 items-start gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded disabled:cursor-default"
+        className="flex flex-1 min-w-0 items-start gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded disabled:cursor-default"
       >
         <p
           ref={textRef}

@@ -7,6 +7,7 @@ import {
   signOut as firebaseSignOut,
   isAdmin as checkIsAdmin,
   onAuthStateChanged,
+  reloadCurrentUser,
   type AppUser,
 } from '@fulbito/firebase'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
@@ -21,6 +22,7 @@ type AuthContextValue = {
   register: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   deleteUser: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -59,8 +61,14 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  const refreshUser = async () => {
+    setUser(await reloadCurrentUser())
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin: checkIsAdmin(user), signIn, register, signOut, deleteUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, isAdmin: checkIsAdmin(user), signIn, register, signOut, deleteUser, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

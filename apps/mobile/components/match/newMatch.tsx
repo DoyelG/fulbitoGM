@@ -27,9 +27,9 @@ export function NewMatch() {
       onSave={async (m) => {
         setSaving(true)
         try {
-          await addMatch(m)
+          const matchId = await addMatch(m)
           setFormKey((k) => k + 1)
-          router.navigate('/(tabs)/history')
+          router.navigate({ pathname: '/(tabs)/history/[id]', params: { id: matchId } })
         } catch {
           Alert.alert('No se pudo crear el partido', 'Revisá tu conexión e intentá de nuevo.')
         } finally {

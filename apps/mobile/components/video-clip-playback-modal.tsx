@@ -4,6 +4,7 @@ import { Modal, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { styles } from './video-clip-playback-modal.styles'
+import { ContrastColors } from '@/constants/theme'
 
 type Props = {
   url: string | null
@@ -23,7 +24,7 @@ export function VideoClipPlaybackModal({ url, onClose }: Props) {
           style={styles.closeBtn}
           accessibilityRole="button"
           accessibilityLabel="Cerrar reproductor">
-          <MaterialIcons name="close" size={28} color="#fff" />
+          <MaterialIcons name="close" size={28} color={ContrastColors.onColor} />
         </Pressable>
         {url && <VideoView player={player} style={styles.videoView} nativeControls />}
       </SafeAreaView>

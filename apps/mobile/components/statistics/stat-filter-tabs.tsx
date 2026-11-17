@@ -1,6 +1,9 @@
+import type { ReactNode } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 
+import { PrimaryGradient } from '@/components/primary-gradient'
 import { ThemedText } from '@/components/themed-text'
+import { ContrastColors, PrimaryColors } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 import type { SortTabKey } from '@/hooks/use-player-statistics'
 import { styles } from './styles/stat-filter-tabs.styles'
@@ -8,6 +11,7 @@ import { styles } from './styles/stat-filter-tabs.styles'
 type Props = {
   activeTab: SortTabKey
   onChange: (tab: SortTabKey) => void
+  leading?: ReactNode
 }
 
 const TABS: { key: SortTabKey; label: string }[] = [
@@ -18,8 +22,8 @@ const TABS: { key: SortTabKey; label: string }[] = [
   { key: 'mvps', label: 'MVP' },
 ]
 
-export function StatFilterTabs({ activeTab, onChange }: Props) {
-  const { colors, radii, spacing, shadows, isDark } = useAppTheme()
+export function StatFilterTabs({ activeTab, onChange, leading }: Props) {
+  const { colors, radii, spacing, isDark } = useAppTheme()
 
   return (
     <View style={styles.wrapper}>
@@ -27,6 +31,7 @@ export function StatFilterTabs({ activeTab, onChange }: Props) {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.content}>
+        {leading}
         {TABS.map((tab) => {
           const selected = activeTab === tab.key
           return (
@@ -38,17 +43,17 @@ export function StatFilterTabs({ activeTab, onChange }: Props) {
                 {
                   borderRadius: radii.pill,
                   paddingHorizontal: spacing.lg,
-                  backgroundColor: selected ? colors.brand : colors.chipBg,
-                  borderColor: selected ? colors.brand : colors.chipBorder,
+                  backgroundColor: selected ? undefined : colors.chipBg,
+                  borderColor: selected ? PrimaryColors.border : colors.chipBorder,
                 },
-                selected && shadows.pill(),
                 pressed && { opacity: 0.9 },
               ]}>
+              {selected && <PrimaryGradient />}
               <ThemedText
                 type="defaultSemiBold"
                 style={[
                   styles.tabText,
-                  { color: selected ? '#ffffff' : isDark ? colors.text : '#4b5563' },
+                  { color: selected ? ContrastColors.onColor : isDark ? colors.text : colors.subtleText },
                 ]}>
                 {tab.label}
               </ThemedText>

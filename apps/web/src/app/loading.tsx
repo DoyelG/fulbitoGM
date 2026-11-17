@@ -13,7 +13,7 @@ export default function Loading() {
       </div>
 
       <div className="fixed inset-0 pointer-events-none flex items-center justify-center">
-        <div className="h-10 w-10 border-4 border-gray-200 border-t-brand rounded-full animate-spin" />
+        <div className="h-10 w-10 border-4 border-gray-200 border-t-primary rounded-full animate-spin" />
       </div>
     </div>
   )

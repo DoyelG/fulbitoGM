@@ -1,7 +1,11 @@
 import { getFirestore, collection, doc, getDocs, getDoc, writeBatch, query, where, Timestamp } from 'firebase/firestore'
 import type { Match, MatchInput, MatchPlayer, MatchLocation } from '@fulbito/types'
+import { tournamentPlayersQuery } from './players'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
+
+const MATCHES_COLLECTION = 'matches'
+const MATCH_PLAYERS_COLLECTION = 'matchPlayers'
 
 function isTimestampLike(value: unknown): value is { toDate(): Date } {
   return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
@@ -51,6 +55,7 @@ export function docToMatchScalars(id: string, data: Record<string, unknown>): Om
 
   return {
     id,
+    tournamentId: typeof data['tournamentId'] === 'string' ? data['tournamentId'] : '',
     date,
     hasTime: (data['hasTime'] as boolean | undefined) ?? false,
     createdAt: toIsoString(data['createdAt']) ?? date,
@@ -69,15 +74,29 @@ export function docToMatchScalars(id: string, data: Record<string, unknown>): Om
   }
 }
 
-export async function getMatches(): Promise<Match[]> {
-  const db = getFirestore()
-  const [matchSnap, mpSnap, playerSnap] = await Promise.all([
-    getDocs(collection(db, 'matches')),
-    getDocs(collection(db, 'matchPlayers')),
-    getDocs(collection(db, 'players')),
-  ])
+function tournamentQuery(collectionName: string, tournamentId: string) {
+  return query(collection(getFirestore(), collectionName), where('tournamentId', '==', tournamentId))
+}
 
-  const playerNames = new Map<string, string>(playerSnap.docs.map((d) => [d.id, d.data()['name'] as string]))
+function matchPlayersQuery(tournamentId: string, matchId: string) {
+  return query(
+    collection(getFirestore(), MATCH_PLAYERS_COLLECTION),
+    where('tournamentId', '==', tournamentId),
+    where('matchId', '==', matchId),
+  )
+}
+
+async function getPlayerNames(tournamentId: string): Promise<Map<string, string>> {
+  const playerSnap = await getDocs(tournamentPlayersQuery(tournamentId))
+  return new Map<string, string>(playerSnap.docs.map((d) => [d.id, d.data()['name'] as string]))
+}
+
+export async function getMatches(tournamentId: string): Promise<Match[]> {
+  const [matchSnap, mpSnap, playerNames] = await Promise.all([
+    getDocs(tournamentQuery(MATCHES_COLLECTION, tournamentId)),
+    getDocs(tournamentQuery(MATCH_PLAYERS_COLLECTION, tournamentId)),
+    getPlayerNames(tournamentId),
+  ])
 
   const mpDocs = mpSnap.docs.map((d) => ({ id: d.id, data: () => d.data() as Record<string, unknown> }))
   const teamsByMatch = groupTeamsByMatch(mpDocs, playerNames)
@@ -91,6 +110,17 @@ export async function getMatches(): Promise<Match[]> {
   return sortMatchesByDateDescending(matches)
 }
 
+export async function getDraftMatches(tournamentId: string): Promise<Omit<Match, 'teamA' | 'teamB'>[]> {
+  const snap = await getDocs(
+    query(
+      collection(getFirestore(), MATCHES_COLLECTION),
+      where('tournamentId', '==', tournamentId),
+      where('status', '==', 'draft'),
+    ),
+  )
+  return snap.docs.map((d) => docToMatchScalars(d.id, d.data() as Record<string, unknown>))
+}
+
 function sortMatchesByDateDescending(matches: Match[]): Match[] {
   return matches.sort((a, b) => {
     const dayA = a.date.slice(0, 10)
@@ -100,17 +130,15 @@ function sortMatchesByDateDescending(matches: Match[]): Match[] {
   })
 }
 
-export async function getMatch(id: string): Promise<Match | null> {
+export async function getMatch(tournamentId: string, id: string): Promise<Match | null> {
   const db = getFirestore()
-  const [matchSnap, mpSnap, playerSnap] = await Promise.all([
-    getDoc(doc(db, 'matches', id)),
-    getDocs(query(collection(db, 'matchPlayers'), where('matchId', '==', id))),
-    getDocs(collection(db, 'players')),
+  const [matchSnap, mpSnap, playerNames] = await Promise.all([
+    getDoc(doc(db, MATCHES_COLLECTION, id)),
+    getDocs(matchPlayersQuery(tournamentId, id)),
+    getPlayerNames(tournamentId),
   ])
 
   if (!matchSnap.exists()) return null
-
-  const playerNames = new Map<string, string>(playerSnap.docs.map((d) => [d.id, d.data()['name'] as string]))
 
   const mpDocs = mpSnap.docs.map((d) => ({ id: d.id, data: () => d.data() as Record<string, unknown> }))
   const scalars = docToMatchScalars(matchSnap.id, matchSnap.data() as Record<string, unknown>)
@@ -118,14 +146,19 @@ export async function getMatch(id: string): Promise<Match | null> {
   return { ...scalars, teamA: teams.A, teamB: teams.B }
 }
 
-export async function createMatch(data: MatchInput): Promise<string> {
+function matchPlayerRows(teamA: MatchPlayer[], teamB: MatchPlayer[]) {
+  return [...teamA.map((p) => ({ ...p, team: 'A' as const })), ...teamB.map((p) => ({ ...p, team: 'B' as const }))]
+}
+
+export async function createMatch(tournamentId: string, data: MatchInput): Promise<string> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
 
   const batch = writeBatch(db)
-  const matchRef = doc(collection(db, 'matches'))
+  const matchRef = doc(collection(db, MATCHES_COLLECTION))
   batch.set(matchRef, {
     ...scalars,
+    tournamentId,
     date: Timestamp.fromDate(new Date(data.date)),
     status: data.status ?? 'final',
     name: data.name ?? null,
@@ -137,12 +170,9 @@ export async function createMatch(data: MatchInput): Promise<string> {
     updatedAt: Timestamp.now(),
   })
 
-  const allPlayers = [
-    ...teamA.map((p) => ({ ...p, team: 'A' as const })),
-    ...teamB.map((p) => ({ ...p, team: 'B' as const })),
-  ]
-  for (const p of allPlayers) {
-    batch.set(doc(collection(db, 'matchPlayers')), {
+  for (const p of matchPlayerRows(teamA, teamB)) {
+    batch.set(doc(collection(db, MATCH_PLAYERS_COLLECTION)), {
+      tournamentId,
       matchId: matchRef.id,
       playerId: p.id,
       team: p.team,
@@ -155,15 +185,14 @@ export async function createMatch(data: MatchInput): Promise<string> {
   return matchRef.id
 }
 
-export async function updateMatch(id: string, data: MatchInput): Promise<void> {
+export async function updateMatch(tournamentId: string, id: string, data: MatchInput): Promise<void> {
   const db = getFirestore()
   const { teamA, teamB, mvpId, goalkeeperIds, ...scalars } = data
 
-  const mpSnap = await getDocs(query(collection(db, 'matchPlayers'), where('matchId', '==', id)))
-  const toDelete = mpSnap.docs
+  const mpSnap = await getDocs(matchPlayersQuery(tournamentId, id))
 
   const batch = writeBatch(db)
-  batch.update(doc(db, 'matches', id), {
+  batch.update(doc(db, MATCHES_COLLECTION, id), {
     ...scalars,
     date: Timestamp.fromDate(new Date(data.date)),
     location: data.location ?? null,
@@ -172,14 +201,11 @@ export async function updateMatch(id: string, data: MatchInput): Promise<void> {
     goalkeeperIds: goalkeeperIds ?? [],
     updatedAt: Timestamp.now(),
   })
-  for (const d of toDelete) batch.delete(d.ref)
+  for (const d of mpSnap.docs) batch.delete(d.ref)
 
-  const allPlayers = [
-    ...teamA.map((p) => ({ ...p, team: 'A' as const })),
-    ...teamB.map((p) => ({ ...p, team: 'B' as const })),
-  ]
-  for (const p of allPlayers) {
-    batch.set(doc(collection(db, 'matchPlayers')), {
+  for (const p of matchPlayerRows(teamA, teamB)) {
+    batch.set(doc(collection(db, MATCH_PLAYERS_COLLECTION)), {
+      tournamentId,
       matchId: id,
       playerId: p.id,
       team: p.team,
@@ -191,14 +217,13 @@ export async function updateMatch(id: string, data: MatchInput): Promise<void> {
   await batch.commit()
 }
 
-export async function deleteMatch(id: string): Promise<void> {
+export async function deleteMatch(tournamentId: string, id: string): Promise<void> {
   const db = getFirestore()
 
-  const mpSnap = await getDocs(query(collection(db, 'matchPlayers'), where('matchId', '==', id)))
-  const toDelete = mpSnap.docs
+  const mpSnap = await getDocs(matchPlayersQuery(tournamentId, id))
 
   const batch = writeBatch(db)
-  batch.delete(doc(db, 'matches', id))
-  for (const d of toDelete) batch.delete(d.ref)
+  batch.delete(doc(db, MATCHES_COLLECTION, id))
+  for (const d of mpSnap.docs) batch.delete(d.ref)
   await batch.commit()
 }

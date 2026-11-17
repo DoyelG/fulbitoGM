@@ -10,4 +10,6 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-initFirebase(firebaseConfig)
+initFirebase(firebaseConfig, {
+  emulatorHost: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true' ? '127.0.0.1' : undefined,
+})

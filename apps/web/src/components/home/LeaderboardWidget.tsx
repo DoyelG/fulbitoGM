@@ -31,9 +31,9 @@ const STATS = {
     label: 'MVPs',
     singular: 'MVP',
     plural: 'MVPs',
-    pillClass: 'bg-brand/10 text-brand',
-    featuredClass: 'from-violet-50 to-violet-100',
-    valueClass: 'text-brand',
+    pillClass: 'bg-primary/10 text-primary',
+    featuredClass: 'from-primary/5 to-primary/10',
+    valueClass: 'text-primary',
     featuredLabel: 'Más MVPs de la temporada',
     emptyText: 'Todavía no hay MVPs esta temporada.',
   },
@@ -58,7 +58,7 @@ export default function LeaderboardWidget() {
     <WidgetCard
       id={ID}
       emoji="⚽"
-      tone="accent"
+      tone="secondary"
       title="Goleadores y MVPs"
       href="/statistics"
       linkLabel="Ver estadísticas"
@@ -77,7 +77,7 @@ export default function LeaderboardWidget() {
             id={`${ID}-panel`}
             aria-labelledby={`${ID}-tab-${active}`}
             tabIndex={0}
-            className="rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <LeaderboardList
               entries={entries}

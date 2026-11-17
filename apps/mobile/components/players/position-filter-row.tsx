@@ -1,12 +1,12 @@
+import { getPositionLabel, positionOrder } from '@fulbito/utils'
 import * as Haptics from 'expo-haptics'
 import { Pressable, ScrollView, StyleSheet } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 export type PositionFilter = string | null
-
-const ORDER = ['GK', 'DEF', 'MID', 'FWD', 'PLAYER']
 
 type Props = {
   positions: string[]
@@ -16,8 +16,8 @@ type Props = {
 
 export function PositionFilterRow({ positions, value, onChange }: Props) {
   const sorted = [...positions].sort((a, b) => {
-    const ia = ORDER.indexOf(a)
-    const ib = ORDER.indexOf(b)
+    const ia = positionOrder.indexOf(a)
+    const ib = positionOrder.indexOf(b)
     if (ia === -1 && ib === -1) return a.localeCompare(b)
     if (ia === -1) return 1
     if (ib === -1) return -1
@@ -33,7 +33,7 @@ export function PositionFilterRow({ positions, value, onChange }: Props) {
       {sorted.map((pos) => (
         <Chip
           key={pos}
-          label={pos}
+          label={getPositionLabel(pos)}
           active={value === pos}
           onPress={() => onChange(pos)}
         />
@@ -61,15 +61,15 @@ function Chip({
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: active ? colors.brand : colors.chipBg,
-          borderColor: active ? colors.brand : colors.chipBorder,
+          backgroundColor: active ? colors.primary : colors.chipBg,
+          borderColor: active ? colors.primary : colors.chipBorder,
         },
         pressed && styles.pressed,
       ]}>
       <ThemedText
         style={[
           styles.chipText,
-          { color: active ? '#fff' : colors.muted },
+          { color: active ? ContrastColors.onColor : colors.muted },
         ]}>
         {label}
       </ThemedText>

@@ -19,7 +19,7 @@ type Props = {
 const PLAYERS_STYLES = {
   complete: 'bg-green-100 text-green-800',
   missing: 'bg-yellow-100 text-yellow-800',
-  extra: 'bg-red-100 text-red-800',
+  extra: 'bg-orange-100 text-orange-800',
 }
 
 function getPlayersStatus(difference: number): keyof typeof PLAYERS_STYLES {

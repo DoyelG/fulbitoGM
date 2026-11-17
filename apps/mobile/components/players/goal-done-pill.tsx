@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
+import { ContrastColors } from '@/constants/theme'
 
 const DONE_BG = 'hsl(270, 80%, 38%)'
 
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   text: {
-    color: '#fff',
+    color: ContrastColors.onColor,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.3,

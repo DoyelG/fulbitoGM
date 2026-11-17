@@ -5,15 +5,16 @@ import { ThemedText } from '@/components/themed-text'
 import { Fonts, Spacing } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
-export type SkillKey = 'physical' | 'technical' | 'tactical' | 'psychological'
+export type SkillKey = 'physical' | 'technical' | 'tactical' | 'psychological' | 'goalkeeping'
 
 export type SkillValues = Record<SkillKey, number>
 
-export const SKILLS: { key: SkillKey; label: string; cardLabel: string }[] = [
-  { key: 'physical', label: 'Físico', cardLabel: 'FIS' },
-  { key: 'technical', label: 'Técnico', cardLabel: 'TEC' },
-  { key: 'tactical', label: 'Táctico', cardLabel: 'TAC' },
-  { key: 'psychological', label: 'Mental', cardLabel: 'MEN' },
+export const SKILLS: { key: SkillKey; label: string }[] = [
+  { key: 'physical', label: 'Físico' },
+  { key: 'technical', label: 'Técnico' },
+  { key: 'tactical', label: 'Táctico' },
+  { key: 'psychological', label: 'Mental' },
+  { key: 'goalkeeping', label: 'Arquero' },
 ]
 
 const LOW_SKILL_MAX = 5
@@ -25,12 +26,12 @@ type Props = {
 
 export function SkillsSection({ values, onChange }: Props) {
   const { colors, radii, shadows, isDark } = useAppTheme()
-  const trackBg = isDark ? 'rgba(255,255,255,0.12)' : '#e5e7eb'
+  const trackBg = colors.track
 
   return (
     <>
       {SKILLS.map((s) => {
-        const tone = values[s.key] <= LOW_SKILL_MAX ? colors.secondary : colors.brand
+        const tone = values[s.key] <= LOW_SKILL_MAX ? colors.secondary : colors.primary
         return (
           <View
             key={s.key}

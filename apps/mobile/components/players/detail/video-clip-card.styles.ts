@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native'
-import { Fonts, Radii, Spacing } from '@/constants/theme'
+import { ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   card: {
@@ -14,7 +14,11 @@ export const styles = StyleSheet.create({
   thumbnail: {
     height: 96,
     width: '100%',
-    backgroundColor: '#000',
+    backgroundColor: ContrastColors.media,
+  },
+  video: {
+    width: '100%',
+    height: '100%',
   },
   categoryBadge: {
     position: 'absolute',
@@ -22,7 +26,7 @@ export const styles = StyleSheet.create({
     left: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: ContrastColors.scrimHeavy,
     borderRadius: Radii.sm,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -46,6 +50,7 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   deleteBtn: {
+    backgroundColor: ContrastColors.scrimStrong,
     position: 'absolute',
     top: 0,
     right: 0,
