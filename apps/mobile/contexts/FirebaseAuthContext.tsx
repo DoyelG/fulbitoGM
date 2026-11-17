@@ -12,6 +12,8 @@ import {
 } from '@fulbito/firebase'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
+import { unregisterPushToken } from '@/lib/notifications/push-token'
+
 type AuthContextValue = {
   user: AppUser | null
   loading: boolean
@@ -48,11 +50,13 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    if (user) await unregisterPushToken(user.uid)
     await firebaseSignOut()
     setUser(null)
   }
 
   const deleteUser = async () => {
+    if (user) await unregisterPushToken(user.uid)
     await firebaseDeleteUser()
     setUser(null)
   }

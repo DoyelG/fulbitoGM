@@ -45,3 +45,7 @@ app-example
 
 # Androidkeystore
 *.keystore
+
+# firebase native credentials
+google-services.json
+GoogleService-Info.plist

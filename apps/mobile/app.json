@@ -8,23 +8,31 @@
     "scheme": "fulbitoapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
-        "CFBundleShortVersionString": "1.0.1"
+        "CFBundleShortVersionString": "1.0.1",
+        "UIBackgroundModes": ["remote-notification"]
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.fulbitoapp.app"
+      "bundleIdentifier": "com.fulbitoapp.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "entitlements": {
+        "aps-environment": "development"
+      },
+      "appleTeamId": "KFQ42Y6Z73"
     },
     "android": {
       "package": "com.fulbitoapp.app",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#4C1D95",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -45,6 +53,26 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "./plugins/with-nse-dynamic-frameworks",
+      [
+        "react-native-notify-kit",
+        {
+          "ios": {
+            "notificationServiceExtension": true
+          },
+          "android": {
+            "icons": [
+              {
+                "name": "notification_small",
+                "path": "./assets/images/android-icon-monochrome.png",
+                "type": "small"
+              }
+            ]
+          }
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -59,6 +87,10 @@
           "android": {
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true
+          },
+          "ios": {
+            "enableSceneSupport": true,
+            "useFrameworks": "dynamic"
           }
         }
       ],

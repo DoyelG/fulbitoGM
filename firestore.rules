@@ -37,6 +37,10 @@ service cloud.firestore {
         )
       );
       allow delete: if isSignedIn() && request.auth.uid == userId;
+
+      match /devices/{token} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
     }
 
     function tournamentPath(tournamentId) {
