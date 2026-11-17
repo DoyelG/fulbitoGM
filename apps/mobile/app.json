@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "CFBundleShortVersionString": "1.0.1",
         "UIBackgroundModes": ["remote-notification"]
@@ -24,7 +24,7 @@
     },
     "android": {
       "package": "com.fulbitoapp.app",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#7C3AED",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
