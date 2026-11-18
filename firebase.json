@@ -21,5 +21,16 @@
       "enabled": true,
       "port": 4000
     }
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": ["node_modules", "src", "tsconfig.json"],
+      "predeploy": [
+        "pnpm --dir \"$RESOURCE_DIR\" install --ignore-workspace --frozen-lockfile",
+        "pnpm --dir \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
 }
