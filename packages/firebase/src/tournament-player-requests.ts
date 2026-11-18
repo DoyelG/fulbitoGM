@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore'
 import type { TournamentPlayerRequest, TournamentRole } from '@fulbito/types'
 import { toDate } from './dates'
+import { buildPlayerLinkAcceptedMail, newMailRef } from './mail'
 import { PLAYERS_COLLECTION, playerNameExists } from './players'
 import {
   isPlayerLinked,
@@ -103,9 +104,10 @@ async function linkMemberInTransaction(
   memberSnap: DocumentSnapshot,
   target: LinkTarget,
   now: Timestamp,
-): Promise<void> {
+): Promise<string> {
   const db = getFirestore()
   let playerId = target.playerId
+  let playerName = target.newPlayerName ?? ''
   if (playerId) {
     const [playerSnap, linkSnap] = await Promise.all([
       transaction.get(doc(db, PLAYERS_COLLECTION, playerId)),
@@ -117,6 +119,7 @@ async function linkMemberInTransaction(
     if (linkSnap.exists()) {
       throw new TournamentPlayerRequestError('Ese jugador ya está vinculado a otro miembro del torneo')
     }
+    playerName = playerSnap.get('name')
   } else {
     const newPlayerRef = doc(collection(db, PLAYERS_COLLECTION))
     transaction.set(newPlayerRef, {
@@ -136,6 +139,7 @@ async function linkMemberInTransaction(
 
   transaction.set(playerLinkRef(tournamentId, playerId), { uid: memberSnap.id })
   transaction.update(memberSnap.ref, { playerId, updatedAt: now })
+  return playerName
 }
 
 export async function createTournamentPlayerRequest(input: CreateTournamentPlayerRequestInput): Promise<void> {
@@ -255,7 +259,15 @@ export async function resolveTournamentPlayerRequest(
     if (memberSnap.get('playerId'))
       throw new TournamentPlayerRequestError('El usuario ya tiene un jugador en este torneo')
 
-    await linkMemberInTransaction(transaction, tournamentId, memberSnap, target, now)
+    const tournamentSnap = await transaction.get(doc(db, TOURNAMENTS_COLLECTION, tournamentId))
+    const playerName = await linkMemberInTransaction(transaction, tournamentId, memberSnap, target, now)
     transaction.delete(requestSnap.ref)
+    if (request.email) {
+      transaction.set(newMailRef(), {
+        ...buildPlayerLinkAcceptedMail(request.email, playerName, tournamentSnap.get('name') ?? ''),
+        tournamentId,
+        requestUid: uid,
+      })
+    }
   })
 }
