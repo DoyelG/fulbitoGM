@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { getMatch, getMatches } from '@fulbito/firebase'
-import { isDraft } from '@fulbito/types'
 import { onlyFinalMatches } from '@fulbito/utils'
 import { withFirebase } from '../firebase'
 import { errorResult, jsonResult } from '../tool-result'
@@ -16,13 +15,16 @@ export function registerMatchTools(server: McpServer): void {
         'All matches ordered by date (newest first), each with scores and both rosters including per-player goals and performance. Optionally filter by status and cap the amount returned.',
       inputSchema: {
         tournamentId: tournamentIdSchema,
-        status: z.enum(['draft', 'final']).optional().describe('Only matches with this status'),
+        status: z
+          .enum(['draft', 'final', 'open'])
+          .optional()
+          .describe('Only matches with this status (open = players can still sign up)'),
         limit: z.number().int().positive().optional().describe('Max matches to return'),
       },
     },
     withFirebase(async (_uid, { tournamentId, status, limit }) => {
       let matches = await getMatches(tournamentId)
-      if (status) matches = status === 'draft' ? matches.filter(isDraft) : onlyFinalMatches(matches)
+      if (status) matches = status === 'final' ? onlyFinalMatches(matches) : matches.filter((m) => m.status === status)
       if (limit) matches = matches.slice(0, limit)
       return jsonResult(matches)
     }),

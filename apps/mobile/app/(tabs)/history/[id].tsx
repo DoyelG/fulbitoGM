@@ -1,5 +1,11 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import { buildMentionCandidates, teamTotals, winProbabilityA, isTournamentAdminRole } from '@fulbito/utils'
+import {
+  buildMentionCandidates,
+  isTournamentAdminRole,
+  splitSignups,
+  teamTotals,
+  winProbabilityA,
+} from '@fulbito/utils'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useMemo } from 'react'
 import {
@@ -18,6 +24,7 @@ import { MatchHero } from '@/components/match-detail/match-hero'
 import { MatchHighlightsCard } from '@/components/match-detail/match-highlights-card'
 import { MatchInfoCard } from '@/components/match-detail/match-info-card'
 import { MatchTeamCard, type TeamResult } from '@/components/match-detail/match-team-card'
+import { OpenMatchSignups } from '@/components/match-detail/open-match-signups'
 import { TournamentCommentsCard } from '@/components/match-detail/tournament-comments-card'
 import { styles } from '@/components/match-detail/match-detail-screen.styles'
 import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
@@ -28,6 +35,7 @@ import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useCommentsUnreadSince } from '@/hooks/use-comments-unread-since'
 import { useMatchesData } from '@/hooks/use-matches-data'
+import { useOpenMatch } from '@/hooks/use-open-match'
 import { useTournamentComments } from '@/hooks/use-tournament-comments'
 import { useTournamentMembers } from '@/hooks/use-tournament-members'
 import { useAppTheme } from '@/hooks/use-theme'
@@ -61,7 +69,9 @@ export default function MatchDetailScreen() {
   const commentsUnreadSince = useCommentsUnreadSince(activeTournament, comments.status === 'loaded')
   const members = useTournamentMembers(tournamentId)
 
-  const match = matches.find((row) => row.id === id) ?? null
+  const storedMatch = matches.find((row) => row.id === id) ?? null
+  const openMatch = useOpenMatch(storedMatch, reload)
+  const match = openMatch.match
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players])
   const photoByUid = useMemo(() => {
     const photos = new Map<string, string>()
@@ -100,6 +110,8 @@ export default function MatchDetailScreen() {
   }
 
   const isDraft = match.status === 'draft'
+  const isOpenMatch = match.status === 'open'
+  const canBuildTeams = isOpenMatch && splitSignups(match).spotsLeft === 0
   const goalkeeperIds = new Set(match.goalkeeperIds ?? [])
   const totalsA = teamTotals(match.teamA, playerById)
   const totalsB = teamTotals(match.teamB, playerById)
@@ -130,7 +142,22 @@ export default function MatchDetailScreen() {
             >
               <MaterialIcons name="arrow-back" size={20} color={colors.primaryText} />
             </Pressable>
-            {canManage && (
+            {canManage && isOpenMatch && (
+              <Pressable
+                onPress={() => router.navigate({ pathname: '/(tabs)/match', params: { openMatchId: match.id } })}
+                disabled={!canBuildTeams}
+                style={[styles.actionBtn, canBuildTeams ? null : styles.actionDisabled]}
+                accessibilityRole="button"
+                accessibilityLabel="Armar equipos"
+                accessibilityHint={canBuildTeams ? undefined : 'Se habilita cuando se completan los lugares'}
+                accessibilityState={{ disabled: !canBuildTeams }}
+              >
+                <PrimaryGradient />
+                <MaterialIcons name="groups" size={20} color={colors.onPrimary} />
+                <Text style={styles.actionText}>Armar equipos</Text>
+              </Pressable>
+            )}
+            {canManage && !isOpenMatch && (
               <Pressable
                 onPress={() => router.push({ pathname: '/(tabs)/history/edit/[id]', params: { id: match.id } })}
                 style={[styles.actionBtn, isDraft ? null : styles.iconBtn]}
@@ -149,32 +176,41 @@ export default function MatchDetailScreen() {
           <SectionTitle title="Datos del partido" />
           <MatchInfoCard match={match} playerById={playerById} />
 
-          <SectionTitle title="Equipos" />
-          <View style={styles.teams}>
-            <MatchTeamCard
-              {...shared}
-              title="Equipo A"
-              players={match.teamA}
-              result={isDraft ? null : teamResult(match.teamAScore, match.teamBScore)}
-              totals={totalsA}
-              winProbability={probabilityA}
-              tone="primary"
-            />
-            <MatchTeamCard
-              {...shared}
-              title="Equipo B"
-              players={match.teamB}
-              result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
-              totals={totalsB}
-              winProbability={100 - probabilityA}
-              tone="secondary"
-            />
-          </View>
+          {isOpenMatch ? (
+            <>
+              <SectionTitle title="Jugadores" />
+              <OpenMatchSignups controller={openMatch} playerById={playerById} canManage={canManage} />
+            </>
+          ) : (
+            <>
+              <SectionTitle title="Equipos" />
+              <View style={styles.teams}>
+                <MatchTeamCard
+                  {...shared}
+                  title="Equipo A"
+                  players={match.teamA}
+                  result={isDraft ? null : teamResult(match.teamAScore, match.teamBScore)}
+                  totals={totalsA}
+                  winProbability={probabilityA}
+                  tone="primary"
+                />
+                <MatchTeamCard
+                  {...shared}
+                  title="Equipo B"
+                  players={match.teamB}
+                  result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
+                  totals={totalsB}
+                  winProbability={100 - probabilityA}
+                  tone="secondary"
+                />
+              </View>
+            </>
+          )}
 
           <SectionTitle title="Clips" />
           <PlayerClipsSection matchId={match.id} matches={matches} canUpload={canManage || isParticipant} />
 
-          {!isDraft && (
+          {!isDraft && !isOpenMatch && (
             <>
               <SectionTitle title="Destacados" />
               <MatchHighlightsCard match={match} />

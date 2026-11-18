@@ -8,7 +8,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@fulbito/types": "workspace:*"
+    "@fulbito/types": "workspace:*",
+    "@fulbito/utils": "workspace:*"
   },
   "peerDependencies": {
     "firebase": "^11.0.0 || ^12.0.0"

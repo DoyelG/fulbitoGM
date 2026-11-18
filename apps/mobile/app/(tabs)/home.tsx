@@ -16,7 +16,7 @@ const RANKING_LIMIT = 3
 
 export default function HomeScreen() {
   const { colors: C, isDark, shadows } = useAppTheme()
-  const { matches, players, loading, error } = useMatchesData()
+  const { matches, players, loading, error, reload } = useMatchesData()
   const today = toLocalDay(new Date())
   const nextMatch = useMemo(() => pickNextMatch(matches, today), [matches, today])
   const lastMatches = useMemo(() => pickLatestFinalMatches(matches, LAST_MATCHES_LIMIT), [matches])
@@ -45,7 +45,7 @@ export default function HomeScreen() {
                 style={styles.loader}
               />
             ) : (
-              <HomeNextMatchCard match={nextMatch} />
+              <HomeNextMatchCard match={nextMatch} onChanged={reload} />
             )}
           </>
         )}

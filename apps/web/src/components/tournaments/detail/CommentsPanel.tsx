@@ -7,6 +7,7 @@ import { splitMentions, type MentionCandidate } from '@fulbito/utils'
 import { TOURNAMENT_COMMENT_MAX_LENGTH, TOURNAMENT_COMMENTS_PAGE_SIZE } from '@fulbito/firebase'
 import { ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/react/24/outline'
 import Button from '@/components/Button'
+import OpenMatchCommentActions from '@/components/matches/OpenMatchCommentActions'
 import CommentsPagination from './CommentsPagination'
 import DetailSection from './DetailSection'
 import MentionTextarea from './MentionTextarea'
@@ -223,6 +224,7 @@ export default function CommentsPanel({
                       )}
                     </div>
                     <CommentText text={comment.text} handles={mentionHandles} />
+                    {comment.matchId && <OpenMatchCommentActions matchId={comment.matchId} />}
                   </div>
                 </li>
               )

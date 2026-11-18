@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import type { MatchType } from '@fulbito/types'
 import { Card } from '@/components/Card'
 import Chevron from '../shared/Icons/Chevron'
@@ -9,37 +10,43 @@ type Props = {
   value: MatchType | null
   options: readonly MatchType[]
   onChange: (value: MatchType | null) => void
+  disabled?: boolean
+  children?: ReactNode
 }
 
-export function MatchTypeSelect({ value, options, onChange }: Props) {
+export function MatchTypeSelect({ value, options, onChange, disabled = false, children }: Props) {
   return (
-    <Card className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center z-3 relative">
-      <label htmlFor="match-type" className="font-medium">
-        Modo de partido
-      </label>
-      <div className="relative w-full sm:w-auto">
-        <select
-          autoFocus={value === null}
-          id="match-type"
-          name="match-type"
-          value={value ?? ''}
-          onChange={(event) => {
-            const selectedType = options.find((option) => option === event.target.value)
-            onChange(selectedType ?? null)
-          }}
-          className={`${selectClassName} cursor-pointer`}
-        >
-          <option hidden value="">
-            -
-          </option>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
+    <Card className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8 z-3 relative">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <label htmlFor="match-type" className="font-medium">
+          Modo de partido
+        </label>
+        <div className="relative w-full sm:w-auto">
+          <select
+            autoFocus={value === null}
+            id="match-type"
+            name="match-type"
+            value={value ?? ''}
+            disabled={disabled}
+            onChange={(event) => {
+              const selectedType = options.find((option) => option === event.target.value)
+              onChange(selectedType ?? null)
+            }}
+            className={`${selectClassName} cursor-pointer`}
+          >
+            <option hidden value="">
+              -
             </option>
-          ))}
-        </select>
-        <Chevron select />
+            {options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <Chevron select />
+        </div>
       </div>
+      {children}
     </Card>
   )
 }

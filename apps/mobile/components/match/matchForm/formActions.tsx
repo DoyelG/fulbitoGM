@@ -10,9 +10,18 @@ type Props = {
   showSave: boolean
   onCancel: () => void
   onSave: () => void
+  createLabel?: string
 }
 
-export function FormActions({ mode, saving, canSave, showSave, onCancel, onSave }: Props) {
+export function FormActions({
+  mode,
+  saving,
+  canSave,
+  showSave,
+  onCancel,
+  onSave,
+  createLabel = 'Guardar partido',
+}: Props) {
   const { colors, radii, spacing } = useAppTheme()
 
   const saveLabel = saving
@@ -21,7 +30,7 @@ export function FormActions({ mode, saving, canSave, showSave, onCancel, onSave 
       : 'Guardando…'
     : mode === 'edit'
       ? 'Actualizar partido'
-      : 'Guardar partido'
+      : createLabel
 
   return (
     <View style={[styles.row, { marginTop: spacing.xl }]}>
@@ -35,6 +44,9 @@ export function FormActions({ mode, saving, canSave, showSave, onCancel, onSave 
         <TouchableOpacity
           onPress={onSave}
           disabled={!canSave || saving}
+          accessibilityRole="button"
+          accessibilityLabel={saveLabel}
+          accessibilityState={{ disabled: !canSave || saving, busy: saving }}
           style={[
             styles.save,
             {

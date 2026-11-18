@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import type { Match } from '@fulbito/types'
 import { TrophyIcon } from '@heroicons/react/24/solid'
-import { formatLongMatchDate, parseMatchDate } from '@fulbito/utils'
+import { formatLongMatchDate, parseMatchDate, splitSignups } from '@fulbito/utils'
 
 type Props = {
   match: Match
@@ -27,6 +27,7 @@ export default function MatchHero({ match, tournamentPhotoUrl }: Props) {
   const { date } = parseMatchDate(match)
   const winA = !isDraft && match.teamAScore > match.teamBScore
   const winB = !isDraft && match.teamBScore > match.teamAScore
+  const signups = match.status === 'open' ? splitSignups(match) : null
 
   return (
     <section
@@ -53,16 +54,30 @@ export default function MatchHero({ match, tournamentPhotoUrl }: Props) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-3 text-center sm:gap-6">
-        <TeamName label="Equipo A" highlight={!winB} />
-        <p
-          className="shrink-0 rounded-xl bg-white/10 px-4 py-1 text-3xl font-extrabold tabular-nums"
-          aria-label={isDraft ? 'Sin resultado todavía' : `Resultado: ${match.teamAScore} a ${match.teamBScore}`}
-        >
-          {isDraft ? '0 – 0' : `${match.teamAScore} – ${match.teamBScore}`}
-        </p>
-        <TeamName label="Equipo B" highlight={!winA} />
-      </div>
+      {signups ? (
+        <div className="mt-3 flex flex-col items-center gap-1 text-center">
+          <p
+            className="rounded-xl bg-white/10 px-4 py-1 text-3xl font-extrabold tabular-nums"
+            aria-label={`${signups.confirmed.length} de ${signups.capacity} inscriptos`}
+          >
+            {signups.confirmed.length}/{signups.capacity}
+          </p>
+          {signups.waitlist.length > 0 && (
+            <p className="text-sm font-semibold text-violet-100">+{signups.waitlist.length} en espera</p>
+          )}
+        </div>
+      ) : (
+        <div className="mt-3 flex items-center gap-3 text-center sm:gap-6">
+          <TeamName label="Equipo A" highlight={!winB} />
+          <p
+            className="shrink-0 rounded-xl bg-white/10 px-4 py-1 text-3xl font-extrabold tabular-nums"
+            aria-label={isDraft ? 'Sin resultado todavía' : `Resultado: ${match.teamAScore} a ${match.teamBScore}`}
+          >
+            {isDraft ? '0 – 0' : `${match.teamAScore} – ${match.teamBScore}`}
+          </p>
+          <TeamName label="Equipo B" highlight={!winA} />
+        </div>
+      )}
     </section>
   )
 }

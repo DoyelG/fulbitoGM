@@ -10,6 +10,7 @@ import { useAppTheme } from '@/hooks/use-theme'
 import type { TournamentCommentsState } from '@/hooks/use-tournament-comments'
 
 import { CommentComposer } from './comment-composer'
+import { OpenMatchCommentActions } from './open-match-comment-actions'
 
 import { styles } from './tournament-comments-card.styles'
 
@@ -97,6 +98,7 @@ export function CommentRow({
             ),
           )}
         </Text>
+        {comment.matchId && <OpenMatchCommentActions matchId={comment.matchId} />}
       </View>
     </View>
   )

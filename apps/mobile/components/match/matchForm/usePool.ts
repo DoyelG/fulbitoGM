@@ -7,8 +7,9 @@ export type PoolState = {
   setPoolIds: (ids: Set<string>) => void
 }
 
-export function usePool(players: Player[], initial?: Match): PoolState {
+export function usePool(players: Player[], initial?: Match, initialPoolIds?: string[]): PoolState {
   const [poolIds, setPoolIds] = useState<Set<string>>(() => {
+    if (initialPoolIds) return new Set(initialPoolIds)
     if (initial) {
       return new Set(
         [...(initial.teamA ?? []), ...(initial.teamB ?? [])].map((p) => p.id),

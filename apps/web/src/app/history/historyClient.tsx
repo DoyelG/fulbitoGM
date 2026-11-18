@@ -30,6 +30,8 @@ import {
   canDeleteVideoClip,
   MATCH_TYPES,
   MAX_GOALKEEPERS,
+  playersPerTeam as parsePlayersPerTeam,
+  splitSignups,
 } from '@fulbito/utils'
 import HourField from '@/components/HourField'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -247,11 +249,12 @@ export default function HistoryClient() {
         ) : (
           displayedMatches.map((match) => {
             const isDraft = match.status === 'draft'
+            const openSignups = match.status === 'open' ? splitSignups(match) : null
             const { date: matchDay, hour } = parseMatchDate(match)
             return (
               <div
                 key={match.id}
-                className={`group relative bg-white rounded-lg shadow p-4 border-l-4 transition-all duration-200 hover:shadow-md hover:border-l-6 hover:pl-3.5 ${isDraft ? 'border-amber-400' : match.isFriendly ? 'border-green-400' : 'border-primary-dark'}`}
+                className={`group relative bg-white rounded-lg shadow p-4 border-l-4 transition-all duration-200 hover:shadow-md hover:border-l-6 hover:pl-3.5 ${isDraft || openSignups ? 'border-amber-400' : match.isFriendly ? 'border-green-400' : 'border-primary-dark'}`}
               >
                 <div className="flex justify-between items-center mb-3">
                   <div>
@@ -278,13 +281,25 @@ export default function HistoryClient() {
                         Borrador
                       </span>
                     )}
+                    {openSignups && (
+                      <span className="ml-2 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded">
+                        Abierto
+                      </span>
+                    )}
                     {match.isFriendly && (
                       <span className="ml-2 inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">
                         Amistoso
                       </span>
                     )}
                   </div>
-                  {isDraft ? (
+                  {openSignups ? (
+                    <div
+                      className="shrink-0 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-bold text-amber-900"
+                      aria-label={`${openSignups.confirmed.length} de ${openSignups.capacity} inscriptos`}
+                    >
+                      {openSignups.confirmed.length}/{openSignups.capacity}
+                    </div>
+                  ) : isDraft ? (
                     canManage && (
                       <button
                         type="button"
@@ -302,7 +317,7 @@ export default function HistoryClient() {
                     </div>
                   )}
                 </div>
-                <div className="flex gap-2 items-start">
+                <div className={`flex gap-2 items-start ${openSignups ? 'hidden' : ''}`}>
                   <div
                     className={`flex-1 min-w-0 ${
                       isDraft
@@ -433,7 +448,7 @@ export default function HistoryClient() {
                         <>
                           <button
                             type="button"
-                            className={MATCH_ACTION_CLASS}
+                            className={`${MATCH_ACTION_CLASS} ${openSignups ? 'hidden' : ''}`}
                             onClick={() => setOpen({ mode: 'edit', match })}
                             aria-label="Editar partido"
                           >
@@ -641,7 +656,7 @@ export function RecordModal({
 
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) || '5v5')
   const [matchLocation, setMatchLocation] = useState<MatchLocation | null>(initial?.location ?? null)
-  const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
+  const playersPerTeam = useMemo(() => parsePlayersPerTeam(matchType), [matchType])
 
   const [isLoading, setIsLoading] = useState(false)
   const isDraft = initial?.status === 'draft'

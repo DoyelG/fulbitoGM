@@ -1,7 +1,7 @@
 import Feather from '@expo/vector-icons/Feather'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { isDraft, type Match, type Player } from '@fulbito/types'
-import { formatMatchDate, formatMatchHour, parseMatchDate, matchLocationMapsUrl } from '@fulbito/utils'
+import { formatMatchDate, formatMatchHour, parseMatchDate, matchLocationMapsUrl, splitSignups } from '@fulbito/utils'
 import { Pressable, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
@@ -30,6 +30,7 @@ export function MatchCard({ match, players, canManage, clipCount, onOpen, onEdit
   const winB = match.teamBScore > match.teamAScore
   const { date: matchDay, hour } = parseMatchDate(match)
   const draft = isDraft(match)
+  const openSignups = match.status === 'open' ? splitSignups(match) : null
 
   const shirtName = match.shirtsResponsibleId
     ? (players.find((player) => player.id === match.shirtsResponsibleId)?.name ?? '—')
@@ -64,9 +65,24 @@ export function MatchCard({ match, players, canManage, clipCount, onOpen, onEdit
                 <Text style={styles.typeBadgeText}>Amistoso</Text>
               </View>
             )}
+            {openSignups && (
+              <View style={[styles.typeBadge, { backgroundColor: colors.warning }]}>
+                <Text style={styles.typeBadgeText}>Abierto</Text>
+              </View>
+            )}
           </View>
         </View>
-        {draft ? (
+        {openSignups ? (
+          <View
+            style={[styles.scoreBadge, { backgroundColor: colors.primarySoft }]}
+            accessible
+            accessibilityLabel={`${openSignups.confirmed.length} de ${openSignups.capacity} inscriptos`}
+          >
+            <Text style={[styles.score, { color: colors.primaryText }]}>
+              {openSignups.confirmed.length}/{openSignups.capacity}
+            </Text>
+          </View>
+        ) : draft ? (
           canManage ? (
             <TouchableOpacity
               onPress={onEdit}
@@ -88,30 +104,32 @@ export function MatchCard({ match, players, canManage, clipCount, onOpen, onEdit
         )}
       </View>
 
-      <View style={styles.teamsRow}>
-        <TeamColumn
-          label="Equipo A"
-          players={match.teamA}
-          winner={winA}
-          loser={winB}
-          goalkeeperIds={match.goalkeeperIds}
-          mvpId={match.mvpId}
-          colors={colors}
-          radii={radii}
-          spacing={spacing}
-        />
-        <TeamColumn
-          label="Equipo B"
-          players={match.teamB}
-          winner={winB}
-          loser={winA}
-          goalkeeperIds={match.goalkeeperIds}
-          mvpId={match.mvpId}
-          colors={colors}
-          radii={radii}
-          spacing={spacing}
-        />
-      </View>
+      {openSignups ? null : (
+        <View style={styles.teamsRow}>
+          <TeamColumn
+            label="Equipo A"
+            players={match.teamA}
+            winner={winA}
+            loser={winB}
+            goalkeeperIds={match.goalkeeperIds}
+            mvpId={match.mvpId}
+            colors={colors}
+            radii={radii}
+            spacing={spacing}
+          />
+          <TeamColumn
+            label="Equipo B"
+            players={match.teamB}
+            winner={winB}
+            loser={winA}
+            goalkeeperIds={match.goalkeeperIds}
+            mvpId={match.mvpId}
+            colors={colors}
+            radii={radii}
+            spacing={spacing}
+          />
+        </View>
+      )}
 
       {match.description ? (
         <Pressable
@@ -202,14 +220,16 @@ export function MatchCard({ match, players, canManage, clipCount, onOpen, onEdit
 
           {canManage && (
             <>
-              <TouchableOpacity
-                onPress={onEdit}
-                style={[styles.actionBtn, { backgroundColor: colors.primarySoft }]}
-                accessibilityRole="button"
-                accessibilityLabel="Editar partido"
-              >
-                <Feather name="edit-2" size={18} color={colors.primaryText} accessible={false} />
-              </TouchableOpacity>
+              {openSignups ? null : (
+                <TouchableOpacity
+                  onPress={onEdit}
+                  style={[styles.actionBtn, { backgroundColor: colors.primarySoft }]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Editar partido"
+                >
+                  <Feather name="edit-2" size={18} color={colors.primaryText} accessible={false} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 onPress={onDelete}
                 style={[styles.actionBtn, { backgroundColor: colors.dangerBg }]}

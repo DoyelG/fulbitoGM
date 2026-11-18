@@ -48,6 +48,7 @@ export function docToTournamentComment(
     authorName: typeof data['authorName'] === 'string' ? data['authorName'] : '',
     text: typeof data['text'] === 'string' ? data['text'] : '',
     createdAt: data['createdAt'] ? toDate(data['createdAt']) : new Date(),
+    matchId: typeof data['matchId'] === 'string' ? data['matchId'] : null,
   }
 }
 

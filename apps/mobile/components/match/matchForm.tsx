@@ -1,6 +1,9 @@
-import type { Match, MatchInput, MatchLocation, Player } from '@fulbito/types'
+import type { Match, MatchInput, MatchLocation, OpenMatchInput, Player } from '@fulbito/types'
 import {
   balanceRemainingPlayers,
+  buildOpenMatchStartsAt,
+  playersPerTeam as parsePlayersPerTeam,
+  type Convocatoria,
   calculateAllCurrentStreaks,
   getGoalkeeping,
   getHotStreakIds,
@@ -18,7 +21,14 @@ import { DescriptionField } from './matchForm/descriptionField'
 import { FormActions } from './matchForm/formActions'
 import { GoalkeeperSection } from './matchForm/goalkeeperSection'
 import { HourField } from './matchForm/hourField'
-import { buildDraftMatchPayload, buildFinalMatchPayload, computeTeamStats, toPlayerInfo } from './matchForm/helpers'
+import {
+  buildDraftMatchPayload,
+  buildFinalMatchPayload,
+  buildOpenMatchPayload,
+  computeTeamStats,
+  toPlayerInfo,
+} from './matchForm/helpers'
+import { ConvocatoriaSelector } from './matchForm/convocatoriaSelector'
 import { MvpSection } from './matchForm/mvpSection'
 import { NameField } from './matchForm/nameField'
 import { PoolSection } from './matchForm/poolSection'
@@ -43,6 +53,9 @@ export type MatchFormProps = {
   onSave: (m: MatchInput) => Promise<void>
   onCancel: () => void
   onTitleChange?: (title: string) => void
+  onSaveOpen?: (m: OpenMatchInput) => Promise<void>
+  initialPoolIds?: string[]
+  convertingOpenMatch?: boolean
 }
 
 export function MatchForm({
@@ -54,6 +67,9 @@ export function MatchForm({
   onSave,
   onCancel,
   onTitleChange,
+  onSaveOpen,
+  initialPoolIds,
+  convertingOpenMatch = false,
 }: MatchFormProps) {
   const { colors, spacing } = useAppTheme()
   const canManage = useCanManageTournament()
@@ -66,13 +82,14 @@ export function MatchForm({
   const [matchDescription, setMatchDescription] = useState<string>(initial?.description ?? '')
   const [matchType, setMatchType] = useState<MatchType>((initial?.type as MatchType) ?? '5v5')
   const [matchName, setMatchName] = useState(initial?.name ?? '')
-  const playersPerTeam = useMemo(() => parseInt(matchType.split('v')[0], 10), [matchType])
+  const playersPerTeam = useMemo(() => parsePlayersPerTeam(matchType), [matchType])
+  const [convocatoria, setConvocatoria] = useState<Convocatoria>('preselected')
   const MAX_GOALKEEPERS = 2
   const [goalkeeperIds, setGoalkeeperIds] = useState<Set<string>>(() => new Set(initial?.goalkeeperIds ?? []))
   const [mvpId, setMvpId] = useState<string | null>(initial?.mvpId ?? null)
   const [isMatchFriendly, setIsMatchFriendly] = useState<boolean>(initial?.isFriendly ?? false)
 
-  const pool = usePool(players, initial)
+  const pool = usePool(players, initial, initialPoolIds)
   const teams = useTeams(initial)
   const scores = useScores(initial)
   const shirts = useShirts(allMatches, teams.teamA, teams.teamB, initial)
@@ -85,14 +102,17 @@ export function MatchForm({
   const scoreA = parseInt(scores.teamAScore) || 0
   const scoreB = parseInt(scores.teamBScore) || 0
   const isCreating = mode === 'create'
+  const isOpenMode = isCreating && convocatoria === 'open' && onSaveOpen !== undefined
+  const showConvocatoria = isCreating && canManage && !convertingOpenMatch && onSaveOpen !== undefined
   const teamsComplete = teams.teamA.length === playersPerTeam && teams.teamB.length === playersPerTeam
-  const canSave =
-    teamsComplete &&
-    (isCreating ||
-      (scores.teamAScore !== '' &&
-        scores.teamBScore !== '' &&
-        scoreA === scores.totalGoalsA &&
-        scoreB === scores.totalGoalsB))
+  const canSave = isOpenMode
+    ? matchHour !== null
+    : teamsComplete &&
+      (isCreating ||
+        (scores.teamAScore !== '' &&
+          scores.teamBScore !== '' &&
+          scoreA === scores.totalGoalsA &&
+          scoreB === scores.totalGoalsB))
 
   useEffect(() => {
     const mvpStillInTeams = !mvpId || [...teams.teamA, ...teams.teamB].some((p) => p.id === mvpId)
@@ -153,8 +173,31 @@ export function MatchForm({
     teams.setTeamB(result.teamB.players.map((p) => ({ id: p.id, name: p.name })))
   }
 
+  const handleSaveOpen = async () => {
+    if (!onSaveOpen || matchHour === null) return
+    if (new Date(buildOpenMatchStartsAt(matchDate, matchHour)).getTime() <= Date.now()) {
+      Alert.alert('Fecha inválida', 'El partido tiene que ser en el futuro.')
+      return
+    }
+    await onSaveOpen(
+      buildOpenMatchPayload({
+        matchDate,
+        matchHour,
+        matchType,
+        matchName,
+        matchDescription,
+        isMatchFriendly,
+        matchLocation,
+      }),
+    )
+  }
+
   const handleSave = async () => {
     if (!canSave) return
+    if (isOpenMode) {
+      await handleSaveOpen()
+      return
+    }
     try {
       const base = {
         matchDate,
@@ -213,93 +256,99 @@ export function MatchForm({
 
       <TypeSelector value={matchType} onChange={handleTypeChange} />
 
-      <PoolSection
-        players={players}
-        poolPlayers={pool.poolPlayers}
-        poolIds={pool.poolIds}
-        maxSize={playersPerTeam * 2}
-        onConfirm={handlePoolChange}
-      />
+      {showConvocatoria && <ConvocatoriaSelector value={convocatoria} onChange={setConvocatoria} />}
 
-      <GoalkeeperSection
-        poolPlayers={pool.poolPlayers}
-        goalkeeperIds={goalkeeperIds}
-        maxSize={MAX_GOALKEEPERS}
-        onToggle={toggleGoalkeeper}
-      />
-
-      <TeamAssignmentSection
-        playersPerTeam={playersPerTeam}
-        poolPlayers={pool.poolPlayers}
-        teamA={teams.teamA}
-        teamB={teams.teamB}
-        pinnedA={teams.pinnedA}
-        pinnedB={teams.pinnedB}
-        goalkeeperIds={goalkeeperIds}
-        stats={teamStats}
-        onConfirmTeam={teams.confirmTeam}
-        onRemoveFromTeam={teams.removeFromTeam}
-      />
-
-      {isCreating ? (
-        <AutoGenerateButton
-          poolSize={pool.poolIds.size}
-          playersPerTeam={playersPerTeam}
-          hasTeams={teams.teamA.length > 0 || teams.teamB.length > 0}
-          onPress={generateRemainingTeams}
-        />
-      ) : null}
-
-      {isCreating ? null : (
+      {isOpenMode ? null : (
         <>
-          <View style={styles.scoresRow}>
-            <TeamScoreSection
-              side="a"
-              label="Equipo A"
-              players={teams.teamA}
-              score={scores.teamAScore}
-              total={scores.totalGoalsA}
-              goals={scores.goalsA}
-              perf={scores.perfA}
-              onScoreChange={scores.setTeamAScore}
-              onGoalChange={scores.setGoalA}
-              onPerfChange={scores.setPerfA}
-            />
-            <TeamScoreSection
-              side="b"
-              label="Equipo B"
-              players={teams.teamB}
-              score={scores.teamBScore}
-              total={scores.totalGoalsB}
-              goals={scores.goalsB}
-              perf={scores.perfB}
-              onScoreChange={scores.setTeamBScore}
-              onGoalChange={scores.setGoalB}
-              onPerfChange={scores.setPerfB}
-            />
-          </View>
+          <PoolSection
+            players={players}
+            poolPlayers={pool.poolPlayers}
+            poolIds={pool.poolIds}
+            maxSize={playersPerTeam * 2}
+            onConfirm={handlePoolChange}
+          />
 
-          <MvpSection
+          <GoalkeeperSection
+            poolPlayers={pool.poolPlayers}
+            goalkeeperIds={goalkeeperIds}
+            maxSize={MAX_GOALKEEPERS}
+            onToggle={toggleGoalkeeper}
+          />
+
+          <TeamAssignmentSection
+            playersPerTeam={playersPerTeam}
+            poolPlayers={pool.poolPlayers}
             teamA={teams.teamA}
             teamB={teams.teamB}
-            mvpId={mvpId}
-            onChange={setMvpId}
-            goalsA={scores.goalsA}
-            goalsB={scores.goalsB}
-            perfA={scores.perfA}
-            perfB={scores.perfB}
+            pinnedA={teams.pinnedA}
+            pinnedB={teams.pinnedB}
+            goalkeeperIds={goalkeeperIds}
+            stats={teamStats}
+            onConfirmTeam={teams.confirmTeam}
+            onRemoveFromTeam={teams.removeFromTeam}
+          />
+
+          {isCreating ? (
+            <AutoGenerateButton
+              poolSize={pool.poolIds.size}
+              playersPerTeam={playersPerTeam}
+              hasTeams={teams.teamA.length > 0 || teams.teamB.length > 0}
+              onPress={generateRemainingTeams}
+            />
+          ) : null}
+
+          {isCreating ? null : (
+            <>
+              <View style={styles.scoresRow}>
+                <TeamScoreSection
+                  side="a"
+                  label="Equipo A"
+                  players={teams.teamA}
+                  score={scores.teamAScore}
+                  total={scores.totalGoalsA}
+                  goals={scores.goalsA}
+                  perf={scores.perfA}
+                  onScoreChange={scores.setTeamAScore}
+                  onGoalChange={scores.setGoalA}
+                  onPerfChange={scores.setPerfA}
+                />
+                <TeamScoreSection
+                  side="b"
+                  label="Equipo B"
+                  players={teams.teamB}
+                  score={scores.teamBScore}
+                  total={scores.totalGoalsB}
+                  goals={scores.goalsB}
+                  perf={scores.perfB}
+                  onScoreChange={scores.setTeamBScore}
+                  onGoalChange={scores.setGoalB}
+                  onPerfChange={scores.setPerfB}
+                />
+              </View>
+
+              <MvpSection
+                teamA={teams.teamA}
+                teamB={teams.teamB}
+                mvpId={mvpId}
+                onChange={setMvpId}
+                goalsA={scores.goalsA}
+                goalsB={scores.goalsB}
+                perfA={scores.perfA}
+                perfB={scores.perfB}
+              />
+            </>
+          )}
+
+          <ShirtsSection
+            players={players}
+            shirtsResponsibleId={shirts.shirtsResponsibleId}
+            onChange={shirts.setShirtsResponsibleId}
+            teamPlayers={shirts.teamPlayers}
+            playedBefore={shirts.playedBefore}
+            dutiesById={shirts.dutiesById}
           />
         </>
       )}
-
-      <ShirtsSection
-        players={players}
-        shirtsResponsibleId={shirts.shirtsResponsibleId}
-        onChange={shirts.setShirtsResponsibleId}
-        teamPlayers={shirts.teamPlayers}
-        playedBefore={shirts.playedBefore}
-        dutiesById={shirts.dutiesById}
-      />
 
       <FormActions
         mode={mode}
@@ -308,6 +357,7 @@ export function MatchForm({
         showSave={mode === 'edit' || canManage}
         onCancel={onCancel}
         onSave={() => void handleSave()}
+        createLabel={isOpenMode ? 'Crear partido abierto' : convertingOpenMatch ? 'Confirmar partido' : undefined}
       />
     </ScrollView>
   )

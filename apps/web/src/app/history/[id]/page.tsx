@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeftIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { FiCheckCircle, FiEdit2 } from 'react-icons/fi'
-import { teamTotals, winProbabilityA } from '@fulbito/utils'
+import { splitSignups, teamTotals, winProbabilityA } from '@fulbito/utils'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -18,12 +18,19 @@ import MatchTeamCard, { type TeamResult } from '@/components/matches/MatchTeamCa
 import MatchInfoPanel from '@/components/matches/MatchInfoPanel'
 import MatchHighlightsPanel from '@/components/matches/MatchHighlightsPanel'
 import TournamentCommentsBox from '@/components/matches/TournamentCommentsBox'
+import OpenMatchSignups from '@/components/matches/OpenMatchSignups'
+import OpenMatchSignupsSummary from '@/components/matches/OpenMatchSignupsSummary'
+import OpenMatchSignupButton from '@/components/matches/OpenMatchSignupButton'
+import OpenMatchTypeSelect from '@/components/matches/OpenMatchTypeSelect'
+import { useOpenMatch } from '@/hooks/use-open-match'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
 import Modal from '@/components/Modal'
 import { RecordModal } from '../historyClient'
 
 const ACTION_CLASS =
   'inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
+
+const SIGNUP_ID_PREFIX = 'detail-open-match'
 
 function teamResult(own: number, rival: number): TeamResult {
   if (own === rival) return 'draw'
@@ -44,7 +51,9 @@ export default function MatchDetailPage() {
     if (matchesInit === 'idle') initMatchesLoad()
   }, [playersInit, matchesInit, initPlayersLoad, initMatchesLoad])
 
-  const match = matches.find((row) => row.id === id) ?? null
+  const storedMatch = matches.find((row) => row.id === id) ?? null
+  const openMatch = useOpenMatch(storedMatch)
+  const match = openMatch.match
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players])
 
   if (matchesInit !== 'loaded' && matchesInit !== 'error') {
@@ -68,6 +77,8 @@ export default function MatchDetailPage() {
   }
 
   const isDraft = match.status === 'draft'
+  const isOpenMatch = match.status === 'open'
+  const canBuildTeams = isOpenMatch && splitSignups(match).spotsLeft === 0
   const goalkeeperIds = new Set(match.goalkeeperIds ?? [])
   const totalsA = teamTotals(match.teamA, playerById)
   const totalsB = teamTotals(match.teamB, playerById)
@@ -87,7 +98,22 @@ export default function MatchDetailPage() {
               data={buildMatchImageData(match, playerById, tournamentPhotoUrl)}
             />
           )}
-          {canManage && (
+          {canManage && isOpenMatch && (
+            <Link
+              href={`/match?openMatchId=${match.id}`}
+              aria-disabled={!canBuildTeams}
+              tabIndex={canBuildTeams ? undefined : -1}
+              onClick={(event) => {
+                if (!canBuildTeams) event.preventDefault()
+              }}
+              title={canBuildTeams ? undefined : 'Se habilita cuando se completan los lugares'}
+              className={`${ACTION_CLASS} bg-primary-gradient text-white hover:brightness-110 ${canBuildTeams ? '' : 'cursor-not-allowed opacity-50'}`}
+            >
+              <UserGroupIcon className="h-4 w-4" aria-hidden />
+              Armar equipos
+            </Link>
+          )}
+          {canManage && !isOpenMatch && (
             <button
               type="button"
               onClick={() => setEditing(true)}
@@ -109,28 +135,51 @@ export default function MatchDetailPage() {
           <div className="order-1">
             <MatchHero match={match} tournamentPhotoUrl={tournamentPhotoUrl} />
           </div>
-          <DetailSection id="match-teams-title" title="Equipos" icon={UserGroupIcon} className="order-3">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <MatchTeamCard
-                {...shared}
-                title="Equipo A"
-                players={match.teamA}
-                result={isDraft ? null : teamResult(match.teamAScore, match.teamBScore)}
-                totals={totalsA}
-                winProbability={probabilityA}
-                tone="primary"
-              />
-              <MatchTeamCard
-                {...shared}
-                title="Equipo B"
-                players={match.teamB}
-                result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
-                totals={totalsB}
-                winProbability={100 - probabilityA}
-                tone="secondary"
-              />
-            </div>
-          </DetailSection>
+          {isOpenMatch ? (
+            <DetailSection
+              id="match-signups-title"
+              title="Jugadores"
+              icon={UserGroupIcon}
+              className="order-3"
+              subtitle={<OpenMatchSignupsSummary controller={openMatch} idPrefix={SIGNUP_ID_PREFIX} />}
+              action={
+                <div className="flex items-center gap-3">
+                  <OpenMatchSignupButton
+                    controller={openMatch}
+                    tone="light"
+                    idPrefix={SIGNUP_ID_PREFIX}
+                    showHint={false}
+                  />
+                  {canManage && <OpenMatchTypeSelect controller={openMatch} />}
+                </div>
+              }
+            >
+              <OpenMatchSignups controller={openMatch} playerById={playerById} canManage={canManage} />
+            </DetailSection>
+          ) : (
+            <DetailSection id="match-teams-title" title="Equipos" icon={UserGroupIcon} className="order-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <MatchTeamCard
+                  {...shared}
+                  title="Equipo A"
+                  players={match.teamA}
+                  result={isDraft ? null : teamResult(match.teamAScore, match.teamBScore)}
+                  totals={totalsA}
+                  winProbability={probabilityA}
+                  tone="primary"
+                />
+                <MatchTeamCard
+                  {...shared}
+                  title="Equipo B"
+                  players={match.teamB}
+                  result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
+                  totals={totalsB}
+                  winProbability={100 - probabilityA}
+                  tone="secondary"
+                />
+              </div>
+            </DetailSection>
+          )}
           <div className="order-4">
             <VideoClipsSection matchId={match.id} matches={matches} canUpload={canManage || isParticipant} />
           </div>
@@ -139,7 +188,7 @@ export default function MatchDetailPage() {
           <div className="order-2">
             <MatchInfoPanel match={match} playerById={playerById} />
           </div>
-          {!isDraft && (
+          {!isDraft && !isOpenMatch && (
             <div className="order-5">
               <MatchHighlightsPanel match={match} />
             </div>

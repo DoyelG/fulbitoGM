@@ -22,6 +22,7 @@ type Props = {
   draft: DraftForm
   onDraftChange: (changes: Partial<DraftForm>) => void
   onRegenerate: () => void
+  openMatchId: string | null
 }
 
 export default function DataStep({
@@ -37,6 +38,7 @@ export default function DataStep({
   draft,
   onDraftChange,
   onRegenerate,
+  openMatchId,
 }: Props) {
   const combinedSkill = teamA.totalSkill + teamB.totalSkill
   const probA = combinedSkill > 0 ? Math.round((teamA.totalSkill / combinedSkill) * 100) : 50
@@ -85,6 +87,8 @@ export default function DataStep({
         onFriendlyToggle={onFriendlyToggle}
         draft={draft}
         onDraftChange={onDraftChange}
+        goalkeeperIds={goalkeeperIds}
+        openMatchId={openMatchId}
       />
     </Card>
   )

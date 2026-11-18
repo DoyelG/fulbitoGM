@@ -1,6 +1,14 @@
 import { create } from 'zustand'
-import type { Match, MatchInput } from '@fulbito/types'
-import { getMatches, createMatch, updateMatch, deleteMatch } from '@fulbito/firebase'
+import type { Match, MatchInput, OpenMatchInput } from '@fulbito/types'
+import {
+  convertOpenMatch,
+  createMatch,
+  createOpenMatch,
+  deleteMatch,
+  getMatches,
+  updateMatch,
+  type OpenMatchAuthor,
+} from '@fulbito/firebase'
 import { getActiveTournamentId, isStillActive } from './active-tournament'
 
 type MatchStore = {
@@ -8,6 +16,8 @@ type MatchStore = {
   matchesInit: 'idle' | 'loading' | 'loaded' | 'error'
   initLoad: () => Promise<void>
   addMatch: (m: MatchInput) => Promise<string>
+  addOpenMatch: (m: OpenMatchInput, author: OpenMatchAuthor) => Promise<string>
+  convertOpenMatch: (id: string, m: MatchInput) => Promise<void>
   updateMatch: (id: string, m: MatchInput) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
@@ -37,6 +47,15 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
     const id = await createMatch(getActiveTournamentId(), m)
     await get().resetAndReload()
     return id
+  },
+  addOpenMatch: async (m, author) => {
+    const id = await createOpenMatch(getActiveTournamentId(), m, author)
+    await get().resetAndReload()
+    return id
+  },
+  convertOpenMatch: async (id, m) => {
+    await convertOpenMatch(getActiveTournamentId(), id, m)
+    await get().resetAndReload()
   },
   updateMatch: async (id, m) => {
     await updateMatch(getActiveTournamentId(), id, m)

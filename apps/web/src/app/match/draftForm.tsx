@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { MatchInput, MatchLocation, MatchType } from '@fulbito/types'
+import type { MatchInput, MatchType } from '@fulbito/types'
 import { buildMatchSchedule, onlyFinalMatches } from '@fulbito/utils'
 import type { Player } from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
@@ -15,20 +15,12 @@ import {
 } from '@/lib/shirtDuty'
 import type { PlayerInfo } from '@/lib/teamUtils'
 import Button from '@/components/Button'
-import FriendlySwitch from '@/components/FriendlySwitch'
-import HourField from '@/components/HourField'
-import AddressPicker from '@/components/AddressPicker'
 import { FaDice } from 'react-icons/fa'
 import Chevron from '../shared/Icons/Chevron'
-import { fieldClassName, selectClassName, textareaClassName } from '@/lib/field-styles'
+import { selectClassName, textareaClassName } from '@/lib/field-styles'
+import MatchDetailsFields, { type DraftForm } from './matchDetailsFields'
 
-export type DraftForm = {
-  date: string
-  hour: number | null
-  name: string
-  location: MatchLocation | null
-  description: string
-}
+export type { DraftForm }
 
 type Props = {
   teamAPlayers: PlayerInfo[]
@@ -39,6 +31,8 @@ type Props = {
   onFriendlyToggle: () => void
   draft: DraftForm
   onDraftChange: (changes: Partial<DraftForm>) => void
+  goalkeeperIds: Set<string>
+  openMatchId: string | null
 }
 
 function pickRandomId(pool: PlayerInfo[]): string | null {
@@ -55,10 +49,12 @@ export default function CreateDraftForm({
   onFriendlyToggle,
   draft,
   onDraftChange,
+  goalkeeperIds,
+  openMatchId,
 }: Props) {
   const router = useRouter()
   const canManage = useCanManageTournament()
-  const { matches, addMatch } = useMatchStore()
+  const { matches, addMatch, convertOpenMatch } = useMatchStore()
 
   const [isCreatingDraft, setIsCreatingDraft] = useState(false)
 
@@ -108,7 +104,13 @@ export default function CreateDraftForm({
         shirtsResponsibleId: shirtsResponsibleId ?? null,
         description: draft.description.trim() || undefined,
         mvpId: null,
+        goalkeeperIds: [...goalkeeperIds],
         isFriendly,
+      }
+      if (openMatchId) {
+        await convertOpenMatch(openMatchId, newMatch)
+        router.push(`/history/${openMatchId}`)
+        return
       }
       const matchId = await addMatch(newMatch)
       router.push(`/history/${matchId}`)
@@ -176,60 +178,27 @@ export default function CreateDraftForm({
 
       {canManage && (
         <div className="mt-6 border-t border-gray-200 pt-4">
-          <h4 className="font-semibold mb-3">Crear partido</h4>
+          <h4 className="font-semibold mb-3">{openMatchId ? 'Confirmar partido' : 'Crear partido'}</h4>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[auto_auto_minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]">
-            <div>
-              <label htmlFor="draft-date" className="block text-sm mb-1">
-                Fecha
-              </label>
-              <input
-                id="draft-date"
-                type="date"
-                value={draft.date}
-                onChange={(event) => onDraftChange({ date: event.target.value })}
-                className={fieldClassName}
-              />
-            </div>
-            <HourField
-              id="draft-hour"
-              value={draft.hour}
-              onChange={(hour) => onDraftChange({ hour })}
-              labelClassName="block text-sm"
+            <MatchDetailsFields
+              idPrefix="draft"
+              draft={draft}
+              onDraftChange={onDraftChange}
+              isFriendly={isFriendly}
+              onFriendlyToggle={onFriendlyToggle}
             />
-            <div>
-              <label htmlFor="draft-location" className="block text-sm mb-1">
-                Cancha
-              </label>
-              <AddressPicker
-                id="draft-location"
-                value={draft.location}
-                onChange={(location) => onDraftChange({ location })}
-              />
-            </div>
-            <div>
-              <label htmlFor="draft-name" className="block text-sm mb-1">
-                Nombre (opcional)
-              </label>
-              <input
-                id="draft-name"
-                type="text"
-                value={draft.name}
-                onChange={(event) => onDraftChange({ name: event.target.value })}
-                placeholder="Ej: Partido del miércoles"
-                className={fieldClassName}
-              />
-            </div>
-            <FriendlySwitch isFriendly={isFriendly} onToggle={onFriendlyToggle} />
             <Button
               onClick={createDraft}
               disabled={isCreatingDraft}
               className="h-10 w-full sm:col-span-2 lg:col-span-1 lg:w-auto whitespace-nowrap"
             >
-              {isCreatingDraft ? 'Creando...' : 'Crear partido'}
+              {isCreatingDraft ? 'Guardando...' : openMatchId ? 'Confirmar partido' : 'Crear partido'}
             </Button>
           </div>
           <p className="mt-2 text-xs text-gray-500">
-            Se guarda como borrador en el historial. Más tarde podés completar el resultado.
+            {openMatchId
+              ? 'El partido abierto pasa a borrador con estos equipos. Más tarde podés completar el resultado.'
+              : 'Se guarda como borrador en el historial. Más tarde podés completar el resultado.'}
           </p>
         </div>
       )}

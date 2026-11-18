@@ -1,6 +1,12 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import type { Match, Player } from '@fulbito/types'
-import { formatLongMatchDate, formatMatchClock, matchLocationMapsUrl, parseMatchDate } from '@fulbito/utils'
+import {
+  formatLongMatchDate,
+  formatMatchClock,
+  matchLocationMapsUrl,
+  parseMatchDate,
+  splitSignups,
+} from '@fulbito/utils'
 import type { ComponentProps, ReactNode } from 'react'
 import { Linking, Pressable, Text, View } from 'react-native'
 
@@ -42,7 +48,8 @@ export function MatchInfoCard({ match, playerById }: Props) {
   const { colors } = useAppTheme()
   const { date, hour } = parseMatchDate(match)
   const longDate = formatLongMatchDate(date)
-  const playersCount = match.teamA.length + match.teamB.length
+  const playersCount =
+    match.status === 'open' ? splitSignups(match).confirmed.length : match.teamA.length + match.teamB.length
   const shirtsName = match.shirtsResponsibleId ? playerById.get(match.shirtsResponsibleId)?.name : undefined
   const valueStyle = [styles.value, { color: colors.text }]
   const emptyStyle = [styles.emptyValue, { color: colors.muted }]

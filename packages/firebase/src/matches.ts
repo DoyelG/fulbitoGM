@@ -1,10 +1,10 @@
 import { getFirestore, collection, doc, getDocs, getDoc, writeBatch, query, where, Timestamp } from 'firebase/firestore'
-import type { Match, MatchInput, MatchPlayer, MatchLocation } from '@fulbito/types'
+import type { Match, MatchInput, MatchPlayer, MatchLocation, MatchStatus } from '@fulbito/types'
 import { tournamentPlayersQuery } from './players'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
 
-const MATCHES_COLLECTION = 'matches'
+export const MATCHES_COLLECTION = 'matches'
 const MATCH_PLAYERS_COLLECTION = 'matchPlayers'
 
 function isTimestampLike(value: unknown): value is { toDate(): Date } {
@@ -45,6 +45,10 @@ function parseLocation(raw: unknown): MatchLocation | null {
   }
 }
 
+function parseStatus(raw: unknown): MatchStatus {
+  return raw === 'draft' || raw === 'open' ? raw : 'final'
+}
+
 function toIsoString(value: unknown): string | undefined {
   if (isTimestampLike(value)) return value.toDate().toISOString()
   return typeof value === 'string' ? value : undefined
@@ -61,7 +65,7 @@ export function docToMatchScalars(id: string, data: Record<string, unknown>): Om
     createdAt: toIsoString(data['createdAt']) ?? date,
     updatedAt: toIsoString(data['updatedAt']) ?? date,
     type: data['type'] as string,
-    status: data['status'] === 'draft' ? 'draft' : 'final',
+    status: parseStatus(data['status']),
     name: (data['name'] as string | undefined) ?? undefined,
     location: parseLocation(data['location']),
     description: (data['description'] as string | undefined) ?? undefined,
@@ -71,6 +75,9 @@ export function docToMatchScalars(id: string, data: Record<string, unknown>): Om
     mvpId: (data['mvpId'] as string | null) ?? null,
     goalkeeperIds: (data['goalkeeperIds'] as string[]) ?? [],
     isFriendly: (data['isFriendly'] as boolean) ?? false,
+    signups: Array.isArray(data['signups']) ? (data['signups'] as string[]) : undefined,
+    capacity: typeof data['capacity'] === 'number' ? data['capacity'] : undefined,
+    startsAt: toIsoString(data['startsAt']) ?? null,
   }
 }
 
@@ -115,7 +122,7 @@ export async function getDraftMatches(tournamentId: string): Promise<Omit<Match,
     query(
       collection(getFirestore(), MATCHES_COLLECTION),
       where('tournamentId', '==', tournamentId),
-      where('status', '==', 'draft'),
+      where('status', 'in', ['draft', 'open']),
     ),
   )
   return snap.docs.map((d) => docToMatchScalars(d.id, d.data() as Record<string, unknown>))

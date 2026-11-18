@@ -5,6 +5,7 @@ import { MapPinIcon } from '@heroicons/react/24/outline'
 import { formatLongMatchDate, formatMatchClock, matchLocationMapsUrl, parseMatchDate } from '@fulbito/utils'
 import { useNextMatch } from '@/hooks/use-next-match'
 import { useHomeStatus } from '@/hooks/use-home-status'
+import OpenNextMatch from './OpenNextMatch'
 
 const FOCUS_ON_DARK = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white'
 
@@ -45,7 +46,8 @@ export default function NextMatchHero() {
             </Link>
           </>
         )}
-        {status === 'ready' && next && (
+        {status === 'ready' && next?.status === 'open' && <OpenNextMatch match={next} />}
+        {status === 'ready' && next && next.status !== 'open' && (
           <>
             <div className="min-w-0">
               <h2 id="next-match-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">

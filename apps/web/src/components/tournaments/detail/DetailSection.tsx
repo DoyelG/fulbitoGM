@@ -6,6 +6,7 @@ type Props = {
   title: string
   icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
   action?: { label: string; href: string } | ReactNode
+  subtitle?: ReactNode
   className?: string
   children: ReactNode
 }
@@ -14,14 +15,17 @@ function isLinkAction(action: Props['action']): action is { label: string; href:
   return typeof action === 'object' && action !== null && 'href' in action && 'label' in action
 }
 
-export default function DetailSection({ id, title, icon: Icon, action, className = '', children }: Props) {
+export default function DetailSection({ id, title, icon: Icon, action, subtitle, className = '', children }: Props) {
   return (
     <section aria-labelledby={id} className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm ${className}`}>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 id={id} className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-          <Icon className="h-5 w-5 text-primary" aria-hidden />
-          {title}
-        </h2>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 id={id} className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+            <Icon className="h-5 w-5 text-primary" aria-hidden />
+            {title}
+          </h2>
+          {subtitle && <div className="mt-1">{subtitle}</div>}
+        </div>
         {isLinkAction(action) ? (
           <Link
             href={action.href}

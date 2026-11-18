@@ -46,7 +46,12 @@ export function usePlayerSelection({ onDeselect }: Options = {}) {
     setGoalkeeperIds(new Set())
   }
 
-  return { selected, goalkeeperIds, toggleSelect, toggleGoalkeeper, reset }
+  const replace = (ids: string[]) => {
+    setSelected(new Set(ids))
+    setGoalkeeperIds(new Set())
+  }
+
+  return { selected, goalkeeperIds, toggleSelect, toggleGoalkeeper, reset, replace }
 }
 
 export type PlayerSelection = ReturnType<typeof usePlayerSelection>

@@ -106,7 +106,7 @@ export function rankStatRows(rows: PlayerStatRow[], stat: 'goals' | 'mvps', limi
 
 export function pickUpcomingMatches<T extends Pick<Match, 'status' | 'date'>>(matches: T[], today: string): T[] {
   return matches
-    .filter((m) => m.status === 'draft' && m.date.slice(0, 10) >= today)
+    .filter((m) => (m.status === 'draft' || m.status === 'open') && m.date.slice(0, 10) >= today)
     .sort((a, b) => a.date.localeCompare(b.date))
 }
 

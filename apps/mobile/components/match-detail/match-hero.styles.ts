@@ -87,4 +87,13 @@ export const styles = StyleSheet.create({
     fontSize: 28,
     fontVariant: ['tabular-nums'],
   },
+  signupsRow: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  signupsLabel: {
+    color: ContrastColors.onColorSoft,
+    fontFamily: Fonts.semiBold,
+    fontSize: 13,
+  },
 })

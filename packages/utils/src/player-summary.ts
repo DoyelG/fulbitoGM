@@ -1,4 +1,4 @@
-import type { Match } from '@fulbito/types'
+import { isFinal, type Match } from '@fulbito/types'
 
 export type PlayerMatchSummary = {
   matches: number
@@ -12,7 +12,7 @@ export type PlayerMatchSummary = {
 export function getPlayerMatchSummary(matches: Match[], playerId: string): PlayerMatchSummary {
   const summary: PlayerMatchSummary = { matches: 0, goals: 0, wins: 0, draws: 0, losses: 0, winRate: 0 }
   for (const match of matches) {
-    if (match.status === 'draft') continue
+    if (!isFinal(match)) continue
     const inA = match.teamA.find((player) => player.id === playerId)
     const inB = inA ? undefined : match.teamB.find((player) => player.id === playerId)
     const played = inA ?? inB

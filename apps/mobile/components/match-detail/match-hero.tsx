@@ -1,6 +1,6 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import type { Match } from '@fulbito/types'
-import { formatLongMatchDate, parseMatchDate } from '@fulbito/utils'
+import { formatLongMatchDate, parseMatchDate, splitSignups } from '@fulbito/utils'
 import { Image } from 'expo-image'
 import { Text, View } from 'react-native'
 
@@ -28,6 +28,7 @@ export function MatchHero({ match, tournamentPhotoUrl }: Props) {
   const winA = !isDraft && match.teamAScore > match.teamBScore
   const winB = !isDraft && match.teamBScore > match.teamAScore
   const title = match.name || formatLongMatchDate(date)
+  const signups = match.status === 'open' ? splitSignups(match) : null
 
   return (
     <View style={styles.card}>
@@ -55,23 +56,38 @@ export function MatchHero({ match, tournamentPhotoUrl }: Props) {
           {match.isFriendly && <Badge label="Amistoso" />}
         </View>
       </View>
-      <View style={styles.scoreRow}>
-        <Text style={[styles.team, winB ? styles.teamDim : null]} numberOfLines={1}>
-          Equipo A
-        </Text>
-        <View
-          style={styles.scoreBox}
-          accessible
-          accessibilityLabel={
-            isDraft ? 'Sin resultado todavía' : `Resultado: ${match.teamAScore} a ${match.teamBScore}`
-          }
-        >
-          <Text style={styles.score}>{isDraft ? '0 – 0' : `${match.teamAScore} – ${match.teamBScore}`}</Text>
+      {signups ? (
+        <View style={styles.signupsRow}>
+          <View
+            style={styles.scoreBox}
+            accessible
+            accessibilityLabel={`${signups.confirmed.length} de ${signups.capacity} inscriptos`}
+          >
+            <Text style={styles.score}>
+              {signups.confirmed.length}/{signups.capacity}
+            </Text>
+          </View>
+          {signups.waitlist.length > 0 && <Text style={styles.signupsLabel}>+{signups.waitlist.length} en espera</Text>}
         </View>
-        <Text style={[styles.team, winA ? styles.teamDim : null]} numberOfLines={1}>
-          Equipo B
-        </Text>
-      </View>
+      ) : (
+        <View style={styles.scoreRow}>
+          <Text style={[styles.team, winB ? styles.teamDim : null]} numberOfLines={1}>
+            Equipo A
+          </Text>
+          <View
+            style={styles.scoreBox}
+            accessible
+            accessibilityLabel={
+              isDraft ? 'Sin resultado todavía' : `Resultado: ${match.teamAScore} a ${match.teamBScore}`
+            }
+          >
+            <Text style={styles.score}>{isDraft ? '0 – 0' : `${match.teamAScore} – ${match.teamBScore}`}</Text>
+          </View>
+          <Text style={[styles.team, winA ? styles.teamDim : null]} numberOfLines={1}>
+            Equipo B
+          </Text>
+        </View>
+      )}
     </View>
   )
 }

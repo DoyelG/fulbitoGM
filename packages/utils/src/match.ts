@@ -5,7 +5,7 @@ export const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v
 export const MAX_GOALKEEPERS = 2
 
 export function onlyFinalMatches<T extends Pick<Match, 'status'>>(matches: T[]): T[] {
-  return matches.filter((m) => m.status !== 'draft')
+  return matches.filter((m) => m.status === 'final' || m.status === undefined)
 }
 
 export const MATCH_HOUR_OPTIONS: number[] = Array.from({ length: 24 }, (_, i) => i)

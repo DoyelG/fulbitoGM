@@ -1,6 +1,15 @@
-import type { Match, MatchInput, Player } from '@fulbito/types'
+import type { Match, MatchInput, OpenMatchInput, Player } from '@fulbito/types'
 import { useCallback } from 'react'
-import { getMatches, getPlayers, createMatch, updateMatch, deleteMatch } from '@fulbito/firebase'
+import {
+  getMatches,
+  getPlayers,
+  createMatch,
+  updateMatch,
+  deleteMatch,
+  createOpenMatch,
+  convertOpenMatch,
+  type OpenMatchAuthor,
+} from '@fulbito/firebase'
 
 import { useActiveTournamentId } from '@/contexts/TournamentContext'
 import { useTournamentResource } from '@/hooks/use-tournament-resource'
@@ -16,6 +25,8 @@ export type MatchesDataState = {
   deleteMatch: (id: string) => Promise<void>
   addMatch: (m: MatchInput) => Promise<string>
   updateMatch: (id: string, m: MatchInput) => Promise<void>
+  addOpenMatch: (m: OpenMatchInput, author: OpenMatchAuthor) => Promise<string>
+  convertOpenMatch: (id: string, m: MatchInput) => Promise<void>
 }
 
 type MatchesData = { matches: Match[]; players: Player[] }
@@ -66,6 +77,23 @@ export function useMatchesData(): MatchesDataState {
     [tournamentId, reload],
   )
 
+  const handleAddOpenMatch = useCallback(
+    async (m: OpenMatchInput, author: OpenMatchAuthor) => {
+      const matchId = await createOpenMatch(requireTournament(tournamentId), m, author)
+      await reload()
+      return matchId
+    },
+    [tournamentId, reload],
+  )
+
+  const handleConvertOpenMatch = useCallback(
+    async (id: string, m: MatchInput) => {
+      await convertOpenMatch(requireTournament(tournamentId), id, m)
+      await reload()
+    },
+    [tournamentId, reload],
+  )
+
   return {
     ...data,
     loading,
@@ -76,5 +104,7 @@ export function useMatchesData(): MatchesDataState {
     deleteMatch: handleDeleteMatch,
     addMatch: handleAddMatch,
     updateMatch: handleUpdateMatch,
+    addOpenMatch: handleAddOpenMatch,
+    convertOpenMatch: handleConvertOpenMatch,
   }
 }

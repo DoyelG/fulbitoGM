@@ -1,5 +1,5 @@
-import type { MatchInput, Player, MatchLocation } from '@fulbito/types'
-import { buildMatchSchedule } from '@fulbito/utils'
+import type { MatchInput, Player, MatchLocation, OpenMatchInput } from '@fulbito/types'
+import { buildMatchSchedule, buildOpenMatchStartsAt } from '@fulbito/utils'
 
 import type { MatchType, RecordingPlayer } from './types'
 
@@ -86,6 +86,23 @@ export function buildDraftMatchPayload(input: BuildDraftPayloadInput): MatchInpu
     shirtsResponsibleId: input.shirtsResponsibleId,
     goalkeeperIds: input.goalkeeperIds ?? [],
     mvpId: null,
+    isFriendly: input.isMatchFriendly ?? false,
+  }
+}
+
+export type BuildOpenPayloadInput = Pick<
+  BuildDraftPayloadInput,
+  'matchDate' | 'matchType' | 'matchName' | 'matchDescription' | 'isMatchFriendly' | 'matchLocation'
+> & { matchHour: number }
+
+export function buildOpenMatchPayload(input: BuildOpenPayloadInput): OpenMatchInput {
+  return {
+    ...buildMatchSchedule(input.matchDate, input.matchHour),
+    startsAt: buildOpenMatchStartsAt(input.matchDate, input.matchHour),
+    type: input.matchType,
+    name: input.matchName.trim() || undefined,
+    description: input.matchDescription.trim() || undefined,
+    location: input.matchLocation ?? null,
     isFriendly: input.isMatchFriendly ?? false,
   }
 }

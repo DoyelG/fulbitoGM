@@ -143,12 +143,59 @@ service cloud.firestore {
       allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
     }
 
+    // Open matches: the waitlist size (4) mirrors OPEN_MATCH_WAITLIST_SIZE in packages/utils.
+    function isValidOpenMatch(data) {
+      return data.get('status', 'final') != 'open'
+        || (data.signups is list && data.capacity is int && data.capacity > 0 && data.startsAt is timestamp);
+    }
+
+    function openMatchConfirmed(signups, capacity) {
+      return signups.size() > capacity ? signups[0:capacity] : signups;
+    }
+
+    function isSelfJoin(before, after, me, capacity, startsAt) {
+      return request.time < startsAt
+        && !(me in before)
+        && after == before.concat([me])
+        && after.size() <= capacity + 4;
+    }
+
+    // Inside 24 hs nobody can leave on their own; inside 48 hs a confirmed player can only leave when
+    // someone on the waitlist takes the spot.
+    function isSelfLeave(before, after, me, capacity, startsAt) {
+      return me in before
+        && after == before.removeAll([me])
+        && request.time < startsAt - duration.value(24, 'h')
+        && (request.time < startsAt - duration.value(48, 'h')
+          || !(me in openMatchConfirmed(before, capacity))
+          || before.size() > capacity);
+    }
+
+    function isOpenMatchSelfSignup() {
+      let tid = resource.data.tournamentId;
+      let me = myPlayerId(tid);
+      let before = resource.data.signups;
+      let after = request.resource.data.signups;
+      let capacity = resource.data.capacity;
+      return resource.data.status == 'open'
+        && isTournamentMember(tid)
+        && me is string
+        && changedKeys().hasOnly(['signups', 'updatedAt'])
+        && after is list
+        && (isSelfJoin(before, after, me, capacity, resource.data.startsAt) || isSelfLeave(before, after, me, capacity, resource.data.startsAt));
+    }
+
     match /matches/{id} {
       allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
       allow create: if isSignedIn()
         && request.resource.data.tournamentId is string
-        && canManageTournament(request.resource.data.tournamentId);
-      allow update: if isSignedIn() && keepsTournament() && canManageTournament(resource.data.tournamentId);
+        && canManageTournament(request.resource.data.tournamentId)
+        && isValidOpenMatch(request.resource.data)
+        && (request.resource.data.get('status', 'final') != 'open' || request.resource.data.signups == []);
+      allow update: if isSignedIn() && keepsTournament() && (
+        (canManageTournament(resource.data.tournamentId) && isValidOpenMatch(request.resource.data))
+        || isOpenMatchSelfSignup()
+      );
       allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
     }
 
@@ -401,11 +448,22 @@ service cloud.firestore {
           );
       }
 
+      // Open-match announcements are written in the same batch as the match, hence getAfter.
+      function isValidMatchAnnouncement(tid, data) {
+        return !('matchId' in data)
+          || (data.matchId is string
+            && canManageTournament(tid)
+            && existsAfter(/databases/$(database)/documents/matches/$(data.matchId))
+            && getAfter(/databases/$(database)/documents/matches/$(data.matchId)).data.tournamentId == tid
+            && getAfter(/databases/$(database)/documents/matches/$(data.matchId)).data.get('status', 'final') == 'open');
+      }
+
       match /comments/{commentId} {
         allow read: if isTournamentMember(tournamentId);
 
-        allow create: if isTournamentMember(tournamentId)
-          && request.resource.data.keys().hasOnly(['authorUid', 'authorName', 'text', 'createdAt'])
+        allow create: if (isTournamentMember(tournamentId) || ('matchId' in request.resource.data && isAdmin()))
+          && request.resource.data.keys().hasOnly(['authorUid', 'authorName', 'text', 'createdAt', 'matchId'])
+          && isValidMatchAnnouncement(tournamentId, request.resource.data)
           && request.resource.data.authorUid == request.auth.uid
           && request.resource.data.authorName is string
           && request.resource.data.authorName.size() <= 80

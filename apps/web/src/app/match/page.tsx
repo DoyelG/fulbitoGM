@@ -1,5 +1,10 @@
 import MatchClient from './matchClient'
 
-export default function MatchPage() {
-  return <MatchClient players={[]} />
+type Props = {
+  searchParams: Promise<{ openMatchId?: string | string[] }>
+}
+
+export default async function MatchPage({ searchParams }: Props) {
+  const { openMatchId } = await searchParams
+  return <MatchClient players={[]} openMatchId={typeof openMatchId === 'string' ? openMatchId : null} />
 }

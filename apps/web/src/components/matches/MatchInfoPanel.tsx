@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from 'react'
 import type { Match, Player } from '@fulbito/types'
-import { formatLongMatchDate, formatMatchClock, parseMatchDate } from '@fulbito/utils'
+import { formatLongMatchDate, formatMatchClock, parseMatchDate, splitSignups } from '@fulbito/utils'
 import { CalendarIcon, ClockIcon, InformationCircleIcon, MapPinIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { FaTshirt } from 'react-icons/fa'
 import MatchLocationLink from '@/components/MatchLocationLink'
@@ -33,7 +33,8 @@ function InfoRow({
 
 export default function MatchInfoPanel({ match, playerById }: Props) {
   const { date, hour } = parseMatchDate(match)
-  const playersCount = match.teamA.length + match.teamB.length
+  const playersCount =
+    match.status === 'open' ? splitSignups(match).confirmed.length : match.teamA.length + match.teamB.length
   const shirtsName = match.shirtsResponsibleId ? playerById.get(match.shirtsResponsibleId)?.name : undefined
 
   return (

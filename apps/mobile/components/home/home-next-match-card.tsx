@@ -8,17 +8,21 @@ import { PrimaryGradient } from '@/components/primary-gradient'
 import { ContrastColors, Shadows } from '@/constants/theme'
 
 import { styles } from './home-next-match-card.styles'
+import { HomeOpenMatchCard } from './home-open-match-card'
 
 type Props = {
   match: Match | null
+  onChanged: () => Promise<void>
 }
 
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function HomeNextMatchCard({ match }: Props) {
+export function HomeNextMatchCard({ match, onChanged }: Props) {
   const router = useRouter()
+
+  if (match?.status === 'open') return <HomeOpenMatchCard match={match} onChanged={onChanged} />
 
   if (!match) {
     return (

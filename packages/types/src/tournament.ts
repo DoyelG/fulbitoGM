@@ -79,4 +79,5 @@ export type TournamentComment = {
   authorName: string
   text: string
   createdAt: Date
+  matchId?: string | null
 }

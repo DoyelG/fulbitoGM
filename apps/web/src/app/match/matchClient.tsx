@@ -12,22 +12,38 @@ import {
   type TeamResult,
 } from '@/lib/teamUtils'
 import { calculateAllCurrentStreaks, getGoalkeeping } from '@/lib/playerStats'
-import { onlyFinalMatches } from '@fulbito/utils'
+import {
+  MATCH_TYPES,
+  onlyFinalMatches,
+  parseMatchDate,
+  playersPerTeam as parsePlayersPerTeam,
+  splitSignups,
+  type Convocatoria,
+} from '@fulbito/utils'
 import Button from '@/components/Button'
 import PageTitle from '@/components/PageTitle'
-import type { MatchType } from '@fulbito/types'
+import { isOpen, type MatchType } from '@fulbito/types'
+import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { Stepper } from './stepper'
 import { usePlayerSelection } from './use-player-selection'
 import PlayersStep from './playersStep'
 import TeamsStep from './teamsStep'
 import DataStep from './dataStep'
-import type { DraftForm } from './draftForm'
+import OpenMatchForm from './openMatchForm'
+import type { DraftForm } from './matchDetailsFields'
 
 export type Step = 1 | 2 | 3
 
-export default function MatchClient({ players: initialPlayers }: { players: Player[] }) {
+type Props = {
+  players: Player[]
+  openMatchId: string | null
+}
+
+export default function MatchClient({ players: initialPlayers, openMatchId }: Props) {
   const { players, hydratePlayers, resetAndReload } = usePlayerStore()
-  const { initLoad: initMatchesLoad, resetAndReload: resetMatches } = useMatchStore()
+  const { matches, initLoad: initMatchesLoad, resetAndReload: resetMatches } = useMatchStore()
+  const canManage = useCanManageTournament()
+  const [convocatoria, setConvocatoria] = useState<Convocatoria>('preselected')
   const [currentStep, setCurrentStep] = useState<Step>(1)
   const [stepHistory, setStepHistory] = useState<Step[]>([])
   const [matchType, setMatchType] = useState<MatchType | null>(null)
@@ -40,10 +56,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     description: '',
   }))
 
-  const playersPerTeam = useMemo(() => {
-    if (!matchType) return 0
-    return parseInt(matchType.split('v')[0], 10)
-  }, [matchType])
+  const playersPerTeam = useMemo(() => (matchType ? parsePlayersPerTeam(matchType) : 0), [matchType])
   const requiredPlayers = playersPerTeam * 2
 
   const initialized = useRef(false)
@@ -70,6 +83,31 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
     },
   })
   const { selected, goalkeeperIds } = selection
+
+  const openMatch = useMemo(() => {
+    if (!openMatchId) return null
+    const found = matches.find((match) => match.id === openMatchId)
+    return found && isOpen(found) ? found : null
+  }, [matches, openMatchId])
+
+  const prefilledFrom = useRef<string | null>(null)
+  const { replace: replaceSelection } = selection
+
+  useEffect(() => {
+    if (!openMatch || prefilledFrom.current === openMatch.id) return
+    prefilledFrom.current = openMatch.id
+    const { date, hour } = parseMatchDate(openMatch)
+    setMatchType(MATCH_TYPES.find((type) => type === openMatch.type) ?? null)
+    setIsFriendly(openMatch.isFriendly ?? false)
+    setDraft({
+      date,
+      hour,
+      name: openMatch.name ?? '',
+      location: openMatch.location ?? null,
+      description: openMatch.description ?? '',
+    })
+    replaceSelection(splitSignups(openMatch).confirmed)
+  }, [openMatch, replaceSelection])
 
   const selectedPlayers: PlayerInfo[] = useMemo(() => {
     const ids = new Set(selected)
@@ -191,6 +229,20 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             isSelectionComplete={isSelectionComplete}
             onManual={() => goToStep(2)}
             onAuto={generateAndContinue}
+            convocatoria={convocatoria}
+            onConvocatoriaChange={canManage && !openMatch ? setConvocatoria : null}
+            lockMatchType={openMatch !== null}
+            openMatchForm={
+              matchType && (
+                <OpenMatchForm
+                  matchType={matchType}
+                  draft={draft}
+                  onDraftChange={(changes) => setDraft((previousDraft) => ({ ...previousDraft, ...changes }))}
+                  isFriendly={isFriendly}
+                  onFriendlyToggle={() => setIsFriendly((wasFriendly) => !wasFriendly)}
+                />
+              )
+            }
           />
         )
       case 2:
@@ -226,6 +278,7 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
             draft={draft}
             onDraftChange={(changes) => setDraft((previousDraft) => ({ ...previousDraft, ...changes }))}
             onRegenerate={generateTeams}
+            openMatchId={openMatch?.id ?? null}
           />
         )
     }
@@ -247,7 +300,16 @@ export default function MatchClient({ players: initialPlayers }: { players: Play
         Preparar partido
       </PageTitle>
 
-      <div className="sticky top-0 z-10 bg-gray-50 sm:pt-4">
+      {openMatch && (
+        <p
+          className="mt-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-gray-800"
+          role="status"
+        >
+          Armando equipos para el partido abierto con los {splitSignups(openMatch).confirmed.length} inscriptos.
+        </p>
+      )}
+
+      <div className={`sticky top-0 z-10 bg-gray-50 sm:pt-4 ${convocatoria === 'open' ? 'hidden' : ''}`}>
         <Stepper
           currentStep={matchType ? currentStep : 0}
           className="sticky z-10"

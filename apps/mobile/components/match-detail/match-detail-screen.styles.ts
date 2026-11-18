@@ -73,4 +73,7 @@ export const styles = StyleSheet.create({
   teams: {
     gap: Spacing.md,
   },
+  actionDisabled: {
+    opacity: 0.5,
+  },
 })
