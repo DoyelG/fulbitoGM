@@ -12,6 +12,7 @@ import { TournamentProvider } from '@/contexts/TournamentContext'
 import { UnreadCommentsProvider } from '@/contexts/UnreadCommentsContext'
 import AnimatedSplash from '@/components/AnimatedSplash'
 import LinkPlayerModal from '@/components/players/link-player/link-player-modal'
+import PushNotificationsInit from '@/components/push-notifications-init'
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -80,6 +81,7 @@ export default function RootLayout() {
         <UnreadCommentsProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <AuthGuard />
+            <PushNotificationsInit />
             <LinkPlayerModal />
             <Stack>
               <Stack.Screen name="index" options={{ headerShown: false }} />

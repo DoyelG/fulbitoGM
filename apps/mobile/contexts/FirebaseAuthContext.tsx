@@ -12,6 +12,9 @@ import {
 } from '@fulbito/firebase'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
+import { cancelAllMatchReminders } from '@/lib/notifications/match-local-reminders'
+import { unregisterPushToken } from '@/lib/notifications/push-token'
+
 type AuthContextValue = {
   user: AppUser | null
   loading: boolean
@@ -47,12 +50,19 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     setUser(appUser)
   }
 
+  const cleanUpNotifications = async () => {
+    await cancelAllMatchReminders().catch(() => undefined)
+    if (user) await unregisterPushToken(user.uid)
+  }
+
   const signOut = async () => {
+    await cleanUpNotifications()
     await firebaseSignOut()
     setUser(null)
   }
 
   const deleteUser = async () => {
+    await cleanUpNotifications()
     await firebaseDeleteUser()
     setUser(null)
   }

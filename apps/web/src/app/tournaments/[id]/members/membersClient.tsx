@@ -23,7 +23,8 @@ function Container({ children }: { children: ReactNode }) {
 
 export default function MembersClient({ tournamentId }: { tournamentId: string }) {
   const { user, loading: authLoading } = useFirebaseAuth()
-  const { myTournaments, myTournamentsInit, myTournamentsUid, loadMyTournaments } = useTournamentStore()
+  const { myTournaments, myTournamentsInit, myTournamentsUid, loadMyTournaments, setActiveTournament } =
+    useTournamentStore()
   const detail = useTournamentDetailStore()
   const [assigning, setAssigning] = useState<TournamentMember | null>(null)
   const [changingRole, setChangingRole] = useState<TournamentMember | null>(null)
@@ -162,6 +163,7 @@ export default function MembersClient({ tournamentId }: { tournamentId: string }
           currentUid={user.uid}
           currentRole={item.membership.role}
           playerNameById={playerNameById}
+          onOpenPlayer={() => setActiveTournament(tournamentId)}
           onAssignPlayer={setAssigning}
           onChangeRole={setChangingRole}
           onRemove={setRemoving}

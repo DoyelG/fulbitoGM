@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { FiCamera, FiChevronRight } from 'react-icons/fi'
 import { uploadPlayerPhoto } from '@fulbito/firebase'
 import type { Match, Player } from '@fulbito/types'
-import { calculateCurrentStreakForPlayer, getPlayerMatchSummary, positionLabels } from '@fulbito/utils'
+import { calculateCurrentStreakForPlayer, getPlayerMatchSummary, getPositionLabel } from '@fulbito/utils'
 import { usePlayerStore } from '@/store/usePlayerStore'
 
 type PlayerSectionProps = {
@@ -122,7 +122,7 @@ export default function PlayerSection({ player, matches, index }: PlayerSectionP
               <span className="min-w-0">
                 <span className="block truncate text-lg font-bold text-gray-900">{player.name}</span>
                 <span className="block text-sm text-gray-700">
-                  {positionLabels[player.position] ?? player.position}
+                  {getPositionLabel(player.position)}
                 </span>
               </span>
               <span className="flex shrink-0 items-center text-sm font-semibold text-primary">

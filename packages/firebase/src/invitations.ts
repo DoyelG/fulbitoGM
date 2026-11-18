@@ -13,6 +13,7 @@ import {
   Timestamp,
 } from 'firebase/firestore'
 import { FirebaseError } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
 import type { Invitation, InvitationRole, InvitationStatus } from '@fulbito/types'
 import { toDate, toOptionalDate } from './dates'
 import { PLAYERS_COLLECTION } from './players'
@@ -139,8 +140,20 @@ export async function getTournamentInvitations(tournamentId: string): Promise<In
   return getPendingInvitations('tournamentId', tournamentId)
 }
 
+async function retryWithFreshTokenOnPermissionDenied<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run()
+  } catch (error) {
+    const user = getAuth().currentUser
+    if (!(error instanceof FirebaseError && error.code === 'permission-denied') || !user) throw error
+    await user.getIdToken(true)
+    return run()
+  }
+}
+
 export async function getMyInvitations(email: string): Promise<Invitation[]> {
-  return getPendingInvitations('email', normalizeEmail(email))
+  const normalized = normalizeEmail(email)
+  return retryWithFreshTokenOnPermissionDenied(() => getPendingInvitations('email', normalized))
 }
 
 type InvitedUser = {

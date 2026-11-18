@@ -158,7 +158,7 @@ export default function PlayerDetailScreen() {
             }
           />
           <View style={styles.statsWrap}>
-            <PlayerStatsGrid stats={stats} />
+            <PlayerStatsGrid stats={stats} streak={streak} />
           </View>
 
           {recentSlice.length > 0 ? (

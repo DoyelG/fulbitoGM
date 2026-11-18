@@ -1,3 +1,4 @@
+import { positionOptions } from '@fulbito/utils'
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -32,14 +33,6 @@ type Props = {
   onSave: () => void
   onCancel: () => void
 }
-
-const POSITIONS = [
-  { value: 'GK', label: 'Arquero' },
-  { value: 'DEF', label: 'Defensor' },
-  { value: 'MID', label: 'Mediocampista' },
-  { value: 'FWD', label: 'Delantero' },
-  { value: 'PLAYER', label: 'Cualquier posición' },
-]
 
 const SKILL_KEYS: { key: keyof PlayerEditFormValues; label: string }[] = [
   { key: 'physical', label: 'Físico' },
@@ -121,7 +114,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
 
         <ThemedText style={[styles.label, { color: colors.muted }]}>Posición</ThemedText>
         <View style={styles.chips}>
-          {POSITIONS.map((position) => {
+          {positionOptions.map((position) => {
             const active = values.position === position.value
             return (
               <TouchableOpacity

@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { FiLink, FiShield, FiTrash2 } from 'react-icons/fi'
 import type { TournamentMember, TournamentRole } from '@fulbito/types'
 import { canChangeMemberRole, canRemoveMember, isTournamentAdminRole } from '@fulbito/utils'
@@ -12,6 +13,7 @@ type Props = {
   currentUid: string
   currentRole: TournamentRole
   playerNameById: Map<string, string>
+  onOpenPlayer: () => void
   onAssignPlayer: (member: TournamentMember) => void
   onChangeRole: (member: TournamentMember) => void
   onRemove: (member: TournamentMember) => void
@@ -51,6 +53,7 @@ export default function MembersTable({
   currentUid,
   currentRole,
   playerNameById,
+  onOpenPlayer,
   onAssignPlayer,
   onChangeRole,
   onRemove,
@@ -97,7 +100,17 @@ export default function MembersTable({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {playerName ?? <span className="text-gray-700">Sin jugador</span>}
+                    {member.playerId && playerName ? (
+                      <Link
+                        href={`/players/${member.playerId}`}
+                        onClick={onOpenPlayer}
+                        className="rounded font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        {playerName}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-700">Sin jugador</span>
+                    )}
                   </td>
                   {canManage && (
                     <td className="px-4 py-3">

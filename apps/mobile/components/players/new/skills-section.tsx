@@ -5,15 +5,16 @@ import { ThemedText } from '@/components/themed-text'
 import { Fonts, Spacing } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 
-export type SkillKey = 'physical' | 'technical' | 'tactical' | 'psychological'
+export type SkillKey = 'physical' | 'technical' | 'tactical' | 'psychological' | 'goalkeeping'
 
 export type SkillValues = Record<SkillKey, number>
 
-export const SKILLS: { key: SkillKey; label: string; cardLabel: string }[] = [
-  { key: 'physical', label: 'Físico', cardLabel: 'FIS' },
-  { key: 'technical', label: 'Técnico', cardLabel: 'TEC' },
-  { key: 'tactical', label: 'Táctico', cardLabel: 'TAC' },
-  { key: 'psychological', label: 'Mental', cardLabel: 'MEN' },
+export const SKILLS: { key: SkillKey; label: string }[] = [
+  { key: 'physical', label: 'Físico' },
+  { key: 'technical', label: 'Técnico' },
+  { key: 'tactical', label: 'Táctico' },
+  { key: 'psychological', label: 'Mental' },
+  { key: 'goalkeeping', label: 'Arquero' },
 ]
 
 const LOW_SKILL_MAX = 5

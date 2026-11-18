@@ -1,8 +1,13 @@
 "use client"
 
+import { useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import { TrophyIcon } from '@heroicons/react/24/solid'
 import type { SkillValue } from '@fulbito/types'
+import { positionShortLabels } from '@fulbito/utils'
+import PlayerCardName from '@/components/PlayerCardName'
+import PlayerCardPhoto from '@/components/PlayerCardPhoto'
+import PlayerPhotoModal from '@/components/PlayerPhotoModal'
 
 export type PlayerCardProps = {
   name: string
@@ -12,14 +17,8 @@ export type PlayerCardProps = {
   skills: { physical: SkillValue; technical: SkillValue; tactical: SkillValue; psychological: SkillValue }
   goalkeeping?: number
   tournamentPhotoUrl?: string | null
+  photoFooter?: ReactNode
   className?: string
-}
-
-const positionShortLabels: Record<string, string> = {
-  GK: 'ARQ',
-  DEF: 'DEF',
-  MID: 'MED',
-  FWD: 'DEL',
 }
 
 const cardPath =
@@ -34,10 +33,17 @@ function StatColumn({ value, label }: { value: SkillValue | number; label: strin
   )
 }
 
-export default function PlayerCard({ name, position, overall, photoUrl, skills, goalkeeping, tournamentPhotoUrl, className }: PlayerCardProps) {
+export default function PlayerCard({ name, position, overall, photoUrl, skills, goalkeeping, tournamentPhotoUrl, photoFooter, className }: PlayerCardProps) {
+  const [expanded, setExpanded] = useState(false)
+  const canExpand = Boolean(photoUrl) || Boolean(photoFooter)
+
   return (
-    <div className={`relative h-[310px] w-60 text-card-ink ${className ?? ''}`}>
-      <svg className="absolute inset-0 h-full w-full drop-shadow-md" viewBox="0 0 240 310" aria-hidden>
+    <div className={`relative h-[310px] w-60 text-card-ink ${canExpand ? 'group' : ''} ${className ?? ''}`}>
+      <svg
+        className="absolute inset-0 h-full w-full drop-shadow-md transition-[filter] duration-200 group-hover:drop-shadow-[0_16px_14px_rgb(0_0_0/0.13)]"
+        viewBox="0 0 240 310"
+        aria-hidden
+      >
         <defs>
           <linearGradient id="playerCardFill" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" className="[stop-color:var(--color-card-gold-light)]" />
@@ -57,7 +63,9 @@ export default function PlayerCard({ name, position, overall, photoUrl, skills, 
       <div className="relative flex h-full flex-col px-4 pt-8">
         <div className="absolute top-11 left-5 z-10 flex flex-col items-center leading-none">
           <span className="text-4xl font-bold tabular-nums">{Math.round(overall)}</span>
-          <span className="text-sm font-bold">{positionShortLabels[position] ?? '—'}</span>
+          {positionShortLabels[position] && (
+            <span className="text-sm font-bold">{positionShortLabels[position]}</span>
+          )}
         </div>
         <div className="absolute top-12 right-5 z-10 h-8 w-8 overflow-hidden rounded-full ring-1 ring-card-gold-edge/60">
           {tournamentPhotoUrl ? (
@@ -66,17 +74,9 @@ export default function PlayerCard({ name, position, overall, photoUrl, skills, 
             <TrophyIcon className="absolute inset-0 m-auto h-4 w-4 text-card-gold-edge" aria-hidden />
           )}
         </div>
-        {photoUrl ? (
-          <div className="relative mx-auto h-40 w-40 [mask-image:linear-gradient(to_bottom,black_80%,transparent)]">
-            <Image src={photoUrl} alt={`Foto de ${name}`} fill sizes="160px" className="object-cover object-top" />
-          </div>
-        ) : (
-          <div className="relative mx-auto mt-5 h-28 w-28 overflow-hidden rounded-full">
-            <Image src="/silhouette.svg" alt="" fill sizes="112px" className="object-cover" />
-          </div>
-        )}
+        <PlayerCardPhoto src={photoUrl} name={name} />
 
-        <p className="mt-3 truncate text-center text-2xl font-bold">{name}</p>
+        <PlayerCardName name={name} />
 
         <div className="mt-2 flex justify-center gap-2.5">
           <StatColumn value={skills.physical} label="FÍS" />
@@ -86,6 +86,24 @@ export default function PlayerCard({ name, position, overall, photoUrl, skills, 
           {goalkeeping != null && <StatColumn value={goalkeeping} label="ARQ" />}
         </div>
       </div>
+
+      {canExpand && (
+        <>
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-label={photoUrl ? `Ver foto de ${name}` : `Editar a ${name}`}
+            className="absolute inset-0 z-20 cursor-pointer rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+          <PlayerPhotoModal
+            open={expanded}
+            onClose={() => setExpanded(false)}
+            name={name}
+            photoUrl={photoUrl}
+            footer={photoFooter}
+          />
+        </>
+      )}
     </div>
   )
 }

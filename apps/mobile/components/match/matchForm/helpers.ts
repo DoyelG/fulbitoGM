@@ -22,11 +22,7 @@ export type TeamStats = {
   winPctB: number
 }
 
-export function computeTeamStats(
-  teamA: RecordingPlayer[],
-  teamB: RecordingPlayer[],
-  poolPlayers: Player[],
-): TeamStats {
+export function computeTeamStats(teamA: RecordingPlayer[], teamB: RecordingPlayer[], poolPlayers: Player[]): TeamStats {
   const normalizeSkill = (value: number | null | undefined) => (value == null ? 5 : value)
   const normalizePhysical = (value: number | 'unknown' | null | undefined) =>
     value === 'unknown' || value == null ? 5 : value
@@ -69,12 +65,34 @@ export type BuildPayloadInput = {
   matchLocation?: MatchLocation | null
 }
 
+export type BuildDraftPayloadInput = Omit<
+  BuildPayloadInput,
+  'teamAScore' | 'teamBScore' | 'goalsA' | 'goalsB' | 'perfA' | 'perfB' | 'mvpId'
+>
+
+export function buildDraftMatchPayload(input: BuildDraftPayloadInput): MatchInput {
+  const toDraftPlayer = (p: RecordingPlayer) => ({ id: p.id, name: p.name, goals: 0, performance: 0 })
+
+  return {
+    ...buildMatchSchedule(input.matchDate, input.matchHour),
+    type: input.matchType,
+    name: input.matchName.trim() || undefined,
+    location: input.matchLocation ?? undefined,
+    description: input.matchDescription.trim() || undefined,
+    status: 'draft',
+    teamAScore: 0,
+    teamBScore: 0,
+    teamA: input.teamA.map(toDraftPlayer),
+    teamB: input.teamB.map(toDraftPlayer),
+    shirtsResponsibleId: input.shirtsResponsibleId,
+    goalkeeperIds: input.goalkeeperIds ?? [],
+    mvpId: null,
+    isFriendly: input.isMatchFriendly ?? false,
+  }
+}
+
 export function buildFinalMatchPayload(input: BuildPayloadInput): MatchInput {
-  const buildTeamPlayers = (
-    team: RecordingPlayer[],
-    goals: Record<string, string>,
-    perf: Record<string, string>,
-  ) =>
+  const buildTeamPlayers = (team: RecordingPlayer[], goals: Record<string, string>, perf: Record<string, string>) =>
     team.map((player) => ({
       id: player.id,
       name: player.name,
