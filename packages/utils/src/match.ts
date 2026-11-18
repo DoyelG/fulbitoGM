@@ -1,11 +1,42 @@
 import type { Match, MatchType } from '@fulbito/types'
 
-export const MATCH_TYPES: MatchType[] = ['5v5', '6v6', '7v7', '8v8', '9v9', '10v10']
+export { MATCH_TYPES } from '@fulbito/types'
 
 export const MAX_GOALKEEPERS = 2
 
 export function onlyFinalMatches<T extends Pick<Match, 'status'>>(matches: T[]): T[] {
-  return matches.filter((m) => m.status !== 'draft')
+  return matches.filter((match) => match.status !== 'draft')
+}
+
+export type MatchKindFilter = 'all' | 'competitive' | 'friendly'
+
+export type MatchFilters = {
+  types: MatchType[]
+  kind: MatchKindFilter
+  year: number | 'all'
+}
+
+export const DEFAULT_MATCH_FILTERS: MatchFilters = { types: [], kind: 'all', year: 'all' }
+
+function matchYear(match: Pick<Match, 'date'>): number {
+  return Number(match.date.slice(0, 4))
+}
+
+export function filterMatches<T extends Pick<Match, 'type' | 'isFriendly' | 'date'>>(
+  matches: T[],
+  filters: MatchFilters,
+): T[] {
+  return matches.filter((match) => {
+    if (filters.types.length > 0 && !filters.types.includes(match.type as MatchType)) return false
+    if (filters.kind === 'friendly' && !match.isFriendly) return false
+    if (filters.kind === 'competitive' && match.isFriendly) return false
+    if (filters.year !== 'all' && matchYear(match) !== filters.year) return false
+    return true
+  })
+}
+
+export function getMatchYears(matches: Pick<Match, 'date'>[]): number[] {
+  return [...new Set(matches.map(matchYear))].sort((yearA, yearB) => yearB - yearA)
 }
 
 export const MATCH_HOUR_OPTIONS: number[] = Array.from({ length: 24 }, (_, i) => i)

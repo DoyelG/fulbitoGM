@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1110 1088" width="1110" height="1088" role="img" aria-labelledby="title desc" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="title">Panorama general de Fulbito GM</title>
+  <desc id="desc">Arriba, cómo viaja un dato, de izquierda a derecha. Los datos viven en Firebase (Auth, Firestore, Storage). El paquete @fulbito/firebase es el punto de acceso a Firebase. Cada app (web, mobile y mcp) toma esos datos en su capa de lógica (web y mobile leen y escriben; el MCP solo lee), los muestra en sus pantallas y los usa la gente: navegador, celular o Claude. Los paquetes utils y types los usan las tres apps. Abajo, cómo llega cada parte a producción: la web por GitHub Actions a Vercel, las reglas con firebase deploy a mano, mobile con EAS Build a mano y el MCP no se publica.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1.5 1.5 L8 5 L1.5 8.5" fill="none" stroke="#8f8e96" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="arrow-read" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1.5 1.5 L8 5 L1.5 8.5" fill="none" stroke="#ef9f27" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  </defs>
+  <g transform="translate(0 20)">
+
+    <!-- Parte 1 · Cómo viaja un dato (se lee de izquierda a derecha) -->
+    <text x="20" y="22" font-size="15" font-weight="700" fill="#8f8e96" text-anchor="start">Cómo viaja un dato</text>
+    <text x="120.0" y="62" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">1 · Datos</text>
+    <text x="370.0" y="62" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">2 · Acceso</text>
+    <text x="615.0" y="62" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">3 · Lógica de la app</text>
+    <text x="805.0" y="62" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">4 · Pantallas</text>
+    <text x="995.0" y="62" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">5 · Quién lo usa</text>
+
+    <!-- 1 · Firebase: donde viven los datos -->
+    <rect x="20" y="84" width="200" height="394" rx="12" fill="none" stroke="#4fbf98" stroke-opacity="0.7"/>
+    <text x="120.0" y="112" font-size="15" font-weight="700" fill="#4fbf98" text-anchor="middle">Firebase</text>
+    <text x="120.0" y="129" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">proyecto fulbitogm</text>
+    <rect x="40" y="146.0" width="160" height="76" rx="8" fill="#0f4d3a" stroke="#4fbf98" stroke-width="1.2"/>
+    <text x="120.0" y="180.0" font-size="14" font-weight="600" fill="#d5f5e8" text-anchor="middle">Auth</text>
+    <text x="120.0" y="198.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">login y usuarios</text>
+    <rect x="40" y="253.0" width="160" height="76" rx="8" fill="#0f4d3a" stroke="#4fbf98" stroke-width="1.2"/>
+    <text x="120.0" y="287.0" font-size="14" font-weight="600" fill="#d5f5e8" text-anchor="middle">Firestore</text>
+    <text x="120.0" y="305.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">torneos, partidos…</text>
+    <rect x="40" y="360.0" width="160" height="76" rx="8" fill="#0f4d3a" stroke="#4fbf98" stroke-width="1.2"/>
+    <text x="120.0" y="394.0" font-size="14" font-weight="600" fill="#d5f5e8" text-anchor="middle">Storage</text>
+    <text x="120.0" y="412.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">fotos y videos</text>
+    <text x="120.0" y="458" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">lo protegen los .rules</text>
+
+    <!-- Firebase ⇄ @fulbito/firebase -->
+    <path d="M220 267.0 L282 267.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <text x="251.0" y="259.0" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">datos</text>
+    <path d="M282 295.0 L220 295.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <text x="251.0" y="313.0" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">cambios</text>
+
+    <!-- 2 · @fulbito/firebase: punto de acceso a Firebase -->
+    <rect x="282" y="84" width="176" height="394" rx="12" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="370.0" y="247.0" font-size="14" font-weight="700" fill="#e6e3fb" text-anchor="middle">@fulbito/firebase</text>
+    <text x="370.0" y="265.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">packages/firebase</text>
+    <text x="370.0" y="299.0" font-size="12" font-weight="600" fill="#e6e3fb" text-anchor="middle">Punto de acceso</text>
+    <text x="370.0" y="315.0" font-size="12" font-weight="600" fill="#e6e3fb" text-anchor="middle">a Firebase</text>
+
+    <!-- apps/web · Next.js · lee .env.local -->
+    <rect x="520" y="84" width="570" height="122" rx="12" fill="none" stroke="#7a7982" stroke-opacity="0.55" stroke-dasharray="5 4"/>
+    <text x="540" y="109" font-size="12" font-weight="600" fill="#7a7982" text-anchor="start">apps/web · Next.js · lee .env.local</text>
+    <path d="M458 155.0 L520 155.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <rect x="540" y="124" width="150" height="62" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="615.0" y="151.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">Stores</text>
+    <text x="615.0" y="169.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">Zustand · src/store</text>
+    <path d="M690 155.0 L730 155.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="730" y="124" width="150" height="62" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="805.0" y="151.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">Páginas</text>
+    <text x="805.0" y="169.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">src/app</text>
+    <path d="M880 155.0 L920 155.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="920" y="124" width="150" height="62" rx="8" fill="#0c3f5c" stroke="#4fa8d8" stroke-width="1.2"/>
+    <text x="995.0" y="151.0" font-size="14" font-weight="600" fill="#d6ecf8" text-anchor="middle">Navegador</text>
+    <text x="995.0" y="169.0" font-size="12" font-weight="400" fill="#9ccbe6" text-anchor="middle">publicada en Vercel</text>
+
+    <!-- apps/mobile · Expo · lee .env -->
+    <rect x="520" y="220" width="570" height="122" rx="12" fill="none" stroke="#7a7982" stroke-opacity="0.55" stroke-dasharray="5 4"/>
+    <text x="540" y="245" font-size="12" font-weight="600" fill="#7a7982" text-anchor="start">apps/mobile · Expo · lee .env</text>
+    <path d="M458 291.0 L520 291.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <rect x="540" y="260" width="150" height="62" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="615.0" y="287.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">Hooks de datos</text>
+    <text x="615.0" y="305.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">hooks/use-*-data</text>
+    <path d="M690 291.0 L730 291.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="730" y="260" width="150" height="62" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="805.0" y="287.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">Pantallas</text>
+    <text x="805.0" y="305.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">app/ · Expo Router</text>
+    <path d="M880 291.0 L920 291.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="920" y="260" width="150" height="62" rx="8" fill="#0c3f5c" stroke="#4fa8d8" stroke-width="1.2"/>
+    <text x="995.0" y="287.0" font-size="14" font-weight="600" fill="#d6ecf8" text-anchor="middle">Celular</text>
+    <text x="995.0" y="305.0" font-size="12" font-weight="400" fill="#9ccbe6" text-anchor="middle">iOS y Android</text>
+
+    <!-- apps/mcp · lee .env -->
+    <rect x="520" y="356" width="570" height="122" rx="12" fill="none" stroke="#7a7982" stroke-opacity="0.55" stroke-dasharray="5 4"/>
+    <text x="540" y="381" font-size="12" font-weight="600" fill="#7a7982" text-anchor="start">apps/mcp · lee .env</text>
+    <path d="M458 427.0 L520 427.0" stroke="#ef9f27" stroke-width="1.5" fill="none" marker-end="url(#arrow-read)"/>
+    <text x="489.0" y="419.0" font-size="11" font-weight="600" fill="#ef9f27" text-anchor="middle">solo lee</text>
+    <rect x="540" y="396" width="150" height="62" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="615.0" y="423.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">Tools</text>
+    <text x="615.0" y="441.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">src/tools</text>
+    <path d="M690 427.0 L730 427.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="730" y="396" width="150" height="62" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="805.0" y="423.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">Respuestas</text>
+    <text x="805.0" y="441.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">JSON para el chat</text>
+    <path d="M880 427.0 L920 427.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="920" y="396" width="150" height="62" rx="8" fill="#0c3f5c" stroke="#4fa8d8" stroke-width="1.2"/>
+    <text x="995.0" y="423.0" font-size="14" font-weight="600" fill="#d6ecf8" text-anchor="middle">Claude</text>
+    <text x="995.0" y="441.0" font-size="12" font-weight="400" fill="#9ccbe6" text-anchor="middle">Code o Desktop</text>
+
+    <!-- Paquetes de apoyo: los usan las tres apps y no hablan con Firebase -->
+    <rect x="282" y="492" width="808" height="120" rx="12" fill="none" stroke="#7a7982" stroke-opacity="0.55" stroke-dasharray="5 4"/>
+    <text x="302" y="517" font-size="12" font-weight="600" fill="#7a7982" text-anchor="start">Paquetes de apoyo · los usan las tres apps y no hablan con Firebase</text>
+    <rect x="302" y="532" width="374.0" height="60" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="489.0" y="558.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">@fulbito/utils</text>
+    <text x="489.0" y="576.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">estadísticas, equipos, premios, filtros</text>
+    <rect x="696.0" y="532" width="374.0" height="60" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="883.0" y="558.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">@fulbito/types</text>
+    <text x="883.0" y="576.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">modelo: Player, Match, MATCH_TYPES…</text>
+    <path d="M20 646 L1090 646" stroke="#8f8e96" stroke-opacity="0.3"/>
+
+    <!-- Parte 2 · Cómo llega cada parte a producción: qué → cómo se publica → dónde queda -->
+    <text x="20" y="682" font-size="15" font-weight="700" fill="#8f8e96" text-anchor="start">Cómo llega cada parte a producción</text>
+    <text x="120.0" y="716" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">Qué</text>
+    <text x="581.0" y="716" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">Cómo se publica</text>
+    <text x="995.0" y="716" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">Dónde queda</text>
+    <rect x="20" y="738" width="200" height="58" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="120.0" y="763.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">web</text>
+    <text x="120.0" y="781.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">apps/web</text>
+    <path d="M220 767.0 L282 767.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="282" y="738" width="598" height="58" rx="8" fill="none" stroke="#8f8e96" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="581.0" y="763.0" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">GitHub Actions, automático</text>
+    <text x="581.0" y="781.0" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">lint y build en cada PR y en master</text>
+    <path d="M880 767.0 L920 767.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="920" y="738" width="150" height="58" rx="8" fill="#0c3f5c" stroke="#4fa8d8" stroke-width="1.2"/>
+    <text x="995.0" y="763.0" font-size="14" font-weight="600" fill="#d6ecf8" text-anchor="middle">Vercel</text>
+    <text x="995.0" y="781.0" font-size="12" font-weight="400" fill="#9ccbe6" text-anchor="middle">preview y producción</text>
+    <rect x="20" y="810" width="200" height="58" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="120.0" y="835.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">reglas</text>
+    <text x="120.0" y="853.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">*.rules de la raíz</text>
+    <path d="M220 839.0 L282 839.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="282" y="810" width="598" height="58" rx="8" fill="none" stroke="#8f8e96" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="581.0" y="835.0" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">firebase deploy, a mano</text>
+    <text x="581.0" y="853.0" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">desde la raíz; el CI no lo hace</text>
+    <path d="M880 839.0 L920 839.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="920" y="810" width="150" height="58" rx="8" fill="#0f4d3a" stroke="#4fbf98" stroke-width="1.2"/>
+    <text x="995.0" y="835.0" font-size="14" font-weight="600" fill="#d5f5e8" text-anchor="middle">Firebase</text>
+    <text x="995.0" y="853.0" font-size="12" font-weight="400" fill="#9fdcc3" text-anchor="middle">reglas activas</text>
+    <rect x="20" y="882" width="200" height="58" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="120.0" y="907.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">mobile</text>
+    <text x="120.0" y="925.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">apps/mobile</text>
+    <path d="M220 911.0 L282 911.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="282" y="882" width="598" height="58" rx="8" fill="none" stroke="#8f8e96" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="581.0" y="907.0" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">EAS Build, a mano</text>
+    <text x="581.0" y="925.0" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">perfiles development, preview y production</text>
+    <path d="M880 911.0 L920 911.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="920" y="882" width="150" height="58" rx="8" fill="#0c3f5c" stroke="#4fa8d8" stroke-width="1.2"/>
+    <text x="995.0" y="907.0" font-size="14" font-weight="600" fill="#d6ecf8" text-anchor="middle">APK o tiendas</text>
+    <text x="995.0" y="925.0" font-size="12" font-weight="400" fill="#9ccbe6" text-anchor="middle">según el perfil</text>
+    <rect x="20" y="954" width="200" height="58" rx="8" fill="#3c3489" stroke="#7f77dd" stroke-width="1.2"/>
+    <text x="120.0" y="979.0" font-size="14" font-weight="600" fill="#e6e3fb" text-anchor="middle">mcp</text>
+    <text x="120.0" y="997.0" font-size="12" font-weight="400" fill="#b9b4ee" text-anchor="middle">apps/mcp</text>
+    <path d="M220 983.0 L282 983.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="282" y="954" width="598" height="58" rx="8" fill="none" stroke="#8f8e96" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="581.0" y="979.0" font-size="13" font-weight="600" fill="#8f8e96" text-anchor="middle">no se publica</text>
+    <text x="581.0" y="997.0" font-size="11" font-weight="400" fill="#8f8e96" text-anchor="middle">lo levanta Claude con .mcp.json</text>
+    <path d="M880 983.0 L920 983.0" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+    <rect x="920" y="954" width="150" height="58" rx="8" fill="#0c3f5c" stroke="#4fa8d8" stroke-width="1.2"/>
+    <text x="995.0" y="979.0" font-size="14" font-weight="600" fill="#d6ecf8" text-anchor="middle">Tu máquina</text>
+    <text x="995.0" y="997.0" font-size="12" font-weight="400" fill="#9ccbe6" text-anchor="middle">junto a Claude</text>
+
+    <!-- Leyenda -->
+    <rect x="20" y="1037" width="13" height="13" rx="3" fill="#0f4d3a" stroke="#4fbf98"/>
+    <text x="40" y="1048" font-size="12" font-weight="400" fill="#8f8e96" text-anchor="start">Firebase</text>
+    <rect x="120" y="1037" width="13" height="13" rx="3" fill="#3c3489" stroke="#7f77dd"/>
+    <text x="140" y="1048" font-size="12" font-weight="400" fill="#8f8e96" text-anchor="start">nuestro código</text>
+    <rect x="262" y="1037" width="13" height="13" rx="3" fill="#0c3f5c" stroke="#4fa8d8"/>
+    <text x="282" y="1048" font-size="12" font-weight="400" fill="#8f8e96" text-anchor="start">dónde se usa o se publica</text>
+    <rect x="481" y="1037" width="13" height="13" rx="3" fill="none" stroke="#8f8e96" stroke-dasharray="3 2"/>
+    <text x="501" y="1048" font-size="12" font-weight="400" fill="#8f8e96" text-anchor="start">paso para publicar</text>
+    <path d="M651 1044 L677 1044" stroke="#8f8e96" stroke-width="1.5" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="685" y="1048" font-size="12" font-weight="400" fill="#8f8e96" text-anchor="start">lee y escribe</text>
+    <path d="M800 1044 L826 1044" stroke="#ef9f27" stroke-width="1.5" fill="none" marker-end="url(#arrow-read)"/>
+    <text x="834" y="1048" font-size="12" font-weight="400" fill="#8f8e96" text-anchor="start">solo lee</text>
+  </g>
+</svg>

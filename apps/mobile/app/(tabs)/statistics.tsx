@@ -1,3 +1,10 @@
+import {
+  DEFAULT_MATCH_FILTERS,
+  filterMatches,
+  getMatchYears,
+  onlyFinalMatches,
+  type MatchFilters,
+} from '@fulbito/utils'
 import { useNavigation, useRouter } from 'expo-router'
 import { useLayoutEffect, useMemo, useState } from 'react'
 import { FlatList, Pressable, RefreshControl, View } from 'react-native'
@@ -8,7 +15,7 @@ import { styles } from '@/components/statistics/styles/statics.styles'
 
 import { StatFilterTabs } from '@/components/statistics/stat-filter-tabs'
 import { StatPlayerCard } from '@/components/statistics/stat-player-card'
-import { StatStatusFilter, type PlayerStatusFilter } from '@/components/statistics/stat-status-filter'
+import type { PlayerStatusFilter } from '@/components/statistics/stat-status-filter'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import EmptyState from '@/components/ui/empty-state/empty-state'
@@ -16,6 +23,7 @@ import { useAnnualAwards } from '@/hooks/use-annual-awards'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { usePlayerStatistics } from '@/hooks/use-player-statistics'
 import { useAppTheme } from '@/hooks/use-theme'
+import { StatFilters } from '@/components/statistics/stat-filters'
 
 type StatsView = 'ranking' | 'awards'
 
@@ -28,8 +36,12 @@ export default function StatisticsScreen() {
   const [yearPickerOpen, setYearPickerOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<PlayerStatusFilter>('all')
   const { players, matches, loading, refreshing, error, refresh, reload } = usePlayersData()
+  const [filters, setFilters] = useState<MatchFilters>(DEFAULT_MATCH_FILTERS)
+  const filteredMatches = useMemo(() => filterMatches(matches, filters), [matches, filters])
+  const matchYears = useMemo(() => getMatchYears(onlyFinalMatches(matches)), [matches])
+
   const { activeTab, setActiveTab, sortedStats, inactiveIds, activeStats, inactiveStats } =
-    usePlayerStatistics(players, matches)
+    usePlayerStatistics(players, filteredMatches)
   const {
     selection,
     isHallOfFame,
@@ -40,6 +52,11 @@ export default function StatisticsScreen() {
     hallOfFame,
     championship,
   } = useAnnualAwards(players, matches)
+
+  const clearFilters = () => {
+    setFilters(DEFAULT_MATCH_FILTERS)
+    setStatusFilter('all')
+  }
 
   const filteredStats =
     statusFilter === 'active' ? activeStats : statusFilter === 'inactive' ? inactiveStats : sortedStats
@@ -79,7 +96,16 @@ export default function StatisticsScreen() {
           <StatFilterTabs
             activeTab={activeTab}
             onChange={setActiveTab}
-            leading={<StatStatusFilter value={statusFilter} onChange={setStatusFilter} />}
+            leading={
+              <StatFilters
+                playerStatus={statusFilter}
+                onPlayerStatusChange={setStatusFilter}
+                filters={filters}
+                onFiltersChange={setFilters}
+                years={matchYears}
+                onClear={clearFilters}
+              />
+            }
           />
         ) : (
           <Pressable
@@ -101,13 +127,14 @@ export default function StatisticsScreen() {
       activeTab,
       setActiveTab,
       statusFilter,
-      setStatusFilter,
       selectedViewColor,
       colors.chipBorder,
       colors.muted,
       colors.secondary,
       selection,
       isHallOfFame,
+      filters,
+      matchYears,
     ],
   )
 

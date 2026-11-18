@@ -128,6 +128,12 @@ Run tasks with `turbo` from the root, or per-app scripts from within each app.
 
 ---
 
+## Documentation
+
+Docs live in `docs/`. Before creating or editing them (including diagrams), read `docs/maintaining-docs.md`.
+
+---
+
 ## What NOT to do
 
 - Don't add `// eslint-disable` comments — fix the underlying issue
