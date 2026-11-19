@@ -18,5 +18,11 @@
     "@types/node": "^22",
     "@types/nodemailer": "^8.0.2",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@firebase/util",
+      "protobufjs"
+    ]
   }
 }
