@@ -42,7 +42,9 @@ Open the `android` folder in Android Studio, let Gradle sync, then **Build → G
 
 ## 6. Upload to Google Play (every release)
 
-Upload the `.aab` to a testing track in the Google Play Console, add testers and, when approved, promote the release to Production.
+Upload the `.aab` to the **Internal testing** track in the Google Play Console, add testers and, when approved, promote the release to Production.
+
+**Details:** [Upload the .aab to Google Play](./android-upload-to-google-play.md)
 
 ---
 
@@ -58,4 +60,5 @@ If Android Studio reports a missing `build.gradle` or the project does not sync,
 | [android-keystore.md](./android-keystore.md)                               | Signing keystore                       |
 | [push-notifications.md](./push-notifications.md)                           | Firebase and `google-services.json`    |
 | [android-signed-build.md](./android-signed-build.md)                       | Signed `.aab` / APK                    |
+| [android-upload-to-google-play.md](./android-upload-to-google-play.md)     | Upload, testers and promotion          |
 | [android-gradle-troubleshooting.md](./android-gradle-troubleshooting.md)   | Missing `build.gradle`, Gradle sync    |

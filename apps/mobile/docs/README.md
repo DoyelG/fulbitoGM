@@ -101,9 +101,9 @@ In the Xcode **Organizer**, choose **Distribute App** to upload the archive to A
 **Details:** [Apple: create and distribute an archive](./guides/ios-archive-and-testflight.md)
 
 **Android: Google Play testing track**
-Upload the `.aab` generated in step 4 to a testing track in the Google Play Console and add testers.
+Upload the `.aab` generated in step 4 to the **Internal testing** track in the Google Play Console and add testers.
 The generated file is located at `android/app/build/outputs/bundle/release/app-release.aab`.
-**Details:** [Google: locate the generated file](./guides/android-signed-build.md)
+**Details:** [Google: upload the .aab to Google Play](./guides/android-upload-to-google-play.md)
 
 > **Push notifications on iOS only work on a real device**, never on the simulator. Test them from TestFlight or a development build installed on an iPhone.
 
@@ -114,7 +114,7 @@ The generated file is located at `android/app/build/outputs/bundle/release/app-r
 Once the build is tested and approved by the team:
 
 - **iOS:** in App Store Connect, select the processed build for a new version, complete the store listing and **Submit for Review**.
-- **Android:** in the Google Play Console, promote the release from the testing track to **Production** and send it for review.
+- **Android:** in the Google Play Console, promote the release from the testing track to **Production** and send it for review ([details](./guides/android-upload-to-google-play.md#6-promote-the-release)).
 
 Both stores review the app before it goes live. This can take from a few hours to a few days.
 

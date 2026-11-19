@@ -69,3 +69,5 @@ android/app/build/outputs/apk/release/app-release.apk
 ```
 
 The `.aab` file can then be uploaded to the appropriate release section in Google Play Console.
+
+Next step: [Upload the .aab to Google Play](./android-upload-to-google-play.md).
