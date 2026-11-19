@@ -473,8 +473,13 @@ service cloud.firestore {
 
     match /mail/{mailId} {
       allow create: if isSignedIn()
-        && request.resource.data.keys().hasOnly(['to', 'message', 'tournamentId', 'requestUid'])
-        && request.resource.data.message.keys().hasOnly(['subject', 'text', 'html'])
+        && request.resource.data.keys().hasOnly(['to', 'template', 'data', 'tournamentId', 'requestUid'])
+        && request.resource.data.template == 'PLAYER_LINK_ACCEPTED'
+        && request.resource.data.data.keys().hasOnly(['playerName', 'tournamentName'])
+        && request.resource.data.data.playerName is string
+        && request.resource.data.data.playerName.size() <= 100
+        && request.resource.data.data.tournamentName is string
+        && request.resource.data.data.tournamentName.size() <= 100
         && request.resource.data.tournamentId is string
         && request.resource.data.requestUid is string
         && isTournamentAdmin(request.resource.data.tournamentId)
