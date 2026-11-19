@@ -64,3 +64,4 @@ generated/prisma
 .claude/settings.local.json
 
 functions/lib
+functions/.env
