@@ -1,5 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import type { Match, VideoClipCategory } from '@fulbito/types'
+import type { Match, VideoClip, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 import { canDeleteVideoClip } from '@fulbito/utils'
 import { useMemo, useState } from 'react'
@@ -21,9 +21,11 @@ import { PrimaryGradient } from '@/components/primary-gradient'
 type Props = {
   matches: Match[]
   canUpload: boolean
+  extraClips?: VideoClip[]
+  extraMatches?: Match[]
 } & ({ playerId: string; matchId?: never } | { matchId: string; playerId?: never })
 
-export function PlayerClipsSection({ playerId, matchId, matches, canUpload }: Props) {
+export function PlayerClipsSection({ playerId, matchId, matches, canUpload, extraClips, extraMatches }: Props) {
   const { colors } = useAppTheme()
   const { user } = useFirebaseAuth()
   const canManage = useCanManageTournament()
@@ -32,12 +34,17 @@ export function PlayerClipsSection({ playerId, matchId, matches, canUpload }: Pr
   const [uploadVisible, setUploadVisible] = useState(false)
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
 
-  const playerClips = useMemo(
+  const ownClips = useMemo(
     () =>
       videoClips.filter((clip) =>
         matchId ? clip.matchId === matchId : playerId !== undefined && clip.playerIds.includes(playerId),
       ),
     [videoClips, matchId, playerId],
+  )
+  const ownClipIds = useMemo(() => new Set(ownClips.map((clip) => clip.id)), [ownClips])
+  const playerClips = useMemo(
+    () => (extraClips ? [...ownClips, ...extraClips.filter((clip) => !ownClipIds.has(clip.id))] : ownClips),
+    [ownClips, ownClipIds, extraClips],
   )
   const uploadMatches = useMemo(
     () => (matchId ? matches.filter((match) => match.id === matchId) : matches),
@@ -47,7 +54,10 @@ export function PlayerClipsSection({ playerId, matchId, matches, canUpload }: Pr
     () => (clipFilter === 'all' ? playerClips : playerClips.filter((clip) => clip.category === clipFilter)),
     [playerClips, clipFilter],
   )
-  const matchById = useMemo(() => new Map(matches.map((match) => [match.id, match])), [matches])
+  const matchById = useMemo(
+    () => new Map([...(extraMatches ?? []), ...matches].map((match) => [match.id, match])),
+    [matches, extraMatches],
+  )
 
   const handleDeleteClip = (clipId: string, label: string) => {
     Alert.alert('Eliminar clip', `¿Eliminar "${label}"?`, [
@@ -112,7 +122,7 @@ export function PlayerClipsSection({ playerId, matchId, matches, canUpload }: Pr
         <VideoClipCarousel
           clips={filteredClips}
           matchById={matchById}
-          canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, canManage)}
+          canDelete={(clip) => ownClipIds.has(clip.id) && canDeleteVideoClip(clip, user?.uid, canManage)}
           onOpen={(clipId) => {
             const clip = filteredClips.find((item) => item.id === clipId)
             if (clip) setPlaybackUrl(clip.url)

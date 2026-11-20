@@ -23,6 +23,9 @@ import StatusToggle from './form/StatusToggle'
 type Props = {
   mode: 'create' | 'edit'
   playerId?: string
+  embedded?: boolean
+  onDone?: () => void
+  onCancel?: () => void
 }
 
 const skillLabels = {
@@ -66,12 +69,13 @@ function linkErrorMessage(error: unknown): string {
   return 'Intentá de nuevo desde la pantalla de miembros del torneo.'
 }
 
-export default function PlayerForm({ mode, playerId }: Props) {
+export default function PlayerForm({ mode, playerId, embedded = false, onDone, onCancel }: Props) {
   const router = useRouter()
   const { user } = useFirebaseAuth()
   const { players, addPlayer, updatePlayer, linkPlayer } = usePlayerStore()
   const activeTournamentId = useTournamentStore((state) => state.activeTournamentId)
-  const canLink = isTournamentAdminRole(useTournamentStore(selectActiveTournament)?.membership.role)
+  const activeRole = useTournamentStore(selectActiveTournament)?.membership.role
+  const canLink = !embedded && isTournamentAdminRole(activeRole)
   const members = useTournamentMembers(canLink ? activeTournamentId : null)
   const [formData, setFormData] = useState<PlayerFormValues>({
     name: '',
@@ -209,11 +213,18 @@ export default function PlayerForm({ mode, playerId }: Props) {
   ])
 
   const canSubmit = linkIsValid && (mode === 'create' ? formData.name.trim().length > 0 : summaryRows.length > 0)
-  const goToPlayers = () => router.push(mode === 'edit' && playerId ? `/players/${playerId}` : '/players')
+  const goToPlayers = () => {
+    if (onDone) onDone()
+    else router.push(mode === 'edit' && playerId ? `/players/${playerId}` : '/players')
+  }
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
     setSaveError(null)
+    if (embedded) {
+      void savePlayer()
+      return
+    }
     setModalOpen(true)
   }
 
@@ -377,16 +388,27 @@ export default function PlayerForm({ mode, playerId }: Props) {
         />
       )}
 
+      {embedded && saveError && (
+        <p role="alert" className="text-sm text-orange-700">
+          {saveError}
+        </p>
+      )}
+
       <div className="flex justify-end gap-3 pt-1">
         <Button
           type="button"
           variant="secondary"
-          onClick={() => (mode === 'edit' ? router.back() : router.push('/players'))}
+          disabled={saving}
+          onClick={() => {
+            if (onCancel) onCancel()
+            else if (mode === 'edit') router.back()
+            else router.push('/players')
+          }}
         >
           Cancelar
         </Button>
-        <Button type="submit" disabled={!canSubmit}>
-          {mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
+        <Button type="submit" disabled={!canSubmit || saving}>
+          {saving ? 'Guardando...' : mode === 'create' ? 'Guardar jugador' : 'Actualizar jugador'}
         </Button>
       </div>
 

@@ -1,5 +1,7 @@
 import { getFirestore, collection, doc, getDocs, getDoc, writeBatch, query, where, Timestamp } from 'firebase/firestore'
-import type { Match, MatchInput, MatchPlayer, MatchLocation } from '@fulbito/types'
+import type { Match, MatchInput, MatchPlayer, MatchLocation, MembershipRef, MyMatchEntry } from '@fulbito/types'
+import { linkedMemberships } from './linked-memberships'
+import { deleteClipsOfMatch } from './video-clips'
 import { tournamentPlayersQuery } from './players'
 
 type Teams = { A: MatchPlayer[]; B: MatchPlayer[] }
@@ -63,6 +65,7 @@ export function docToMatchScalars(id: string, data: Record<string, unknown>): Om
     type: data['type'] as string,
     status: data['status'] === 'draft' ? 'draft' : 'final',
     name: (data['name'] as string | undefined) ?? undefined,
+    opponentName: (data['opponentName'] as string | null | undefined) ?? undefined,
     location: parseLocation(data['location']),
     description: (data['description'] as string | undefined) ?? undefined,
     teamAScore: data['teamAScore'] as number,
@@ -108,6 +111,16 @@ export async function getMatches(tournamentId: string): Promise<Match[]> {
   })
 
   return sortMatchesByDateDescending(matches)
+}
+
+export async function getMyMatchEntries(memberships: MembershipRef[]): Promise<MyMatchEntry[]> {
+  const perTournament = await Promise.all(
+    linkedMemberships(memberships).map(async ({ tournamentId, playerId }) => {
+      const matches = await getMatches(tournamentId)
+      return matches.filter((match) => match.status !== 'draft').map((match) => ({ match, playerId }))
+    }),
+  )
+  return perTournament.flat()
 }
 
 export async function getDraftMatches(tournamentId: string): Promise<Omit<Match, 'teamA' | 'teamB'>[]> {
@@ -162,6 +175,7 @@ export async function createMatch(tournamentId: string, data: MatchInput): Promi
     date: Timestamp.fromDate(new Date(data.date)),
     status: data.status ?? 'final',
     name: data.name ?? null,
+    opponentName: data.opponentName ?? null,
     location: data.location ?? null,
     description: data.description ?? null,
     mvpId: mvpId ?? null,
@@ -195,6 +209,7 @@ export async function updateMatch(tournamentId: string, id: string, data: MatchI
   batch.update(doc(db, MATCHES_COLLECTION, id), {
     ...scalars,
     date: Timestamp.fromDate(new Date(data.date)),
+    opponentName: data.opponentName ?? null,
     location: data.location ?? null,
     description: data.description ?? null,
     mvpId: mvpId ?? null,
@@ -226,4 +241,6 @@ export async function deleteMatch(tournamentId: string, id: string): Promise<voi
   batch.delete(doc(db, MATCHES_COLLECTION, id))
   for (const d of mpSnap.docs) batch.delete(d.ref)
   await batch.commit()
+
+  await deleteClipsOfMatch(tournamentId, id)
 }

@@ -1,11 +1,16 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import { isPersonalTournament } from '@fulbito/utils'
 import { useTournamentStore } from '@/store/useTournamentStore'
 import { useUnreadCommentsStore } from '@/store/useUnreadCommentsStore'
 
 export function useUnreadCommentsSync(uid: string | null): void {
-  const myTournaments = useTournamentStore((state) => state.myTournaments)
+  const allTournaments = useTournamentStore((state) => state.myTournaments)
+  const myTournaments = useMemo(
+    () => allTournaments.filter(({ tournament }) => !isPersonalTournament(tournament)),
+    [allTournaments],
+  )
   const isLoaded = useTournamentStore((state) => state.myTournamentsInit === 'loaded' && state.myTournamentsUid === uid)
   const watchUnread = useUnreadCommentsStore((state) => state.watchUnread)
   const clear = useUnreadCommentsStore((state) => state.clear)

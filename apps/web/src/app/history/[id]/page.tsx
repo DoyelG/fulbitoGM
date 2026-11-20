@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeftIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { FiCheckCircle, FiEdit2 } from 'react-icons/fi'
-import { teamTotals, winProbabilityA } from '@fulbito/utils'
+import { isPersonalTournament, teamTotals, winProbabilityA } from '@fulbito/utils'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -34,7 +34,9 @@ export default function MatchDetailPage() {
   const { id } = useParams<{ id: string }>()
   const canManage = useCanManageTournament()
   const myPlayerId = useTournamentStore(selectMyPlayerId)
-  const tournamentPhotoUrl = useTournamentStore(selectActiveTournament)?.tournament.photoUrl ?? null
+  const activeTournament = useTournamentStore(selectActiveTournament)
+  const tournamentPhotoUrl = activeTournament?.tournament.photoUrl ?? null
+  const isPersonal = isPersonalTournament(activeTournament?.tournament)
   const { matches, matchesInit, initLoad: initMatchesLoad, updateMatch } = useMatchStore()
   const { players, playersInit, initLoad: initPlayersLoad } = usePlayerStore()
   const [editing, setEditing] = useState(false)
@@ -59,7 +61,7 @@ export default function MatchDetailPage() {
   if (!match) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <BackLink />
+        <BackLink personal={isPersonal} />
         <p role="alert" className="rounded-xl border border-gray-200 bg-white p-6 text-gray-800">
           {matchesInit === 'error' ? 'No se pudo cargar el partido.' : 'No encontramos este partido.'}
         </p>
@@ -78,7 +80,7 @@ export default function MatchDetailPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <BackLink />
+        <BackLink personal={isPersonal} />
         <div className="flex flex-wrap gap-2">
           {isDraft && (
             <CopyMatchImageButton
@@ -120,15 +122,17 @@ export default function MatchDetailPage() {
                 winProbability={probabilityA}
                 tone="primary"
               />
-              <MatchTeamCard
-                {...shared}
-                title="Equipo B"
-                players={match.teamB}
-                result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
-                totals={totalsB}
-                winProbability={100 - probabilityA}
-                tone="secondary"
-              />
+              {!isPersonal && (
+                <MatchTeamCard
+                  {...shared}
+                  title="Equipo B"
+                  players={match.teamB}
+                  result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
+                  totals={totalsB}
+                  winProbability={100 - probabilityA}
+                  tone="secondary"
+                />
+              )}
             </div>
           </DetailSection>
           <div className="order-4">
@@ -144,9 +148,11 @@ export default function MatchDetailPage() {
               <MatchHighlightsPanel match={match} />
             </div>
           )}
-          <div className="order-6 lg:flex lg:flex-1 lg:flex-col">
-            <TournamentCommentsBox />
-          </div>
+          {!isPersonal && (
+            <div className="order-6 lg:flex lg:flex-1 lg:flex-col">
+              <TournamentCommentsBox />
+            </div>
+          )}
         </div>
       </div>
 
@@ -162,14 +168,14 @@ export default function MatchDetailPage() {
   )
 }
 
-function BackLink() {
+function BackLink({ personal }: { personal: boolean }) {
   return (
     <Link
-      href="/history"
+      href={personal ? '/my-history' : '/history'}
       className="inline-flex items-center gap-1.5 rounded text-sm font-medium text-gray-700 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <ArrowLeftIcon className="h-4 w-4" aria-hidden />
-      Historial
+      {personal ? 'Mi historia' : 'Historial'}
     </Link>
   )
 }

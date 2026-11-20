@@ -64,20 +64,23 @@ NEXT_PUBLIC_USE_FIREBASE_EMULATOR=false   # true para usar los emuladores de `pn
 
 Cada pantalla pide los datos a un store de Zustand, que los trae de Firebase a través de `@fulbito/firebase`. La lógica de cálculo viene de `@fulbito/utils`. Salvo `/login`, todas las rutas exigen sesión, y las que muestran datos del juego exigen además un torneo activo.
 
-| Ruta                        | Para qué sirve                                                    | Quién puede                      |
-| --------------------------- | ----------------------------------------------------------------- | -------------------------------- |
-| `/`                         | Próximo partido, último resultado, campeonato                     | Miembros                         |
-| `/login`                    | Ingresar o registrarse                                            | Todos                            |
-| `/tournaments`              | Mis torneos e invitaciones; crear un torneo                       | Con sesión                       |
-| `/tournaments/[id]`         | Detalle del torneo y mensajes                                     | Ver: miembros. Editar: admins    |
-| `/tournaments/[id]/members` | Miembros, invitaciones y roles                                    | Ver: miembros. Gestionar: admins |
-| `/players`, `/players/[id]` | Plantel y detalle de cada jugador                                 | Ver: miembros. Editar: admins    |
-| `/match`                    | Armar equipos y crear un partido                                  | Armar: miembros. Guardar: admins |
-| `/history`, `/history/[id]` | Historial y detalle de cada partido; cargar o editar resultados   | Ver: miembros. Editar: admins    |
-| `/statistics`               | Estadísticas por jugador, filtrables por modo, tipo, año y estado | Miembros                         |
-| `/awards`                   | Premios y Salón de la Fama                                        | Miembros                         |
-| `/profile`                  | Mi cuenta y pedido para vincular mi jugador                       | Con sesión                       |
-| `/api/match-image`          | Genera la imagen de un partido para compartir                     | —                                |
+| Ruta                        | Para qué sirve                                                                    | Quién puede                      |
+| --------------------------- | --------------------------------------------------------------------------------- | -------------------------------- |
+| `/`                         | Próximo partido, último resultado, campeonato                                     | Miembros                         |
+| `/login`                    | Ingresar o registrarse                                                            | Todos                            |
+| `/tournaments`              | Mis torneos e invitaciones; crear un torneo                                       | Con sesión                       |
+| `/tournaments/[id]`         | Detalle del torneo y mensajes                                                     | Ver: miembros. Editar: admins    |
+| `/tournaments/[id]/members` | Miembros, invitaciones y roles                                                    | Ver: miembros. Gestionar: admins |
+| `/players`, `/players/[id]` | Plantel y detalle de cada jugador                                                 | Ver: miembros. Editar: admins    |
+| `/match`                    | Armar equipos y crear un partido                                                  | Armar: miembros. Guardar: admins |
+| `/history`, `/history/[id]` | Historial y detalle de cada partido; cargar o editar resultados                   | Ver: miembros. Editar: admins    |
+| `/statistics`               | Estadísticas por jugador, filtrables por modo, tipo, año y estado                 | Miembros                         |
+| `/awards`                   | Premios y Salón de la Fama                                                        | Miembros                         |
+| `/my-history`               | Mi historia personal: objetivo de Mundial, estadísticas, últimos partidos y clips | Con sesión                       |
+| `/profile`                  | Mi cuenta y pedido para vincular mi jugador                                       | Con sesión                       |
+| `/api/match-image`          | Genera la imagen de un partido para compartir                                     | —                                |
+
+En un torneo individual, `/match` muestra un formulario simple (marcador, rival, mis goles y rendimiento) en vez del armado de equipos.
 
 "Miembros" y "admins" se refieren al torneo activo. Roles por torneo: `OWNER` (quien lo creó), `ADMIN` y `MEMBER`; se asignan al invitar a alguien por mail y el owner los puede cambiar. Un miembro pide vincularse a un jugador desde `/profile` y lo aprueba un admin. Las reglas de Firestore exigen ser admin del torneo para escribir jugadores, partidos y canchas, así que ocultar un botón no es la única protección.
 

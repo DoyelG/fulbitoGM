@@ -1,6 +1,6 @@
 import { getPlayers } from '@fulbito/firebase'
 import type { Player, TournamentComment } from '@fulbito/types'
-import { buildMentionCandidates, isTournamentAdminRole } from '@fulbito/utils'
+import { buildMentionCandidates, isPersonalTournament, isTournamentAdminRole } from '@fulbito/utils'
 import { useMemo, useRef, useState, type ComponentRef } from 'react'
 import { FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -24,7 +24,12 @@ const NO_PLAYERS: Player[] = []
 export default function MessagesScreen() {
   const { colors } = useAppTheme()
   const { user } = useFirebaseAuth()
-  const { myTournaments, activeTournament } = useTournaments()
+  const { myTournaments: allTournaments, activeTournament: currentTournament } = useTournaments()
+  const myTournaments = useMemo(
+    () => allTournaments.filter(({ tournament }) => !isPersonalTournament(tournament)),
+    [allTournaments],
+  )
+  const activeTournament = isPersonalTournament(currentTournament?.tournament) ? null : currentTournament
   const { unreadByTournament, markSeen } = useUnreadComments()
   const [chosenId, setChosenId] = useState<string | null>(null)
   const rootRef = useRef<ComponentRef<typeof View>>(null)
