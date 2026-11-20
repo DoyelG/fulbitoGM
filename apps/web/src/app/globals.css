@@ -3,6 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Gala tokens */
+  --color-gala-bg: #1b1b22;
+  --color-gala-gold: #d6b36a;
+  --color-gala-gold-light: #f1dba4;
+  --color-gala-gold-dark: #8c6d33;
+  --color-gala-silver: #c9ccd3;
+  --color-gala-silver-dark: #6f737c;
+  --color-gala-shadow: #111116;
+  --color-gala-accent: #7c3aed;
+  --font-display: 'Bodoni Moda', serif;
 }
 
 @theme inline {
@@ -10,7 +20,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
   /* Brand */
   --color-brand: #7c3aed; /* purple */
   --color-brand-dark: #4c1d95; /* deep purple, for gradients */
