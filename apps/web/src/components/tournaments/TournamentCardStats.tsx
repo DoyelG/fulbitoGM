@@ -1,11 +1,15 @@
 import type { ComponentType, ReactNode } from 'react'
 import Link from 'next/link'
-import { CalendarDaysIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { CalendarDaysIcon, FlagIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { worldCupProgress, type PersonalCardStats } from '@fulbito/utils'
 
 type IconType = ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
 
 type Props = {
   tournamentId: string
+  personal: boolean
+  personalStats?: PersonalCardStats | null
+  worldCupGoal?: number | null
   members: number
   playerId: string | null
   playerName: string | null
@@ -69,6 +73,9 @@ function Stat({ icon: Icon, children, muted = false, href, ariaLabel, onNavigate
 
 export default function TournamentCardStats({
   tournamentId,
+  personal,
+  personalStats,
+  worldCupGoal,
   members,
   playerId,
   playerName,
@@ -82,18 +89,20 @@ export default function TournamentCardStats({
 
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-      <Stat
-        icon={UsersIcon}
-        href={`/tournaments/${tournamentId}/members`}
-        ariaLabel={`${membersLabel}. Ver miembros`}
-        onNavigate={onNavigate}
-      >
-        {membersLabel}
-      </Stat>
+      {!personal && (
+        <Stat
+          icon={UsersIcon}
+          href={`/tournaments/${tournamentId}/members`}
+          ariaLabel={`${membersLabel}. Ver miembros`}
+          onNavigate={onNavigate}
+        >
+          {membersLabel}
+        </Stat>
+      )}
       <Stat
         icon={UserCircleIcon}
         muted={!playerId}
-        href={playerId ? `/players/${playerId}` : undefined}
+        href={playerId ? (personal ? '/my-history' : `/players/${playerId}`) : undefined}
         ariaLabel={
           playerId ? `Tu jugador: ${linkedPlayerLabel}. Ver jugador` : 'Sin jugador asignado. Vincular jugador'
         }
@@ -102,21 +111,32 @@ export default function TournamentCardStats({
       >
         {playerId ? linkedPlayerLabel : 'Sin asignar'}
       </Stat>
-      <div className="sm:col-span-2">
-        <Stat
-          icon={CalendarDaysIcon}
-          muted={!nextMatchLabel}
-          href={nextMatchId ? `/history/${nextMatchId}` : '/history'}
-          ariaLabel={
-            nextMatchId
-              ? `Próximo partido: ${nextMatchLabel}. Ver partido`
-              : 'Próximo partido sin definir. Ver historial'
-          }
-          onNavigate={onNavigate}
-        >
-          {nextMatchLabel ? `Próximo partido: ${nextMatchLabel}` : 'Próximo partido sin definir'}
-        </Stat>
-      </div>
+      {personal && (
+        <>
+          <Stat icon={FlagIcon} muted={worldCupGoal == null} onNavigate={onNavigate}>
+            {worldCupGoal != null && personalStats
+              ? `Mundial: ${worldCupProgress(personalStats.run, worldCupGoal).current} de ${worldCupGoal}`
+              : 'Mundial sin objetivo'}
+          </Stat>
+        </>
+      )}
+      {!personal && (
+        <div className="sm:col-span-2">
+          <Stat
+            icon={CalendarDaysIcon}
+            muted={!nextMatchLabel}
+            href={nextMatchId ? `/history/${nextMatchId}` : '/history'}
+            ariaLabel={
+              nextMatchId
+                ? `Próximo partido: ${nextMatchLabel}. Ver partido`
+                : 'Próximo partido sin definir. Ver historial'
+            }
+            onNavigate={onNavigate}
+          >
+            {nextMatchLabel ? `Próximo partido: ${nextMatchLabel}` : 'Próximo partido sin definir'}
+          </Stat>
+        </div>
+      )}
     </div>
   )
 }

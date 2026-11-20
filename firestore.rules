@@ -110,6 +110,29 @@ service cloud.firestore {
       return name is string && name.size() > 0 && name.size() <= 60;
     }
 
+    function isValidWorldCupGoal(goal) {
+      return goal == null || (goal is int && goal >= 1 && goal <= 1000);
+    }
+
+    function hasValidOpponentName(data) {
+      return !('opponentName' in data) || data.opponentName == null || (data.opponentName is string && data.opponentName.size() <= 60);
+    }
+
+    function isIndividualTournament(tournamentId) {
+      return get(tournamentPath(tournamentId)).data.get('kind', 'team') == 'individual';
+    }
+
+    // One personal tournament per user: its id is derived from the owner's uid, and no team tournament may use that prefix.
+    function hasValidTournamentKind(tournamentId) {
+      return (
+        request.resource.data.get('kind', 'team') == 'individual'
+        && tournamentId == 'personal_' + request.auth.uid
+      ) || (
+        request.resource.data.get('kind', 'team') == 'team'
+        && !tournamentId.matches('personal_.*')
+      );
+    }
+
     function isValidTournamentDescription(description) {
       return description == null || (description is string && description.size() <= 280);
     }
@@ -156,8 +179,12 @@ service cloud.firestore {
       allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
       allow create: if isSignedIn()
         && request.resource.data.tournamentId is string
+        && hasValidOpponentName(request.resource.data)
         && canManageTournament(request.resource.data.tournamentId);
-      allow update: if isSignedIn() && keepsTournament() && canManageTournament(resource.data.tournamentId);
+      allow update: if isSignedIn()
+        && keepsTournament()
+        && hasValidOpponentName(request.resource.data)
+        && canManageTournament(resource.data.tournamentId);
       allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
     }
 
@@ -218,8 +245,11 @@ service cloud.firestore {
 
       allow create: if isSignedIn()
         && request.resource.data.keys().hasOnly([
-          'name', 'description', 'photoUrl', 'ownerUid', 'memberUids', 'deletedAt', 'deletedBy', 'createdAt', 'updatedAt'
+          'name', 'description', 'photoUrl', 'kind', 'worldCupGoal', 'ownerUid', 'memberUids', 'deletedAt', 'deletedBy',
+          'createdAt', 'updatedAt'
         ])
+        && hasValidTournamentKind(tournamentId)
+        && isValidWorldCupGoal(request.resource.data.get('worldCupGoal', null))
         && isValidTournamentName(request.resource.data.name)
         && isValidTournamentDescription(request.resource.data.description)
         && request.resource.data.ownerUid == request.auth.uid
@@ -237,6 +267,13 @@ service cloud.firestore {
         )
         || (
           isTournamentOwner(tournamentId)
+          && resource.data.get('kind', 'team') == 'individual'
+          && changedKeys().hasOnly(['worldCupGoal', 'updatedAt'])
+          && isValidWorldCupGoal(request.resource.data.get('worldCupGoal', null))
+        )
+        || (
+          isTournamentOwner(tournamentId)
+          && resource.data.get('kind', 'team') != 'individual'
           && resource.data.ownerUid == request.auth.uid
           && changedKeys().hasOnly(['deletedAt', 'deletedBy', 'updatedAt'])
           && request.resource.data.deletedAt is timestamp
@@ -375,6 +412,7 @@ service cloud.firestore {
         allow read: if (isSignedIn() && uid == request.auth.uid) || isTournamentAdmin(tournamentId);
 
         allow create: if isTournamentMember(tournamentId)
+          && !isIndividualTournament(tournamentId)
           && uid == request.auth.uid
           && request.resource.data.keys().hasOnly([
             'uid', 'tournamentId', 'email', 'playerId', 'newPlayerName', 'status', 'resolvedBy', 'createdAt', 'updatedAt'
@@ -437,6 +475,7 @@ service cloud.firestore {
       );
 
       allow create: if isTournamentAdmin(request.resource.data.tournamentId)
+        && !isIndividualTournament(request.resource.data.tournamentId)
         && request.resource.data.keys().hasOnly([
           'tournamentId', 'tournamentName', 'email', 'role', 'playerId', 'invitedBy', 'status', 'resolvedAt',
           'createdAt', 'updatedAt'

@@ -1,4 +1,4 @@
-import type { InvitationRole, MyTournament, Player, TournamentMember, TournamentRole } from '@fulbito/types'
+import type { InvitationRole, MyTournament, Player, Tournament, TournamentMember, TournamentRole } from '@fulbito/types'
 
 export const TOURNAMENT_ROLE_LABELS: Record<TournamentRole, string> = {
   OWNER: 'Creador',
@@ -68,4 +68,8 @@ export function commentsSeenSince(membership: Pick<TournamentMember, 'commentsSe
 
 export function unreadCommentsLabel(count: number): string {
   return count === 1 ? '1 mensaje sin leer' : `${count} mensajes sin leer`
+}
+
+export function isPersonalTournament(tournament: Pick<Tournament, 'kind'> | null | undefined): boolean {
+  return tournament?.kind === 'individual'
 }

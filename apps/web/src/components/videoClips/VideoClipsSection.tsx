@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import type { Match, VideoClipCategory } from '@fulbito/types'
+import type { Match, VideoClip, VideoClipCategory } from '@fulbito/types'
 import { VIDEO_CLIP_CATEGORIES } from '@fulbito/types'
 import { canDeleteVideoClip } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -16,9 +16,11 @@ import WidgetError from '@/components/home/WidgetError'
 type Props = {
   matches: Match[]
   canUpload: boolean
+  extraClips?: VideoClip[]
+  extraMatches?: Match[]
 } & ({ playerId: string; matchId?: never } | { matchId: string; playerId?: never })
 
-export default function VideoClipsSection({ playerId, matchId, matches, canUpload }: Props) {
+export default function VideoClipsSection({ playerId, matchId, matches, canUpload, extraClips, extraMatches }: Props) {
   const { user } = useFirebaseAuth()
   const canManage = useCanManageTournament()
   const videoClips = useVideoClipStore((s) => s.videoClips)
@@ -37,18 +39,26 @@ export default function VideoClipsSection({ playerId, matchId, matches, canUploa
     if (videoClipsInit === 'idle') initLoad()
   }, [videoClipsInit, initLoad])
 
-  const scopedClips = useMemo(
+  const ownClips = useMemo(
     () =>
       videoClips.filter((clip) =>
         matchId ? clip.matchId === matchId : playerId !== undefined && clip.playerIds.includes(playerId),
       ),
     [videoClips, matchId, playerId],
   )
+  const ownClipIds = useMemo(() => new Set(ownClips.map((clip) => clip.id)), [ownClips])
+  const scopedClips = useMemo(
+    () => (extraClips ? [...ownClips, ...extraClips.filter((clip) => !ownClipIds.has(clip.id))] : ownClips),
+    [ownClips, ownClipIds, extraClips],
+  )
   const filteredClips = useMemo(
     () => (filter === 'all' ? scopedClips : scopedClips.filter((clip) => clip.category === filter)),
     [scopedClips, filter],
   )
-  const matchById = useMemo(() => new Map(matches.map((match) => [match.id, match])), [matches])
+  const matchById = useMemo(
+    () => new Map([...(extraMatches ?? []), ...matches].map((match) => [match.id, match])),
+    [matches, extraMatches],
+  )
   const uploadMatches = useMemo(
     () => (matchId ? matches.filter((match) => match.id === matchId) : matches),
     [matches, matchId],
@@ -150,7 +160,7 @@ export default function VideoClipsSection({ playerId, matchId, matches, canUploa
           <VideoClipCarousel
             clips={filteredClips}
             matchById={matchById}
-            canDelete={(clip) => canDeleteVideoClip(clip, user?.uid, canManage)}
+            canDelete={(clip) => ownClipIds.has(clip.id) && canDeleteVideoClip(clip, user?.uid, canManage)}
             onOpen={setPlaybackClipId}
             onDelete={handleDelete}
           />

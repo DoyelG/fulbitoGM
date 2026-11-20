@@ -1,5 +1,11 @@
 export type TournamentRole = 'OWNER' | 'ADMIN' | 'MEMBER'
 
+export const MAX_WORLD_CUP_GOAL = 1000
+
+export type MembershipRef = { tournamentId: string; playerId: string | null }
+
+export type TournamentKind = 'team' | 'individual'
+
 export type InvitationRole = Exclude<TournamentRole, 'OWNER'>
 
 export type InvitationStatus = 'pending' | 'accepted' | 'rejected' | 'revoked'
@@ -9,6 +15,8 @@ export type Tournament = {
   name: string
   description?: string
   photoUrl?: string
+  kind?: TournamentKind
+  worldCupGoal?: number
   ownerUid: string
   memberUids: string[]
   deletedAt?: Date

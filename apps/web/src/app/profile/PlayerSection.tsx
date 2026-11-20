@@ -5,13 +5,20 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FiCamera, FiChevronRight } from 'react-icons/fi'
 import { uploadPlayerPhoto } from '@fulbito/firebase'
-import type { Match, Player } from '@fulbito/types'
-import { calculateCurrentStreakForPlayer, getPlayerMatchSummary, getPositionLabel } from '@fulbito/utils'
+import type { Match, MyMatchEntry, Player } from '@fulbito/types'
+import {
+  calculateCurrentStreakForPlayer,
+  computePersonalSummary,
+  getPlayerMatchSummary,
+  getPositionLabel,
+} from '@fulbito/utils'
 import { usePlayerStore } from '@/store/usePlayerStore'
 
 type PlayerSectionProps = {
   player: Player
   matches: Match[]
+  entries?: MyMatchEntry[]
+  isPersonal?: boolean
   index: number
 }
 
@@ -94,9 +101,12 @@ function PlayerPhotoButton({ player }: { player: Player }) {
   )
 }
 
-export default function PlayerSection({ player, matches, index }: PlayerSectionProps) {
-  const summary = useMemo(() => getPlayerMatchSummary(matches, player.id), [matches, player.id])
-  const streak = useMemo(() => calculateCurrentStreakForPlayer(matches, player.id), [matches, player.id])
+export default function PlayerSection({ player, matches, entries, isPersonal = false, index }: PlayerSectionProps) {
+  const personal = useMemo(() => (entries ? computePersonalSummary(entries) : null), [entries])
+  const matchSummary = useMemo(() => getPlayerMatchSummary(matches, player.id), [matches, player.id])
+  const matchStreak = useMemo(() => calculateCurrentStreakForPlayer(matches, player.id), [matches, player.id])
+  const summary = personal ?? matchSummary
+  const streak = personal?.streak ?? matchStreak
   const streakValue = streak.kind && streak.count > 0 ? `${streak.kind === 'win' ? 'W' : 'L'}${streak.count}` : '—'
   const streakDescription =
     streak.kind && streak.count > 0
@@ -115,18 +125,16 @@ export default function PlayerSection({ player, matches, index }: PlayerSectionP
         <div className="flex items-center gap-4">
           <PlayerPhotoButton player={player} />
           <Link
-            href={`/players/${player.id}`}
+            href={isPersonal ? '/my-history' : `/players/${player.id}`}
             className="group -m-2 min-w-0 flex-1 rounded-xl p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <span className="flex items-center justify-between gap-2">
               <span className="min-w-0">
                 <span className="block truncate text-lg font-bold text-gray-900">{player.name}</span>
-                <span className="block text-sm text-gray-700">
-                  {getPositionLabel(player.position)}
-                </span>
+                <span className="block text-sm text-gray-700">{getPositionLabel(player.position)}</span>
               </span>
               <span className="flex shrink-0 items-center text-sm font-semibold text-primary">
-                <span className="max-sm:sr-only">Ver perfil</span>
+                <span className="max-sm:sr-only">{isPersonal ? 'Ver historia' : 'Ver perfil'}</span>
                 <FiChevronRight aria-hidden className="h-5 w-5 transition group-hover:translate-x-0.5" />
               </span>
             </span>

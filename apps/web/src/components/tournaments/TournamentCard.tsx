@@ -2,9 +2,11 @@ import type { Match, MyTournament } from '@fulbito/types'
 import {
   formatMatchDate,
   formatMatchHour,
+  isPersonalTournament,
   isTournamentAdminRole,
   parseMatchDate,
   unreadCommentsLabel,
+  type PersonalCardStats,
 } from '@fulbito/utils'
 import type { ComponentType } from 'react'
 import Image from 'next/image'
@@ -33,6 +35,7 @@ type Props = {
   nextMatch?: Pick<Match, 'id' | 'date' | 'hasTime'> | null
   playerName?: string | null
   unreadComments?: number
+  personalStats?: PersonalCardStats | null
 }
 
 function formatNextMatch(match: Pick<Match, 'date' | 'hasTime'>): string {
@@ -77,10 +80,13 @@ export default function TournamentCard({
   nextMatch = null,
   playerName = null,
   unreadComments = 0,
+  personalStats = null,
 }: Props) {
   const { tournament, membership } = item
-  const canEdit = isTournamentAdminRole(membership.role)
-  const canDelete = membership.role === 'OWNER'
+  const isPersonal = isPersonalTournament(tournament)
+  const detailHref = isPersonal ? '/my-history' : `/tournaments/${tournament.id}`
+  const canEdit = isTournamentAdminRole(membership.role) && !isPersonal
+  const canDelete = membership.role === 'OWNER' && !isPersonal
 
   return (
     <article
@@ -100,7 +106,7 @@ export default function TournamentCard({
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold text-gray-900 break-words">
             <Link
-              href={`/tournaments/${tournament.id}`}
+              href={detailHref}
               className="rounded after:absolute after:inset-0 after:rounded-xl after:content-[''] group-hover:text-primary group-hover:underline focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-primary"
             >
               {tournament.name}
@@ -111,6 +117,11 @@ export default function TournamentCard({
           >
             {ROLE_LABELS[membership.role]}
           </span>
+          {isPersonal && (
+            <span className="inline-flex items-center rounded-full bg-secondary/15 px-2 py-0.5 text-xs font-medium text-orange-800 ring-1 ring-inset ring-secondary/40">
+              Personal
+            </span>
+          )}
           {unreadComments > 0 && (
             <Link
               href="/profile"
@@ -129,6 +140,9 @@ export default function TournamentCard({
       <div className="col-span-2 px-4 pb-4 sm:col-span-1 sm:col-start-2 sm:row-start-2 sm:px-5 sm:pb-5 sm:pt-4">
         <TournamentCardStats
           tournamentId={tournament.id}
+          personal={isPersonal}
+          personalStats={personalStats}
+          worldCupGoal={tournament.worldCupGoal ?? null}
           members={tournament.memberUids.length}
           playerId={membership.playerId}
           playerName={playerName}
@@ -154,7 +168,7 @@ export default function TournamentCard({
           />
         )}
         <Link
-          href={`/tournaments/${tournament.id}`}
+          href={detailHref}
           aria-label={`Ver información de ${tournament.name}`}
           title="Ver información del torneo"
           className={`${actionClassName} text-gray-700 hover:bg-gray-100 hover:text-primary`}
@@ -172,7 +186,7 @@ export default function TournamentCard({
             tone="danger"
           />
         )}
-        {!canDelete && (
+        {!canDelete && !isPersonal && (
           <CardAction
             label={`Abandonar ${tournament.name}`}
             icon={ArrowRightStartOnRectangleIcon}

@@ -25,6 +25,7 @@ export type Match = {
   teamA: MatchPlayer[]
   teamB: MatchPlayer[]
   name?: string
+  opponentName?: string
   description?: string
   shirtsResponsibleId?: string | null
   mvpId?: string | null
@@ -34,6 +35,8 @@ export type Match = {
   updatedAt: string
   location?: MatchLocation | null
 }
+
+export type MyMatchEntry = { match: Match; playerId: string }
 
 export type MatchInput = Omit<Match, 'id' | 'tournamentId' | 'createdAt' | 'updatedAt'>
 

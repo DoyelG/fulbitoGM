@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
+  createPersonalTournament as firebaseCreatePersonalTournament,
   createTournament as firebaseCreateTournament,
   deleteTournament as firebaseDeleteTournament,
   deleteTournamentPhoto,
@@ -7,6 +8,7 @@ import {
   leaveTournament as firebaseLeaveTournament,
   setMemberPlayer,
   updateTournament,
+  updateWorldCupGoal,
   uploadTournamentPhoto,
 } from '@fulbito/firebase'
 import type { CreatedTournament, MyTournament } from '@fulbito/types'
@@ -26,6 +28,8 @@ type TournamentContextValue = {
   reload: () => Promise<void>
   setActiveTournament: (tournamentId: string) => void
   createTournament: (input: TournamentInput) => Promise<CreatedTournament>
+  createPersonalTournament: (playerName: string) => Promise<string>
+  saveWorldCupGoal: (tournamentId: string, goal: number | null) => Promise<void>
   editTournament: (tournamentId: string, input: TournamentInput) => Promise<void>
   deleteTournament: (tournamentId: string) => Promise<void>
   leaveTournament: (tournamentId: string) => Promise<void>
@@ -124,6 +128,25 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
     [uid, email, reload, setActiveTournament],
   )
 
+  const createPersonalTournament = useCallback(
+    async (playerName: string) => {
+      if (!uid || !email) throw new Error('Not signed in')
+      const tournamentId = await firebaseCreatePersonalTournament({ playerName, ownerUid: uid, ownerEmail: email })
+      setActiveTournament(tournamentId)
+      await reload()
+      return tournamentId
+    },
+    [uid, email, reload, setActiveTournament],
+  )
+
+  const saveWorldCupGoal = useCallback(
+    async (tournamentId: string, goal: number | null) => {
+      await updateWorldCupGoal(tournamentId, goal)
+      await reload()
+    },
+    [reload],
+  )
+
   const editTournament = useCallback(
     async (tournamentId: string, input: TournamentInput) => {
       const previousPhotoUrl = myTournaments.find(({ tournament }) => tournament.id === tournamentId)?.tournament
@@ -180,6 +203,8 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       reload,
       setActiveTournament,
       createTournament,
+      createPersonalTournament,
+      saveWorldCupGoal,
       editTournament,
       deleteTournament,
       leaveTournament,
@@ -192,6 +217,8 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       reload,
       setActiveTournament,
       createTournament,
+      createPersonalTournament,
+      saveWorldCupGoal,
       editTournament,
       deleteTournament,
       leaveTournament,

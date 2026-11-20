@@ -1,6 +1,6 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import type { Match } from '@fulbito/types'
-import { formatLongMatchDate, parseMatchDate } from '@fulbito/utils'
+import { formatLongMatchDate, getOpponentLabel, parseMatchDate } from '@fulbito/utils'
 import { Image } from 'expo-image'
 import { Text, View } from 'react-native'
 
@@ -69,7 +69,7 @@ export function MatchHero({ match, tournamentPhotoUrl }: Props) {
           <Text style={styles.score}>{isDraft ? '0 – 0' : `${match.teamAScore} – ${match.teamBScore}`}</Text>
         </View>
         <Text style={[styles.team, winA ? styles.teamDim : null]} numberOfLines={1}>
-          Equipo B
+          {getOpponentLabel(match) ?? 'Equipo B'}
         </Text>
       </View>
     </View>
