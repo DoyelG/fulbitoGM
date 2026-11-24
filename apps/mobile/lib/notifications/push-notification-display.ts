@@ -4,6 +4,8 @@ import notifee, { EventType, type Event, type FcmRemoteMessage } from 'react-nat
 
 import { ensureNotificationChannels, MATCHES_CHANNEL_ID } from '@/lib/notifications/channels'
 
+const CHAT_PUSH_TYPE = 'chat'
+
 export async function configurePushNotificationDisplay(): Promise<void> {
   await notifee.setFcmConfig({ defaultChannelId: MATCHES_CHANNEL_ID })
   await ensureNotificationChannels()
@@ -27,6 +29,7 @@ function toPushNotificationRemoteMessage({ messageId, data, notification }: Remo
 
 export function listenForForegroundPushNotifications(): () => void {
   return onMessage(getMessaging(), (remoteMessage) => {
+    if (remoteMessage.data?.type === CHAT_PUSH_TYPE) return
     displayPushNotification(toPushNotificationRemoteMessage(remoteMessage)).catch(() => undefined)
   })
 }

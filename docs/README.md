@@ -9,6 +9,7 @@ Fulbito GM es una aplicación para la gestión de partidos de fútbol dentro de 
 | [Web](./web/README.md)                    | `apps/web`                                              |
 | [Mobile](./mobile/README.md)              | `apps/mobile`                                           |
 | [MCP](./mcp/README.md)                    | `apps/mcp`                                              |
+| [Functions](./functions/README.md)        | `apps/functions`                                        |
 | [Firebase (backend)](#datos-en-firestore) | `packages/firebase`, `firestore.rules`, `storage.rules` |
 
 ## Panorama general
@@ -38,6 +39,7 @@ Abajo, **cómo llega cada parte a producción**: qué es, cómo se publica y dó
 | El acceso a los datos de Firebase           | `packages/firebase`                            |
 | Quién puede leer o escribir cada dato       | `firestore.rules` y `storage.rules`            |
 | Una herramienta para Claude                 | `apps/mcp/src/tools`                           |
+| Una notificación push del servidor          | `apps/functions/src`                           |
 | El CI o el despliegue                       | `.github/workflows/main.yml`                   |
 
 ### Paquetes compartidos
