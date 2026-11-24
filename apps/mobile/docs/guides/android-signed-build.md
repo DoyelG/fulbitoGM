@@ -4,6 +4,14 @@
 
 ## 1. Generate a signed Android build
 
+Before opening Android Studio, regenerate the native project so it picks up the current `app.json` (`versionCode`, plugins). The `android` folder is not in git, so an old local copy would be stale:
+
+```bash
+npx expo prebuild --platform android --clean
+```
+
+Then open the `android` folder in Android Studio.
+
 After the project synchronizes successfully, Android Studio will provide the option to generate a signed APK or Android App Bundle.
 
 From the Android Studio menu, select:

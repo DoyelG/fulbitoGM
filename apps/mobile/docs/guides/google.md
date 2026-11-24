@@ -36,7 +36,7 @@ In `app.json`, increase `android.versionCode`. Google Play rejects an upload who
 
 ## 5. Generate a signed build (every release)
 
-Open the `android` folder in Android Studio, let Gradle sync, then **Build → Generate Signed Bundle / APK**. Choose **Android App Bundle (.aab)**, select the keystore and the `release` variant. The file is created at `android/app/build/outputs/bundle/release/app-release.aab`.
+Regenerate the native project with `npx expo prebuild --platform android --clean` (the `android` folder is not in git, and a stale one would miss the new `versionCode` and plugins). Then open the `android` folder in Android Studio, let Gradle sync, then **Build → Generate Signed Bundle / APK**. Choose **Android App Bundle (.aab)**, select the keystore and the `release` variant. The file is created at `android/app/build/outputs/bundle/release/app-release.aab`.
 
 **Details:** [Generate a signed build](./android-signed-build.md)
 

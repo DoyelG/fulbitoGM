@@ -87,7 +87,7 @@ Regenerate the native project (`npx expo prebuild --platform ios --clean`), open
 **Details:** [Apple: Xcode configuration](./guides/ios-xcode-configuration.md) · [Apple: version and build number](./guides/ios-version-and-build-number.md)
 
 **Android**
-Open the `android` folder in Android Studio, let Gradle sync, then **Build → Generate Signed Bundle / APK**. Choose **Android App Bundle (.aab)** for Google Play, select the keystore and the `release` variant.
+Regenerate the native project (`npx expo prebuild --platform android --clean`), open the `android` folder in Android Studio, let Gradle sync, then **Build → Generate Signed Bundle / APK**. Choose **Android App Bundle (.aab)** for Google Play, select the keystore and the `release` variant.
 **Details:** [Google: generate a signed build](./guides/android-signed-build.md)
 
 > If the build fails, see the troubleshooting sections: [Apple](./guides/ios-troubleshooting.md) · [Google: missing `build.gradle`](./guides/android-gradle-troubleshooting.md)

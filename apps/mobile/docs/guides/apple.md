@@ -30,17 +30,19 @@ Create an **APNs key (.p8)**, upload it to Firebase, enable the Push Notificatio
 
 **Details:** [Push notifications guide](./push-notifications.md)
 
-## 4. Configure the project in Xcode (every release)
-
-Regenerate the native project with `npx expo prebuild --platform ios --clean`, open the `ios` folder in Xcode and check **Signing & Capabilities**: Team, Bundle Identifier and automatic signing.
-
-**Details:** [Xcode configuration](./ios-xcode-configuration.md)
-
-## 5. Set the version and build number (every release)
+## 4. Set the version and build number (every release)
 
 Raise the **build number** for every upload (App Store Connect rejects repeated numbers) and the **version** when users should see a new release.
 
+Do this **before** the next step: the prebuild copies these values from `app.json` into the native project.
+
 **Details:** [Version and build number](./ios-version-and-build-number.md)
+
+## 5. Configure the project in Xcode (every release)
+
+Regenerate the native project (it reads the version and build number from `app.json`, so raise them first) with `npx expo prebuild --platform ios --clean`, open the `ios` folder in Xcode and check **Signing & Capabilities**: Team, Bundle Identifier and automatic signing.
+
+**Details:** [Xcode configuration](./ios-xcode-configuration.md)
 
 ## 6. Create the archive and upload it (every release)
 
