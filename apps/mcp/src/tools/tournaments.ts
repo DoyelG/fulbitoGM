@@ -15,7 +15,7 @@ export function registerTournamentTools(server: McpServer): void {
     {
       title: 'List tournaments',
       description:
-        'Tournaments the MCP account is a member of, with its role in each. Call this first: every other tool needs a tournamentId.',
+        'Tournaments the MCP account is a member of, with its role in each. A tournament of kind "individual" is the user\'s personal history (one player, matches recorded as a score against an opponent label). Call this first: every other tool needs a tournamentId.',
       inputSchema: {},
     },
     withFirebase(async (uid) => {
@@ -26,6 +26,8 @@ export function registerTournamentTools(server: McpServer): void {
           name: tournament.name,
           description: tournament.description,
           role: membership.role,
+          kind: tournament.kind,
+          worldCupGoal: tournament.worldCupGoal,
         })),
       )
     }),

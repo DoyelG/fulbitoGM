@@ -14,7 +14,8 @@ import {
   type DocumentReference,
   type Transaction,
 } from 'firebase/firestore'
-import type { MyTournament, Tournament, TournamentMember, TournamentRole } from '@fulbito/types'
+import type { MyTournament, Tournament, TournamentKind, TournamentMember, TournamentRole } from '@fulbito/types'
+import { MAX_WORLD_CUP_GOAL } from '@fulbito/types'
 import { toDate, toOptionalDate } from './dates'
 
 export const TOURNAMENTS_COLLECTION = 'tournaments'
@@ -22,6 +23,13 @@ export const MEMBERS_COLLECTION = 'members'
 export const PLAYER_LINKS_COLLECTION = 'playerLinks'
 export const INVITATIONS_COLLECTION = 'invitations'
 export const PLAYER_REQUESTS_COLLECTION = 'playerRequests'
+const PLAYERS_COLLECTION = 'players'
+
+export const PERSONAL_TOURNAMENT_PREFIX = 'personal_'
+
+export function personalTournamentId(uid: string): string {
+  return `${PERSONAL_TOURNAMENT_PREFIX}${uid}`
+}
 
 const MAX_NAME_LENGTH = 60
 const MAX_DESCRIPTION_LENGTH = 280
@@ -38,6 +46,8 @@ export function docToTournament(id: string, data: Record<string, unknown>): Tour
     name: typeof data['name'] === 'string' ? data['name'] : '',
     description: optionalString(data['description']),
     photoUrl: optionalString(data['photoUrl']),
+    kind: (data['kind'] as TournamentKind | undefined) === 'individual' ? 'individual' : 'team',
+    worldCupGoal: typeof data['worldCupGoal'] === 'number' ? data['worldCupGoal'] : undefined,
     ownerUid: typeof data['ownerUid'] === 'string' ? data['ownerUid'] : '',
     memberUids: Array.isArray(data['memberUids']) ? (data['memberUids'] as string[]) : [],
     deletedAt: toOptionalDate(data['deletedAt']),
@@ -133,6 +143,77 @@ export async function createTournament(input: CreateTournamentInput): Promise<st
   await batch.commit()
 
   return newTournamentRef.id
+}
+
+type CreatePersonalTournamentInput = {
+  ownerUid: string
+  ownerEmail: string
+  playerName: string
+}
+
+export async function createPersonalTournament(input: CreatePersonalTournamentInput): Promise<string> {
+  const { ownerUid, ownerEmail, playerName } = input
+  const trimmedPlayerName = playerName.trim()
+  if (!trimmedPlayerName) throw new Error('Player name is required')
+
+  const db = getFirestore()
+  const tournamentId = personalTournamentId(ownerUid)
+  const ref = tournamentRef(tournamentId)
+
+  const now = Timestamp.now()
+  const createBatch = writeBatch(db)
+  createBatch.set(ref, {
+    name: normalizeName(trimmedPlayerName),
+    description: null,
+    photoUrl: null,
+    kind: 'individual',
+    worldCupGoal: null,
+    ownerUid,
+    memberUids: [ownerUid],
+    deletedAt: null,
+    deletedBy: null,
+    createdAt: now,
+    updatedAt: now,
+  })
+  createBatch.set(memberRef(tournamentId, ownerUid), {
+    uid: ownerUid,
+    tournamentId,
+    email: ownerEmail.trim().toLowerCase(),
+    role: 'OWNER',
+    playerId: null,
+    joinedAt: now,
+    updatedAt: now,
+  })
+
+  const playerRef = doc(collection(db, PLAYERS_COLLECTION))
+  const linkBatch = writeBatch(db)
+  linkBatch.set(playerRef, {
+    tournamentId,
+    name: trimmedPlayerName,
+    position: '',
+    skill: null,
+    skills: null,
+    photoUrl: null,
+    goalkeeping: null,
+    inactive: false,
+    createdAt: now,
+    updatedAt: now,
+  })
+  linkBatch.set(playerLinkRef(tournamentId, playerRef.id), { uid: ownerUid })
+  linkBatch.update(memberRef(tournamentId, ownerUid), { playerId: playerRef.id, updatedAt: now })
+
+  const existingMember = await getTournamentMember(tournamentId, ownerUid)
+  if (!existingMember) await createBatch.commit()
+  if (!existingMember?.playerId) await linkBatch.commit()
+
+  return tournamentId
+}
+
+export async function updateWorldCupGoal(tournamentId: string, goal: number | null): Promise<void> {
+  if (goal !== null && (!Number.isInteger(goal) || goal < 1 || goal > MAX_WORLD_CUP_GOAL)) {
+    throw new Error(`World cup goal must be a whole number from 1 to ${MAX_WORLD_CUP_GOAL}`)
+  }
+  await updateDoc(tournamentRef(tournamentId), { worldCupGoal: goal, updatedAt: Timestamp.now() })
 }
 
 export async function getTournament(tournamentId: string): Promise<Tournament | null> {

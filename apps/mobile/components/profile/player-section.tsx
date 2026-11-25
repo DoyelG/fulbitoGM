@@ -1,7 +1,12 @@
 import Feather from '@expo/vector-icons/Feather'
 import { updatePlayer, uploadPlayerPhoto } from '@fulbito/firebase'
-import type { Match, Player } from '@fulbito/types'
-import { calculateCurrentStreakForPlayer, getPlayerMatchSummary, getPositionLabel } from '@fulbito/utils'
+import type { Match, MyMatchEntry, Player } from '@fulbito/types'
+import {
+  calculateCurrentStreakForPlayer,
+  computePersonalSummary,
+  getPlayerMatchSummary,
+  getPositionLabel,
+} from '@fulbito/utils'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
@@ -18,6 +23,8 @@ const PLACEHOLDER = require('@/assets/images/user-placeholder.png')
 type Props = {
   player: Player
   matches: Match[]
+  entries?: MyMatchEntry[]
+  isPersonal?: boolean
   index: number
   onPhotoChanged: () => void
 }
@@ -85,10 +92,13 @@ function PlayerPhotoButton({ player, onPhotoChanged }: { player: Player; onPhoto
   )
 }
 
-export function PlayerSection({ player, matches, index, onPhotoChanged }: Props) {
+export function PlayerSection({ player, matches, entries, isPersonal = false, index, onPhotoChanged }: Props) {
   const { colors } = useAppTheme()
-  const summary = useMemo(() => getPlayerMatchSummary(matches, player.id), [matches, player.id])
-  const streak = useMemo(() => calculateCurrentStreakForPlayer(matches, player.id), [matches, player.id])
+  const personal = useMemo(() => (entries ? computePersonalSummary(entries) : null), [entries])
+  const matchSummary = useMemo(() => getPlayerMatchSummary(matches, player.id), [matches, player.id])
+  const matchStreak = useMemo(() => calculateCurrentStreakForPlayer(matches, player.id), [matches, player.id])
+  const summary = personal ?? matchSummary
+  const streak = personal?.streak ?? matchStreak
   const hasStreak = streak.kind !== null && streak.count > 0
   const streakValue = hasStreak ? `${streak.kind === 'win' ? 'W' : 'L'}${streak.count}` : '—'
   const streakDescription = hasStreak
@@ -102,7 +112,7 @@ export function PlayerSection({ player, matches, index, onPhotoChanged }: Props)
   ]
   const position = getPositionLabel(player.position)
   const profileLabel = [
-    `Ver perfil de ${player.name}`,
+    isPersonal ? `Ver historia de ${player.name}` : `Ver perfil de ${player.name}`,
     position,
     ...stats.map((stat) => `${stat.label}: ${stat.spoken}`),
   ].join(', ')
@@ -114,7 +124,7 @@ export function PlayerSection({ player, matches, index, onPhotoChanged }: Props)
     >
       <PlayerPhotoButton player={player} onPhotoChanged={onPhotoChanged} />
       <Pressable
-        onPress={() => router.push(`/(tabs)/players/${player.id}`)}
+        onPress={() => router.push(isPersonal ? '/(tabs)/home' : `/(tabs)/players/${player.id}`)}
         style={styles.details}
         accessibilityRole="link"
         accessibilityLabel={profileLabel}

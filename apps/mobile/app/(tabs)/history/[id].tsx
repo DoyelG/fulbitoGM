@@ -1,5 +1,11 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import { buildMentionCandidates, isTournamentAdminRole, teamTotals, winProbabilityA } from '@fulbito/utils'
+import {
+  buildMentionCandidates,
+  isPersonalTournament,
+  isTournamentAdminRole,
+  teamTotals,
+  winProbabilityA,
+} from '@fulbito/utils'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useMemo } from 'react'
 import {
@@ -56,6 +62,7 @@ export default function MatchDetailScreen() {
   const canManage = useCanManageTournament()
   const { matches, players, loading, error, refreshing, refresh, reload } = useMatchesData()
   const tournamentId = activeTournament?.tournament.id ?? null
+  const isPersonal = isPersonalTournament(activeTournament?.tournament)
   const comments = useTournamentComments(tournamentId)
   const { markSeen: markCommentsSeen } = useUnreadComments()
   const commentsUnreadSince = useCommentsUnreadSince(activeTournament, comments.status === 'loaded')
@@ -73,7 +80,7 @@ export default function MatchDetailScreen() {
   }, [members, playerById])
   const mentionCandidates = useMemo(() => buildMentionCandidates(players, members), [players, members])
 
-  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/history'))
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace(isPersonal ? '/(tabs)/home' : '/(tabs)/history'))
 
   if (!match) {
     return (
@@ -160,15 +167,17 @@ export default function MatchDetailScreen() {
               winProbability={probabilityA}
               tone="primary"
             />
-            <MatchTeamCard
-              {...shared}
-              title="Equipo B"
-              players={match.teamB}
-              result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
-              totals={totalsB}
-              winProbability={100 - probabilityA}
-              tone="secondary"
-            />
+            {!isPersonal && (
+              <MatchTeamCard
+                {...shared}
+                title="Equipo B"
+                players={match.teamB}
+                result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
+                totals={totalsB}
+                winProbability={100 - probabilityA}
+                tone="secondary"
+              />
+            )}
           </View>
 
           <SectionTitle title="Clips" />
@@ -181,7 +190,7 @@ export default function MatchDetailScreen() {
             </>
           )}
 
-          {user && (
+          {user && !isPersonal && (
             <>
               <SectionTitle title="Comentarios" />
               <TournamentCommentsCard

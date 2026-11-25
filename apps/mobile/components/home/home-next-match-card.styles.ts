@@ -4,8 +4,6 @@ import { Colors, ContrastColors, Fonts, Radii, Spacing } from '@/constants/theme
 
 export const styles = StyleSheet.create({
   card: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
     borderRadius: Radii.xl,
     overflow: 'hidden',
     padding: Spacing.xl,

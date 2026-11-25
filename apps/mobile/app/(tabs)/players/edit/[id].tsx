@@ -1,12 +1,11 @@
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import { Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { updatePlayer } from '@fulbito/firebase'
-import { getGoalkeeping } from '@fulbito/utils'
-import { PlayerEditForm, type PlayerEditFormValues } from '@/components/players/edit/player-edit-form'
+import { PlayerEditForm } from '@/components/players/edit/player-edit-form'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
+import { usePlayerEdit } from '@/hooks/use-player-edit'
 import { usePlayersData } from '@/hooks/use-players-data'
 import { useAppTheme } from '@/hooks/use-theme'
 
@@ -19,18 +18,7 @@ export default function EditPlayerScreen() {
 
   const { players, reload } = usePlayersData()
   const player = players.find((p) => p.id === id) ?? null
-
-  const [values, setValues] = useState<PlayerEditFormValues>({
-    name: '',
-    position: 'PLAYER',
-    physical: 5,
-    technical: 5,
-    tactical: 5,
-    psychological: 5,
-    goalkeeping: 5,
-    inactive: false,
-  })
-  const [saving, setSaving] = useState(false)
+  const { values, setValues, saving, save } = usePlayerEdit(player, reload)
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: 'Editar jugador' })
@@ -44,54 +32,12 @@ export default function EditPlayerScreen() {
     }
   }, [canManage, router])
 
-  useEffect(() => {
-    if (player) {
-      const base = player.skill ?? 5
-      setValues({
-        name: player.name,
-        position: player.position,
-        physical: Number(player.skills?.physical ?? base),
-        technical: Number(player.skills?.technical ?? base),
-        tactical: Number(player.skills?.tactical ?? base),
-        psychological: Number(player.skills?.psychological ?? base),
-        goalkeeping: getGoalkeeping(player),
-        inactive: player.inactive ?? false,
-      })
-    }
-  }, [player])
-
-  const handleSave = useCallback(async () => {
-    if (!id) return
-    setSaving(true)
-    try {
-      const skills = {
-        physical: values.physical,
-        technical: values.technical,
-        tactical: values.tactical,
-        psychological: values.psychological,
-      }
-      const skill = (skills.physical + skills.technical + skills.tactical + skills.psychological) / 4
-      await updatePlayer(id, {
-        name: values.name.trim(),
-        position: values.position,
-        skills,
-        skill,
-        goalkeeping: values.goalkeeping,
-        inactive: values.inactive,
-      })
-      await reload()
-      router.back()
-    } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo actualizar el jugador.')
-    } finally {
-      setSaving(false)
-    }
-  }, [id, values, reload, router])
+  const handleSave = async () => {
+    if (await save()) router.back()
+  }
 
   return (
-    <SafeAreaView
-      style={[styles.safe, { backgroundColor: colors.background }]}
-      edges={[]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
       <PlayerEditForm
         values={values}
         onChange={setValues}

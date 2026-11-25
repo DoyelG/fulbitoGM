@@ -10,7 +10,9 @@ import {
   RectangleStackIcon,
   TrophyIcon,
   UserGroupIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline'
+import { isPersonalTournament } from '@fulbito/utils'
 import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
 import { useDismissable } from '@/hooks/use-dismissable'
 import { TournamentPhoto } from './ActiveTournamentAvatar'
@@ -23,6 +25,10 @@ type MenuItem = {
   Icon: typeof ChartBarIcon
   exact?: boolean
 }
+
+const personalSectionItems: MenuItem[] = [
+  { name: 'Mi historia', href: '/my-history', Icon: UserIcon, exact: true },
+]
 
 const sectionItems: MenuItem[] = [
   { name: 'Estadísticas', href: '/statistics', Icon: ChartBarIcon },
@@ -44,6 +50,7 @@ export default function TournamentMenu() {
 
   if (!activeTournament) return null
   const { name, photoUrl } = activeTournament.tournament
+  const isPersonal = isPersonalTournament(activeTournament.tournament)
 
   const renderItem = ({ name: label, href, Icon, exact }: MenuItem) => {
     const current = exact ? pathname === href : isCurrent(pathname, href)
@@ -92,9 +99,9 @@ export default function TournamentMenu() {
           </div>
           {renderItem({ name: 'Ver torneos', href: '/tournaments', Icon: RectangleStackIcon })}
           <div className="my-1 h-px bg-gray-200" />
-          {sectionItems.map(renderItem)}
+          {(isPersonal ? personalSectionItems : sectionItems).map(renderItem)}
           <div className="my-1 h-px bg-gray-200" />
-          <UpcomingMatchesMenuItems isOpen={isOpen} onNavigate={closeMenu} />
+          {!isPersonal && <UpcomingMatchesMenuItems isOpen={isOpen} onNavigate={closeMenu} />}
           <Link
             href="/match"
             role="menuitem"
@@ -103,7 +110,7 @@ export default function TournamentMenu() {
             className={`${menuItemClassName} text-orange-800 hover:bg-orange-50`}
           >
             <PlusIcon className="h-5 w-5 text-secondary" aria-hidden />
-            Nuevo partido
+            {isPersonal ? 'Registrar partido' : 'Nuevo partido'}
           </Link>
         </div>
       )}

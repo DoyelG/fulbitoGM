@@ -1,5 +1,5 @@
-import MatchClient from './matchClient'
+import MatchEntry from './matchEntry'
 
 export default function MatchPage() {
-  return <MatchClient players={[]} />
+  return <MatchEntry />
 }

@@ -1,18 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { PlusIcon, TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { useEffect, useMemo, useState } from 'react'
+import { PlusIcon, TrophyIcon, UserCircleIcon, UserIcon } from '@heroicons/react/24/outline'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import type { Match, MyTournament } from '@fulbito/types'
 import { getDraftMatches } from '@fulbito/firebase'
-import { pickNextMatch, toLocalDay } from '@fulbito/utils'
-import { useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
+import { buildPersonalHistory, pickNextMatch, toLocalDay } from '@fulbito/utils'
+import { selectPersonalTournament, useTournamentStore, type TournamentInput } from '@/store/useTournamentStore'
 import { useUnreadCommentsStore } from '@/store/useUnreadCommentsStore'
 import { useLinkedPlayerNames } from '@/hooks/use-linked-player-names'
+import { useMyMatchEntries } from '@/hooks/use-my-match-entries'
 import Button from '@/components/Button'
 import EmptyState from '@/components/EmptyState'
 import Modal from '@/components/Modal'
 import TournamentCard from '@/components/tournaments/TournamentCard'
+import PersonalTournamentForm from '@/components/tournaments/PersonalTournamentForm'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import TournamentConfirmDialog from '@/components/tournaments/TournamentConfirmDialog'
 import PendingInvitations from '@/components/tournaments/PendingInvitations'
@@ -40,6 +42,7 @@ export default function TournamentsClient() {
     activeTournamentId,
     loadMyTournaments,
     addTournament,
+    addPersonalTournament,
     editTournament,
     removeTournament,
     exitTournament,
@@ -49,7 +52,14 @@ export default function TournamentsClient() {
   const [nextMatchByTournament, setNextMatchByTournament] = useState<
     Map<string, Pick<Match, 'id' | 'date' | 'hasTime'>>
   >(new Map())
+  const hasPersonalTournament = useTournamentStore(selectPersonalTournament) !== null
+  const { state: entriesState } = useMyMatchEntries(myTournaments, hasPersonalTournament)
+  const personalStats = useMemo(
+    () => (entriesState.status === 'ready' ? buildPersonalHistory(entriesState.entries, 'all') : null),
+    [entriesState],
+  )
   const [createOpen, setCreateOpen] = useState(false)
+  const [personalOpen, setPersonalOpen] = useState(false)
   const [editing, setEditing] = useState<MyTournament | null>(null)
   const [deleting, setDeleting] = useState<MyTournament | null>(null)
   const [leaving, setLeaving] = useState<MyTournament | null>(null)
@@ -82,6 +92,12 @@ export default function TournamentsClient() {
     const { photoSaved } = await addTournament(data, user)
     setPhotoFailed(!photoSaved)
     setCreateOpen(false)
+  }
+
+  const handleCreatePersonal = async (playerName: string) => {
+    if (!user) return
+    await addPersonalTournament(playerName, user)
+    setPersonalOpen(false)
   }
 
   const handleEdit = async (data: TournamentInput) => {
@@ -117,10 +133,23 @@ export default function TournamentsClient() {
       <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">Mis torneos</h1>
         {user?.emailVerified && (
-          <Button type="button" onClick={() => setCreateOpen(true)} className="items-center gap-2">
-            <PlusIcon className="h-5 w-5" aria-hidden />
-            Crear torneo
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            {!hasPersonalTournament && myTournamentsInit === 'loaded' && (
+              <Button
+                type="button"
+                variant="tertiary"
+                onClick={() => setPersonalOpen(true)}
+                className="items-center gap-2"
+              >
+                <UserIcon className="h-5 w-5" aria-hidden />
+                Crear mi historia personal
+              </Button>
+            )}
+            <Button type="button" onClick={() => setCreateOpen(true)} className="items-center gap-2">
+              <PlusIcon className="h-5 w-5" aria-hidden />
+              Crear torneo
+            </Button>
+          </div>
         )}
       </div>
 
@@ -183,6 +212,7 @@ export default function TournamentsClient() {
                     playerName={playerName(item.membership.playerId)}
                     nextMatch={nextMatchByTournament.get(item.tournament.id) ?? null}
                     unreadComments={unreadByTournament[item.tournament.id] ?? 0}
+                    personalStats={personalStats}
                   />
                 </li>
               ))}
@@ -199,6 +229,10 @@ export default function TournamentsClient() {
           onCancel={() => setCreateOpen(false)}
           onSubmit={handleCreate}
         />
+      </Modal>
+
+      <Modal open={personalOpen} onClose={() => setPersonalOpen(false)} title="Crear mi historia personal">
+        <PersonalTournamentForm onCancel={() => setPersonalOpen(false)} onSubmit={handleCreatePersonal} />
       </Modal>
 
       <Modal open={editing !== null} onClose={() => setEditing(null)} title="Editar torneo">

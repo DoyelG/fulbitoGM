@@ -1,6 +1,6 @@
 import { getPlayers } from '@fulbito/firebase'
 import type { Player, TournamentComment } from '@fulbito/types'
-import { buildMentionCandidates, isTournamentAdminRole } from '@fulbito/utils'
+import { buildMentionCandidates, isPersonalTournament, isTournamentAdminRole } from '@fulbito/utils'
 import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
 import { FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native'
@@ -25,7 +25,12 @@ const NO_PLAYERS: Player[] = []
 export default function MessagesScreen() {
   const { colors } = useAppTheme()
   const { user } = useFirebaseAuth()
-  const { myTournaments, activeTournament } = useTournaments()
+  const { myTournaments: allTournaments, activeTournament: currentTournament } = useTournaments()
+  const myTournaments = useMemo(
+    () => allTournaments.filter(({ tournament }) => !isPersonalTournament(tournament)),
+    [allTournaments],
+  )
+  const activeTournament = isPersonalTournament(currentTournament?.tournament) ? null : currentTournament
   const { unreadByTournament, markSeen } = useUnreadComments()
   const { tournamentId: linkedTournamentId } = useLocalSearchParams<{ tournamentId?: string }>()
   const [chosenId, setChosenId] = useState<string | null>(linkedTournamentId ?? null)

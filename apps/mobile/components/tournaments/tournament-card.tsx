@@ -4,9 +4,12 @@ import type { Match, MyTournament } from '@fulbito/types'
 import {
   formatMatchDate,
   formatMatchHour,
+  isPersonalTournament,
   isTournamentAdminRole,
   parseMatchDate,
   unreadCommentsLabel,
+  worldCupProgress,
+  type PersonalCardStats,
 } from '@fulbito/utils'
 import { Image } from 'expo-image'
 import type { ComponentProps } from 'react'
@@ -26,6 +29,7 @@ type Props = {
   playerName: string | null
   nextMatch: NextMatchSummary | null
   unreadComments: number
+  personalStats?: PersonalCardStats | null
   onOpen: (item: MyTournament) => void
   onActivate: (item: MyTournament) => void
   onOpenMatch: (item: MyTournament, matchId: string) => void
@@ -48,6 +52,26 @@ function formatNextMatch(match: NextMatchSummary): string {
   return hour === null ? formatMatchDate(date) : `${formatMatchDate(date)} · ${formatMatchHour(hour)}`
 }
 
+function PersonalStat({
+  icon,
+  text,
+  muted = false,
+}: {
+  icon: ComponentProps<typeof Feather>['name']
+  text: string
+  muted?: boolean
+}) {
+  const { colors } = useAppTheme()
+  return (
+    <View style={[styles.stat, { backgroundColor: colors.chipBg, borderColor: colors.border }]} accessible>
+      <Feather name={icon} size={16} color={colors.primaryText} accessible={false} />
+      <Text style={[styles.statText, muted ? [styles.statMuted, { color: colors.muted }] : { color: colors.text }]}>
+        {text}
+      </Text>
+    </View>
+  )
+}
+
 function CardAction({ icon, label, onPress, tone = 'default' }: CardActionProps) {
   const { colors, isDark } = useAppTheme()
   const dangerColor = isDark ? colors.dangerIcon : colors.danger
@@ -66,6 +90,7 @@ export function TournamentCard({
   playerName,
   nextMatch,
   unreadComments,
+  personalStats = null,
   onOpen,
   onActivate,
   onOpenMatch,
@@ -77,7 +102,8 @@ export function TournamentCard({
 }: Props) {
   const { colors, isDark, shadows } = useAppTheme()
   const { tournament, membership } = item
-  const canEdit = isTournamentAdminRole(membership.role)
+  const isPersonal = isPersonalTournament(tournament)
+  const canEdit = isTournamentAdminRole(membership.role) && !isPersonal
   const isOwner = membership.role === 'OWNER'
   const memberCount = tournament.memberUids.length
   const hasPlayer = membership.playerId !== null
@@ -144,7 +170,13 @@ export function TournamentCard({
               </Pressable>
             )}
           </View>
-          <RoleBadge role={membership.role} />
+          {isPersonal ? (
+            <View style={[styles.unreadChip, { backgroundColor: colors.secondarySoft }]}>
+              <Text style={[styles.unreadText, { color: colors.secondaryText }]}>Personal</Text>
+            </View>
+          ) : (
+            <RoleBadge role={membership.role} />
+          )}
           {unreadComments > 0 && (
             <View style={[styles.unreadChip, { backgroundColor: colors.secondarySoft }]}>
               <Feather name="message-circle" size={12} color={colors.secondaryText} accessible={false} />
@@ -162,17 +194,19 @@ export function TournamentCard({
       </Pressable>
 
       <View style={styles.stats}>
-        <TouchableOpacity
-          onPress={() => onMembers(item)}
-          accessibilityRole="button"
-          accessibilityLabel={`${memberCount} ${memberCount === 1 ? 'miembro' : 'miembros'}. Ver miembros`}
-          style={[styles.stat, { backgroundColor: colors.chipBg, borderColor: colors.border }]}
-        >
-          <Feather name="users" size={16} color={accentColor} accessible={false} />
-          <Text style={[styles.statText, { color: colors.text }]}>
-            {memberCount} {memberCount === 1 ? 'miembro' : 'miembros'}
-          </Text>
-        </TouchableOpacity>
+        {!isPersonal && (
+          <TouchableOpacity
+            onPress={() => onMembers(item)}
+            accessibilityRole="button"
+            accessibilityLabel={`${memberCount} ${memberCount === 1 ? 'miembro' : 'miembros'}. Ver miembros`}
+            style={[styles.stat, { backgroundColor: colors.chipBg, borderColor: colors.border }]}
+          >
+            <Feather name="users" size={16} color={accentColor} accessible={false} />
+            <Text style={[styles.statText, { color: colors.text }]}>
+              {memberCount} {memberCount === 1 ? 'miembro' : 'miembros'}
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           onPress={() => onLinkPlayer(item)}
           disabled={hasPlayer}
@@ -189,30 +223,50 @@ export function TournamentCard({
             {hasPlayer ? (playerName ?? 'Tu jugador') : 'Sin asignar'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => nextMatch && onOpenMatch(item, nextMatch.id)}
-          disabled={!nextMatch}
-          accessibilityRole="button"
-          accessibilityLabel={
-            nextMatch ? `Próximo partido: ${formatNextMatch(nextMatch)}. Ver partido` : 'Próximo partido sin definir'
-          }
-          accessibilityState={{ disabled: !nextMatch }}
-          style={[styles.stat, { backgroundColor: colors.chipBg, borderColor: colors.border }]}
-        >
-          <Feather name="calendar" size={16} color={accentColor} accessible={false} />
-          <Text
-            style={[styles.statText, nextMatch ? { color: colors.text } : [styles.statMuted, { color: colors.muted }]]}
-            numberOfLines={1}
+        {isPersonal && (
+          <>
+            <PersonalStat
+              icon="flag"
+              muted={tournament.worldCupGoal == null}
+              text={
+                tournament.worldCupGoal != null && personalStats
+                  ? `Mundial: ${worldCupProgress(personalStats.run, tournament.worldCupGoal).current} de ${tournament.worldCupGoal}`
+                  : 'Mundial sin objetivo'
+              }
+            />
+          </>
+        )}
+        {!isPersonal && (
+          <TouchableOpacity
+            onPress={() => nextMatch && onOpenMatch(item, nextMatch.id)}
+            disabled={!nextMatch}
+            accessibilityRole="button"
+            accessibilityLabel={
+              nextMatch ? `Próximo partido: ${formatNextMatch(nextMatch)}. Ver partido` : 'Próximo partido sin definir'
+            }
+            accessibilityState={{ disabled: !nextMatch }}
+            style={[styles.stat, { backgroundColor: colors.chipBg, borderColor: colors.border }]}
           >
-            {nextMatch ? `Próximo partido: ${formatNextMatch(nextMatch)}` : 'Próximo partido sin definir'}
-          </Text>
-        </TouchableOpacity>
+            <Feather name="calendar" size={16} color={accentColor} accessible={false} />
+            <Text
+              style={[
+                styles.statText,
+                nextMatch ? { color: colors.text } : [styles.statMuted, { color: colors.muted }],
+              ]}
+              numberOfLines={1}
+            >
+              {nextMatch ? `Próximo partido: ${formatNextMatch(nextMatch)}` : 'Próximo partido sin definir'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={[styles.actions, { borderTopColor: colors.border }]}>
-        <CardAction icon="users" label={`Ver miembros de ${tournament.name}`} onPress={() => onMembers(item)} />
+        {!isPersonal && (
+          <CardAction icon="users" label={`Ver miembros de ${tournament.name}`} onPress={() => onMembers(item)} />
+        )}
         {canEdit && <CardAction icon="edit-2" label={`Editar ${tournament.name}`} onPress={() => onEdit(item)} />}
-        {isOwner ? (
+        {isPersonal ? null : isOwner ? (
           <CardAction
             icon="trash-2"
             label={`Eliminar ${tournament.name}`}

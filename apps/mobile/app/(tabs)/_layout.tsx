@@ -6,6 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { Navbar } from '@/components/navbar'
 import { Colors } from '@/constants/theme'
 import { useTournaments } from '@/contexts/TournamentContext'
+import { isPersonalBlockedPath, isPersonalTournament } from '@fulbito/utils'
 import { useColorScheme } from '@/hooks/use-color-scheme'
 
 import { styles } from '@/components/tabs-layout.styles'
@@ -20,14 +21,17 @@ export default function TabLayout() {
   const pathname = usePathname()
   const { status, activeTournament } = useTournaments()
   const hasActiveTournament = activeTournament !== null
+  const isPersonal = isPersonalTournament(activeTournament?.tournament)
+  const shouldLeaveBlockedRoute = isPersonal && isPersonalBlockedPath(pathname)
   const isGated = !ROUTES_WITHOUT_TOURNAMENT.some((route) => pathname.startsWith(route))
   const shouldRedirect = isGated && (status === 'error' || (status === 'loaded' && !hasActiveTournament))
 
   useEffect(() => {
     if (shouldRedirect) router.replace('/tournaments')
-  }, [shouldRedirect])
+    else if (shouldLeaveBlockedRoute) router.replace('/home')
+  }, [shouldRedirect, shouldLeaveBlockedRoute])
 
-  const isWaiting = isGated && (status === 'loading' || shouldRedirect)
+  const isWaiting = (isGated && (status === 'loading' || shouldRedirect)) || shouldLeaveBlockedRoute
 
   return (
     <View style={styles.root}>
@@ -51,6 +55,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="history"
           options={{
+            href: isPersonal ? null : undefined,
             tabBarIcon: ({ focused }) => (
               <MaterialIcons name="history" size={24} color={focused ? activeIconColor : palette.icon} />
             ),
@@ -59,6 +64,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="statistics"
           options={{
+            href: isPersonal ? null : undefined,
             tabBarIcon: ({ focused }) => (
               <MaterialIcons name="bar-chart" size={24} color={focused ? activeIconColor : palette.icon} />
             ),
@@ -75,6 +81,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="players"
           options={{
+            href: isPersonal ? null : undefined,
             tabBarIcon: ({ focused }) => (
               <MaterialIcons name="group" size={24} color={focused ? activeIconColor : palette.icon} />
             ),

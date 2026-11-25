@@ -61,6 +61,11 @@ export const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 0.5,
   },
+  personalBadge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+  },
   unread: {
     fontFamily: Fonts.bold,
     fontSize: 12,
