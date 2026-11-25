@@ -9,7 +9,7 @@ Fulbito GM es una aplicación para la gestión de partidos de fútbol dentro de 
 | [Web](./web/README.md)                    | `apps/web`                                              |
 | [Mobile](./mobile/README.md)              | `apps/mobile`                                           |
 | [MCP](./mcp/README.md)                    | `apps/mcp`                                              |
-| [Functions](./functions/README.md)        | `apps/functions`                                        |
+| [Functions](./functions/README.md)        | `apps/functions`, `functions`                           |
 | [Firebase (backend)](#datos-en-firestore) | `packages/firebase`, `firestore.rules`, `storage.rules` |
 
 ## Panorama general
