@@ -1,8 +1,8 @@
 import { getDraftMatches } from '@fulbito/firebase'
 import type { MyTournament } from '@fulbito/types'
-import { pickNextMatch, toLocalDay } from '@fulbito/utils'
+import { buildPersonalHistory, findPersonalTournament, pickNextMatch, toLocalDay } from '@fulbito/utils'
 import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -10,6 +10,7 @@ import { ProfileButton } from '@/components/profile/profile-button'
 import { ThemedView } from '@/components/themed-view'
 import { LinkMyPlayerSheet } from '@/components/tournaments/link-my-player-sheet'
 import { PendingInvitations } from '@/components/tournaments/pending-invitations'
+import { PersonalTournamentSheet } from '@/components/tournaments/personal-tournament-sheet'
 import { TournamentCard, type NextMatchSummary } from '@/components/tournaments/tournament-card'
 import { TournamentFormSheet } from '@/components/tournaments/tournament-form-sheet'
 import { styles } from '@/components/tournaments/tournaments-screen.styles'
@@ -19,6 +20,7 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournaments, type TournamentInput } from '@/contexts/TournamentContext'
 import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
 import { useLinkedPlayerNames } from '@/hooks/use-linked-player-names'
+import { useMyMatchEntries } from '@/hooks/use-my-match-entries'
 import { useAppTheme } from '@/hooks/use-theme'
 
 function useNextMatches(myTournaments: MyTournament[], reloadKey: number): Map<string, NextMatchSummary> {
@@ -57,6 +59,7 @@ export default function TournamentsScreen() {
     reload,
     setActiveTournament,
     createTournament,
+    createPersonalTournament,
     editTournament,
     deleteTournament,
     leaveTournament,
@@ -66,9 +69,17 @@ export default function TournamentsScreen() {
   const [nextMatchesReloadKey, setNextMatchesReloadKey] = useState(0)
   const nextMatches = useNextMatches(myTournaments, nextMatchesReloadKey)
   const [isCreating, setIsCreating] = useState(false)
+  const [isCreatingPersonal, setIsCreatingPersonal] = useState(false)
   const [editing, setEditing] = useState<MyTournament | null>(null)
   const [linking, setLinking] = useState<MyTournament | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+
+  const hasPersonalTournament = findPersonalTournament(myTournaments) !== null
+  const matchEntries = useMyMatchEntries(hasPersonalTournament)
+  const personalStats = useMemo(
+    () => (matchEntries.loading || matchEntries.error ? null : buildPersonalHistory(matchEntries.entries, 'all')),
+    [matchEntries.entries, matchEntries.loading, matchEntries.error],
+  )
 
   if (!user) return null
 
@@ -106,6 +117,11 @@ export default function TournamentsScreen() {
     if (!photoSaved) {
       Alert.alert('Torneo creado', 'No se pudo subir la imagen. Podés agregarla editando el torneo.')
     }
+  }
+
+  const handleCreatePersonal = async (playerName: string) => {
+    await createPersonalTournament(playerName)
+    setIsCreatingPersonal(false)
   }
 
   const handleEdit = async (input: TournamentInput) => {
@@ -161,6 +177,14 @@ export default function TournamentsScreen() {
                 <ProfileButton label="Crear torneo" onPress={() => setIsCreating(true)} />
               </View>
 
+              {status === 'loaded' && !hasPersonalTournament && (
+                <ProfileButton
+                  label="Crear mi historia personal"
+                  variant="secondary"
+                  onPress={() => setIsCreatingPersonal(true)}
+                />
+              )}
+
               <PendingInvitations key={user.uid} user={user} />
 
               {status === 'loading' && (
@@ -196,6 +220,7 @@ export default function TournamentsScreen() {
                     playerName={item.membership.playerId ? (playerNames.get(item.membership.playerId) ?? null) : null}
                     nextMatch={nextMatches.get(item.tournament.id) ?? null}
                     unreadComments={unreadByTournament[item.tournament.id] ?? 0}
+                    personalStats={personalStats}
                     onOpen={handleOpen}
                     onActivate={(item) => setActiveTournament(item.tournament.id)}
                     onOpenMatch={handleOpenMatch}
@@ -221,6 +246,9 @@ export default function TournamentsScreen() {
           onSubmit={handleCreate}
           onClose={() => setIsCreating(false)}
         />
+      )}
+      {isCreatingPersonal && (
+        <PersonalTournamentSheet onSubmit={handleCreatePersonal} onClose={() => setIsCreatingPersonal(false)} />
       )}
       {editing && (
         <TournamentFormSheet

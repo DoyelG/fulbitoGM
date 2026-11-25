@@ -18,6 +18,7 @@ type DrawerMenuProps = {
   user: User
   tournamentName: string | null
   canManage: boolean
+  isPersonal?: boolean
   pendingCount: number
   onOpenTournaments: () => void
   onOpenMembers: () => void
@@ -85,6 +86,7 @@ export function DrawerMenu({
   user,
   tournamentName,
   canManage,
+  isPersonal = false,
   pendingCount,
   onOpenTournaments,
   onOpenMembers,
@@ -130,8 +132,10 @@ export function DrawerMenu({
             subtitle={tournamentName ?? 'Elegí un torneo'}
             onPress={onOpenTournaments}
           />
-          {tournamentName && <DrawerItem icon="people-outline" label="Miembros" onPress={onOpenMembers} />}
-          {tournamentName && canManage && (
+          {tournamentName && !isPersonal && (
+            <DrawerItem icon="people-outline" label="Miembros" onPress={onOpenMembers} />
+          )}
+          {tournamentName && !isPersonal && canManage && (
             <DrawerItem
               icon="mail-unread-outline"
               label="Solicitudes"

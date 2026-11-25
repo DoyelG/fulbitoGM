@@ -22,6 +22,7 @@ import {
   getShirtDutiesByPlayerId,
 } from '@/lib/shirtDuty'
 import {
+  getOpponentLabel,
   onlyFinalMatches,
   buildMatchSchedule,
   parseMatchDate,
@@ -352,7 +353,9 @@ export default function HistoryClient() {
                             : 'bg-gray-50'
                     } rounded p-2`}
                   >
-                    <h4 className="text-center font-semibold mb-2 text-sm">Equipo B</h4>
+                    <h4 className="text-center font-semibold mb-2 text-sm">
+                      {getOpponentLabel(match) ?? 'Equipo B'}
+                    </h4>
                     {match.teamB.map((player: Match['teamB'][number]) => (
                       <div
                         key={player.id}

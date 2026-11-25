@@ -3,11 +3,16 @@
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { isPersonalBlockedPath, isPersonalTournament } from '@fulbito/utils'
 import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
 import Loading from '@/app/loading'
 import Button from '@/components/Button'
 
 const ROUTES_WITHOUT_TOURNAMENT = ['/login', '/tournaments', '/profile']
+
+function isBlockedForPersonal(pathname: string, tournamentId: string): boolean {
+  return pathname === '/' || pathname === `/tournaments/${tournamentId}` || isPersonalBlockedPath(pathname)
+}
 
 function needsActiveTournament(pathname: string): boolean {
   return !ROUTES_WITHOUT_TOURNAMENT.some((route) => pathname === route || pathname.startsWith(`${route}/`))
@@ -24,10 +29,16 @@ export default function ActiveTournamentGate({ children }: { children: React.Rea
   const isGated = Boolean(user) && needsActiveTournament(pathname)
   const isLoaded = myTournamentsInit === 'loaded' && myTournamentsUid === user?.uid
   const shouldRedirect = isGated && isLoaded && !activeTournament
+  const shouldRedirectPersonal =
+    Boolean(user) &&
+    isLoaded &&
+    isPersonalTournament(activeTournament?.tournament) &&
+    isBlockedForPersonal(pathname, activeTournament?.tournament.id ?? '')
 
   useEffect(() => {
     if (shouldRedirect) router.replace('/tournaments')
-  }, [shouldRedirect, router])
+    else if (shouldRedirectPersonal) router.replace('/my-history')
+  }, [shouldRedirect, shouldRedirectPersonal, router])
 
   if (isGated && user && myTournamentsInit === 'error') {
     return (
@@ -41,6 +52,6 @@ export default function ActiveTournamentGate({ children }: { children: React.Rea
       </div>
     )
   }
-  if (isGated && (!isLoaded || shouldRedirect)) return <Loading />
+  if ((isGated && (!isLoaded || shouldRedirect)) || shouldRedirectPersonal) return <Loading />
   return <>{children}</>
 }

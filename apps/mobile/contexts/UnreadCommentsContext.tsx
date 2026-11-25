@@ -1,6 +1,6 @@
 import { markTournamentCommentsSeen, subscribeToTournamentCommentsSince } from '@fulbito/firebase'
 import type { MyTournament, TournamentComment } from '@fulbito/types'
-import { commentsSeenSince } from '@fulbito/utils'
+import { commentsSeenSince, isPersonalTournament } from '@fulbito/utils'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -18,7 +18,11 @@ const UnreadCommentsContext = createContext<UnreadCommentsContextValue | null>(n
 export function UnreadCommentsProvider({ children }: { children: ReactNode }) {
   const { user } = useFirebaseAuth()
   const uid = user?.uid ?? null
-  const { myTournaments, status } = useTournaments()
+  const { myTournaments: allTournaments, status } = useTournaments()
+  const myTournaments = useMemo(
+    () => allTournaments.filter(({ tournament }) => !isPersonalTournament(tournament)),
+    [allTournaments],
+  )
   const [unreadByTournament, setUnreadByTournament] = useState<Record<string, number>>({})
   const seenThisSession = useRef(new Map<string, Date>())
   const liveComments = useRef(new Map<string, TournamentComment[]>())

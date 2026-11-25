@@ -9,6 +9,7 @@ import TournamentMenu from "./shared/TournamentMenu"
 import Link from "next/link"
 import Image from "next/image"
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext"
+import { isPersonalTournament } from "@fulbito/utils"
 import { selectActiveTournament, useTournamentStore } from "@/store/useTournamentStore"
 import { useUnreadCommentsSync } from "@/hooks/use-unread-comments-sync"
 
@@ -39,11 +40,18 @@ const navigation = [
     color: "from-yellow-500/20 to-amber-500/20",
   },
   {
+    name: "Mi historia",
+    location: "/my-history",
+    color: "from-rose-500/20 to-orange-500/20",
+  },
+  {
     name: "Nuevo partido",
     location: "/match",
     color: "from-amber-500/20 to-orange-500/20",
   },
 ]
+
+const PERSONAL_NAVIGATION = ["/my-history", "/match"]
 
 function BrandLogo() {
   return (
@@ -64,7 +72,11 @@ export default function NavBar() {
   const toggleNavBar = () => setMenuChecked((prev) => !prev)
   const closeNavBar = () => setMenuChecked(false)
   const { user } = useFirebaseAuth()
-  const hasActiveTournament = useTournamentStore(selectActiveTournament) !== null
+  const activeTournament = useTournamentStore(selectActiveTournament)
+  const hasActiveTournament = activeTournament !== null
+  const visibleNavigation = isPersonalTournament(activeTournament?.tournament)
+    ? navigation.filter((item) => PERSONAL_NAVIGATION.includes(item.location))
+    : navigation
   useUnreadCommentsSync(user?.uid ?? null)
 
   if (!user) {
@@ -118,7 +130,7 @@ export default function NavBar() {
       >
         <ActiveTournamentLink onNavigate={closeNavBar} />
         {hasActiveTournament &&
-          navigation.map((item) => (
+          visibleNavigation.map((item) => (
             <Link
               key={item.location}
               href={item.location}
