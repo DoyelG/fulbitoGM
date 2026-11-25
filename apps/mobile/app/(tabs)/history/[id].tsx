@@ -1,5 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import { buildMentionCandidates, teamTotals, winProbabilityA, isTournamentAdminRole } from '@fulbito/utils'
+import { buildMentionCandidates, isTournamentAdminRole, teamTotals, winProbabilityA } from '@fulbito/utils'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useMemo } from 'react'
 import {
@@ -14,12 +14,12 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { styles } from '@/components/match-detail/match-detail-screen.styles'
 import { MatchHero } from '@/components/match-detail/match-hero'
 import { MatchHighlightsCard } from '@/components/match-detail/match-highlights-card'
 import { MatchInfoCard } from '@/components/match-detail/match-info-card'
 import { MatchTeamCard, type TeamResult } from '@/components/match-detail/match-team-card'
 import { TournamentCommentsCard } from '@/components/match-detail/tournament-comments-card'
-import { styles } from '@/components/match-detail/match-detail-screen.styles'
 import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
 import { PrimaryGradient } from '@/components/primary-gradient'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
@@ -28,9 +28,9 @@ import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useCommentsUnreadSince } from '@/hooks/use-comments-unread-since'
 import { useMatchesData } from '@/hooks/use-matches-data'
+import { useAppTheme } from '@/hooks/use-theme'
 import { useTournamentComments } from '@/hooks/use-tournament-comments'
 import { useTournamentMembers } from '@/hooks/use-tournament-members'
-import { useAppTheme } from '@/hooks/use-theme'
 
 function teamResult(own: number, rival: number): TeamResult {
   if (own === rival) return 'draw'
@@ -112,7 +112,7 @@ export default function MatchDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={[]}>
-      <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

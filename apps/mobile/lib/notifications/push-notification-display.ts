@@ -1,4 +1,10 @@
-import { getMessaging, onMessage, type RemoteMessage } from '@react-native-firebase/messaging'
+import {
+  getInitialNotification,
+  getMessaging,
+  onMessage,
+  onNotificationOpenedApp,
+  type RemoteMessage,
+} from '@react-native-firebase/messaging'
 import { Linking } from 'react-native'
 import notifee, { EventType, type Event, type FcmRemoteMessage } from 'react-native-notify-kit'
 
@@ -56,4 +62,24 @@ notifee.onBackgroundEvent(async (event) => openNotificationUrl(event))
 
 export function listenForNotificationPresses(): () => void {
   return notifee.onForegroundEvent(openNotificationUrl)
+}
+
+function chatTournamentId(remoteMessage: RemoteMessage | null): string | null {
+  const data = remoteMessage?.data
+  if (data?.type !== CHAT_PUSH_TYPE) return null
+  return typeof data.tournamentId === 'string' && data.tournamentId ? data.tournamentId : null
+}
+
+export function listenForChatNotificationOpens(onOpen: (tournamentId: string) => void): () => void {
+  const messaging = getMessaging();
+  getInitialNotification(messaging)
+    .then((remoteMessage) => {
+      const tournamentId = chatTournamentId(remoteMessage)
+      if (tournamentId) onOpen(tournamentId)
+    })
+    .catch(() => undefined)
+  return onNotificationOpenedApp(messaging, (remoteMessage) => {
+    const tournamentId = chatTournamentId(remoteMessage)
+    if (tournamentId) onOpen(tournamentId)
+  })
 }

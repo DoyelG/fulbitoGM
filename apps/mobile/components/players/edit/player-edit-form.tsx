@@ -12,8 +12,8 @@ import {
 } from 'react-native'
 
 import { ThemedText } from '@/components/themed-text'
-import { useAppTheme } from '@/hooks/use-theme'
 import { ContrastColors, Fonts, Spacing } from '@/constants/theme'
+import { useAppTheme } from '@/hooks/use-theme'
 
 export type PlayerEditFormValues = {
   name: string
@@ -85,9 +85,7 @@ export function PlayerEditForm({ values, onChange, saving, onSave, onCancel }: P
     onChange({ ...values, [key]: val })
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scroll}
