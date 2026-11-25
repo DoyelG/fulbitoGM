@@ -1,7 +1,7 @@
 import Feather from '@expo/vector-icons/Feather'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import type { MyTournament } from '@fulbito/types'
-import { unreadCommentsLabel } from '@fulbito/utils'
+import { isPersonalTournament, unreadCommentsLabel } from '@fulbito/utils'
 import { Image } from 'expo-image'
 import { Pressable, Text, View } from 'react-native'
 
@@ -29,6 +29,9 @@ export function MyTournamentsSection({
   onOpen,
 }: Props) {
   const { colors } = useAppTheme()
+  const sortedTournaments = [...myTournaments].sort(
+    (a, b) => Number(isPersonalTournament(b.tournament)) - Number(isPersonalTournament(a.tournament)),
+  )
 
   return (
     <ProfileSection icon="award" title="Mis torneos" index={index}>
@@ -36,8 +39,9 @@ export function MyTournamentsSection({
         <Text style={[styles.empty, { color: colors.muted }]}>Todavía no sos parte de ningún torneo.</Text>
       ) : (
         <View style={styles.list}>
-          {myTournaments.map((item) => {
+          {sortedTournaments.map((item) => {
             const { tournament, membership } = item
+            const isPersonal = isPersonalTournament(tournament)
             const isActive = tournament.id === activeTournamentId
             const playerName = membership.playerId ? playerNameById.get(membership.playerId) : null
             const unread = unreadByTournament[tournament.id] ?? 0
@@ -51,10 +55,17 @@ export function MyTournamentsSection({
                   unread > 0 ? `. ${unreadCommentsLabel(unread)}` : ''
                 }`}
                 accessibilityHint={isActive ? 'Abre el inicio del torneo' : 'Activa el torneo y abre su inicio'}
-                style={({ pressed }) => [styles.row, { borderColor: colors.border }, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.row,
+                  { borderColor: colors.border },
+                  isPersonal && { backgroundColor: colors.primarySoft },
+                  pressed && styles.pressed,
+                ]}
               >
                 <View style={[styles.photo, { backgroundColor: colors.primarySoft }]}>
-                  {tournament.photoUrl ? (
+                  {isPersonal ? (
+                    <Feather name="user" size={22} color={colors.primaryText} />
+                  ) : tournament.photoUrl ? (
                     <Image
                       source={{ uri: tournament.photoUrl }}
                       contentFit="cover"
@@ -77,7 +88,13 @@ export function MyTournamentsSection({
                     )}
                   </View>
                   <View style={styles.titleRow}>
-                    <RoleBadge role={membership.role} />
+                    {isPersonal ? (
+                      <View style={[styles.personalBadge, { backgroundColor: colors.secondarySoft }]}>
+                        <Text style={[styles.activeText, { color: colors.secondaryText }]}>PERSONAL</Text>
+                      </View>
+                    ) : (
+                      <RoleBadge role={membership.role} />
+                    )}
                     {unread > 0 && (
                       <Text style={[styles.unread, { color: colors.secondaryText }]}>
                         {unreadCommentsLabel(unread)}

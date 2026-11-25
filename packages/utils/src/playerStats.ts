@@ -4,6 +4,24 @@ export function defaultGoalkeeping(skill: number | null | undefined): number {
   return Math.round(skill ?? 5)
 }
 
+export type PlayerSkillSummary = {
+  catSkills: { physical: number; technical: number; tactical: number; psychological: number }
+  overallAvg: number
+}
+
+export function getPlayerSkillSummary(player: Pick<Player, 'skill' | 'skills'>): PlayerSkillSummary {
+  const baseSkill = typeof player.skill === 'number' ? player.skill : 5
+  const pick = (value: unknown): number => (typeof value === 'number' ? value : baseSkill)
+  const catSkills = {
+    physical: pick(player.skills?.physical),
+    technical: pick(player.skills?.technical),
+    tactical: pick(player.skills?.tactical),
+    psychological: pick(player.skills?.psychological),
+  }
+  const overallAvg = (catSkills.physical + catSkills.technical + catSkills.tactical + catSkills.psychological) / 4
+  return { catSkills, overallAvg }
+}
+
 export function getGoalkeeping(player: Pick<Player, 'goalkeeping' | 'skill'>): number {
   return player.goalkeeping ?? defaultGoalkeeping(player.skill)
 }
@@ -52,8 +70,8 @@ export function calculateAllCurrentStreaks(
 ): Record<string, { kind: 'win' | 'loss' | null; count: number }> {
   const ids = new Set<string>()
   for (const m of matches) {
-    m.teamA.forEach((p) => ids.add(p.id))
-    m.teamB.forEach((p) => ids.add(p.id))
+    m.teamA.forEach(p => ids.add(p.id))
+    m.teamB.forEach(p => ids.add(p.id))
   }
   const out: Record<string, { kind: 'win' | 'loss' | null; count: number }> = {}
   ids.forEach((id) => {

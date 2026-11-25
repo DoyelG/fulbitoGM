@@ -9,7 +9,7 @@ import { PrimaryColors, Spacing } from '@/constants/theme'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useTournaments } from '@/contexts/TournamentContext'
 import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
-import { unreadCommentsLabel } from '@fulbito/utils'
+import { isPersonalTournament, unreadCommentsLabel } from '@fulbito/utils'
 import { useCanManageTournamentMembers } from '@/hooks/use-can-manage-tournament'
 import { useLinkedPlayer } from '@/hooks/use-linked-player'
 import { usePendingPlayerRequests } from '@/hooks/use-pending-player-requests'
@@ -33,7 +33,8 @@ export function Navbar() {
   const canManageMembers = useCanManageTournamentMembers()
   const linkedPlayer = useLinkedPlayer(activeTournament?.membership.playerId ?? undefined)
   const { requests } = usePendingPlayerRequests()
-  const pendingCount = requests.length
+  const isPersonal = isPersonalTournament(activeTournament?.tournament)
+  const pendingCount = isPersonal ? 0 : requests.length
   const { totalUnread } = useUnreadComments()
   const tournamentId = activeTournament?.tournament.id ?? null
 
@@ -171,31 +172,33 @@ export function Navbar() {
               </Pressable>
             </View>
 
-            <View>
-              <Pressable
-                onPress={() => {
-                  close()
-                  router.navigate('/messages')
-                }}
-                hitSlop={8}
-                style={({ pressed }) => [
-                  styles.tournamentChip,
-                  isOnMessages && styles.tournamentChipActive,
-                  pressed && styles.tournamentChipPressed,
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={`Mensajes${totalUnread > 0 ? `. ${unreadCommentsLabel(totalUnread)}` : ''}`}
-                accessibilityHint="Abre los mensajes de tus torneos"
-                accessibilityState={{ selected: isOnMessages }}
-              >
-                <Ionicons name="chatbubbles-outline" size={18} color={PrimaryColors.onPrimary} />
-              </Pressable>
-              {totalUnread > 0 && (
-                <View style={styles.badge} pointerEvents="none" importantForAccessibility="no-hide-descendants">
-                  <NotificationBadge count={totalUnread} />
-                </View>
-              )}
-            </View>
+            {!isPersonal && (
+              <View>
+                <Pressable
+                  onPress={() => {
+                    close()
+                    router.navigate('/messages')
+                  }}
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.tournamentChip,
+                    isOnMessages && styles.tournamentChipActive,
+                    pressed && styles.tournamentChipPressed,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Mensajes${totalUnread > 0 ? `. ${unreadCommentsLabel(totalUnread)}` : ''}`}
+                  accessibilityHint="Abre los mensajes de tus torneos"
+                  accessibilityState={{ selected: isOnMessages }}
+                >
+                  <Ionicons name="chatbubbles-outline" size={18} color={PrimaryColors.onPrimary} />
+                </Pressable>
+                {totalUnread > 0 && (
+                  <View style={styles.badge} pointerEvents="none" importantForAccessibility="no-hide-descendants">
+                    <NotificationBadge count={totalUnread} />
+                  </View>
+                )}
+              </View>
+            )}
 
             <Pressable
               onPress={toggle}
@@ -227,6 +230,7 @@ export function Navbar() {
           user={user}
           tournamentName={activeTournament?.tournament.name ?? null}
           canManage={canManageMembers}
+          isPersonal={isPersonal}
           pendingCount={pendingCount}
           onOpenTournaments={openTournaments}
           onOpenMembers={() =>

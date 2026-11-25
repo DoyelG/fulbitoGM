@@ -1,12 +1,16 @@
 'use client'
 
+import { useMemo } from 'react'
 import { FiUser } from 'react-icons/fi'
 import EmptyState from '@/components/EmptyState'
+import { isPersonalTournament } from '@fulbito/utils'
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { selectActiveTournament, useTournamentStore } from '@/store/useTournamentStore'
 import { useUnreadCommentsStore } from '@/store/useUnreadCommentsStore'
+import { useMyVideoClips } from '@/hooks/use-my-video-clips'
+import { useMyMatchEntries } from '@/hooks/use-my-match-entries'
 import { useLinkedPlayerNames } from '@/hooks/use-linked-player-names'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
 import PlayerRequestSection from './PlayerRequestSection'
@@ -22,8 +26,16 @@ export default function ProfileClient() {
   const unreadByTournament = useUnreadCommentsStore((state) => state.unreadByTournament)
   const playerNameById = useLinkedPlayerNames(myTournaments)
   const myPlayerId = activeTournament?.membership.playerId
+  const isPersonal = isPersonalTournament(activeTournament?.tournament)
   const player = usePlayerStore((state) => state.players.find((item) => item.id === myPlayerId))
   const matches = useMatchStore((state) => state.matches)
+  const { state: entriesState } = useMyMatchEntries(myTournaments, isPersonal)
+  const otherClips = useMyVideoClips(myTournaments, isPersonal)
+  const externalMatches = useMemo(
+    () => (entriesState.status === 'ready' ? entriesState.entries.map(({ match }) => match) : undefined),
+    [entriesState],
+  )
+  const personalEntries = isPersonal && entriesState.status === 'ready' ? entriesState.entries : undefined
 
   if (!user) {
     return (
@@ -43,7 +55,7 @@ export default function ProfileClient() {
 
   return (
     <div
-      className={`mx-auto px-4 py-8 sm:px-6 lg:px-8 ${activeTournament ? 'max-w-6xl lg:grid lg:min-h-[calc(100vh-var(--site-header-height,0px))] lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:grid-rows-[auto_1fr] lg:gap-6' : 'max-w-3xl'}`}
+      className={`mx-auto px-4 py-8 sm:px-6 lg:px-8 ${activeTournament && !isPersonal ? 'max-w-6xl lg:grid lg:min-h-[calc(100vh-var(--site-header-height,0px))] lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:grid-rows-[auto_1fr] lg:gap-6' : 'max-w-3xl'}`}
     >
       <div className="min-w-0 lg:col-start-1">
         <ProfileHeader email={user.email} badges={badges} photoUrl={player?.photoUrl} />
@@ -55,7 +67,7 @@ export default function ProfileClient() {
           index={0}
         />
       </div>
-      {activeTournament && (
+      {activeTournament && !isPersonal && (
         <aside
           aria-label={`Comentarios de ${activeTournament.tournament.name}`}
           className="mt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:flex lg:flex-col"
@@ -63,19 +75,37 @@ export default function ProfileClient() {
           <ProfileCommentsPanel key={activeTournament.tournament.id} item={activeTournament} user={user} />
         </aside>
       )}
-      <div className="mt-6 min-w-0 space-y-6 lg:col-start-1 lg:mt-0">
-        {activeTournament && (
-          <h2 className="pt-2 text-sm font-semibold uppercase tracking-wide text-gray-700">
-            En {activeTournament.tournament.name}
-          </h2>
+      <div className={`mt-6 min-w-0 space-y-6 lg:col-start-1 ${isPersonal ? '' : 'lg:mt-0'}`}>
+        {activeTournament &&
+          (isPersonal ? (
+            <h2 className="text-lg font-extrabold text-gray-900">Tu historia personal</h2>
+          ) : (
+            <h2 className="pt-2 text-sm font-semibold uppercase tracking-wide text-gray-700">
+              En {activeTournament.tournament.name}
+            </h2>
+          ))}
+        {player && (
+          <PlayerSection
+            key={player.id}
+            player={player}
+            matches={matches}
+            entries={personalEntries}
+            isPersonal={isPersonal}
+            index={1}
+          />
         )}
-        {player && <PlayerSection key={player.id} player={player} matches={matches} index={1} />}
         {player && (
           <div style={{ animationDelay: '80ms' }} className="animate-fade-up">
-            <VideoClipsSection playerId={player.id} matches={matches} canUpload />
+            <VideoClipsSection
+              playerId={player.id}
+              matches={matches}
+              canUpload
+              extraClips={otherClips}
+              extraMatches={externalMatches}
+            />
           </div>
         )}
-        {activeTournament && !myPlayerId && (
+        {activeTournament && !isPersonal && !myPlayerId && (
           <PlayerRequestSection
             key={activeTournament.tournament.id}
             user={user}

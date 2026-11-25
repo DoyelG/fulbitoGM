@@ -1,4 +1,5 @@
-import type { VideoClip, VideoClipCategory } from '@fulbito/types'
+import type { MembershipRef, VideoClip, VideoClipCategory } from '@fulbito/types'
+import { linkedMemberships } from './linked-memberships'
 import { getAuth } from 'firebase/auth'
 import {
   collection,
@@ -50,6 +51,31 @@ export async function getVideoClips(tournamentId: string): Promise<VideoClip[]> 
     ),
   )
   return snapshot.docs.map((clipDocument) => docToVideoClip(clipDocument.id, clipDocument.data()))
+}
+
+export async function getMyVideoClips(memberships: MembershipRef[]): Promise<VideoClip[]> {
+  const perTournament = await Promise.all(
+    linkedMemberships(memberships).map(async ({ tournamentId, playerId }) => {
+      const clips = await getVideoClips(tournamentId)
+      return clips.filter((clip) => clip.playerIds.includes(playerId))
+    }),
+  )
+  return perTournament.flat().sort((clipA, clipB) => clipB.createdAt.getTime() - clipA.createdAt.getTime())
+}
+
+export async function deleteClipsOfMatch(tournamentId: string, matchId: string): Promise<void> {
+  const snapshot = await getDocs(
+    query(
+      collection(getFirestore(), 'videoClips'),
+      where('tournamentId', '==', tournamentId),
+      where('matchId', '==', matchId),
+    ),
+  )
+  const results = await Promise.allSettled(
+    snapshot.docs.map((clipDocument) => deleteVideoClip(docToVideoClip(clipDocument.id, clipDocument.data()))),
+  )
+  const failed = results.filter((result) => result.status === 'rejected').length
+  if (failed > 0) throw new Error(`${failed} video clip(s) could not be deleted`)
 }
 
 export async function createVideoClip(tournamentId: string, data: NewVideoClipData, file: File | Blob): Promise<void> {

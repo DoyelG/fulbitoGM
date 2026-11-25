@@ -9,6 +9,7 @@ Fulbito GM es una aplicación para la gestión de partidos de fútbol dentro de 
 | [Web](./web/README.md)                    | `apps/web`                                              |
 | [Mobile](./mobile/README.md)              | `apps/mobile`                                           |
 | [MCP](./mcp/README.md)                    | `apps/mcp`                                              |
+| [Functions](./functions/README.md)        | `apps/functions`                                        |
 | [Firebase (backend)](#datos-en-firestore) | `packages/firebase`, `firestore.rules`, `storage.rules` |
 
 ## Panorama general
@@ -38,6 +39,7 @@ Abajo, **cómo llega cada parte a producción**: qué es, cómo se publica y dó
 | El acceso a los datos de Firebase           | `packages/firebase`                            |
 | Quién puede leer o escribir cada dato       | `firestore.rules` y `storage.rules`            |
 | Una herramienta para Claude                 | `apps/mcp/src/tools`                           |
+| Una notificación push del servidor          | `apps/functions/src`                           |
 | El CI o el despliegue                       | `.github/workflows/main.yml`                   |
 
 ### Paquetes compartidos
@@ -65,6 +67,8 @@ Colecciones que protegen las reglas de `firestore.rules`. Los datos del juego ll
 | `tournaments/{id}/comments`                       | Miembros del torneo         | Cualquier miembro; borran los admins                          |
 | `invitations`                                     | El invitado y los admins    | Owner y admins del torneo; el invitado acepta o rechaza       |
 | `users`                                           | Cada usuario su documento   | Cada usuario, salvo `role` y `linkedPlayerId`                 |
+
+**Historia personal.** Cada usuario puede tener un torneo individual (`kind: 'individual'`) con id fijo `personal_{uid}`, así que solo existe uno. Tiene un único jugador (el del dueño), no admite invitaciones ni solicitudes de vínculo y se borra solo desde la base. Sus partidos se guardan como marcador contra un rival: `teamA` con el jugador, `teamB` vacío y `opponentName` opcional. La experiencia es una versión simplificada: sin miembros, invitaciones, comentarios, rankings ni secciones de jugadores, estadísticas o premios (las rutas se redirigen a `/my-history` en web y a `/home` en mobile), y una sola vista que cubre los partidos de todos tus torneos (filtrable por año) con objetivo de Mundial, tu jugador (carta, habilidades y edición de nombre, posición, foto y habilidades), estadísticas personales (`computePersonalSummary`), últimos partidos (de a 10, con "ver más") y clips. El objetivo de Mundial (`worldCupGoal`) lo edita solo el dueño, y la racha se calcula con `calculateUnbeatenRun` (`@fulbito/utils`) sobre los partidos finales de todos los torneos donde el usuario tiene jugador vinculado: los empates no cortan la racha y los amistosos no cuentan.
 
 Storage guarda, por torneo, fotos de jugadores (`players/{torneo}/`), clips de video (`videoClips/{torneo}/`, hasta 200 MB) y el logo del torneo (`tournaments/{torneo}/`).
 

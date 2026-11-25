@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import type { CreatedTournament, MyTournament } from '@fulbito/types'
-import { activeTournamentStorageKey, resolveActiveTournamentId } from '@fulbito/utils'
+import { activeTournamentStorageKey, findPersonalTournament, resolveActiveTournamentId } from '@fulbito/utils'
 import {
+  createPersonalTournament,
   createTournament,
   deleteTournament,
   deleteTournamentPhoto,
@@ -9,6 +10,7 @@ import {
   leaveTournament,
   setMemberPlayer,
   updateTournament,
+  updateWorldCupGoal,
   uploadTournamentPhoto,
 } from '@fulbito/firebase'
 
@@ -27,6 +29,8 @@ type TournamentStore = {
   activeTournamentId: string | null
   loadMyTournaments: (uid: string) => Promise<void>
   addTournament: (data: TournamentInput, owner: TournamentOwner) => Promise<CreatedTournament>
+  addPersonalTournament: (playerName: string, owner: TournamentOwner) => Promise<string>
+  saveWorldCupGoal: (tournamentId: string, goal: number | null) => Promise<void>
   editTournament: (tournamentId: string, data: TournamentInput) => Promise<void>
   removeTournament: (tournamentId: string) => Promise<void>
   exitTournament: (tournamentId: string) => Promise<void>
@@ -93,6 +97,22 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
     await get().loadMyTournaments(owner.uid)
     return { id, photoSaved }
   },
+  addPersonalTournament: async (playerName, owner) => {
+    const id = await createPersonalTournament({
+      playerName,
+      ownerUid: owner.uid,
+      ownerEmail: owner.email,
+    })
+    storeActiveTournament(owner.uid, id)
+    await get().loadMyTournaments(owner.uid)
+    set({ activeTournamentId: id })
+    return id
+  },
+  saveWorldCupGoal: async (tournamentId, goal) => {
+    await updateWorldCupGoal(tournamentId, goal)
+    const uid = get().myTournamentsUid
+    if (uid) await get().loadMyTournaments(uid)
+  },
   editTournament: async (tournamentId, data) => {
     const previousPhotoUrl = get().myTournaments.find(({ tournament }) => tournament.id === tournamentId)?.tournament
       .photoUrl
@@ -140,6 +160,10 @@ export const useTournamentStore = create<TournamentStore>()((set, get) => ({
 
 export function selectActiveTournament(state: TournamentStore): MyTournament | null {
   return state.myTournaments.find(({ tournament }) => tournament.id === state.activeTournamentId) ?? null
+}
+
+export function selectPersonalTournament(state: TournamentStore): MyTournament | null {
+  return findPersonalTournament(state.myTournaments)
 }
 
 export function selectMyPlayerId(state: TournamentStore): string | null {

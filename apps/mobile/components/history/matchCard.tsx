@@ -1,7 +1,7 @@
 import Feather from '@expo/vector-icons/Feather'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { isDraft, type Match, type Player } from '@fulbito/types'
-import { formatMatchDate, formatMatchHour, parseMatchDate, matchLocationMapsUrl } from '@fulbito/utils'
+import { formatMatchDate, formatMatchHour, getOpponentLabel, parseMatchDate, matchLocationMapsUrl } from '@fulbito/utils'
 import { Pressable, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native'
 
 import { useAppTheme } from '@/hooks/use-theme'
@@ -101,7 +101,7 @@ export function MatchCard({ match, players, canManage, clipCount, onOpen, onEdit
           spacing={spacing}
         />
         <TeamColumn
-          label="Equipo B"
+          label={getOpponentLabel(match) ?? 'Equipo B'}
           players={match.teamB}
           winner={winB}
           loser={winA}

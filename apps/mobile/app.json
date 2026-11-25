@@ -23,7 +23,7 @@
     },
     "android": {
       "package": "com.fulbitoapp.app",
-      "versionCode": 4,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#4C1D95",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -56,6 +56,7 @@
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
       "./plugins/with-nse-dynamic-frameworks",
+      "./plugins/with-android-optional-portrait",
       [
         "react-native-notify-kit",
         {

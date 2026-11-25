@@ -1,7 +1,8 @@
+import { isPersonalTournament } from '@fulbito/utils'
 import { getPlayer } from '@fulbito/firebase'
 import type { MyTournament, Player } from '@fulbito/types'
 import { router } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ScrollView, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -19,6 +20,8 @@ import { useTournaments } from '@/contexts/TournamentContext'
 import { useUnreadComments } from '@/contexts/UnreadCommentsContext'
 import { useLinkedPlayerNames } from '@/hooks/use-linked-player-names'
 import { useMatchesData } from '@/hooks/use-matches-data'
+import { useMyMatchEntries } from '@/hooks/use-my-match-entries'
+import { useMyVideoClips } from '@/hooks/use-my-video-clips'
 import { useAppTheme } from '@/hooks/use-theme'
 
 export default function ProfileScreen() {
@@ -31,6 +34,11 @@ export default function ProfileScreen() {
   const [player, setPlayer] = useState<Player | null>(null)
 
   const myPlayerId = activeTournament?.membership.playerId ?? null
+  const isPersonal = isPersonalTournament(activeTournament?.tournament)
+  const matchEntries = useMyMatchEntries(isPersonal)
+  const otherClips = useMyVideoClips(isPersonal)
+  const externalMatches = useMemo(() => matchEntries.entries.map(({ match }) => match), [matchEntries.entries])
+  const personalEntries = isPersonal && !matchEntries.loading && !matchEntries.error ? matchEntries.entries : undefined
 
   const loadPlayer = useCallback(async () => {
     setPlayer(myPlayerId ? await getPlayer(myPlayerId) : null)
@@ -77,8 +85,15 @@ export default function ProfileScreen() {
             onOpen={openTournament}
           />
           {activeTournament && (
-            <Text style={[styles.groupTitle, { color: colors.muted }]} accessibilityRole="header">
-              EN {activeTournament.tournament.name.toUpperCase()}
+            <Text
+              style={[
+                styles.groupTitle,
+                isPersonal && styles.personalTitle,
+                { color: isPersonal ? colors.text : colors.muted },
+              ]}
+              accessibilityRole="header"
+            >
+              {isPersonal ? 'TU HISTORIA PERSONAL' : `EN ${activeTournament.tournament.name.toUpperCase()}`}
             </Text>
           )}
           {player && (
@@ -86,16 +101,24 @@ export default function ProfileScreen() {
               key={player.id}
               player={player}
               matches={matches}
+              entries={personalEntries}
+              isPersonal={isPersonal}
               index={1}
               onPhotoChanged={() => void loadPlayer()}
             />
           )}
           {player && (
             <ProfileSection icon="film" title="Mis clips" index={2}>
-              <PlayerClipsSection playerId={player.id} matches={matches} canUpload />
+              <PlayerClipsSection
+                playerId={player.id}
+                matches={matches}
+                canUpload
+                extraClips={otherClips}
+                extraMatches={externalMatches}
+              />
             </ProfileSection>
           )}
-          {activeTournament && !myPlayerId && (
+          {activeTournament && !isPersonal && !myPlayerId && (
             <PlayerRequestSection
               key={activeTournament.tournament.id}
               user={user}

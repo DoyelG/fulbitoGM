@@ -17,4 +17,8 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 0.5,
   },
+  personalTitle: {
+    marginTop: 0,
+    fontSize: 15,
+  },
 })

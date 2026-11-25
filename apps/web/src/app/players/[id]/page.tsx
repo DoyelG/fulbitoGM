@@ -16,7 +16,7 @@ import OwnPlayerForm from '@/app/players/[id]/OwnPlayerForm'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
 import { calculateCurrentStreakForPlayer } from "@/lib/playerStats";
 import { getShirtDutiesByPlayerId } from "@/lib/shirtDuty";
-import { getMvpCountsByPlayerId, getGoalkeeping, getPositionLabel } from "@fulbito/utils";
+import { getMvpCountsByPlayerId, getGoalkeeping, getPlayerSkillSummary, getPositionLabel } from "@fulbito/utils";
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { selectActiveTournament, selectMyPlayerId, useTournamentStore } from '@/store/useTournamentStore'
 
@@ -136,24 +136,7 @@ export default function PlayerDetailPage() {
   const winRate = stats.matches
     ? ((stats.wins / stats.matches) * 100).toFixed(1)
     : "0.0";
-  const baseSkill =
-    player.skill === null
-      ? 5
-      : typeof player.skill === "number"
-      ? player.skill
-      : 5;
-  const catSkills = {
-    physical: player.skills?.physical ?? baseSkill,
-    technical: player.skills?.technical ?? baseSkill,
-    tactical: player.skills?.tactical ?? baseSkill,
-    psychological: player.skills?.psychological ?? baseSkill,
-  };
-  const overallAvg =
-    (Number(catSkills.physical) +
-      Number(catSkills.technical) +
-      Number(catSkills.tactical) +
-      Number(catSkills.psychological)) /
-    4;
+  const { catSkills, overallAvg } = getPlayerSkillSummary(player);
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <Link

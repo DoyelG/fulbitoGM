@@ -1,7 +1,18 @@
-import { useMemo } from 'react'
-import { ActivityIndicator, View, Text, StyleSheet, ScrollView } from 'react-native'
+import { useMemo, useState, type ReactNode } from 'react'
+import { useRouter } from 'expo-router'
+import { ActivityIndicator, Alert, View, Text, StyleSheet, ScrollView } from 'react-native'
+import { deleteMatch } from '@fulbito/firebase'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { pickLatestFinalMatches, pickNextMatch, pickStreakLeaders, toLocalDay } from '@fulbito/utils'
+import type { MyMatchEntry } from '@fulbito/types'
+import {
+  buildPersonalHistory,
+  findPersonalTournament,
+  isPersonalTournament,
+  pickLatestFinalMatches,
+  pickNextMatch,
+  pickStreakLeaders,
+  toLocalDay,
+} from '@fulbito/utils'
 import { Spacing, Radii, Fonts } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/use-theme'
 import { useMatchesData } from '@/hooks/use-matches-data'
@@ -10,13 +21,31 @@ import { HomeMenuGrid } from '@/components/home/home-menu-grid'
 import { HomeMatchCard } from '@/components/home/home-match-card'
 import { HomeNextMatchCard } from '@/components/home/home-next-match-card'
 import { HomeRankingRow } from '@/components/home/home-ranking-row'
+import { PersonalStatsGrid } from '@/components/personal/personal-stats-grid'
+import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
+import { WorldCupGoalCard } from '@/components/personal/world-cup-goal-card'
+import { MyPlayerSection } from '@/components/personal/my-player-section'
+import { PersonalMatchesList } from '@/components/personal/personal-matches-list'
+import { ProfileButton } from '@/components/profile/profile-button'
+import { StatSelectFilter } from '@/components/statistics/stat-select-filter'
+import { useTournaments } from '@/contexts/TournamentContext'
+import { useMyMatchEntries } from '@/hooks/use-my-match-entries'
+import { useMyVideoClips } from '@/hooks/use-my-video-clips'
 
+const MATCHES_PAGE_SIZE = 5
 const LAST_MATCHES_LIMIT = 2
 const RANKING_LIMIT = 3
 
 export default function HomeScreen() {
   const { colors: C, isDark, shadows } = useAppTheme()
   const { matches, players, loading, error } = useMatchesData()
+  const router = useRouter()
+  const { myTournaments, activeTournament, setActiveTournament } = useTournaments()
+  const personal = findPersonalTournament(myTournaments)
+  const isPersonalActive = isPersonalTournament(activeTournament?.tournament)
+  const matchEntries = useMyMatchEntries(isPersonalActive)
+  const [year, setYear] = useState<number | 'all'>('all')
+  const [visibleCount, setVisibleCount] = useState(MATCHES_PAGE_SIZE)
   const today = toLocalDay(new Date())
   const nextMatch = useMemo(() => pickNextMatch(matches, today), [matches, today])
   const lastMatches = useMemo(() => pickLatestFinalMatches(matches, LAST_MATCHES_LIMIT), [matches])
@@ -25,7 +54,44 @@ export default function HomeScreen() {
     [players, matches],
   )
   const showMatches = loading || Boolean(error) || lastMatches.length > 0
-  const showRanking = loading || leaders.length > 0
+  const showRanking = !isPersonalActive && (loading || leaders.length > 0)
+  const personalPlayerId = personal?.membership.playerId ?? null
+  const otherClips = useMyVideoClips(isPersonalActive)
+  const externalMatches = useMemo(() => matchEntries.entries.map(({ match }) => match), [matchEntries.entries])
+  const { run, years, summary, sortedEntries } = useMemo(
+    () => buildPersonalHistory(matchEntries.entries, year),
+    [matchEntries.entries, year],
+  )
+  const tournamentNames = useMemo(
+    () => new Map(myTournaments.map(({ tournament }) => [tournament.id, tournament.name])),
+    [myTournaments],
+  )
+  const yearOptions = useMemo(
+    () => [{ value: 'all', label: 'Todos' }, ...years.map((value) => ({ value: String(value), label: String(value) }))],
+    [years],
+  )
+  const confirmDelete = ({ match }: MyMatchEntry) => {
+    if (match.tournamentId !== personal?.tournament.id) return
+    Alert.alert('Eliminar partido', 'Vas a eliminar este partido de tu historia. Esta acción no se puede deshacer.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteMatch(match.tournamentId, match.id)
+            matchEntries.removeMatch(match.id)
+          } catch {
+            Alert.alert('No se pudo eliminar', 'Intentá de nuevo.')
+          }
+        },
+      },
+    ])
+  }
+  const openMatch = ({ match }: MyMatchEntry) => {
+    if (match.tournamentId !== activeTournament?.tournament.id) setActiveTournament(match.tournamentId)
+    router.push({ pathname: '/(tabs)/history/[id]', params: { id: match.id } })
+  }
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: C.background }]} edges={[]}>
@@ -33,28 +99,80 @@ export default function HomeScreen() {
         <HomeHero />
         <HomeMenuGrid />
 
-        {!error && (
-          <>
-            <Text accessibilityRole="header" style={[styles.sectionTitle, { color: C.text }]}>
-              PRÓXIMO PARTIDO
-            </Text>
+        {personal && isPersonalActive && personalPlayerId && (
+          <HomeSection title="MI JUGADOR" color={C.text}>
+            <MyPlayerSection playerId={personalPlayerId} />
+          </HomeSection>
+        )}
+
+        {personal && isPersonalActive && (
+          <HomeSection>
+            <WorldCupGoalCard
+              personal={personal}
+              run={matchEntries.loading ? null : run}
+              loading={matchEntries.loading}
+              runError={matchEntries.error}
+              onRetry={matchEntries.reload}
+            />
+          </HomeSection>
+        )}
+
+        {personal && isPersonalActive && personalPlayerId && (
+          <HomeSection title="MIS ESTADÍSTICAS" color={C.text}>
+            {years.length > 0 && (
+              <View style={[styles.yearFilter, { backgroundColor: C.chipBg }]}>
+                <StatSelectFilter
+                  label="Año"
+                  value={String(year)}
+                  options={yearOptions}
+                  onChange={(value) => {
+                    setYear(value === 'all' ? 'all' : Number(value))
+                    setVisibleCount(MATCHES_PAGE_SIZE)
+                  }}
+                />
+              </View>
+            )}
+            {matchEntries.loading && (
+              <ActivityIndicator accessibilityLabel="Cargando tus partidos" color={C.primaryText} />
+            )}
+            {!matchEntries.loading && !matchEntries.error && <PersonalStatsGrid summary={summary} />}
+            {matchEntries.error && (
+              <Text style={[styles.message, { color: C.muted }]}>No pudimos cargar tus partidos.</Text>
+            )}
+          </HomeSection>
+        )}
+
+        {!isPersonalActive && !error && (
+          <HomeSection title="PRÓXIMO PARTIDO" color={C.text}>
             {loading ? (
-              <ActivityIndicator
-                accessibilityLabel="Cargando el próximo partido"
-                color={C.primaryText}
-                style={styles.loader}
-              />
+              <ActivityIndicator accessibilityLabel="Cargando el próximo partido" color={C.primaryText} />
             ) : (
               <HomeNextMatchCard match={nextMatch} />
             )}
-          </>
+          </HomeSection>
         )}
 
-        {showMatches && (
-          <>
-            <Text accessibilityRole="header" style={[styles.sectionTitle, { color: C.text }]}>
-              ÚLTIMOS PARTIDOS
-            </Text>
+        {isPersonalActive && personal && !matchEntries.loading && !matchEntries.error && (
+          <HomeSection title="ÚLTIMOS PARTIDOS" color={C.text}>
+            <PersonalMatchesList
+              entries={sortedEntries.slice(0, visibleCount)}
+              personalTournamentId={personal.tournament.id}
+              tournamentNames={tournamentNames}
+              onOpen={openMatch}
+              onDelete={confirmDelete}
+            />
+            {sortedEntries.length > visibleCount && (
+              <ProfileButton
+                label="Ver más partidos"
+                variant="secondary"
+                onPress={() => setVisibleCount((count) => count + MATCHES_PAGE_SIZE)}
+              />
+            )}
+          </HomeSection>
+        )}
+
+        {!isPersonalActive && showMatches && (
+          <HomeSection title="ÚLTIMOS PARTIDOS" color={C.text}>
             <View style={styles.matchList} accessibilityLiveRegion="polite">
               {loading && <ActivityIndicator accessibilityLabel="Cargando partidos" color={C.primaryText} />}
               {!loading && error && (
@@ -64,14 +182,11 @@ export default function HomeScreen() {
                 <HomeMatchCard key={m.id} match={m} accentColor={i === 0 ? C.primary : C.secondary} />
               ))}
             </View>
-          </>
+          </HomeSection>
         )}
 
         {showRanking && (
-          <>
-            <Text accessibilityRole="header" style={[styles.sectionTitle, { color: C.text }]}>
-              MUNDIALITO
-            </Text>
+          <HomeSection title="MUNDIALITO" color={C.text}>
             <View
               accessibilityLiveRegion="polite"
               style={[styles.rankingCard, { backgroundColor: C.surface }, shadows.card(isDark) as object]}
@@ -87,7 +202,19 @@ export default function HomeScreen() {
                 <HomeRankingRow key={l.playerId} leader={l} pos={i + 1} showBorder={i < leaders.length - 1} />
               ))}
             </View>
-          </>
+          </HomeSection>
+        )}
+
+        {personal && isPersonalActive && personalPlayerId && (
+          <View style={styles.clips}>
+            <PlayerClipsSection
+              playerId={personalPlayerId}
+              matches={matches}
+              canUpload
+              extraClips={otherClips}
+              extraMatches={externalMatches}
+            />
+          </View>
         )}
 
         <View style={styles.bottomPad} />
@@ -96,26 +223,35 @@ export default function HomeScreen() {
   )
 }
 
+function HomeSection({ title, color, children }: { title?: string; color?: string; children: ReactNode }) {
+  return (
+    <View style={styles.section}>
+      {title && (
+        <Text accessibilityRole="header" style={[styles.sectionTitle, { color }]}>
+          {title}
+        </Text>
+      )}
+      {children}
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { paddingBottom: 32 },
+  section: { paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg, gap: Spacing.lg },
+  clips: { paddingHorizontal: Spacing.lg },
+  yearFilter: { borderRadius: Radii.md },
 
   sectionTitle: {
     fontFamily: Fonts.blackItalic,
     fontSize: 18,
     letterSpacing: 0.5,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
   },
 
-  matchList: {
-    paddingHorizontal: Spacing.lg,
-    gap: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
+  matchList: { gap: Spacing.md },
 
   rankingCard: {
-    marginHorizontal: Spacing.lg,
     borderRadius: Radii.lg,
     overflow: 'hidden',
   },
@@ -126,8 +262,6 @@ const styles = StyleSheet.create({
   },
 
   rankingMessage: { padding: Spacing.lg },
-
-  loader: { marginBottom: Spacing.xl },
 
   bottomPad: { height: 16 },
 })

@@ -65,3 +65,4 @@ generated/prisma
 
 functions/lib
 functions/.env
+.claude/launch.json
