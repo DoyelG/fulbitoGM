@@ -510,20 +510,9 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Mail is queued by Cloud Functions with the Admin SDK, which bypasses these rules.
     match /mail/{mailId} {
-      allow create: if isSignedIn()
-        && request.resource.data.keys().hasOnly(['to', 'template', 'data', 'tournamentId', 'requestUid'])
-        && request.resource.data.template == 'PLAYER_LINK_ACCEPTED'
-        && request.resource.data.data.keys().hasOnly(['playerName', 'tournamentName'])
-        && request.resource.data.data.playerName is string
-        && request.resource.data.data.playerName.size() <= 100
-        && request.resource.data.data.tournamentName is string
-        && request.resource.data.data.tournamentName.size() <= 100
-        && request.resource.data.tournamentId is string
-        && request.resource.data.requestUid is string
-        && isTournamentAdmin(request.resource.data.tournamentId)
-        && get(/databases/$(database)/documents/tournaments/$(request.resource.data.tournamentId)/playerRequests/$(request.resource.data.requestUid)).data.email
-          == request.resource.data.to;
+      allow read, write: if false;
     }
   }
 }
