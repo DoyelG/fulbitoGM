@@ -1,14 +1,18 @@
 # Functions
 
-Cloud Functions de Firebase (`apps/functions`). Hoy hay una sola: manda una notificación push a los miembros de un torneo cuando alguien escribe un mensaje.
+Cloud Functions de Firebase. Hay dos codebases: `apps/functions` (push de mensajes) y `functions` (mails).
 
 ## Que hace
 
-| Función                   | Se dispara cuando                             | Qué hace                                                                                           |
-| ------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `notifyTournamentComment` | se crea un doc en `tournaments/{id}/comments` | Avisa por push a todos los miembros menos al autor y borra los tokens que FCM marca como inválidos |
+| Función                       | Se dispara cuando                                    | Qué hace                                                                                                        |
+| ----------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `notifyTournamentComment`     | se crea un doc en `tournaments/{id}/comments`        | Avisa por push a todos los miembros menos al autor y borra los tokens que FCM marca como inválidos              |
+| `queuePlayerLinkAcceptedMail` | se borra un doc en `tournaments/{id}/playerRequests` | Si la solicitud estaba pendiente y el miembro quedó vinculado, encola el mail de vinculación aceptada en `mail` |
+| `sendQueuedMail`              | se crea un doc en `mail`                             | Arma el mail desde su plantilla, lo manda por SMTP y guarda el resultado en `delivery`                          |
 
 Quién recibe: los miembros de `tournaments/{id}/members`, sin el autor. Los tokens salen de `users/{uid}/devices`, que la app mobile guarda en `apps/mobile/lib/notifications/push-token.ts`.
+
+La colección `mail` solo la escriben las funciones (Admin SDK): las reglas la cierran para los clientes, así nadie puede mandar mails con contenido propio desde el remitente de la app.
 
 ## Por qué una función y no reglas
 
@@ -39,14 +43,20 @@ firebase deploy --only functions          # desde la raíz; compila antes (prede
 firebase functions:log                    # ver los logs
 ```
 
+## Variables de entorno
+
+Solo para `functions` (mails): `MAIL_FROM` y `APP_URL` en `functions/.env` (ver `functions/.env.example`) y el secreto `SMTP_URL` (`firebase functions:secrets:set SMTP_URL`).
+
 ## Dónde está cada cosa
 
-| Para tocar…                                   | Archivo                                                      |
-| --------------------------------------------- | ------------------------------------------------------------ |
-| La función y el texto de la notificación      | `apps/functions/src/index.ts`                                |
-| El despliegue                                 | bloque `functions` de `firebase.json`                        |
-| Guardar el token del dispositivo              | `apps/mobile/lib/notifications/push-token.ts`                |
-| No mostrar el push de chat con la app abierta | `apps/mobile/lib/notifications/push-notification-display.ts` |
+| Para tocar…                                   | Archivo                                                           |
+| --------------------------------------------- | ----------------------------------------------------------------- |
+| La función y el texto de la notificación      | `apps/functions/src/index.ts`                                     |
+| Encolar y enviar mails                        | `functions/src/index.ts`                                          |
+| El texto y el diseño de los mails             | `functions/src/mail-templates.ts`, `functions/src/mail-layout.ts` |
+| El despliegue                                 | bloque `functions` de `firebase.json`                             |
+| Guardar el token del dispositivo              | `apps/mobile/lib/notifications/push-token.ts`                     |
+| No mostrar el push de chat con la app abierta | `apps/mobile/lib/notifications/push-notification-display.ts`      |
 
 ## Para tener en cuenta
 

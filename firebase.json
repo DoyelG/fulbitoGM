@@ -1,11 +1,4 @@
 {
-  "functions": {
-    "source": "apps/functions",
-    "runtime": "nodejs22",
-    "predeploy": [
-      "pnpm --filter @fulbito/functions build"
-    ]
-  },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
@@ -28,5 +21,22 @@
       "enabled": true,
       "port": 4000
     }
-  }
+  },
+  "functions": [
+    {
+      "source": "apps/functions",
+      "codebase": "default",
+      "runtime": "nodejs22",
+      "predeploy": ["pnpm --filter @fulbito/functions build"]
+    },
+    {
+      "source": "functions",
+      "codebase": "mail",
+      "ignore": ["node_modules", "src", "tsconfig.json"],
+      "predeploy": [
+        "pnpm --dir \"$RESOURCE_DIR\" install --ignore-workspace --frozen-lockfile",
+        "pnpm --dir \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
 }

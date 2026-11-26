@@ -509,5 +509,10 @@ service cloud.firestore {
 
       allow delete: if false;
     }
+
+    // Mail is queued by Cloud Functions with the Admin SDK, which bypasses these rules.
+    match /mail/{mailId} {
+      allow read, write: if false;
+    }
   }
 }

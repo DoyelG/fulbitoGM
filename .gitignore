@@ -62,4 +62,7 @@ generated/prisma
 
 # Claude Code local tool-permission config (personal, not project config)
 .claude/settings.local.json
+
+functions/lib
+functions/.env
 .claude/launch.json
