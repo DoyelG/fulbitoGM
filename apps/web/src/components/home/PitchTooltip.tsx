@@ -1,4 +1,6 @@
 import type { PitchPosition } from '@fulbito/types'
+import Link from 'next/link'
+import { FiArrowUpRight } from 'react-icons/fi'
 
 export type PitchTooltipData = {
   name: string
@@ -9,7 +11,7 @@ export type PitchTooltipData = {
   match?: { goals: number; performance: number }
 }
 
-type Props = { id: string; data: PitchTooltipData; spot: PitchPosition }
+type Props = { id: string; data: PitchTooltipData; spot: PitchPosition; open: boolean; href: string }
 
 const LABEL = 'text-[10px] leading-[14px] font-bold tracking-wider text-gray-500 uppercase'
 
@@ -35,16 +37,26 @@ function goalsLabel(goals: number): string {
   return goals === 0 ? 'sin goles' : plural(goals, 'gol', 'goles')
 }
 
-export default function PitchTooltip({ id, data, spot }: Props) {
+export default function PitchTooltip({ id, data, spot, open, href }: Props) {
   const subtitle =
     [data.position, data.teamLabel].filter(Boolean).join(' · ') + (data.isMvp ? ' · MVP del partido' : '')
   return (
     <span
       id={id}
       role="tooltip"
-      className={`pointer-events-none invisible absolute z-30 flex w-max max-w-60 flex-col gap-0.5 rounded-xl bg-white px-3 py-2.5 text-left text-xs leading-4 text-gray-900 opacity-0 shadow-lg transition-opacity duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100 ${placementClass(spot)}`}
+      className={`absolute z-30 flex before:absolute before:inset-x-0 before:-inset-y-2 before:-z-10 before:content-[''] w-max max-w-60 flex-col gap-0.5 rounded-xl bg-white px-3 py-2.5 text-left text-xs leading-4 text-gray-900 shadow-lg transition-opacity duration-150 ${open ? 'pointer-events-auto visible opacity-100' : 'pointer-events-none invisible opacity-0'} ${placementClass(spot)}`}
     >
-      <span className="text-sm font-bold">{data.name}</span>
+      <span className="flex items-start justify-between gap-3">
+        <span className="text-sm font-bold">{data.name}</span>
+        <Link
+          href={href}
+          aria-label={`Ver ficha de ${data.name}`}
+          title="Ver ficha"
+          className="-mt-1 -mr-1.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+        >
+          <FiArrowUpRight aria-hidden size={16} />
+        </Link>
+      </span>
       <span className="text-gray-600">{subtitle}</span>
       {data.tournament && (
         <>

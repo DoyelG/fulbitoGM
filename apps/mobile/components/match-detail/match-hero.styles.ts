@@ -2,8 +2,6 @@ import { StyleSheet } from 'react-native'
 
 import { ContrastColors, Fonts, PrimaryColors, Radii, Spacing } from '@/constants/theme'
 
-const LOGO_SIZE = 40
-
 export const styles = StyleSheet.create({
   card: {
     overflow: 'hidden',
@@ -17,37 +15,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  side: {
-    flex: 1,
-  },
-  logo: {
-    width: LOGO_SIZE,
-    height: LOGO_SIZE,
-    borderRadius: Radii.pill,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: PrimaryColors.chipBg,
-    borderWidth: 1,
-    borderColor: ContrastColors.onColorBorder,
-  },
-  logoImage: {
-    width: LOGO_SIZE,
-    height: LOGO_SIZE,
-  },
   title: {
     color: ContrastColors.onColor,
     fontFamily: Fonts.extraBold,
-    fontSize: 20,
+    fontSize: 24,
+    lineHeight: 30,
     textAlign: 'center',
-    flexShrink: 1,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: Spacing.xs,
+    flex: 1,
   },
   badge: {
     borderRadius: Radii.pill,

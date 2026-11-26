@@ -189,9 +189,20 @@ function round(value: number): number {
 
 const SNAP_RADIUS = 7
 const SPOT_TAKEN_RADIUS = 2
+const UNCHANGED_RADIUS = 1.5
 
 function distance(a: PitchPosition, b: PitchPosition): number {
   return Math.hypot(a.x - b.x, a.y - b.y)
+}
+
+export function hasPitchChanges(
+  original: Readonly<Record<string, PitchPosition>>,
+  edits: Readonly<Record<string, PitchPosition>>,
+): boolean {
+  return Object.entries(edits).some(([id, position]) => {
+    const before = original[id]
+    return !before || distance(before, position) > UNCHANGED_RADIUS
+  })
 }
 
 export type PitchMove = { id: string; position: PitchPosition }

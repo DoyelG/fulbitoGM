@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useMemo, useRef, type CSSProperties } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { MatchPlayer, PitchPosition } from '@fulbito/types'
 import {
   computePlayerStatRows,
@@ -29,6 +29,7 @@ export type MatchPitchProps = {
 
 const EMPTY: readonly string[] = []
 const TALL_FROM = 7
+const PLAYER_LAYER = 'absolute inset-x-4 inset-y-6'
 
 function densityFor(largestTeam: number): PitchDensity {
   if (largestTeam <= 6)
@@ -39,7 +40,6 @@ function densityFor(largestTeam: number): PitchDensity {
   return {
     avatar: 'sm',
     nameClass: 'text-[11px] max-w-[19cqw] sm:max-w-[9.5cqw]',
-    maxChars: 10,
     compactBalls: true,
   }
 }
@@ -71,6 +71,21 @@ export default function MatchPitch({
   const tall = largestTeam >= TALL_FROM
   const isEditable = editable && onPlayerMove !== undefined
   const instructionsId = `${uid}-drag`
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [focusedId, setFocusedId] = useState<string | null>(null)
+  const [tappedId, setTappedId] = useState<string | null>(null)
+  const openTooltipId = hoveredId ?? tappedId ?? focusedId
+  useEffect(() => {
+    if (!tappedId) return
+    const closeOnOutsideTap = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target.closest('[data-pitch-player]') : null
+      if (target?.getAttribute('data-pitch-player') !== tappedId) setTappedId(null)
+    }
+    document.addEventListener('pointerdown', closeOnOutsideTap)
+    return () => document.removeEventListener('pointerdown', closeOnOutsideTap)
+  }, [tappedId])
+  const spreadLayer = wide ? 'sm:-inset-x-[3.5%] sm:inset-y-4' : 'sm:-inset-x-[3.5%] sm:-inset-y-[3%]'
+  const playerLayer = `${PLAYER_LAYER} ${tall ? spreadLayer : 'sm:inset-x-6 sm:inset-y-4'}`
 
   const sides = [
     {
@@ -130,11 +145,11 @@ export default function MatchPitch({
         </p>
       )}
       <div
-        className={`@container relative rounded-2xl border-2 border-white/22 bg-white/4 ${wide ? 'sm:aspect-[2/1] xl:aspect-[12/5]' : 'sm:aspect-[2/1]'} ${tall ? 'aspect-[9/16]' : 'aspect-[2/3]'}`}
+        className={`@container relative rounded-2xl border-2 border-white/22 bg-white/4 ${wide ? 'sm:aspect-[2/1] xl:aspect-[12/5]' : tall ? 'sm:aspect-video' : 'sm:aspect-[2/1]'} ${tall ? 'aspect-[9/16]' : 'aspect-[2/3]'}`}
       >
         <PitchLines tall={tall} wide={wide} />
         {guideSpots.length > 0 && (
-          <div aria-hidden className="pointer-events-none absolute inset-x-4 inset-y-6 sm:inset-x-6 sm:inset-y-4">
+          <div aria-hidden className={`pointer-events-none ${playerLayer}`}>
             {guideSpots.map((spot) => (
               <span
                 key={`${spot.x}-${spot.y}`}
@@ -144,11 +159,7 @@ export default function MatchPitch({
             ))}
           </div>
         )}
-        <ul
-          ref={containerRef}
-          aria-label="Jugadores en la cancha"
-          className="absolute inset-x-4 inset-y-6 sm:inset-x-6 sm:inset-y-4"
-        >
+        <ul ref={containerRef} aria-label="Jugadores en la cancha" className={playerLayer}>
           {sides.flatMap(({ side, label, team, positions }) =>
             team.map((player) => {
               const profile = playerById.get(player.id)
@@ -167,6 +178,14 @@ export default function MatchPitch({
                   isMvp={isMvp}
                   spot={spot}
                   density={density}
+                  tooltipOpen={openTooltipId === player.id}
+                  onHoverChange={(hovering) =>
+                    setHoveredId((current) => (hovering ? player.id : current === player.id ? null : current))
+                  }
+                  onFocusChange={(focused) =>
+                    setFocusedId((current) => (focused ? player.id : current === player.id ? null : current))
+                  }
+                  onTap={() => setTappedId(player.id)}
                   tooltip={{
                     name: profile?.name ?? player.name,
                     position: profile?.position ? getPositionLabel(profile.position) : undefined,

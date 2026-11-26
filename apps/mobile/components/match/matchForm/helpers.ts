@@ -1,5 +1,5 @@
-import type { MatchInput, Player, MatchLocation, MatchType } from '@fulbito/types'
-import { buildMatchSchedule } from '@fulbito/utils'
+import type { MatchInput, Player, MatchLocation, MatchType, PitchPosition } from '@fulbito/types'
+import { buildMatchSchedule, withPitchPositions } from '@fulbito/utils'
 
 import type { RecordingPlayer } from './types'
 
@@ -63,6 +63,7 @@ export type BuildPayloadInput = {
   mvpId?: string | null
   isMatchFriendly?: boolean
   matchLocation?: MatchLocation | null
+  positions?: Record<string, PitchPosition>
 }
 
 export type BuildDraftPayloadInput = Omit<
@@ -82,8 +83,8 @@ export function buildDraftMatchPayload(input: BuildDraftPayloadInput): MatchInpu
     status: 'draft',
     teamAScore: 0,
     teamBScore: 0,
-    teamA: input.teamA.map(toDraftPlayer),
-    teamB: input.teamB.map(toDraftPlayer),
+    teamA: withPitchPositions(input.teamA.map(toDraftPlayer), input.positions ?? {}),
+    teamB: withPitchPositions(input.teamB.map(toDraftPlayer), input.positions ?? {}),
     shirtsResponsibleId: input.shirtsResponsibleId,
     goalkeeperIds: input.goalkeeperIds ?? [],
     mvpId: null,
@@ -109,8 +110,8 @@ export function buildFinalMatchPayload(input: BuildPayloadInput): MatchInput {
     status: 'final',
     teamAScore: input.teamAScore,
     teamBScore: input.teamBScore,
-    teamA: buildTeamPlayers(input.teamA, input.goalsA, input.perfA),
-    teamB: buildTeamPlayers(input.teamB, input.goalsB, input.perfB),
+    teamA: withPitchPositions(buildTeamPlayers(input.teamA, input.goalsA, input.perfA), input.positions ?? {}),
+    teamB: withPitchPositions(buildTeamPlayers(input.teamB, input.goalsB, input.perfB), input.positions ?? {}),
     shirtsResponsibleId: input.shirtsResponsibleId,
     goalkeeperIds: input.goalkeeperIds ?? [],
     mvpId: input.mvpId ?? null,

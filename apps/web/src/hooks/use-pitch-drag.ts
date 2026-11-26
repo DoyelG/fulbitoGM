@@ -4,8 +4,11 @@ import { clampPitchPosition } from '@fulbito/utils'
 
 const STEP = 2
 const BIG_STEP = 10
+const DRAG_THRESHOLD = 6
 
 type Delta = { dx: number; dy: number }
+
+type Press = { playerId: string; clientX: number; clientY: number; origin: PitchPosition; moved: boolean }
 
 const HORIZONTAL_KEYS: Record<string, Delta> = {
   ArrowLeft: { dx: -1, dy: 0 },
@@ -34,7 +37,7 @@ export function usePitchDrag(
   onRelease?: (playerId: string, origin: PitchPosition) => void,
 ) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
-  const originRef = useRef<PitchPosition | null>(null)
+  const pressRef = useRef<Press | null>(null)
 
   const isHorizontal = () => {
     const rect = containerRef.current?.getBoundingClientRect()
@@ -54,19 +57,25 @@ export function usePitchDrag(
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId)
       }
-      if (draggingId === playerId && originRef.current) onRelease?.(playerId, originRef.current)
-      originRef.current = null
+      const press = pressRef.current
+      if (press?.playerId === playerId && press.moved) onRelease?.(playerId, press.origin)
+      pressRef.current = null
       setDraggingId(null)
     }
     return {
       onPointerDown: (event) => {
         if (event.button !== 0) return
         event.currentTarget.setPointerCapture(event.pointerId)
-        originRef.current = current
-        setDraggingId(playerId)
+        pressRef.current = { playerId, clientX: event.clientX, clientY: event.clientY, origin: current, moved: false }
       },
       onPointerMove: (event) => {
-        if (draggingId !== playerId) return
+        const press = pressRef.current
+        if (press?.playerId !== playerId) return
+        if (!press.moved) {
+          if (Math.hypot(event.clientX - press.clientX, event.clientY - press.clientY) < DRAG_THRESHOLD) return
+          press.moved = true
+          setDraggingId(playerId)
+        }
         const next = pointerPosition(event.clientX, event.clientY)
         if (next) onMove(playerId, next)
       },

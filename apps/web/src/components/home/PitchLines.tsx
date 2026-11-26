@@ -48,7 +48,10 @@ function VerticalLines({ tall }: { tall: boolean }) {
 export default function PitchLines({ tall, wide }: { tall: boolean; wide: boolean }) {
   return (
     <>
-      <HorizontalLines length={800} className={wide ? 'hidden sm:block xl:hidden' : 'hidden sm:block'} />
+      <HorizontalLines
+        length={wide || !tall ? 800 : 711}
+        className={wide ? 'hidden sm:block xl:hidden' : 'hidden sm:block'}
+      />
       {wide && <HorizontalLines length={960} className="hidden xl:block" />}
       <VerticalLines tall={tall} />
     </>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { CSSProperties } from 'react'
+import { useRef, type CSSProperties, type PointerEvent } from 'react'
 import type { PitchPosition } from '@fulbito/types'
 import type { PitchDragHandlers } from '@/hooks/use-pitch-drag'
 import GoalBalls from './GoalBalls'
@@ -9,7 +9,6 @@ import PitchTooltip, { type PitchTooltipData } from './PitchTooltip'
 export type PitchDensity = {
   avatar: NonNullable<PlayerAvatarProps['size']>
   nameClass: string
-  maxChars?: number
   compactBalls: boolean
 }
 
@@ -24,19 +23,24 @@ type Props = {
   spot: PitchPosition
   density: PitchDensity
   tooltip: PitchTooltipData
+  tooltipOpen: boolean
+  onHoverChange: (hovering: boolean) => void
+  onFocusChange: (focused: boolean) => void
+  onTap: () => void
   drag?: PitchDragHandlers & { isDragging: boolean; describedBy: string }
 }
 
-const FOCUS = 'rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white'
+const TAP_SLOP = 8
 
-function shortName(name: string, maxChars?: number): string {
-  if (!maxChars || name.length <= maxChars) return name
-  return `${name.slice(0, maxChars - 1).trimEnd()}…`
-}
+const FOCUS = 'rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white'
 
 function ringClass(isMvp: boolean, side: 'A' | 'B'): string {
   if (isMvp) return 'ring-3 ring-secondary'
   return side === 'A' ? 'ring-2 ring-orange-300' : ''
+}
+
+function isTap(press: { x: number; y: number } | null, event: PointerEvent<HTMLElement>): boolean {
+  return press !== null && Math.hypot(event.clientX - press.x, event.clientY - press.y) <= TAP_SLOP
 }
 
 export default function PitchPlayer({
@@ -50,8 +54,13 @@ export default function PitchPlayer({
   spot,
   density,
   tooltip,
+  tooltipOpen,
+  onHoverChange,
+  onFocusChange,
+  onTap,
   drag,
 }: Props) {
+  const pressRef = useRef<{ x: number; y: number } | null>(null)
   const style = { '--pitch-x': `${spot.x}%`, '--pitch-y': `${spot.y}%` } as CSSProperties
 
   const body = (
@@ -63,12 +72,14 @@ export default function PitchPlayer({
             ⭐
           </span>
         )}
+        {goals > 0 && (
+          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 text-[10px] leading-none whitespace-nowrap">
+            <GoalBalls goals={goals} compact={density.compactBalls} />
+          </span>
+        )}
       </span>
-      <span
-        className={`flex items-center gap-1 leading-4 font-semibold whitespace-nowrap text-white ${density.nameClass}`}
-      >
-        <span className="truncate">{shortName(name, density.maxChars)}</span>
-        <GoalBalls goals={goals} compact={density.compactBalls} />
+      <span className={`line-clamp-2 text-center leading-4 font-semibold break-words text-white ${density.nameClass}`}>
+        {name}
       </span>
     </>
   )
@@ -78,7 +89,19 @@ export default function PitchPlayer({
   return (
     <li
       style={style}
-      className={`group absolute top-(--pitch-x) left-(--pitch-y) -translate-x-1/2 -translate-y-1/2 hover:z-20 focus-within:z-20 sm:top-(--pitch-y) sm:left-(--pitch-x) ${drag?.isDragging ? 'z-20' : 'z-10'}`}
+      data-pitch-player={playerId}
+      onPointerEnter={(event) => event.pointerType === 'mouse' && onHoverChange(true)}
+      onPointerLeave={(event) => event.pointerType === 'mouse' && onHoverChange(false)}
+      onPointerDown={(event) => {
+        pressRef.current = event.pointerType === 'mouse' ? null : { x: event.clientX, y: event.clientY }
+      }}
+      onPointerUp={(event) => {
+        if (isTap(pressRef.current, event)) onTap()
+        pressRef.current = null
+      }}
+      onFocus={() => onFocusChange(true)}
+      onBlur={() => onFocusChange(false)}
+      className={`absolute w-max top-(--pitch-x) left-(--pitch-y) -translate-x-1/2 -translate-y-1/2 sm:top-(--pitch-y) sm:left-(--pitch-x) ${drag?.isDragging || tooltipOpen ? 'z-20' : 'z-10'}`}
     >
       {drag ? (
         <button
@@ -100,7 +123,9 @@ export default function PitchPlayer({
           {body}
         </Link>
       )}
-      {!drag?.isDragging && <PitchTooltip id={tooltipId} data={tooltip} spot={spot} />}
+      {!drag?.isDragging && (
+        <PitchTooltip id={tooltipId} data={tooltip} spot={spot} open={tooltipOpen} href={`/players/${playerId}`} />
+      )}
     </li>
   )
 }

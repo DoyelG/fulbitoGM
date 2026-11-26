@@ -113,7 +113,12 @@ export default function MatchDetailPage() {
             <MatchHero match={match} tournamentPhotoUrl={tournamentPhotoUrl} />
           </div>
           {!isPersonal && <MatchPitchSection match={match} editable={canManage} className="order-3" />}
-          <DetailSection id="match-teams-title" title="Equipos" icon={UserGroupIcon} className="order-3">
+          <DetailSection
+            id="match-teams-title"
+            title="Equipos"
+            icon={UserGroupIcon}
+            className={`order-3 ${isPersonal ? '' : 'max-sm:hidden'}`}
+          >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <MatchTeamCard
                 {...shared}
