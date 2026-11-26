@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { Match, MatchInput } from '@fulbito/types'
-import { getMatches, createMatch, updateMatch, deleteMatch } from '@fulbito/firebase'
+import type { Match, MatchInput, PitchPosition } from '@fulbito/types'
+import { getMatches, createMatch, updateMatch, updateMatchPlayerPositions, deleteMatch } from '@fulbito/firebase'
 import { getActiveTournamentId, isStillActive } from './active-tournament'
 
 type MatchStore = {
@@ -9,6 +9,7 @@ type MatchStore = {
   initLoad: () => Promise<void>
   addMatch: (m: MatchInput) => Promise<string>
   updateMatch: (id: string, m: MatchInput) => Promise<void>
+  updateMatchPositions: (id: string, positions: Record<string, PitchPosition>) => Promise<void>
   deleteMatch: (id: string) => Promise<void>
   hydrateMatches: (matches: Match[]) => void
   resetAndReload: () => Promise<void>
@@ -40,6 +41,10 @@ export const useMatchStore = create<MatchStore>()((set, get) => ({
   },
   updateMatch: async (id, m) => {
     await updateMatch(getActiveTournamentId(), id, m)
+    await get().resetAndReload()
+  },
+  updateMatchPositions: async (id, positions) => {
+    await updateMatchPlayerPositions(getActiveTournamentId(), id, positions)
     await get().resetAndReload()
   },
   deleteMatch: async (id) => {

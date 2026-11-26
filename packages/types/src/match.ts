@@ -3,7 +3,11 @@ export type MatchPlayer = {
   name: string
   goals: number
   performance: number
+  x?: number
+  y?: number
 }
+
+export type PitchPosition = { x: number; y: number }
 
 export type MatchStatus = 'draft' | 'final'
 

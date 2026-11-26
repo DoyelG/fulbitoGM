@@ -21,7 +21,7 @@ export default function ScoreboardHero() {
     <section
       aria-labelledby="scoreboard-title"
       aria-busy={status === 'loading'}
-      className="bg-primary-gradient relative isolate flex h-full flex-col justify-center overflow-hidden rounded-3xl px-5 py-7 text-center text-white shadow-xl sm:px-10 sm:py-9"
+      className="bg-primary-gradient relative isolate flex h-full flex-col justify-center overflow-hidden rounded-3xl px-5 py-5 text-center text-white shadow-xl sm:px-8 sm:py-5"
     >
       <Image
         src="/scoreboard-ball.jpg"
@@ -31,14 +31,16 @@ export default function ScoreboardHero() {
         sizes="(min-width: 1024px) 736px, 100vw"
         className="pointer-events-none -z-10 object-cover object-right opacity-50 mix-blend-luminosity select-none [mask-image:linear-gradient(to_left,black_20%,transparent_70%)] sm:opacity-70"
       />
-      <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
-        Último partido
-      </h2>
-      {status === 'ready' && latest && (
-        <p className="mt-1 text-sm text-violet-100/80 first-letter:uppercase">{formatLongMatchDate(latest.date)}</p>
-      )}
+      <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
+        <h2 id="scoreboard-title" className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
+          Último partido
+        </h2>
+        {status === 'ready' && latest && (
+          <p className="text-sm text-violet-100/80 first-letter:uppercase">{formatLongMatchDate(latest.date)}</p>
+        )}
+      </div>
 
-      <div aria-live="polite" className="mt-6">
+      <div aria-live="polite" className="mt-3">
         {status === 'loading' && <ScoreboardSkeleton />}
         {status === 'error' && (
           <div className="flex flex-col items-center gap-3">
@@ -53,19 +55,20 @@ export default function ScoreboardHero() {
           </div>
         )}
         {isEmpty && <p className="text-lg text-gray-300">Todavía no hay partidos</p>}
-        {status === 'ready' && latest && <ScoreboardResult match={latest} />}
+        {status === 'ready' && latest && (
+          <ScoreboardResult
+            match={latest}
+            action={
+              <Link
+                href={`/history/${latest.id}`}
+                className={`inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-secondary px-6 py-2 font-extrabold text-night shadow-lg shadow-secondary/35 transition sm:ml-2 sm:w-auto hover:brightness-110 ${FOCUS_ON_DARK}`}
+              >
+                Ver partido
+              </Link>
+            }
+          />
+        )}
       </div>
-
-      {status === 'ready' && latest && (
-        <div className="mt-6 flex justify-center">
-          <Link
-            href={`/history/${latest.id}`}
-            className={`inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition sm:w-auto hover:brightness-110 ${FOCUS_ON_DARK}`}
-          >
-            Ver partido
-          </Link>
-        </div>
-      )}
     </section>
   )
 }

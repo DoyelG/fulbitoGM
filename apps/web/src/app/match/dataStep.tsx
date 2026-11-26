@@ -1,6 +1,8 @@
 'use client'
 
-import type { MatchType } from '@fulbito/types'
+import { useMemo, useState } from 'react'
+import type { MatchPlayer, MatchType, PitchPosition } from '@fulbito/types'
+import { defaultTeamFormation, withPitchPositions } from '@fulbito/utils'
 import type { Player } from '@/store/usePlayerStore'
 import type { TeamResult } from '@/lib/teamUtils'
 import { Card } from '@/components/Card'
@@ -8,6 +10,14 @@ import Button from '@/components/Button'
 import { FiRefreshCw } from 'react-icons/fi'
 import CreateDraftForm, { type DraftForm } from './draftForm'
 import TeamCard from './teamCard'
+import PitchCanvas from '@/components/matches/PitchCanvas'
+
+function toPitchPlayers(team: TeamResult, positions: Record<string, PitchPosition>): MatchPlayer[] {
+  return withPitchPositions(
+    team.players.map((player) => ({ id: player.id, name: player.name, goals: 0, performance: 0 })),
+    positions,
+  )
+}
 
 type Props = {
   teamA: TeamResult
@@ -41,6 +51,26 @@ export default function DataStep({
   const combinedSkill = teamA.totalSkill + teamB.totalSkill
   const probA = combinedSkill > 0 ? Math.round((teamA.totalSkill / combinedSkill) * 100) : 50
   const probB = combinedSkill > 0 ? 100 - probA : 50
+  const goalkeeperList = useMemo(() => [...goalkeeperIds], [goalkeeperIds])
+  const [positions, setPositions] = useState<Record<string, PitchPosition>>(() => {
+    const roleById = Object.fromEntries(
+      [...teamA.players, ...teamB.players].map((player) => [player.id, player.position]),
+    )
+    return {
+      ...defaultTeamFormation(
+        teamA.players.map((player) => player.id),
+        goalkeeperList,
+        'A',
+        roleById,
+      ),
+      ...defaultTeamFormation(
+        teamB.players.map((player) => player.id),
+        goalkeeperList,
+        'B',
+        roleById,
+      ),
+    }
+  })
 
   return (
     <Card className="mt-6">
@@ -76,7 +106,21 @@ export default function DataStep({
         />
       </div>
 
+      <div className="mt-6">
+        <h3 className="mb-1 text-lg font-semibold">Posiciones en la cancha</h3>
+        <PitchCanvas
+          teamA={toPitchPlayers(teamA, positions)}
+          teamB={toPitchPlayers(teamB, positions)}
+          goalkeeperIds={goalkeeperList}
+          editable
+          onPlayerMove={(playerId, position) => setPositions((previous) => ({ ...previous, [playerId]: position }))}
+          showMatchStats={false}
+          hint="Arrastrá las fichas, o enfocalas y usá las flechas, para elegir dónde arranca cada jugador"
+        />
+      </div>
+
       <CreateDraftForm
+        positions={positions}
         teamAPlayers={teamA.players}
         teamBPlayers={teamB.players}
         matchType={matchType}

@@ -1,5 +1,13 @@
 import { getFirestore, collection, doc, getDocs, getDoc, writeBatch, query, where, Timestamp } from 'firebase/firestore'
-import type { Match, MatchInput, MatchPlayer, MatchLocation, MembershipRef, MyMatchEntry } from '@fulbito/types'
+import type {
+  Match,
+  MatchInput,
+  MatchPlayer,
+  MatchLocation,
+  MembershipRef,
+  MyMatchEntry,
+  PitchPosition,
+} from '@fulbito/types'
 import { linkedMemberships } from './linked-memberships'
 import { deleteClipsOfMatch } from './video-clips'
 import { tournamentPlayersQuery } from './players'
@@ -11,6 +19,15 @@ const MATCH_PLAYERS_COLLECTION = 'matchPlayers'
 
 function isTimestampLike(value: unknown): value is { toDate(): Date } {
   return typeof value === 'object' && value !== null && typeof (value as { toDate?: unknown }).toDate === 'function'
+}
+
+function readPitchPosition(data: Record<string, unknown>): Partial<PitchPosition> {
+  const { x, y } = data
+  return typeof x === 'number' && typeof y === 'number' ? { x, y } : {}
+}
+
+function pitchPositionFields(player: MatchPlayer): Partial<PitchPosition> {
+  return typeof player.x === 'number' && typeof player.y === 'number' ? { x: player.x, y: player.y } : {}
 }
 
 export function groupTeamsByMatch(
@@ -31,6 +48,7 @@ export function groupTeamsByMatch(
       name: playerNames.get(mp['playerId'] as string) ?? '',
       goals: (mp['goals'] as number) ?? 0,
       performance: (mp['performance'] as number) ?? 0,
+      ...readPitchPosition(mp),
     }
     teams[mp['team'] as 'A' | 'B'].push(entry)
   }
@@ -192,6 +210,7 @@ export async function createMatch(tournamentId: string, data: MatchInput): Promi
       team: p.team,
       goals: p.goals,
       performance: p.performance,
+      ...pitchPositionFields(p),
     })
   }
 
@@ -226,9 +245,26 @@ export async function updateMatch(tournamentId: string, id: string, data: MatchI
       team: p.team,
       goals: p.goals,
       performance: p.performance,
+      ...pitchPositionFields(p),
     })
   }
 
+  await batch.commit()
+}
+
+export async function updateMatchPlayerPositions(
+  tournamentId: string,
+  matchId: string,
+  positions: Record<string, PitchPosition>,
+): Promise<void> {
+  const db = getFirestore()
+  const mpSnap = await getDocs(matchPlayersQuery(tournamentId, matchId))
+
+  const batch = writeBatch(db)
+  for (const d of mpSnap.docs) {
+    const position = positions[d.data()['playerId'] as string]
+    if (position) batch.update(d.ref, { x: position.x, y: position.y })
+  }
   await batch.commit()
 }
 

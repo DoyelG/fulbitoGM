@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { MatchInput, MatchLocation, MatchType } from '@fulbito/types'
-import { buildMatchSchedule, onlyFinalMatches } from '@fulbito/utils'
+import type { MatchInput, MatchLocation, MatchType, PitchPosition } from '@fulbito/types'
+import { buildMatchSchedule, onlyFinalMatches, withPitchPositions } from '@fulbito/utils'
 import type { Player } from '@/store/usePlayerStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
@@ -31,6 +31,7 @@ export type DraftForm = {
 }
 
 type Props = {
+  positions: Record<string, PitchPosition>
   teamAPlayers: PlayerInfo[]
   teamBPlayers: PlayerInfo[]
   matchType: MatchType
@@ -47,6 +48,7 @@ function pickRandomId(pool: PlayerInfo[]): string | null {
 }
 
 export default function CreateDraftForm({
+  positions,
   teamAPlayers,
   teamBPlayers,
   matchType,
@@ -102,8 +104,8 @@ export default function CreateDraftForm({
         status: 'draft',
         teamAScore: 0,
         teamBScore: 0,
-        teamA: teamAPlayers.map(toMatchPlayer),
-        teamB: teamBPlayers.map(toMatchPlayer),
+        teamA: withPitchPositions(teamAPlayers.map(toMatchPlayer), positions),
+        teamB: withPitchPositions(teamBPlayers.map(toMatchPlayer), positions),
         name: draft.name.trim() || undefined,
         shirtsResponsibleId: shirtsResponsibleId ?? null,
         description: draft.description.trim() || undefined,

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
-import type { Match, MatchInput, MatchLocation, MatchType } from '@fulbito/types'
+import type { Match, MatchInput, MatchLocation, MatchPlayer, MatchType, PitchPosition } from '@fulbito/types'
 import { useMatchStore } from '@/store/useMatchStore'
 import { useVideoClipStore, type NewVideoClipData } from '@/store/useVideoClipStore'
 import Button from '@/components/Button'
@@ -31,6 +31,7 @@ import {
   canDeleteVideoClip,
   MATCH_TYPES,
   MAX_GOALKEEPERS,
+  hasPitchPosition,
 } from '@fulbito/utils'
 import HourField from '@/components/HourField'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -53,6 +54,11 @@ import { useTournamentStore } from '@/store/useTournamentStore'
 
 
 type RecordingPlayer = { id: string; name: string }
+
+function keptPosition(playerId: string, initialTeam: MatchPlayer[] | undefined): Partial<PitchPosition> {
+  const previous = initialTeam?.find((player) => player.id === playerId)
+  return previous && hasPitchPosition(previous) ? { x: previous.x, y: previous.y } : {}
+}
 
 const MATCH_ACTION_SHAPE =
   'relative inline-flex h-11 w-11 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5'
@@ -781,12 +787,14 @@ export function RecordModal({
         name: player.name,
         goals: isFinal ? goalsA[player.id] || 0 : 0,
         performance: isFinal ? perfA[player.id] || 5 : 0,
+        ...keptPosition(player.id, initial?.teamA),
       })),
       teamB: teamB.map((player) => ({
         id: player.id,
         name: player.name,
         goals: isFinal ? goalsB[player.id] || 0 : 0,
         performance: isFinal ? perfB[player.id] || 5 : 0,
+        ...keptPosition(player.id, initial?.teamB),
       })),
       name: matchName.trim() || undefined,
       description: matchDescription.trim() || undefined,

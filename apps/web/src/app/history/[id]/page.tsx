@@ -16,6 +16,7 @@ import DetailSection from '@/components/tournaments/detail/DetailSection'
 import MatchHero from '@/components/matches/MatchHero'
 import MatchTeamCard, { type TeamResult } from '@/components/matches/MatchTeamCard'
 import MatchInfoPanel from '@/components/matches/MatchInfoPanel'
+import MatchPitchSection from '@/components/matches/MatchPitchSection'
 import MatchHighlightsPanel from '@/components/matches/MatchHighlightsPanel'
 import TournamentCommentsBox from '@/components/matches/TournamentCommentsBox'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
@@ -111,6 +112,7 @@ export default function MatchDetailPage() {
           <div className="order-1">
             <MatchHero match={match} tournamentPhotoUrl={tournamentPhotoUrl} />
           </div>
+          {!isPersonal && <MatchPitchSection match={match} editable={canManage} className="order-3" />}
           <DetailSection id="match-teams-title" title="Equipos" icon={UserGroupIcon} className="order-3">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <MatchTeamCard
