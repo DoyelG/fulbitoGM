@@ -1,7 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+
+type Pending = { kind: 'href'; href: string } | { kind: 'back' }
+
+const SENTINEL_KEY = '__unsavedChangesGuard'
 
 function internalHrefFrom(event: MouseEvent): string | null {
   if (event.defaultPrevented || event.button !== 0) return null
@@ -17,12 +21,26 @@ function internalHrefFrom(event: MouseEvent): string | null {
   return `${url.pathname}${url.search}${url.hash}`
 }
 
+function isOnSentinel(): boolean {
+  const state: unknown = window.history.state
+  return typeof state === 'object' && state !== null && SENTINEL_KEY in state
+}
+
+function pushSentinel() {
+  const state: unknown = window.history.state
+  const base = typeof state === 'object' && state !== null ? state : {}
+  window.history.pushState({ ...base, [SENTINEL_KEY]: true }, '', window.location.href)
+}
+
 export function useUnsavedChangesGuard(isDirty: boolean) {
   const router = useRouter()
-  const [pendingHref, setPendingHref] = useState<string | null>(null)
+  const [pending, setPending] = useState<Pending | null>(null)
+  const leavingRef = useRef(false)
 
   useEffect(() => {
     if (!isDirty) return
+    leavingRef.current = false
+    pushSentinel()
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault()
       event.returnValue = ''
@@ -32,23 +50,39 @@ export function useUnsavedChangesGuard(isDirty: boolean) {
       if (!href) return
       event.preventDefault()
       event.stopPropagation()
-      setPendingHref(href)
+      setPending({ kind: 'href', href })
+    }
+    const onPopState = () => {
+      if (leavingRef.current) return
+      pushSentinel()
+      setPending({ kind: 'back' })
     }
     window.addEventListener('beforeunload', onBeforeUnload)
+    window.addEventListener('popstate', onPopState)
     document.addEventListener('click', onClick, true)
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload)
+      window.removeEventListener('popstate', onPopState)
       document.removeEventListener('click', onClick, true)
+      setTimeout(() => {
+        if (!leavingRef.current && isOnSentinel()) window.history.back()
+      }, 0)
     }
   }, [isDirty])
 
-  const stay = useCallback(() => setPendingHref(null), [])
+  const stay = useCallback(() => setPending(null), [])
 
   const leave = useCallback(() => {
-    if (!pendingHref) return
-    setPendingHref(null)
-    router.push(pendingHref)
-  }, [pendingHref, router])
+    if (!pending) return
+    leavingRef.current = true
+    setPending(null)
+    if (pending.kind === 'back') {
+      window.history.go(-2)
+      return
+    }
+    if (isOnSentinel()) router.replace(pending.href)
+    else router.push(pending.href)
+  }, [pending, router])
 
-  return { isBlocking: pendingHref !== null, stay, leave }
+  return { isBlocking: pending !== null, stay, leave }
 }

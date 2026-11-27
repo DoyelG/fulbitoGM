@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { useRef, type CSSProperties, type PointerEvent } from 'react'
+import { useRef, type CSSProperties, type MouseEvent, type PointerEvent } from 'react'
 import type { PitchPosition } from '@fulbito/types'
 import type { PitchDragHandlers } from '@/hooks/use-pitch-drag'
 import GoalBalls from './GoalBalls'
@@ -39,7 +39,9 @@ function ringClass(isMvp: boolean, side: 'A' | 'B'): string {
   return side === 'A' ? 'ring-2 ring-orange-300' : ''
 }
 
-function isTap(press: { x: number; y: number } | null, event: PointerEvent<HTMLElement>): boolean {
+type Press = { x: number; y: number; tooltipWasOpen: boolean }
+
+function isTap(press: Press | null, event: PointerEvent<HTMLElement>): boolean {
   return press !== null && Math.hypot(event.clientX - press.x, event.clientY - press.y) <= TAP_SLOP
 }
 
@@ -60,7 +62,8 @@ export default function PitchPlayer({
   onTap,
   drag,
 }: Props) {
-  const pressRef = useRef<{ x: number; y: number } | null>(null)
+  const pressRef = useRef<Press | null>(null)
+  const suppressClickRef = useRef(false)
   const style = { '--pitch-x': `${spot.x}%`, '--pitch-y': `${spot.y}%` } as CSSProperties
 
   const body = (
@@ -93,10 +96,16 @@ export default function PitchPlayer({
       onPointerEnter={(event) => event.pointerType === 'mouse' && onHoverChange(true)}
       onPointerLeave={(event) => event.pointerType === 'mouse' && onHoverChange(false)}
       onPointerDown={(event) => {
-        pressRef.current = event.pointerType === 'mouse' ? null : { x: event.clientX, y: event.clientY }
+        pressRef.current =
+          event.pointerType === 'mouse' ? null : { x: event.clientX, y: event.clientY, tooltipWasOpen: tooltipOpen }
+        suppressClickRef.current = false
       }}
       onPointerUp={(event) => {
-        if (isTap(pressRef.current, event)) onTap()
+        const press = pressRef.current
+        if (isTap(press, event)) {
+          onTap()
+          suppressClickRef.current = !press?.tooltipWasOpen
+        }
         pressRef.current = null
       }}
       onFocus={() => onFocusChange(true)}
@@ -119,7 +128,16 @@ export default function PitchPlayer({
           {body}
         </button>
       ) : (
-        <Link href={`/players/${playerId}`} aria-describedby={tooltipId} className={`${content} ${FOCUS}`}>
+        <Link
+          href={`/players/${playerId}`}
+          aria-describedby={tooltipId}
+          onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+            if (!suppressClickRef.current) return
+            suppressClickRef.current = false
+            event.preventDefault()
+          }}
+          className={`${content} ${FOCUS}`}
+        >
           {body}
         </Link>
       )}

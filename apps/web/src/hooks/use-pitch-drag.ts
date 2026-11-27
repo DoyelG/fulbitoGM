@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
 import type { PitchPosition } from '@fulbito/types'
-import { clampPitchPosition } from '@fulbito/utils'
+import { clampPitchPosition, type PitchSide } from '@fulbito/utils'
 
 const STEP = 2
 const BIG_STEP = 10
@@ -8,7 +8,14 @@ const DRAG_THRESHOLD = 6
 
 type Delta = { dx: number; dy: number }
 
-type Press = { playerId: string; clientX: number; clientY: number; origin: PitchPosition; moved: boolean }
+type Press = {
+  playerId: string
+  clientX: number
+  clientY: number
+  origin: PitchPosition
+  last: PitchPosition
+  moved: boolean
+}
 
 const HORIZONTAL_KEYS: Record<string, Delta> = {
   ArrowLeft: { dx: -1, dy: 0 },
@@ -34,7 +41,7 @@ export type PitchDragHandlers = {
 export function usePitchDrag(
   containerRef: RefObject<HTMLElement | null>,
   onMove: (playerId: string, position: PitchPosition) => void,
-  onRelease?: (playerId: string, origin: PitchPosition) => void,
+  onRelease?: (playerId: string, origin: PitchPosition, position: PitchPosition) => void,
 ) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const pressRef = useRef<Press | null>(null)
@@ -44,21 +51,21 @@ export function usePitchDrag(
     return !rect || rect.width >= rect.height
   }
 
-  const pointerPosition = (clientX: number, clientY: number): PitchPosition | null => {
+  const pointerPosition = (clientX: number, clientY: number, side: PitchSide): PitchPosition | null => {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect || rect.width === 0 || rect.height === 0) return null
     const across = ((clientX - rect.left) / rect.width) * 100
     const down = ((clientY - rect.top) / rect.height) * 100
-    return clampPitchPosition(isHorizontal() ? { x: across, y: down } : { x: down, y: across })
+    return clampPitchPosition(isHorizontal() ? { x: across, y: down } : { x: down, y: across }, side)
   }
 
-  const handlersFor = (playerId: string, current: PitchPosition): PitchDragHandlers => {
+  const handlersFor = (playerId: string, current: PitchPosition, side: PitchSide): PitchDragHandlers => {
     const stop = (event: PointerEvent<HTMLElement>) => {
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId)
       }
       const press = pressRef.current
-      if (press?.playerId === playerId && press.moved) onRelease?.(playerId, press.origin)
+      if (press?.playerId === playerId && press.moved) onRelease?.(playerId, press.origin, press.last)
       pressRef.current = null
       setDraggingId(null)
     }
@@ -66,7 +73,14 @@ export function usePitchDrag(
       onPointerDown: (event) => {
         if (event.button !== 0) return
         event.currentTarget.setPointerCapture(event.pointerId)
-        pressRef.current = { playerId, clientX: event.clientX, clientY: event.clientY, origin: current, moved: false }
+        pressRef.current = {
+          playerId,
+          clientX: event.clientX,
+          clientY: event.clientY,
+          origin: current,
+          last: current,
+          moved: false,
+        }
       },
       onPointerMove: (event) => {
         const press = pressRef.current
@@ -76,8 +90,10 @@ export function usePitchDrag(
           press.moved = true
           setDraggingId(playerId)
         }
-        const next = pointerPosition(event.clientX, event.clientY)
-        if (next) onMove(playerId, next)
+        const next = pointerPosition(event.clientX, event.clientY, side)
+        if (!next) return
+        press.last = next
+        onMove(playerId, next)
       },
       onPointerUp: stop,
       onPointerCancel: stop,
@@ -86,7 +102,7 @@ export function usePitchDrag(
         if (!delta) return
         event.preventDefault()
         const step = event.shiftKey ? BIG_STEP : STEP
-        onMove(playerId, clampPitchPosition({ x: current.x + delta.dx * step, y: current.y + delta.dy * step }))
+        onMove(playerId, clampPitchPosition({ x: current.x + delta.dx * step, y: current.y + delta.dy * step }, side))
       },
     }
   }

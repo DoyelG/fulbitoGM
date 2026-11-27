@@ -141,11 +141,28 @@ export function defaultTeamFormation(
   return formation
 }
 
-export function clampPitchPosition(position: PitchPosition): PitchPosition {
+export const PITCH_HALF_LIMIT = 47
+
+function xBoundsFor(side: PitchSide | undefined): { min: number; max: number } {
+  if (side === 'A') return { min: PITCH_X_BOUNDS.min, max: PITCH_HALF_LIMIT }
+  if (side === 'B') return { min: 100 - PITCH_HALF_LIMIT, max: PITCH_X_BOUNDS.max }
+  return PITCH_X_BOUNDS
+}
+
+export function clampPitchPosition(position: PitchPosition, side?: PitchSide): PitchPosition {
+  const xBounds = xBoundsFor(side)
   return {
-    x: Math.min(PITCH_X_BOUNDS.max, Math.max(PITCH_X_BOUNDS.min, position.x)),
+    x: Math.min(xBounds.max, Math.max(xBounds.min, position.x)),
     y: Math.min(PITCH_Y_BOUNDS.max, Math.max(PITCH_Y_BOUNDS.min, position.y)),
   }
+}
+
+const SNAP_RADIUS = 7
+const SPOT_TAKEN_RADIUS = 2
+const UNCHANGED_RADIUS = 1.5
+
+function distance(a: PitchPosition, b: PitchPosition): number {
+  return Math.hypot(a.x - b.x, a.y - b.y)
 }
 
 function isPercent(value: unknown): value is number {
@@ -168,9 +185,29 @@ export function resolveTeamPositions(
     side,
     roleById,
   )
-  return Object.fromEntries(
-    team.map((player) => [player.id, hasPitchPosition(player) ? { x: player.x, y: player.y } : fallback[player.id]]),
-  )
+  const resolved: Record<string, PitchPosition> = {}
+  const saved: PitchPosition[] = []
+  for (const player of team) {
+    if (!hasPitchPosition(player)) continue
+    resolved[player.id] = { x: player.x, y: player.y }
+    saved.push(resolved[player.id])
+  }
+  const isOccupied = (spot: PitchPosition) => saved.some((other) => distance(other, spot) < SNAP_RADIUS)
+  const unsaved = team.filter((player) => !(player.id in resolved))
+  const displaced = unsaved.filter((player) => isOccupied(fallback[player.id]))
+  const assigned = new Set<PitchPosition>()
+  for (const player of unsaved) {
+    if (displaced.includes(player)) continue
+    resolved[player.id] = fallback[player.id]
+    assigned.add(fallback[player.id])
+  }
+  const freeSpots = Object.values(fallback).filter((spot) => !assigned.has(spot) && !isOccupied(spot))
+  for (const player of displaced) {
+    const preferred = fallback[player.id]
+    const nearest = freeSpots.sort((a, b) => distance(a, preferred) - distance(b, preferred)).shift()
+    resolved[player.id] = nearest ?? preferred
+  }
+  return Object.fromEntries(team.map((player) => [player.id, resolved[player.id]]))
 }
 
 export function withPitchPositions<T extends { id: string }>(
@@ -185,14 +222,6 @@ export function withPitchPositions<T extends { id: string }>(
 
 function round(value: number): number {
   return Math.round(value * 10) / 10
-}
-
-const SNAP_RADIUS = 7
-const SPOT_TAKEN_RADIUS = 2
-const UNCHANGED_RADIUS = 1.5
-
-function distance(a: PitchPosition, b: PitchPosition): number {
-  return Math.hypot(a.x - b.x, a.y - b.y)
 }
 
 export function hasPitchChanges(

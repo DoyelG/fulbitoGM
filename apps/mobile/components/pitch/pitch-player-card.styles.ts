@@ -17,7 +17,7 @@ export const styles = StyleSheet.create({
   card: {
     position: 'absolute',
     zIndex: 6,
-    gap: 2,
+    gap: Spacing.xxs,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 2,
     borderRadius: Radii.md,

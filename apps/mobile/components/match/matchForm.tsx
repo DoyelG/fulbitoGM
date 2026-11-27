@@ -33,7 +33,7 @@ import { usePool } from './matchForm/usePool'
 import { useScores } from './matchForm/useScores'
 import { pickShirtsResponsible, useShirts } from './matchForm/useShirts'
 import { useTeams } from './matchForm/useTeams'
-import { usePitchPositions } from './matchForm/usePitchPositions'
+import { usePitchPositions } from './matchForm/use-pitch-positions'
 import { PitchEditorSection } from './matchForm/pitchEditorSection'
 import { LocationField } from './matchForm/locationField'
 

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeftIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { FiCheckCircle, FiEdit2 } from 'react-icons/fi'
-import { isPersonalTournament, teamTotals, winProbabilityA } from '@fulbito/utils'
+import { isPersonalTournament, teamSkillAverages, teamTotals, winProbabilityA } from '@fulbito/utils'
 import { useCanManageTournament } from '@/hooks/use-can-manage-tournament'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
@@ -17,6 +17,7 @@ import MatchHero from '@/components/matches/MatchHero'
 import MatchTeamCard, { type TeamResult } from '@/components/matches/MatchTeamCard'
 import MatchInfoPanel from '@/components/matches/MatchInfoPanel'
 import MatchPitchSection from '@/components/matches/MatchPitchSection'
+import MatchStatsSection from '@/components/matches/MatchStatsSection'
 import MatchHighlightsPanel from '@/components/matches/MatchHighlightsPanel'
 import TournamentCommentsBox from '@/components/matches/TournamentCommentsBox'
 import VideoClipsSection from '@/components/videoClips/VideoClipsSection'
@@ -113,6 +114,13 @@ export default function MatchDetailPage() {
             <MatchHero match={match} tournamentPhotoUrl={tournamentPhotoUrl} />
           </div>
           {!isPersonal && <MatchPitchSection match={match} editable={canManage} className="order-3" />}
+          {!isPersonal && (
+            <MatchStatsSection
+              className="order-3"
+              teamA={{ skills: teamSkillAverages(match.teamA, playerById), winProbability: probabilityA }}
+              teamB={{ skills: teamSkillAverages(match.teamB, playerById), winProbability: 100 - probabilityA }}
+            />
+          )}
           <DetailSection
             id="match-teams-title"
             title="Equipos"

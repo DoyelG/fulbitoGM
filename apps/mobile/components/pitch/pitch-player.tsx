@@ -30,7 +30,7 @@ type Props = {
   onLongPress: () => void
   onDragStart: () => void
   onMove: (position: PitchPosition) => void
-  onRelease: (origin: PitchPosition, moved: boolean) => void
+  onRelease: (origin: PitchPosition, moved: boolean, position: PitchPosition) => void
 }
 
 const MAX_BALLS = 5
@@ -75,6 +75,7 @@ export function PitchPlayer({
 }: Props) {
   const panHandlers = usePitchDrag({
     enabled: editable,
+    side,
     position: spot,
     area,
     onStart: onDragStart,
@@ -90,7 +91,7 @@ export function PitchPlayer({
   const handleAccessibilityAction = ({ nativeEvent }: AccessibilityActionEvent) => {
     const delta = A11Y_MOVES[nativeEvent.actionName]
     if (!delta) return
-    onMove(clampPitchPosition({ x: spot.x + delta.x, y: spot.y + delta.y }))
+    onMove(clampPitchPosition({ x: spot.x + delta.x, y: spot.y + delta.y }, side))
   }
 
   const tokenStyle = [

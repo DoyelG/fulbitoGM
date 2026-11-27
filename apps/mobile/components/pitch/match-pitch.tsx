@@ -101,13 +101,12 @@ export function MatchPitch({
 
   const sideOf = (playerId: string) => sides.find(({ positions }) => playerId in positions)
 
-  const settleDrop = (playerId: string, origin: PitchPosition, moved: boolean) => {
+  const settleDrop = (playerId: string, origin: PitchPosition, moved: boolean, position: PitchPosition) => {
     setDraggingId(null)
     onDraggingChange?.(false)
     if (!moved) return
     const side = sideOf(playerId)
-    const position = side?.positions[playerId]
-    if (!side || !position) return
+    if (!side) return
     const opponents = sides.filter((other) => other !== side).flatMap((other) => Object.values(other.positions))
     resolvePitchDrop({ id: playerId, position, origin }, side.spots, side.positions, opponents).forEach((move) =>
       onPlayerMove?.(move.id, side.side, move.position),
@@ -215,7 +214,7 @@ export function MatchPitch({
                     setInfoId(null)
                     onPlayerMove?.(player.id, side, position)
                   }}
-                  onRelease={(origin, moved) => settleDrop(player.id, origin, moved)}
+                  onRelease={(origin, moved, position) => settleDrop(player.id, origin, moved, position)}
                 />
               )
             }),

@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native'
 
-import { ContrastColors, Fonts, PitchColors, Radii } from '@/constants/theme'
+import { ContrastColors, Fonts, PitchColors, Radii, Spacing } from '@/constants/theme'
 
 export const styles = StyleSheet.create({
   token: {
     position: 'absolute',
     alignItems: 'center',
-    gap: 3,
+    gap: Spacing.xxs,
     minHeight: 44,
     zIndex: 1,
   },

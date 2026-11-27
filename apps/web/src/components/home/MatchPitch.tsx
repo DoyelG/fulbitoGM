@@ -1,19 +1,17 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useId, useMemo, useRef } from 'react'
 import type { MatchPlayer, PitchPosition } from '@fulbito/types'
-import {
-  computePlayerStatRows,
-  defaultTeamFormation,
-  getPositionLabel,
-  resolvePitchDrop,
-  resolveTeamPositions,
-} from '@fulbito/utils'
+import { computePlayerStatRows, type PitchSide } from '@fulbito/utils'
 import { usePitchDrag } from '@/hooks/use-pitch-drag'
+import { usePitchSides } from '@/hooks/use-pitch-sides'
+import { usePitchTooltip } from '@/hooks/use-pitch-tooltip'
 import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
+import PitchGuideSpots from './PitchGuideSpots'
 import PitchLines from './PitchLines'
-import PitchPlayer, { type PitchDensity } from './PitchPlayer'
+import type { PitchDensity } from './PitchPlayer'
+import PitchSideTokens from './PitchSideTokens'
 
 export type MatchPitchProps = {
   teamA: MatchPlayer[]
@@ -23,6 +21,7 @@ export type MatchPitchProps = {
   editable?: boolean
   onPlayerMove?: (playerId: string, position: PitchPosition) => void
   showMatchStats?: boolean
+  showTooltips?: boolean
   wide?: boolean
   className?: string
 }
@@ -52,6 +51,7 @@ export default function MatchPitch({
   editable = false,
   onPlayerMove,
   showMatchStats = true,
+  showTooltips = true,
   wide = false,
   className = '',
 }: MatchPitchProps) {
@@ -64,78 +64,29 @@ export default function MatchPitch({
     () => new Map(computePlayerStatRows(players, matches).map((row) => [row.id, row])),
     [players, matches],
   )
-
-  const roleById = useMemo(() => Object.fromEntries(players.map((player) => [player.id, player.position])), [players])
-  const largestTeam = Math.max(teamA.length, teamB.length)
-  const density = densityFor(largestTeam)
-  const tall = largestTeam >= TALL_FROM
-  const isEditable = editable && onPlayerMove !== undefined
-  const instructionsId = `${uid}-drag`
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const [focusedId, setFocusedId] = useState<string | null>(null)
-  const [tappedId, setTappedId] = useState<string | null>(null)
-  const openTooltipId = hoveredId ?? tappedId ?? focusedId
-  useEffect(() => {
-    if (!tappedId) return
-    const closeOnOutsideTap = (event: PointerEvent) => {
-      const target = event.target instanceof Element ? event.target.closest('[data-pitch-player]') : null
-      if (target?.getAttribute('data-pitch-player') !== tappedId) setTappedId(null)
-    }
-    document.addEventListener('pointerdown', closeOnOutsideTap)
-    return () => document.removeEventListener('pointerdown', closeOnOutsideTap)
-  }, [tappedId])
-  const spreadLayer = wide ? 'sm:-inset-x-[3.5%] sm:inset-y-4' : 'sm:-inset-x-[3.5%] sm:-inset-y-[3%]'
-  const playerLayer = `${PLAYER_LAYER} ${tall ? spreadLayer : 'sm:inset-x-6 sm:inset-y-4'}`
-
-  const sides = [
-    {
-      side: 'A' as const,
-      label: 'Equipo A',
-      team: teamA,
-      positions: resolveTeamPositions(teamA, goalkeeperIds, 'A', roleById),
-      spots: Object.values(
-        defaultTeamFormation(
-          teamA.map((player) => player.id),
-          goalkeeperIds,
-          'A',
-          roleById,
-        ),
-      ),
-    },
-    {
-      side: 'B' as const,
-      label: 'Equipo B',
-      team: teamB,
-      positions: resolveTeamPositions(teamB, goalkeeperIds, 'B', roleById),
-      spots: Object.values(
-        defaultTeamFormation(
-          teamB.map((player) => player.id),
-          goalkeeperIds,
-          'B',
-          roleById,
-        ),
-      ),
-    },
-  ]
-
-  const sideOf = (playerId: string) => sides.find(({ positions }) => playerId in positions)
-
-  const settleDrop = (playerId: string, origin: PitchPosition) => {
-    const side = sideOf(playerId)
-    const position = side?.positions[playerId]
-    if (!side || !position) return
-    const opponents = sides.filter((other) => other !== side).flatMap((other) => Object.values(other.positions))
-    resolvePitchDrop({ id: playerId, position, origin }, side.spots, side.positions, opponents).forEach((move) =>
-      onPlayerMove?.(move.id, move.position),
-    )
-  }
-
+  const tooltipState = usePitchTooltip()
+  const tooltip = showTooltips ? tooltipState : { ...tooltipState, openId: null }
+  const { sides, sideOf, settleDrop } = usePitchSides(teamA, teamB, goalkeeperIds, onPlayerMove)
   const { draggingId, handlersFor } = usePitchDrag(
     containerRef,
     (id, position) => onPlayerMove?.(id, position),
     settleDrop,
   )
+
+  const largestTeam = Math.max(teamA.length, teamB.length)
+  const density = densityFor(largestTeam)
+  const tall = largestTeam >= TALL_FROM
+  const isEditable = editable && onPlayerMove !== undefined
+  const instructionsId = `${uid}-drag`
+  const spreadLayer = wide ? 'sm:-inset-x-[3.5%] sm:inset-y-4' : 'sm:-inset-x-[3.5%] sm:-inset-y-[3%]'
+  const playerLayer = `${PLAYER_LAYER} ${tall ? spreadLayer : 'sm:inset-x-6 sm:inset-y-4'}`
   const guideSpots = draggingId ? (sideOf(draggingId)?.spots ?? []) : []
+
+  const dragFor = (playerId: string, spot: PitchPosition, side: PitchSide) => ({
+    ...handlersFor(playerId, spot, side),
+    isDragging: draggingId === playerId,
+    describedBy: instructionsId,
+  })
 
   return (
     <div className={className}>
@@ -148,65 +99,22 @@ export default function MatchPitch({
         className={`@container relative rounded-2xl border-2 border-white/22 bg-white/4 ${wide ? 'sm:aspect-[2/1] xl:aspect-[12/5]' : tall ? 'sm:aspect-video' : 'sm:aspect-[2/1]'} ${tall ? 'aspect-[9/16]' : 'aspect-[2/3]'}`}
       >
         <PitchLines tall={tall} wide={wide} />
-        {guideSpots.length > 0 && (
-          <div aria-hidden className={`pointer-events-none ${playerLayer}`}>
-            {guideSpots.map((spot) => (
-              <span
-                key={`${spot.x}-${spot.y}`}
-                style={{ '--pitch-x': `${spot.x}%`, '--pitch-y': `${spot.y}%` } as CSSProperties}
-                className="absolute top-(--pitch-x) left-(--pitch-y) h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-white/35 sm:top-(--pitch-y) sm:left-(--pitch-x)"
-              />
-            ))}
-          </div>
-        )}
+        <PitchGuideSpots spots={guideSpots} className={playerLayer} />
         <ul ref={containerRef} aria-label="Jugadores en la cancha" className={playerLayer}>
-          {sides.flatMap(({ side, label, team, positions }) =>
-            team.map((player) => {
-              const profile = playerById.get(player.id)
-              const stats = statsById.get(player.id)
-              const spot = positions[player.id]
-              const isMvp = player.id === mvpId
-              return (
-                <PitchPlayer
-                  key={player.id}
-                  playerId={player.id}
-                  tooltipId={`${uid}-${player.id}`}
-                  name={player.name}
-                  photoUrl={profile?.photoUrl}
-                  goals={showMatchStats ? player.goals : 0}
-                  side={side}
-                  isMvp={isMvp}
-                  spot={spot}
-                  density={density}
-                  tooltipOpen={openTooltipId === player.id}
-                  onHoverChange={(hovering) =>
-                    setHoveredId((current) => (hovering ? player.id : current === player.id ? null : current))
-                  }
-                  onFocusChange={(focused) =>
-                    setFocusedId((current) => (focused ? player.id : current === player.id ? null : current))
-                  }
-                  onTap={() => setTappedId(player.id)}
-                  tooltip={{
-                    name: profile?.name ?? player.name,
-                    position: profile?.position ? getPositionLabel(profile.position) : undefined,
-                    teamLabel: label,
-                    isMvp,
-                    tournament: stats ? { matches: stats.matches, goals: stats.goals, mvps: stats.mvps } : undefined,
-                    match: showMatchStats ? { goals: player.goals, performance: player.performance } : undefined,
-                  }}
-                  drag={
-                    isEditable
-                      ? {
-                          ...handlersFor(player.id, spot),
-                          isDragging: draggingId === player.id,
-                          describedBy: instructionsId,
-                        }
-                      : undefined
-                  }
-                />
-              )
-            }),
-          )}
+          {sides.map((data) => (
+            <PitchSideTokens
+              key={data.side}
+              data={data}
+              uid={uid}
+              mvpId={mvpId}
+              showMatchStats={showMatchStats}
+              density={density}
+              playerById={playerById}
+              statsById={statsById}
+              tooltip={tooltip}
+              dragFor={isEditable ? (playerId) => dragFor(playerId, data.positions[playerId], data.side) : undefined}
+            />
+          ))}
         </ul>
       </div>
     </div>

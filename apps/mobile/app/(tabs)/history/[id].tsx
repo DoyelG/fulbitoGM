@@ -3,6 +3,7 @@ import {
   buildMentionCandidates,
   isPersonalTournament,
   isTournamentAdminRole,
+  teamSkillAverages,
   teamTotals,
   winProbabilityA,
 } from '@fulbito/utils'
@@ -24,6 +25,7 @@ import { MatchHero } from '@/components/match-detail/match-hero'
 import { MatchHighlightsCard } from '@/components/match-detail/match-highlights-card'
 import { MatchInfoCard } from '@/components/match-detail/match-info-card'
 import { MatchPitchSection } from '@/components/match-detail/match-pitch-section'
+import { MatchStatsCard } from '@/components/match-detail/match-stats-card'
 import { MatchTeamCard, type TeamResult } from '@/components/match-detail/match-team-card'
 import { TournamentCommentsCard } from '@/components/match-detail/tournament-comments-card'
 import { styles } from '@/components/match-detail/match-detail-screen.styles'
@@ -169,6 +171,16 @@ export default function MatchDetailScreen() {
               onSave={(positions) => updateMatchPositions(match.id, positions)}
               onDraggingChange={setIsDraggingOnPitch}
             />
+          )}
+
+          {!isPersonal && (
+            <>
+              <SectionTitle title="Estadísticas" />
+              <MatchStatsCard
+                teamA={{ skills: teamSkillAverages(match.teamA, playerById), winProbability: probabilityA }}
+                teamB={{ skills: teamSkillAverages(match.teamB, playerById), winProbability: 100 - probabilityA }}
+              />
+            </>
           )}
 
           {isPersonal && (
