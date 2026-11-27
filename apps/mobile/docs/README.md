@@ -6,25 +6,25 @@ This is the **map** of the whole process. Each step has a short description. Whe
 
 ## Quick reference
 
-| Item                | Value                                                    |
-| ------------------- | -------------------------------------------------------- |
-| App name            | FulbitoApp                                               |
-| Bundle ID / package | `com.fulbitoapp.app` (iOS and Android)                   |
-| Apple Team ID       | `KFQ42Y6Z73`                                             |
-| Firebase project    | `fulbitoGM`                                              |
-| App Store (iOS)     | [Fulbito App](https://apps.apple.com/us/app/fulbito-app/id6810410637) |
-| Google Play (Android) | Pending: the app is still in review, URL not available yet |
-| Framework           | Expo (React Native) with native builds (`ios/`, `android/`) |
+| Item                  | Value                                                                 |
+| --------------------- | --------------------------------------------------------------------- |
+| App name              | FulbitoApp                                                            |
+| Bundle ID / package   | `com.fulbitoapp.app` (iOS and Android)                                |
+| Apple Team ID         | `KFQ42Y6Z73`                                                          |
+| Firebase project      | `fulbitoGM`                                                           |
+| App Store (iOS)       | [Fulbito App](https://apps.apple.com/us/app/fulbito-app/id6810410637) |
+| Google Play (Android) | Pending: the app is still in review, URL not available yet            |
+| Framework             | Expo (React Native) with native builds (`ios/`, `android/`)           |
 
 ## Which guide do I need?
 
-| I want to...                                  | Go to                                                                  |
-| --------------------------------------------- | ---------------------------------------------------------------------- |
-| Create the Apple developer account            | [Apple: account registration](./guides/apple-account-registration.md)                       |
-| Create the Google Play developer account      | [Google: account registration](./guides/google-account-registration.md)                     |
-| Configure and publish the iOS app             | [iOS overview: zero to TestFlight](./guides/apple.md) |
-| Configure and publish the Android app         | [Android overview: zero to Google Play](./guides/google.md) |
-| Set up push notifications                     | [Push notifications guide](./guides/push-notifications.md)             |
+| I want to...                             | Go to                                                                   |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| Create the Apple developer account       | [Apple: account registration](./guides/apple-account-registration.md)   |
+| Create the Google Play developer account | [Google: account registration](./guides/google-account-registration.md) |
+| Configure and publish the iOS app        | [iOS overview: zero to TestFlight](./guides/apple.md)                   |
+| Configure and publish the Android app    | [Android overview: zero to Google Play](./guides/google.md)             |
+| Set up push notifications                | [Push notifications guide](./guides/push-notifications.md)              |
 
 ---
 
@@ -99,6 +99,10 @@ Regenerate the native project (`npx expo prebuild --platform android --clean`), 
 **iOS: TestFlight**
 In the Xcode **Organizer**, choose **Distribute App** to upload the archive to App Store Connect. Apple processes the build (about 15 to 30 minutes) and then you can assign it to testers in TestFlight.
 **Details:** [Apple: create and distribute an archive](./guides/ios-archive-and-testflight.md)
+
+**iOS: App Store release**
+To publish, create the new version in App Store Connect (blue **+** button), select the build uploaded to TestFlight and add it for review.
+**Details:** [Apple: create the production version](./guides/ios-archive-and-testflight.md#4-create-the-version-for-production-app-store-connect)
 
 **Android: Google Play testing track**
 Upload the `.aab` generated in step 4 to the **Internal testing** track in the Google Play Console and add testers.
