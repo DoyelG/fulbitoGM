@@ -54,11 +54,11 @@ If Android Studio reports a missing `build.gradle` or the project does not sync,
 
 ## All Android guides
 
-| Guide                                                                     | Topic                                  |
-| ------------------------------------------------------------------------- | -------------------------------------- |
-| [google-account-registration.md](./google-account-registration.md)         | Google Play Console account            |
-| [android-keystore.md](./android-keystore.md)                               | Signing keystore                       |
-| [push-notifications.md](./push-notifications.md)                           | Firebase and `google-services.json`    |
-| [android-signed-build.md](./android-signed-build.md)                       | Signed `.aab` / APK                    |
-| [android-upload-to-google-play.md](./android-upload-to-google-play.md)     | Upload, testers and promotion          |
-| [android-gradle-troubleshooting.md](./android-gradle-troubleshooting.md)   | Missing `build.gradle`, Gradle sync    |
+| Guide                                                                    | Topic                               |
+| ------------------------------------------------------------------------ | ----------------------------------- |
+| [google-account-registration.md](./google-account-registration.md)       | Google Play Console account         |
+| [android-keystore.md](./android-keystore.md)                             | Signing keystore                    |
+| [push-notifications.md](./push-notifications.md)                         | Firebase and `google-services.json` |
+| [android-signed-build.md](./android-signed-build.md)                     | Signed `.aab` / APK                 |
+| [android-upload-to-google-play.md](./android-upload-to-google-play.md)   | Upload, testers and promotion       |
+| [android-gradle-troubleshooting.md](./android-gradle-troubleshooting.md) | Missing `build.gradle`, Gradle sync |

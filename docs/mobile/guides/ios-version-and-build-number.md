@@ -16,10 +16,10 @@
 }
 ```
 
-| Value                               | `app.json` key                                          |
-| ----------------------------------- | ------------------------------------------------------- |
-| Version (shown to users)            | `version` and `ios.infoPlist.CFBundleShortVersionString` (keep both equal) |
-| Build number (unique per upload)    | `ios.buildNumber`                                       |
+| Value                            | `app.json` key                                                             |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| Version (shown to users)         | `version` and `ios.infoPlist.CFBundleShortVersionString` (keep both equal) |
+| Build number (unique per upload) | `ios.buildNumber`                                                          |
 
 After editing `app.json`, regenerate the project (see [Xcode configuration](./ios-xcode-configuration.md)):
 

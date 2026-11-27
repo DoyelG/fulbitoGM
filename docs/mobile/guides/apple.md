@@ -62,12 +62,12 @@ See [iOS troubleshooting](./ios-troubleshooting.md), for example the `Undefined 
 
 ## All iOS guides
 
-| Guide                                                             | Topic                                        |
-| ----------------------------------------------------------------- | -------------------------------------------- |
-| [apple-account-registration.md](./apple-account-registration.md)   | Apple Developer Program enrollment           |
-| [ios-app-id-and-device.md](./ios-app-id-and-device.md)             | App ID and test device                       |
-| [push-notifications.md](./push-notifications.md)                   | Firebase, APNs key, certificates, profiles   |
-| [ios-xcode-configuration.md](./ios-xcode-configuration.md)         | Prebuild, signing and capabilities           |
+| Guide                                                                | Topic                                      |
+| -------------------------------------------------------------------- | ------------------------------------------ |
+| [apple-account-registration.md](./apple-account-registration.md)     | Apple Developer Program enrollment         |
+| [ios-app-id-and-device.md](./ios-app-id-and-device.md)               | App ID and test device                     |
+| [push-notifications.md](./push-notifications.md)                     | Firebase, APNs key, certificates, profiles |
+| [ios-xcode-configuration.md](./ios-xcode-configuration.md)           | Prebuild, signing and capabilities         |
 | [ios-version-and-build-number.md](./ios-version-and-build-number.md) | Version and build number rules             |
-| [ios-archive-and-testflight.md](./ios-archive-and-testflight.md)   | Archive, upload and TestFlight               |
-| [ios-troubleshooting.md](./ios-troubleshooting.md)                 | Known build errors                           |
+| [ios-archive-and-testflight.md](./ios-archive-and-testflight.md)     | Archive, upload and TestFlight             |
+| [ios-troubleshooting.md](./ios-troubleshooting.md)                   | Known build errors                         |

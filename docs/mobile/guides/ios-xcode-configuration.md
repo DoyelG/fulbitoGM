@@ -6,11 +6,11 @@
 
 At the moment, **you do not have to modify any setting manually in Xcode**. The `ios` folder is generated after running the command `npx expo prebuild --platform ios --clean` (see [Regenerate the native project](#regenerate-the-native-project)), and every value is defined in code, so it is created correctly each time:
 
-| What                                                                | Where it is defined                                        |
-| ------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Bundle ID, version, build number, Team ID, entitlements, Info.plist | `app.json` (`ios.bundleIdentifier`, `ios.buildNumber`, `ios.appleTeamId`, `ios.entitlements`, `ios.infoPlist`) |
-| Firebase file                                                       | `app.json` (`ios.googleServicesFile`)                      |
-| Extra native changes made during prebuild (Podfile and Xcode project) | `plugins/with-nse-dynamic-frameworks.js`                 |
+| What                                                                  | Where it is defined                                                                                            |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Bundle ID, version, build number, Team ID, entitlements, Info.plist   | `app.json` (`ios.bundleIdentifier`, `ios.buildNumber`, `ios.appleTeamId`, `ios.entitlements`, `ios.infoPlist`) |
+| Firebase file                                                         | `app.json` (`ios.googleServicesFile`)                                                                          |
+| Extra native changes made during prebuild (Podfile and Xcode project) | `plugins/with-nse-dynamic-frameworks.js`                                                                       |
 
 The plugin `plugins/with-nse-dynamic-frameworks.js` runs automatically every time you run `expo prebuild`. It is needed by the notification service extension (`NotifyKitNSE`) used for push notifications, and it does two things:
 
