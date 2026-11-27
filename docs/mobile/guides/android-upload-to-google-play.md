@@ -62,10 +62,10 @@ When the build is tested and approved, go to the **Releases** tab of the track. 
 
 ![Releases tab with the Promote release menu](../images/google/15-upload-abb-store.png)
 
-| Option           | Use it for                                                |
-| ---------------- | --------------------------------------------------------- |
-| **Open testing** | Letting anyone with the link join the test                |
-| **Production**   | Publishing to all users in the selected countries         |
+| Option           | Use it for                                        |
+| ---------------- | ------------------------------------------------- |
+| **Open testing** | Letting anyone with the link join the test        |
+| **Production**   | Publishing to all users in the selected countries |
 
 > **Note:** If **Open testing** or **Production** appear disabled (greyed out, as in the screenshot), Google Play still needs something from you: usually the store listing, the app content declarations, the target countries or the review of the application. Open the **Dashboard** of the Play Console and complete the pending tasks, or wait for the review to finish.
 

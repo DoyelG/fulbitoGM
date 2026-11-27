@@ -78,4 +78,3 @@ Or in the device we can go to Configuration -> General -> information -> SEID.
 ![Device Registration](../images/apple/15-Configuration-AppleStore.png)
 
 > **Important:** The development device must be registered in the Apple Developer account before Xcode can use it for development signing.
-
