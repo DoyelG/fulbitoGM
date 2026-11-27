@@ -1,17 +1,22 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import type { Match } from '@fulbito/types'
 import { formatLongMatchDate, getOpponentLabel, parseMatchDate } from '@fulbito/utils'
-import { Image } from 'expo-image'
-import { Text, View } from 'react-native'
+import { useState } from 'react'
+import { Text, View, type TextLayoutEvent } from 'react-native'
 
 import { PrimaryGradient } from '@/components/primary-gradient'
-import { ContrastColors } from '@/constants/theme'
 
 import { styles } from './match-hero.styles'
 
 type Props = {
   match: Match
-  tournamentPhotoUrl: string | null
+}
+
+function balanceTwoLines(text: string): string {
+  const middle = text.length / 2
+  const spaces = [...text.matchAll(/ /g)].map((match) => match.index)
+  if (spaces.length === 0) return text
+  const split = spaces.reduce((best, index) => (Math.abs(index - middle) < Math.abs(best - middle) ? index : best))
+  return `${text.slice(0, split)}\n${text.slice(split + 1)}`
 }
 
 function Badge({ label }: { label: string }) {
@@ -22,38 +27,34 @@ function Badge({ label }: { label: string }) {
   )
 }
 
-export function MatchHero({ match, tournamentPhotoUrl }: Props) {
+export function MatchHero({ match }: Props) {
   const isDraft = match.status === 'draft'
   const { date } = parseMatchDate(match)
   const winA = !isDraft && match.teamAScore > match.teamBScore
   const winB = !isDraft && match.teamBScore > match.teamAScore
-  const title = match.name || formatLongMatchDate(date)
+  const rawTitle = match.name || formatLongMatchDate(date)
+  const title = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1)
+  const [wrappedTitle, setWrappedTitle] = useState<string | null>(null)
+  const isWrapped = wrappedTitle === title
+
+  const handleTitleLayout = ({ nativeEvent }: TextLayoutEvent) => {
+    if (!isWrapped && nativeEvent.lines.length > 1) setWrappedTitle(title)
+  }
 
   return (
     <View style={styles.card}>
       <PrimaryGradient />
       <View style={styles.header}>
-        <View style={styles.side}>
-          <View style={styles.logo}>
-            {tournamentPhotoUrl ? (
-              <Image
-                source={{ uri: tournamentPhotoUrl }}
-                style={styles.logoImage}
-                contentFit="cover"
-                accessible={false}
-              />
-            ) : (
-              <MaterialCommunityIcons name="trophy" size={20} color={ContrastColors.onColorSoft} accessible={false} />
-            )}
-          </View>
-        </View>
-        <Text style={styles.title} numberOfLines={2} accessibilityRole="header">
-          {title.charAt(0).toUpperCase() + title.slice(1)}
+        <Text
+          style={styles.title}
+          numberOfLines={2}
+          accessibilityRole="header"
+          accessibilityLabel={title}
+          onTextLayout={handleTitleLayout}
+        >
+          {isWrapped ? balanceTwoLines(title) : title}
         </Text>
-        <View style={[styles.side, styles.badges]}>
-          <Badge label={match.type} />
-          {match.isFriendly && <Badge label="Amistoso" />}
-        </View>
+        {match.isFriendly && <Badge label="Amistoso" />}
       </View>
       <View style={styles.scoreRow}>
         <Text style={[styles.team, winB ? styles.teamDim : null]} numberOfLines={1}>

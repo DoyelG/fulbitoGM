@@ -12,6 +12,7 @@ export type WidgetCardProps = {
   href?: string
   linkLabel?: string
   busy?: boolean
+  fill?: boolean
   children: ReactNode
 }
 
@@ -24,6 +25,7 @@ export default function WidgetCard({
   href,
   linkLabel,
   busy = false,
+  fill = false,
   children,
 }: WidgetCardProps) {
   const titleId = `${id}-title`
@@ -31,9 +33,9 @@ export default function WidgetCard({
     <section
       aria-labelledby={titleId}
       aria-busy={busy}
-      className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+      className={`h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ${fill ? 'flex flex-col' : ''}`}
     >
-      <header className="mb-4 flex items-center justify-between gap-3">
+      <header className="mb-3 flex items-center justify-between gap-3">
         <CardTitle id={titleId} title={title} emoji={emoji} icon={icon} tone={tone} />
         {href && linkLabel && (
           <Link
@@ -47,7 +49,9 @@ export default function WidgetCard({
           </Link>
         )}
       </header>
-      <div aria-live="polite">{children}</div>
+      <div aria-live="polite" className={fill ? 'flex flex-1 flex-col' : undefined}>
+        {children}
+      </div>
     </section>
   )
 }

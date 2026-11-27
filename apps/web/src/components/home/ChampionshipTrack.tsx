@@ -4,6 +4,12 @@ export type ChampionshipTrackProps = {
   streak: number
   label: string
   size?: 'sm' | 'md'
+  tone?: 'win' | 'loss'
+}
+
+const TONE_CLASS = {
+  win: { filled: 'bg-primary', empty: 'bg-primary/15' },
+  loss: { filled: 'bg-secondary', empty: 'bg-secondary/15' },
 }
 
 const SIZE_CLASS = {
@@ -11,9 +17,10 @@ const SIZE_CLASS = {
   md: { gap: 'gap-1.5', segment: 'h-3' },
 }
 
-export default function ChampionshipTrack({ streak, label, size = 'md' }: ChampionshipTrackProps) {
+export default function ChampionshipTrack({ streak, label, size = 'md', tone = 'win' }: ChampionshipTrackProps) {
   const filled = Math.min(streak, CHAMPIONSHIP_THRESHOLD)
   const { gap, segment } = SIZE_CLASS[size]
+  const { filled: filledClass, empty } = TONE_CLASS[tone]
   return (
     <div
       role="progressbar"
@@ -24,7 +31,7 @@ export default function ChampionshipTrack({ streak, label, size = 'md' }: Champi
       className={`flex ${gap}`}
     >
       {Array.from({ length: CHAMPIONSHIP_THRESHOLD }, (_, i) => (
-        <span key={i} className={`${segment} flex-1 rounded-full ${i < filled ? 'bg-primary' : 'bg-primary/15'}`} />
+        <span key={i} className={`${segment} flex-1 rounded-full ${i < filled ? filledClass : empty}`} />
       ))}
     </div>
   )

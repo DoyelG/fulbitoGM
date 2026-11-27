@@ -8,8 +8,12 @@ type Props = {
   tournamentPhotoUrl: string | null
 }
 
-function Badge({ children }: { children: string }) {
-  return <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-bold text-white">{children}</span>
+function Badge({ children, className = '' }: { children: string; className?: string }) {
+  return (
+    <span className={`rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-bold text-white ${className}`}>
+      {children}
+    </span>
+  )
 }
 
 function TeamName({ label, highlight }: { label: string; highlight: boolean }) {
@@ -34,7 +38,7 @@ export default function MatchHero({ match, tournamentPhotoUrl }: Props) {
       className="bg-primary-gradient relative isolate overflow-hidden rounded-2xl px-5 py-4 text-white shadow-lg sm:px-6"
     >
       <div className="flex flex-col items-center gap-2 sm:grid sm:grid-cols-[1fr_minmax(0,auto)_1fr]">
-        <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/15 ring-1 ring-white/30 sm:justify-self-start">
+        <span className="relative hidden h-10 w-10 items-center justify-center justify-self-start overflow-hidden rounded-full bg-white/15 ring-1 ring-white/30 sm:flex">
           {tournamentPhotoUrl ? (
             <Image src={tournamentPhotoUrl} alt="" fill unoptimized sizes="40px" className="object-cover" />
           ) : (
@@ -43,12 +47,12 @@ export default function MatchHero({ match, tournamentPhotoUrl }: Props) {
         </span>
         <h1
           id="match-title"
-          className="max-w-full truncate text-center text-xl font-extrabold first-letter:uppercase sm:text-2xl"
+          className="line-clamp-2 max-w-full text-center text-2xl font-extrabold text-balance first-letter:uppercase sm:line-clamp-none sm:truncate sm:text-2xl"
         >
           {match.name || formatLongMatchDate(date)}
         </h1>
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-self-end">
-          <Badge>{match.type}</Badge>
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-self-end sm:justify-end">
+          <Badge className="max-sm:hidden">{match.type}</Badge>
           {match.isFriendly && <Badge>Amistoso</Badge>}
         </div>
       </div>

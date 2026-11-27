@@ -19,6 +19,7 @@ import { useMatchesData } from '@/hooks/use-matches-data'
 import { HomeHero } from '@/components/home/home-hero'
 import { HomeMenuGrid } from '@/components/home/home-menu-grid'
 import { HomeMatchCard } from '@/components/home/home-match-card'
+import { HomeLastMatchCard } from '@/components/home/home-last-match-card'
 import { HomeNextMatchCard } from '@/components/home/home-next-match-card'
 import { HomeRankingRow } from '@/components/home/home-ranking-row'
 import { PersonalStatsGrid } from '@/components/personal/personal-stats-grid'
@@ -33,7 +34,7 @@ import { useMyMatchEntries } from '@/hooks/use-my-match-entries'
 import { useMyVideoClips } from '@/hooks/use-my-video-clips'
 
 const MATCHES_PAGE_SIZE = 5
-const LAST_MATCHES_LIMIT = 2
+const RECENT_MATCHES_LIMIT = 3
 const RANKING_LIMIT = 3
 
 export default function HomeScreen() {
@@ -48,12 +49,15 @@ export default function HomeScreen() {
   const [visibleCount, setVisibleCount] = useState(MATCHES_PAGE_SIZE)
   const today = toLocalDay(new Date())
   const nextMatch = useMemo(() => pickNextMatch(matches, today), [matches, today])
-  const lastMatches = useMemo(() => pickLatestFinalMatches(matches, LAST_MATCHES_LIMIT), [matches])
+  const [latestMatch, ...recentMatches] = useMemo(
+    () => pickLatestFinalMatches(matches, RECENT_MATCHES_LIMIT + 1),
+    [matches],
+  )
   const leaders = useMemo(
     () => pickStreakLeaders(players, matches, { winLimit: RANKING_LIMIT, lossLimit: 0 }).winning,
     [players, matches],
   )
-  const showMatches = loading || Boolean(error) || lastMatches.length > 0
+  const showMatches = loading || Boolean(error) || recentMatches.length > 0
   const showRanking = !isPersonalActive && (loading || leaders.length > 0)
   const personalPlayerId = personal?.membership.playerId ?? null
   const otherClips = useMyVideoClips(isPersonalActive)
@@ -171,6 +175,12 @@ export default function HomeScreen() {
           </HomeSection>
         )}
 
+        {!isPersonalActive && latestMatch && (
+          <HomeSection>
+            <HomeLastMatchCard match={latestMatch} players={players} matches={matches} />
+          </HomeSection>
+        )}
+
         {!isPersonalActive && showMatches && (
           <HomeSection title="ÚLTIMOS PARTIDOS" color={C.text}>
             <View style={styles.matchList} accessibilityLiveRegion="polite">
@@ -178,8 +188,8 @@ export default function HomeScreen() {
               {!loading && error && (
                 <Text style={[styles.message, { color: C.muted }]}>No pudimos cargar los partidos.</Text>
               )}
-              {lastMatches.map((m, i) => (
-                <HomeMatchCard key={m.id} match={m} accentColor={i === 0 ? C.primary : C.secondary} />
+              {recentMatches.map((m) => (
+                <HomeMatchCard key={m.id} match={m} accentColor={C.secondary} />
               ))}
             </View>
           </HomeSection>

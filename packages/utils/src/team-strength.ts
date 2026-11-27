@@ -1,4 +1,4 @@
-import type { MatchPlayer, Player } from '@fulbito/types'
+import type { MatchPlayer, Player, Skills } from '@fulbito/types'
 
 export type TeamTotals = { skill: number; physical: number }
 
@@ -25,4 +25,26 @@ export function teamTotals(players: MatchPlayer[], playerById: Map<string, Playe
 export function winProbabilityA(totalsA: TeamTotals, totalsB: TeamTotals): number {
   const combinedSkill = totalsA.skill + totalsB.skill
   return combinedSkill > 0 ? Math.round((totalsA.skill / combinedSkill) * 100) : 50
+}
+
+export type SkillKey = keyof Skills
+
+export const SKILL_KEYS: readonly SkillKey[] = ['physical', 'technical', 'tactical', 'psychological']
+
+export type TeamSkillAverages = Record<SkillKey, number | null>
+
+export function teamSkillAverages(players: MatchPlayer[], playerById: Map<string, Player>): TeamSkillAverages {
+  const averageOf = (key: SkillKey): number | null => {
+    const values = players.flatMap((player) => {
+      const value = playerById.get(player.id)?.skills?.[key]
+      return typeof value === 'number' ? [value] : []
+    })
+    return values.length > 0 ? oneDecimal(values.reduce((sum, value) => sum + value, 0) / values.length) : null
+  }
+  return {
+    physical: averageOf('physical'),
+    technical: averageOf('technical'),
+    tactical: averageOf('tactical'),
+    psychological: averageOf('psychological'),
+  }
 }

@@ -1,14 +1,21 @@
+'use client'
+
+import type { ReactNode } from 'react'
 import type { Match, MatchPlayer } from '@fulbito/types'
-import { getMatchMvpName, getTeamScorers, summarizeTeam } from '@fulbito/utils'
-import TeamScorers from './TeamScorers'
+import { getMatchMvpName, getTeamScorers } from '@fulbito/utils'
+import { usePlayerStore } from '@/store/usePlayerStore'
+import MatchPitch from './MatchPitch'
+import PlayerAvatar from './PlayerAvatar'
 
-type TeamColumnProps = { label: string; summary: string; isWinner: boolean }
+type TeamColumnProps = { label: string; isWinner: boolean; align: 'left' | 'right' }
 
-function TeamColumn({ label, summary, isWinner }: TeamColumnProps) {
+const BADGE =
+  'inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full bg-white/10 py-1 pr-3 text-sm font-medium text-gray-100'
+
+function TeamColumn({ label, isWinner, align }: TeamColumnProps) {
   return (
-    <div className="min-w-0">
+    <div className={`min-w-0 ${align === 'right' ? 'text-right' : 'text-left'}`}>
       <p className={`truncate text-sm font-bold sm:text-lg ${isWinner ? 'text-orange-300' : 'text-white'}`}>{label}</p>
-      <p className="hidden truncate text-xs text-gray-300 sm:block">{summary}</p>
     </div>
   )
 }
@@ -24,46 +31,62 @@ function srScorers(label: string, scorers: MatchPlayer[]): string {
   return ` Goles de ${label}: ${list}.`
 }
 
-export default function ScoreboardResult({ match }: { match: Match }) {
+export type ScoreboardResultProps = { match: Match; action?: ReactNode }
+
+export default function ScoreboardResult({ match, action }: ScoreboardResultProps) {
   const { teamAScore: a, teamBScore: b } = match
+  const shirtsPlayer = usePlayerStore((state) =>
+    match.shirtsResponsibleId ? state.players.find((player) => player.id === match.shirtsResponsibleId) : undefined,
+  )
+  const mvpPlayer = usePlayerStore((state) =>
+    match.mvpId ? state.players.find((player) => player.id === match.mvpId) : undefined,
+  )
   const mvpName = getMatchMvpName(match)
-  const scorersA = getTeamScorers(match.teamA)
-  const scorersB = getTeamScorers(match.teamB)
-  const hasScorers = scorersA.length > 0 || scorersB.length > 0
 
   return (
     <div>
       <p className="sr-only">
         {srResult(a, b)}
-        {srScorers('Equipo A', scorersA)}
-        {srScorers('Equipo B', scorersB)}
+        {srScorers('Equipo A', getTeamScorers(match.teamA))}
+        {srScorers('Equipo B', getTeamScorers(match.teamB))}
       </p>
       <div aria-hidden className="mx-auto max-w-2xl">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 sm:gap-x-8">
-          <TeamColumn label="Equipo A" summary={summarizeTeam(match.teamA)} isWinner={a > b} />
-          <p className="text-glow-primary text-5xl leading-none font-black tabular-nums sm:text-7xl">
+          <TeamColumn label="Equipo A" isWinner={a > b} align="right" />
+          <p className="text-glow-primary text-5xl leading-none font-black tabular-nums sm:text-[3.5rem]">
             {a}
             <span className="mx-2 text-white/35">:</span>
             {b}
           </p>
-          <TeamColumn label="Equipo B" summary={summarizeTeam(match.teamB)} isWinner={b > a} />
+          <TeamColumn label="Equipo B" isWinner={b > a} align="left" />
         </div>
-        {hasScorers && (
-          <div className="mt-5 grid grid-cols-2 gap-x-3 border-t border-white/10 pt-4 sm:gap-x-8">
-            <div>
-              <TeamScorers scorers={scorersA} />
-            </div>
-            <div>
-              <TeamScorers scorers={scorersB} />
-            </div>
-          </div>
-        )}
       </div>
-      {mvpName && (
-        <p className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-gray-100">
-          <span aria-hidden>⭐</span>
-          MVP {mvpName}
-        </p>
+      <MatchPitch
+        className="mt-4"
+        wide
+        teamA={match.teamA}
+        teamB={match.teamB}
+        mvpId={match.mvpId}
+        goalkeeperIds={match.goalkeeperIds}
+      />
+      {(mvpName || shirtsPlayer || action) && (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          {mvpName && (
+            <p className={`${BADGE} pl-1`}>
+              <PlayerAvatar name={mvpName} photoUrl={mvpPlayer?.photoUrl} onDark />
+              <span aria-hidden>⭐</span>
+              <span className="truncate">MVP {mvpName}</span>
+            </p>
+          )}
+          {shirtsPlayer && (
+            <p className={`${BADGE} pl-1`}>
+              <PlayerAvatar name={shirtsPlayer.name} photoUrl={shirtsPlayer.photoUrl} onDark />
+              <span aria-hidden>👕</span>
+              <span className="truncate">Utilero: {shirtsPlayer.name}</span>
+            </p>
+          )}
+          {action}
+        </div>
       )}
     </div>
   )

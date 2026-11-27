@@ -3,11 +3,12 @@ import {
   buildMentionCandidates,
   isPersonalTournament,
   isTournamentAdminRole,
+  teamSkillAverages,
   teamTotals,
   winProbabilityA,
 } from '@fulbito/utils'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -24,6 +25,8 @@ import { styles } from '@/components/match-detail/match-detail-screen.styles'
 import { MatchHero } from '@/components/match-detail/match-hero'
 import { MatchHighlightsCard } from '@/components/match-detail/match-highlights-card'
 import { MatchInfoCard } from '@/components/match-detail/match-info-card'
+import { MatchPitchSection } from '@/components/match-detail/match-pitch-section'
+import { MatchStatsCard } from '@/components/match-detail/match-stats-card'
 import { MatchTeamCard, type TeamResult } from '@/components/match-detail/match-team-card'
 import { TournamentCommentsCard } from '@/components/match-detail/tournament-comments-card'
 import { PlayerClipsSection } from '@/components/players/detail/player-clips-section'
@@ -60,7 +63,8 @@ export default function MatchDetailScreen() {
   const { activeTournament } = useTournaments()
   const myPlayerId = useMyPlayerId()
   const canManage = useCanManageTournament()
-  const { matches, players, loading, error, refreshing, refresh, reload } = useMatchesData()
+  const { matches, players, loading, error, refreshing, refresh, reload, updateMatchPositions } = useMatchesData()
+  const [isDraggingOnPitch, setIsDraggingOnPitch] = useState(false)
   const tournamentId = activeTournament?.tournament.id ?? null
   const isPersonal = isPersonalTournament(activeTournament?.tournament)
   const comments = useTournamentComments(tournamentId)
@@ -80,7 +84,8 @@ export default function MatchDetailScreen() {
   }, [members, playerById])
   const mentionCandidates = useMemo(() => buildMentionCandidates(players, members), [players, members])
 
-  const goBack = () => (router.canGoBack() ? router.back() : router.replace(isPersonal ? '/(tabs)/home' : '/(tabs)/history'))
+  const goBack = () =>
+    router.canGoBack() ? router.back() : router.replace(isPersonal ? '/(tabs)/home' : '/(tabs)/history')
 
   if (!match) {
     return (
@@ -124,6 +129,7 @@ export default function MatchDetailScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scroll}
+          scrollEnabled={!isDraggingOnPitch}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.primaryText} />
           }
@@ -151,34 +157,48 @@ export default function MatchDetailScreen() {
             )}
           </View>
 
-          <MatchHero match={match} tournamentPhotoUrl={activeTournament?.tournament.photoUrl ?? null} />
+          <MatchHero match={match} />
 
           <SectionTitle title="Datos del partido" />
           <MatchInfoCard match={match} playerById={playerById} />
 
-          <SectionTitle title="Equipos" />
-          <View style={styles.teams}>
-            <MatchTeamCard
-              {...shared}
-              title="Equipo A"
-              players={match.teamA}
-              result={isDraft ? null : teamResult(match.teamAScore, match.teamBScore)}
-              totals={totalsA}
-              winProbability={probabilityA}
-              tone="primary"
+          {!isPersonal && (
+            <MatchPitchSection
+              match={match}
+              players={players}
+              matches={matches}
+              editable={canManage}
+              onSave={(positions) => updateMatchPositions(match.id, positions)}
+              onDraggingChange={setIsDraggingOnPitch}
             />
-            {!isPersonal && (
-              <MatchTeamCard
-                {...shared}
-                title="Equipo B"
-                players={match.teamB}
-                result={isDraft ? null : teamResult(match.teamBScore, match.teamAScore)}
-                totals={totalsB}
-                winProbability={100 - probabilityA}
-                tone="secondary"
+          )}
+
+          {!isPersonal && (
+            <>
+              <SectionTitle title="Estadísticas" />
+              <MatchStatsCard
+                teamA={{ skills: teamSkillAverages(match.teamA, playerById), winProbability: probabilityA }}
+                teamB={{ skills: teamSkillAverages(match.teamB, playerById), winProbability: 100 - probabilityA }}
               />
-            )}
-          </View>
+            </>
+          )}
+
+          {isPersonal && (
+            <>
+              <SectionTitle title="Equipos" />
+              <View style={styles.teams}>
+                <MatchTeamCard
+                  {...shared}
+                  title="Equipo A"
+                  players={match.teamA}
+                  result={isDraft ? null : teamResult(match.teamAScore, match.teamBScore)}
+                  totals={totalsA}
+                  winProbability={probabilityA}
+                  tone="primary"
+                />
+              </View>
+            </>
+          )}
 
           <SectionTitle title="Clips" />
           <PlayerClipsSection matchId={match.id} matches={matches} canUpload={canManage || isParticipant} />

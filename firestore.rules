@@ -188,12 +188,25 @@ service cloud.firestore {
       allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
     }
 
+    function isPitchPercent(data, key) {
+      return !(key in data) || (data[key] is number && data[key] >= 0 && data[key] <= 100);
+    }
+
+    // Pitch position (x, y) is a percentage of the field; only managers write matchPlayers at all.
+    function hasValidPitchPosition(data) {
+      return isPitchPercent(data, 'x') && isPitchPercent(data, 'y');
+    }
+
     match /matchPlayers/{id} {
       allow read: if isSignedIn() && canReadTournament(resource.data.tournamentId);
       allow create: if isSignedIn()
         && request.resource.data.tournamentId is string
+        && hasValidPitchPosition(request.resource.data)
         && canManageTournament(request.resource.data.tournamentId);
-      allow update: if isSignedIn() && keepsTournament() && canManageTournament(resource.data.tournamentId);
+      allow update: if isSignedIn()
+        && keepsTournament()
+        && hasValidPitchPosition(request.resource.data)
+        && canManageTournament(resource.data.tournamentId);
       allow delete: if isSignedIn() && canManageTournament(resource.data.tournamentId);
     }
 

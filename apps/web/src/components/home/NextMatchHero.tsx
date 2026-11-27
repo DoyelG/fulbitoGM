@@ -20,9 +20,9 @@ export default function NextMatchHero() {
     <section
       aria-labelledby="next-match-title"
       aria-busy={status === 'loading'}
-      className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-r from-primary-dark to-night px-5 py-5 text-white shadow-xl sm:px-8"
+      className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-r from-primary-dark to-night px-5 py-3 text-white shadow-xl sm:px-8"
     >
-      <div aria-live="polite" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div aria-live="polite" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {status === 'loading' && (
           <>
             <span className="sr-only">Cargando el próximo partido…</span>
@@ -39,7 +39,7 @@ export default function NextMatchHero() {
             </div>
             <Link
               href="/match"
-              className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
+              className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-2 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
             >
               Preparar partido
             </Link>
@@ -73,7 +73,7 @@ export default function NextMatchHero() {
             </div>
             <Link
               href={`/history/${next.id}`}
-              className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-3 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
+              className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-2 font-extrabold text-night shadow-lg shadow-secondary/35 transition hover:brightness-110 ${FOCUS_ON_DARK}`}
             >
               Ver partido
             </Link>

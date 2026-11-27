@@ -6,7 +6,9 @@ import {
   getHotStreakIds,
   onlyFinalMatches,
   parseMatchDate,
+  resolveTeamPositions,
   seedPriorityPlayers,
+  withPitchPositions,
 } from '@fulbito/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, View } from 'react-native'
@@ -31,6 +33,8 @@ import { usePool } from './matchForm/usePool'
 import { useScores } from './matchForm/useScores'
 import { pickShirtsResponsible, useShirts } from './matchForm/useShirts'
 import { useTeams } from './matchForm/useTeams'
+import { usePitchPositions } from './matchForm/use-pitch-positions'
+import { PitchEditorSection } from './matchForm/pitchEditorSection'
 import { LocationField } from './matchForm/locationField'
 
 export type MatchFormProps = {
@@ -75,6 +79,9 @@ export function MatchForm({
   const teams = useTeams(initial)
   const scores = useScores(initial)
   const shirts = useShirts(allMatches, teams.teamA, teams.teamB, initial)
+  const pitch = usePitchPositions(initial)
+  const [isDraggingOnPitch, setIsDraggingOnPitch] = useState(false)
+  const roleById = useMemo(() => Object.fromEntries(players.map((player) => [player.id, player.position])), [players])
 
   const teamStats = useMemo(
     () => computeTeamStats(teams.teamA, teams.teamB, pool.poolPlayers),
@@ -152,6 +159,16 @@ export function MatchForm({
     teams.setTeamB(result.teamB.players.map((player) => ({ id: player.id, name: player.name })))
   }
 
+  const positionsToSave = () => {
+    const placed = pitch.positionsFor(teams.teamA, teams.teamB)
+    if (!isCreating) return placed
+    const gkIds = [...goalkeeperIds]
+    return {
+      ...resolveTeamPositions(withPitchPositions(teams.teamA, placed), gkIds, 'A', roleById),
+      ...resolveTeamPositions(withPitchPositions(teams.teamB, placed), gkIds, 'B', roleById),
+    }
+  }
+
   const handleSave = async () => {
     if (!canSave) return
     try {
@@ -167,6 +184,7 @@ export function MatchForm({
         goalkeeperIds: [...goalkeeperIds],
         isMatchFriendly,
         matchLocation,
+        positions: positionsToSave(),
       }
       const payload = isCreating
         ? buildDraftMatchPayload(base)
@@ -191,6 +209,7 @@ export function MatchForm({
       style={[styles.scroll, { backgroundColor: colors.background }]}
       contentContainerStyle={[styles.container, { padding: spacing.lg }]}
       keyboardShouldPersistTaps="handled"
+      scrollEnabled={!isDraggingOnPitch}
     >
       <NameField
         value={matchName}
@@ -246,6 +265,18 @@ export function MatchForm({
           playersPerTeam={playersPerTeam}
           hasTeams={teams.teamA.length > 0 || teams.teamB.length > 0}
           onPress={generateRemainingTeams}
+        />
+      ) : null}
+
+      {isCreating && teamsComplete ? (
+        <PitchEditorSection
+          teamA={teams.teamA}
+          teamB={teams.teamB}
+          positions={pitch.positionsFor(teams.teamA, teams.teamB)}
+          goalkeeperIds={[...goalkeeperIds]}
+          players={players}
+          onPlayerMove={pitch.move}
+          onDraggingChange={setIsDraggingOnPitch}
         />
       ) : null}
 

@@ -6,22 +6,20 @@ import { useMatchStore } from '@/store/useMatchStore'
 import { usePlayerStore } from '@/store/usePlayerStore'
 import { useHomeStatus } from '@/hooks/use-home-status'
 import ChampionshipChasers from './ChampionshipChasers'
+import ChampionshipLosingStreaks from './ChampionshipLosingStreaks'
 import ChampionshipTrack from './ChampionshipTrack'
 import PlayerAvatar from './PlayerAvatar'
 import WidgetCard from './WidgetCard'
 import WidgetError from './WidgetError'
 import WidgetSkeleton from './WidgetSkeleton'
 
-const CHASER_LIMIT = 2
-
-function streakLabel(streak: number): string {
-  return streak === 1 ? '1 victoria seguida' : `${streak} victorias seguidas`
-}
+const CHASER_LIMIT = 3
+const LOSING_LIMIT = 3
 
 function remainingLabel(streak: number): string {
   const left = CHAMPIONSHIP_THRESHOLD - streak
   if (left <= 0) return '¡Salió campeón!'
-  return left === 1 ? 'Le falta 1 victoria para salir campeón' : `Le faltan ${left} victorias para salir campeón`
+  return left === 1 ? 'Le falta 1 victoria' : `Le faltan ${left} victorias`
 }
 
 export default function ChampionshipWidget() {
@@ -29,12 +27,13 @@ export default function ChampionshipWidget() {
   const matches = useMatchStore((s) => s.matches)
   const { status, retry } = useHomeStatus()
   const progress = useMemo(() => pickChampionshipProgress(players, onlyFinalMatches(matches)), [players, matches])
+  const leaders = useMemo(
+    () => pickStreakLeaders(players, matches, { winLimit: CHASER_LIMIT + 1, lossLimit: LOSING_LIMIT }),
+    [players, matches],
+  )
   const chasers = useMemo(
-    () =>
-      pickStreakLeaders(players, matches, { winLimit: CHASER_LIMIT + 1, lossLimit: 0 })
-        .winning.filter((l) => l.playerId !== progress?.playerId)
-        .slice(0, CHASER_LIMIT),
-    [players, matches, progress],
+    () => leaders.winning.filter((l) => l.playerId !== progress?.playerId).slice(0, CHASER_LIMIT),
+    [leaders, progress],
   )
   const streak = progress?.streak ?? 0
   const trackLabel = `Progreso al campeonato: ${Math.min(streak, CHAMPIONSHIP_THRESHOLD)} de ${CHAMPIONSHIP_THRESHOLD} victorias`
@@ -48,35 +47,36 @@ export default function ChampionshipWidget() {
       href="/awards"
       linkLabel="Ver premios"
       busy={status === 'loading'}
+      fill
     >
       {status === 'loading' && <WidgetSkeleton rows={3} />}
       {status === 'error' && <WidgetError onRetry={retry} />}
       {status === 'ready' && (
-        <div className="space-y-4">
-          {progress ? (
-            <div className="flex min-w-0 items-center gap-3 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 p-3">
-              <PlayerAvatar name={progress.playerName} photoUrl={progress.playerPhotoUrl} size="md" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-lg font-bold text-gray-900">{progress.playerName}</p>
-                <p className="text-sm text-gray-700">{streakLabel(progress.streak)}</p>
+        <div className="flex flex-1 flex-col justify-between gap-2">
+          <div className="space-y-2.5">
+            {progress ? (
+              <div className="flex min-w-0 items-center gap-3 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 px-3 py-2.5">
+                <PlayerAvatar name={progress.playerName} photoUrl={progress.playerPhotoUrl} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-lg font-bold text-gray-900">{progress.playerName}</p>
+                  <p className="text-sm text-gray-700">
+                    {progress.isChampion ? <strong>{remainingLabel(streak)}</strong> : remainingLabel(streak)}
+                  </p>
+                </div>
+                <p aria-hidden className="shrink-0 leading-none">
+                  <span className="text-4xl font-black text-primary tabular-nums">
+                    {Math.min(streak, CHAMPIONSHIP_THRESHOLD)}
+                  </span>
+                  <span className="text-lg font-bold text-gray-600">/{CHAMPIONSHIP_THRESHOLD}</span>
+                </p>
               </div>
-              <p aria-hidden className="shrink-0 leading-none">
-                <span className="text-4xl font-black text-primary tabular-nums">
-                  {Math.min(streak, CHAMPIONSHIP_THRESHOLD)}
-                </span>
-                <span className="text-lg font-bold text-gray-600">/{CHAMPIONSHIP_THRESHOLD}</span>
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-600">Nadie viene ganando seguido todavía.</p>
-          )}
-          <ChampionshipTrack streak={streak} label={trackLabel} />
-          {progress && (
-            <p className="text-sm text-gray-700">
-              {progress.isChampion ? <strong>{remainingLabel(streak)}</strong> : remainingLabel(streak)}
-            </p>
-          )}
+            ) : (
+              <p className="text-sm text-gray-600">Nadie viene ganando seguido todavía.</p>
+            )}
+            <ChampionshipTrack streak={streak} label={trackLabel} />
+          </div>
           <ChampionshipChasers chasers={chasers} />
+          <ChampionshipLosingStreaks streaks={leaders.losing} />
         </div>
       )}
     </WidgetCard>

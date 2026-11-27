@@ -162,6 +162,27 @@ export const PrimaryColors = {
   avatarRing: 'rgba(255,255,255,0.5)',
 } as const
 
+export const PitchColors = {
+  field: 'rgba(255,255,255,0.04)',
+  line: 'rgba(255,255,255,0.22)',
+  guide: 'rgba(255,255,255,0.35)',
+  teamARing: '#fdba74',
+  mvpRing: '#f97316',
+  name: '#ffffff',
+  badgeBg: 'rgba(255,255,255,0.1)',
+  kicker: '#ddd6fe',
+  kickerDate: 'rgba(237,233,254,0.8)',
+  scoreGlow: 'rgba(124,58,237,0.6)',
+  scoreSeparator: 'rgba(255,255,255,0.35)',
+  cardBg: '#ffffff',
+  cardText: '#111827',
+  cardSubtle: '#4b5563',
+  cardLabel: '#6b7280',
+  cardDivider: '#e5e7eb',
+  cardIconPressed: '#f3f4f6',
+  cardShadow: '#000000',
+} as const
+
 export const ContrastColors = {
   onColor: '#ffffff',
   onSecondary: '#0b0b1a',
@@ -214,6 +235,7 @@ export const Radii = {
 } as const
 
 export const Spacing = {
+  xxs: 2,
   xs: 4,
   sm: 8,
   md: 12,
