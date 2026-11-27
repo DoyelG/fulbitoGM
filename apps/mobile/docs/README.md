@@ -6,15 +6,17 @@ This is the **map** of the whole process. Each step has a short description. Whe
 
 ## Quick reference
 
-| Item                  | Value                                                                 |
-| --------------------- | --------------------------------------------------------------------- |
-| App name              | FulbitoApp                                                            |
-| Bundle ID / package   | `com.fulbitoapp.app` (iOS and Android)                                |
-| Apple Team ID         | `KFQ42Y6Z73`                                                          |
-| Firebase project      | `fulbitoGM`                                                           |
-| App Store (iOS)       | [Fulbito App](https://apps.apple.com/us/app/fulbito-app/id6810410637) |
-| Google Play (Android) | Pending: the app is still in review, URL not available yet            |
-| Framework             | Expo (React Native) with native builds (`ios/`, `android/`)           |
+| Item                  | Value                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| App name              | FulbitoApp                                                                                   |
+| Bundle ID / package   | `com.fulbitoapp.app` (iOS and Android)                                                       |
+| Apple Team ID         | `KFQ42Y6Z73`                                                                                 |
+| Firebase project      | `fulbitoGM`                                                                                  |
+| App Store (iOS)       | [Fulbito App](https://apps.apple.com/us/app/fulbito-app/id6810410637)                        |
+| Google Play (Android) | Pending: the app is still in review, URL not available yet                                   |
+| App Store Connect     | [Apps dashboard](https://appstoreconnect.apple.com/apps)                                     |
+| Google Play Console   | [Developer console](https://play.google.com/console/u/0/developers/7607020183950163118/home) |
+| Framework             | Expo (React Native) with native builds (`ios/`, `android/`)                                  |
 
 ## Which guide do I need?
 
