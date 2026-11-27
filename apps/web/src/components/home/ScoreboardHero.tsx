@@ -34,12 +34,19 @@ export default function ScoreboardHero() {
         sizes="(min-width: 1024px) 736px, 100vw"
         className="pointer-events-none -z-10 object-cover object-right opacity-50 mix-blend-luminosity select-none [mask-image:linear-gradient(to_left,black_20%,transparent_70%)] sm:opacity-70"
       />
-      <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 sm:grid-cols-[3rem_minmax(0,1fr)_3rem]">
-        <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white/15 ring-1 ring-white/30 sm:-my-2.5">
+      <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 sm:grid-cols-[3rem_minmax(0,1fr)_3rem] lg:grid-cols-[4rem_minmax(0,1fr)_4rem]">
+        <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white/15 ring-1 ring-white/30 sm:-my-2.5 lg:-my-6 lg:h-16 lg:w-16 lg:translate-y-7.5">
           {tournamentPhotoUrl ? (
-            <Image src={tournamentPhotoUrl} alt="" fill unoptimized sizes="36px" className="object-cover" />
+            <Image
+              src={tournamentPhotoUrl}
+              alt=""
+              fill
+              unoptimized
+              sizes="(min-width: 1024px) 64px, 36px"
+              className="object-cover"
+            />
           ) : (
-            <TrophyIcon className="h-5 w-5 text-violet-100" aria-hidden />
+            <TrophyIcon className="h-5 w-5 text-violet-100 lg:h-8 lg:w-8" aria-hidden />
           )}
         </span>
         <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
