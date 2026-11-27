@@ -1,3 +1,12 @@
+import { PrimaryGradient } from '@/components/primary-gradient'
+import { Colors, ContrastColors, Shadows } from '@/constants/theme'
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
+import { useColorScheme } from '@/hooks/use-color-scheme'
+import { styles } from '@/styles/login.styles'
+import { authErrorMessage } from '@fulbito/utils'
+import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
 import { useState } from 'react'
 import {
   ActivityIndicator,
@@ -10,15 +19,6 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
-import { authErrorMessage } from '@fulbito/utils'
-import { useRouter } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
-import { PrimaryGradient } from '@/components/primary-gradient'
-import { Colors, ContrastColors, Shadows } from '@/constants/theme'
-import { useColorScheme } from '@/hooks/use-color-scheme'
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext'
-import { styles } from '@/styles/login.styles'
 
 const LOGO = require('@/assets/images/logo-ball.png')
 
@@ -58,7 +58,7 @@ export default function LoginScreen() {
       <SafeAreaView style={styles.flex}>
         <KeyboardAvoidingView
           style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
         >
           <ScrollView

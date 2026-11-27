@@ -1,7 +1,8 @@
 import { getPlayers } from '@fulbito/firebase'
 import type { Player, TournamentComment } from '@fulbito/types'
 import { buildMentionCandidates, isPersonalTournament, isTournamentAdminRole } from '@fulbito/utils'
-import { useMemo, useRef, useState, type ComponentRef } from 'react'
+import { useLocalSearchParams } from 'expo-router'
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
 import { FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -31,10 +32,15 @@ export default function MessagesScreen() {
   )
   const activeTournament = isPersonalTournament(currentTournament?.tournament) ? null : currentTournament
   const { unreadByTournament, markSeen } = useUnreadComments()
-  const [chosenId, setChosenId] = useState<string | null>(null)
+  const { tournamentId: linkedTournamentId } = useLocalSearchParams<{ tournamentId?: string }>()
+  const [chosenId, setChosenId] = useState<string | null>(linkedTournamentId ?? null)
   const rootRef = useRef<ComponentRef<typeof View>>(null)
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const threadRef = useRef<FlatList<TournamentComment>>(null)
+
+  useEffect(() => {
+    if (linkedTournamentId) setChosenId(linkedTournamentId)
+  }, [linkedTournamentId])
 
   const selected =
     myTournaments.find(({ tournament }) => tournament.id === chosenId) ?? activeTournament ?? myTournaments[0] ?? null
@@ -84,7 +90,7 @@ export default function MessagesScreen() {
       >
         <KeyboardAvoidingView
           style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={keyboardOffset}
         >
           <View style={styles.header}>

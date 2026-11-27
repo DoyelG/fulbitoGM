@@ -42,7 +42,7 @@ export function BottomSheet({
 
   return (
     <Modal transparent animationType="fade" visible onRequestClose={onDismiss ?? onConfirm}>
-      <KeyboardAvoidingView style={sheetStyles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={sheetStyles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Pressable style={sheetStyles.backdrop} onPress={onDismiss ?? onConfirm} />
         <View style={[sheetStyles.container, { backgroundColor: colors.surface }, containerStyle]}>
           <View style={[sheetStyles.header, hideTitle && sheetStyles.headerEnd]}>

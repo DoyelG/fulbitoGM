@@ -1,8 +1,8 @@
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native'
 
+import { PlayerGoldCard } from '@/components/players/detail/player-gold-card'
 import { BasicInfoCard } from '@/components/players/new/basic-info-card'
 import { FormActions } from '@/components/players/new/form-actions'
-import { PlayerGoldCard } from '@/components/players/detail/player-gold-card'
 import { SkillsSection, type SkillKey, type SkillValues } from '@/components/players/new/skills-section'
 import { ThemedText } from '@/components/themed-text'
 import { useTournaments } from '@/contexts/TournamentContext'
@@ -25,15 +25,7 @@ type Props = {
   onCancel: () => void
 }
 
-export function PlayerCreateForm({
-  values,
-  onChange,
-  photoUri,
-  onPickPhoto,
-  saving,
-  onSave,
-  onCancel,
-}: Props) {
+export function PlayerCreateForm({ values, onChange, photoUri, onPickPhoto, saving, onSave, onCancel }: Props) {
   const { colors } = useAppTheme()
   const { activeTournament } = useTournaments()
   const overall = (values.physical + values.technical + values.tactical + values.psychological) / 4
@@ -45,9 +37,7 @@ export function PlayerCreateForm({
     onChange({ ...values, [key]: val })
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scroll}
